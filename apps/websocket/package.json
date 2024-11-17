@@ -13,7 +13,7 @@
         "@repo/connect": "workspace:*"
     },
     "devDependencies": {
-        "@types/node": "^20.11.17",
+        "@types/node": "^22.9.0",
         "tsx": "^4.7.1"
     }
 }
