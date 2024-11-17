@@ -18,7 +18,7 @@ FROM base AS prod
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /home/app/api
 COPY --from=builder /prod/api ./
-WORKDIR /home/app/api/prod/api
+RUN rm src package.json tsconfig.json
 EXPOSE 3000
 USER app
 CMD ["pnpm", "start"]
