@@ -2,7 +2,7 @@
     "name": "@repo/connect",
     "private": true,
     "type": "module",
-    "scrips": {
+    "scripts": {
         "build": "tsc",
         "prepare": "pnpm run build"
     },
