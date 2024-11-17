@@ -5,7 +5,7 @@
         "esModuleInterop": true,
         "incremental": false,
         "isolatedModules": true,
-        //"outDir": "dist", // TODO: this should be in the dist folder but other modules resolve imports from the root, need to fix
+        "outDir": "dist",
         "module": "NodeNext",
         "moduleDetection": "force",
         "moduleResolution": "NodeNext",

@@ -2,6 +2,10 @@
     "name": "@repo/connect",
     "private": true,
     "type": "module",
+    "exports": {
+        "prod": "./dist/index.js",
+        "default": "./src/index.ts"
+    },
     "scripts": {
         "build": "tsc",
         "prepare": "pnpm run build"

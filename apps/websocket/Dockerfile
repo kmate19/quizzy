@@ -19,7 +19,7 @@ FROM base AS prod
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /home/app/websocket
 COPY --from=builder /prod/websocket ./
-RUN rm -rf src package.json tsconfig.json
+RUN rm -rf src tsconfig.json
 EXPOSE 3000
 USER app
 CMD ["pnpm", "start"]
