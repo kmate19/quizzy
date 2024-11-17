@@ -10,9 +10,9 @@ COPY pnpm-workspace.yaml ./
 COPY apps/websocket/src ./apps/websocket/src/
 COPY apps/websocket/tsconfig.json ./apps/websocket/
 COPY packages/ ./packages/
-RUN npm install -g typescript
+# RUN npm install -g typescript
 RUN pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN pnpm run --filter websocket build
 RUN pnpm deploy --filter websocket --prod /prod/websocket
 
 FROM base AS prod
