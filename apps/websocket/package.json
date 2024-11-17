@@ -4,12 +4,13 @@
     "type": "module",
     "scripts": {
         "build": "tsc",
-        "start": "node dist/index.js",
+        "start": "node --conditions=prod dist/index.js",
         "dev": "tsx watch src/index.ts"
     },
     "dependencies": {
         "@hono/node-server": "^1.13.7",
-        "hono": "^4.6.10"
+        "hono": "^4.6.10",
+        "@repo/connect": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^20.11.17",

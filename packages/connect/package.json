@@ -1,0 +1,20 @@
+{
+    "name": "@repo/connect",
+    "private": true,
+    "type": "module",
+    "exports": {
+        "prod": "./dist/index.js",
+        "default": "./src/index.ts"
+    },
+    "scripts": {
+        "build": "tsc",
+        "prepare": "pnpm run build"
+    },
+    "dependencies": {
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.12"
+    }
+}
