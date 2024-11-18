@@ -12,12 +12,7 @@ RUN pnpm run --filter frontend build
 # RUN pnpm deploy --filter frontend --prod /prod/frontend
 
 FROM nginx:alpine AS prod
-# RUN addgroup -S app && adduser -S app -G app
-# WORKDIR /home/app/frontend
-WORKDIR /app
-RUN mkdir dist
 COPY --from=builder app/apps/frontend/dist /usr/share/nginx/html
-# WORKDIR /home/app/frontend/prod/frontend
-# USER app
+COPY apps/frontend/nginx.conf /etc/custom_conf/nginx.conf
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;", "-c", "/etc/custom_conf/nginx.conf"]
