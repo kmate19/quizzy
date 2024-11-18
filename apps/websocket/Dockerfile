@@ -1,5 +1,5 @@
 FROM node:23-alpine AS base
-RUN npm install -g pnpm
+RUN corepack enable pnpm
 
 FROM base AS builder
 WORKDIR /app
@@ -10,7 +10,6 @@ COPY pnpm-workspace.yaml ./
 COPY apps/websocket/src ./apps/websocket/src/
 COPY apps/websocket/tsconfig.json ./apps/websocket/
 COPY packages/ ./packages/
-# RUN npm install -g typescript
 RUN pnpm install --frozen-lockfile
 RUN pnpm run --filter websocket build
 RUN pnpm deploy --filter websocket --prod /prod/websocket
