@@ -17,7 +17,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
+      api: ${{ steps.filter.outputs.api }}
       frontend: ${{ steps.filter.outputs.frontend }}
       websocket: ${{ steps.filter.outputs.websocket }}
     steps:
@@ -26,8 +26,8 @@ jobs:
         id: filter
         with:
           filters: |
-            backend:
-              - 'apps/backend/**'
+            api:
+              - 'apps/api/**'
               - 'packages/**'  # If you have shared code
             frontend:
               - 'apps/frontend/**'
@@ -36,9 +36,9 @@ jobs:
               - 'apps/websocket/**'
               - 'packages/**'  # If you have shared code
 
-  build-backend:
+  build-api:
     needs: changes
-    if: ${{ needs.changes.outputs.backend == 'true' }}
+    if: ${{ needs.changes.outputs.api == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,15 +50,15 @@ jobs:
           username: kmate19
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Build and push Backend
+      - name: Build and push Api
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: apps/backend/Dockerfile
+          file: apps/api/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/backend:latest
-            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/api:latest
+            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
 
   build-frontend:
     needs: changes

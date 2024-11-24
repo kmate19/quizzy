@@ -3,9 +3,7 @@ import { Hono } from "hono";
 
 const app = new Hono();
 
-type asd = {
-    name: string;
-}
+// bro
 
 app.get("/", (c) => {
     return c.text("Hello Hono!");
