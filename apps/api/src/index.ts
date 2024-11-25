@@ -1,5 +1,5 @@
-import { add } from "@repo/connect";
 import { Hono } from "hono";
+import { add } from "@repo/connect";
 
 const app = new Hono();
 

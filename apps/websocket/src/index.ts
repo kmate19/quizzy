@@ -1,4 +1,3 @@
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { add } from "@repo/connect";
 
@@ -14,7 +13,4 @@ console.log(`Server is running on http://localhost:${port}`);
 
 console.log(add(6, 2));
 
-serve({
-    fetch: app.fetch,
-    port,
-});
+export default app;

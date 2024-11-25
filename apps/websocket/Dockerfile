@@ -10,15 +10,23 @@ COPY pnpm-workspace.yaml ./
 COPY apps/websocket/src ./apps/websocket/src/
 COPY apps/websocket/tsconfig.json ./apps/websocket/
 COPY packages/ ./packages/
+
+# begin add bun
+RUN apk add --no-cache bash curl
+RUN curl -fsSL https://bun.sh/install | bash 
+# ^ need to install bun like this as npm install is currently broken on musl
+ENV PATH=$PATH:/root/.bun/bin 
+# ^ this is hacky, but we know its going to be in the root
+# end add bun
+
 RUN pnpm install --frozen-lockfile
 RUN pnpm run --filter websocket build
-RUN pnpm deploy --filter websocket --prod /prod/websocket
 
-FROM base AS prod
-RUN addgroup -S app && adduser -S app -G app
-WORKDIR /home/app/websocket
-COPY --from=builder /prod/websocket ./
-RUN rm -rf src tsconfig.json
+FROM alpine:latest AS prod
+WORKDIR /app
+RUN apk add --no-cache libstdc++ libgcc
+# ^ needed for bun binary to work
+COPY --from=builder /app/apps/websocket/websocket websocket
+ENV NODE_ENV=production
+CMD ["./websocket"]
 EXPOSE 3000
-USER app
-CMD ["pnpm", "start"]
