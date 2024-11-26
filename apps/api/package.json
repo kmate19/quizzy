@@ -3,17 +3,16 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "tsc",
-        "start": "node --conditions=prod dist/index.js",
-        "dev": "tsx watch src/index.ts"
+        "build": "bun build --sourcemap --bytecode --minify --compile --outfile api ./src/index.ts",
+        "start": "./api",
+        "dev": "bun run --hot ./src/index.ts"
     },
     "dependencies": {
-        "@hono/node-server": "^1.13.7",
-        "hono": "^4.6.10"
+        "hono": "^4.6.10",
+        "@repo/connect": "workspace:*"
     },
     "devDependencies": {
-        "@types/node": "^22.9.0",
-        "tsx": "^4.7.1"
+        "@types/bun": "^1.1.13"
     },
     "packageManager": "pnpm@9.13.2"
 }

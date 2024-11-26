@@ -10,15 +10,23 @@ COPY pnpm-workspace.yaml ./
 COPY apps/api/src ./apps/api/src/
 COPY apps/api/tsconfig.json ./apps/api/
 COPY packages/ ./packages/
+
+# begin add bun
+RUN apk add --no-cache bash curl
+RUN curl -fsSL https://bun.sh/install | bash 
+# ^ need to install bun like this as npm install is currently broken on musl
+ENV PATH=$PATH:/root/.bun/bin 
+# ^ this is hacky, but we know its going to be in the root
+# end add bun
+
 RUN pnpm install --frozen-lockfile
 RUN pnpm run --filter api build
-RUN pnpm deploy --filter api --prod /prod/api
 
-FROM base AS prod
-RUN addgroup -S app && adduser -S app -G app
-WORKDIR /home/app/api
-COPY --from=builder /prod/api ./
-RUN rm -rf src tsconfig.json
+FROM alpine:latest AS prod
+WORKDIR /app
+RUN apk add --no-cache libstdc++ libgcc
+# ^ needed for bun binary to work
+COPY --from=builder /app/apps/api/api api
+ENV NODE_ENV=production
+CMD ["./api"]
 EXPOSE 3000
-USER app
-CMD ["pnpm", "start"]
