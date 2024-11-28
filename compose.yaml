@@ -1,11 +1,45 @@
-# test compose file, not used in production
+# dev compose file, not used in production
+networks:
+  app-network:
+    driver: bridge
+
 services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app-network
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     ports:
       - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+  websocket:
+    build:
+      context: .
+      dockerfile: apps/websocket/Dockerfile
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
     environment:
       - NODE_ENV=production
     networks:
@@ -17,22 +51,6 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - api
       - websocket
     networks:
       - app-network
-
-  websocket:
-    build:
-      context: .
-      dockerfile: apps/websocket/Dockerfile
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
