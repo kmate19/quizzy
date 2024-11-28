@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "bun build --sourcemap --bytecode --minify --compile --outfile ./dist/websocket ./src/index.ts",
+        "build": "bun build --sourcemap --bytecode --minify --compile --outfile ./dist/websocket --target bun ./src/index.ts",
         "start": "./websocket",
         "dev": "bun run --hot ./src/index.ts"
     },

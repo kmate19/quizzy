@@ -9,6 +9,7 @@ app.get("/", (c) => {
 });
 
 const port = 3001;
+console.log(Bun.env.PATH);
 console.log(`Server is running on http://localhost:${port}`);
 
 console.log(add(6, 2));
