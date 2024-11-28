@@ -1,0 +1,14 @@
+# dev compose file only db
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db

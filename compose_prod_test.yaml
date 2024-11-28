@@ -1,4 +1,4 @@
-# dev compose file, not used in production
+# prod testing compose file, not used in production
 networks:
   app-network:
     driver: bridge
