@@ -13,6 +13,9 @@ console.log('Connecting to', url);
 
 const db = drizzle(url!, opts);
 
-await migrate(db, { migrationsFolder: './migrations' });
+if (Bun.env.NODE_ENV === 'production') {
+    await Bun.sleep(2000);
+    await migrate(db, { migrationsFolder: './migrations' });
+}
 
 export default db;
