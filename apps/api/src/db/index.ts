@@ -1,8 +1,18 @@
-import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
-const opts = process.env.NODE_ENV === 'production' ? {} : { logger: true };
+const url = Bun.env.NODE_ENV === 'production'
+    ? Bun.env.DATABASE_URL
+    : "postgres://postgres:mypassword@localhost:5432/postgres";
 
-const db = drizzle(process.env.DATABASE_URL!, opts);
+const opts = Bun.env.NODE_ENV === 'production' ? {} : { logger: true };
+
+
+console.log('Node env', Bun.env.NODE_ENV);
+console.log('Connecting to', url);
+
+const db = drizzle(url!, opts);
+
+await migrate(db, { migrationsFolder: './migrations' });
 
 export default db;

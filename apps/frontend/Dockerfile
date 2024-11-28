@@ -9,7 +9,6 @@ COPY pnpm-workspace.yaml ./
 COPY apps/frontend/ ./apps/frontend/
 RUN pnpm install --frozen-lockfile
 RUN pnpm run --filter frontend build
-# RUN pnpm deploy --filter frontend --prod /prod/frontend
 
 FROM nginx:alpine AS prod
 COPY --from=builder app/apps/frontend/dist /usr/share/nginx/html

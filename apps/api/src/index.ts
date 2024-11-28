@@ -5,9 +5,8 @@ import { usersTable } from "./db/schemas/schema.ts";
 
 const app = new Hono();
 
-await db.insert(usersTable).values({ name: "John", age: 25, email: "asd" });
-
-app.get("/", (c) => {
+app.get("/", async (c) => {
+    await db.insert(usersTable).values({ name: "John", age: 25, email: "asd" })
     return c.text("Hello Hono!");
 });
 

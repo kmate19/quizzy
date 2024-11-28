@@ -3,7 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "bun build --sourcemap --bytecode --minify --compile --outfile ./dist/api ./src/index.ts",
+        "build": "pnpm drizzle:generate && pnpm build:bun",
+        "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts",
         "start": "./api",
         "dev": "bun run --hot ./src/index.ts",
         "drizzle:push": "drizzle-kit push",
@@ -13,7 +14,6 @@
     },
     "dependencies": {
         "@repo/connect": "workspace:*",
-        "dotenv": "^16.4.5",
         "drizzle-orm": "^0.36.4",
         "hono": "^4.6.10",
         "pg": "^8.13.1"

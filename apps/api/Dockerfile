@@ -9,6 +9,7 @@ COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY apps/api/src ./apps/api/src/
 COPY apps/api/tsconfig.json ./apps/api/
+COPY apps/api/drizzle.config.ts ./apps/api/
 COPY packages/ ./packages/
 
 # begin add bun
@@ -20,6 +21,8 @@ ENV PATH=$PATH:/root/.bun/bin
 # end add bun
 
 RUN pnpm install --frozen-lockfile
+
+ENV NODE_ENV=production
 RUN pnpm run --filter api build
 
 FROM alpine:latest AS prod
@@ -27,6 +30,9 @@ WORKDIR /app
 RUN apk add --no-cache libstdc++ libgcc
 # ^ needed for bun binary to work
 COPY --from=builder /app/apps/api/dist/api api
+COPY --from=builder /app/apps/api/migrations/ migrations/
 ENV NODE_ENV=production
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
 CMD ["./api"]
 EXPOSE 3000
