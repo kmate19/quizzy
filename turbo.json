@@ -28,6 +28,17 @@
         },
         "dev": {
             "cache": false,
+            "persistent": true,
+            "dependsOn": [
+                "drizzle:push"
+            ]
+        },
+        "drizzle:push": {
+            "cache": false,
+            "interactive": true
+        },
+        "drizzle:studio": {
+            "cache": false,
             "persistent": true
         }
     }

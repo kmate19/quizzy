@@ -1,13 +1,17 @@
 import { Hono } from "hono";
 import { add } from "@repo/connect";
+import db from "./db/index.ts";
+import { usersTable } from "./db/schemas/schema.ts";
 
 const app = new Hono();
+
+await db.insert(usersTable).values({ name: "John", age: 25, email: "asd" });
 
 app.get("/", (c) => {
     return c.text("Hello Hono!");
 });
 
-add(1, 2)
+add(8, 2)
 
 const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);
