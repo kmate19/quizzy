@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "Vue.volar",
+        "johnsoncodehk.volar",
+        "bradlc.vscode-tailwindcss",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "ms-playwright.playwright",
+        "Vue.vscode-typescript-vue-plugin",
+        "usernamehw.errorlens",
+        "gruntfuggly.todo-tree",
+        "ms-vscode.vscode-typescript-next"
+    ]
+}
