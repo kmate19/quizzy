@@ -9,8 +9,10 @@ app.get("/", (c) => {
 
 add(1, 2)
 
-
 const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);
 
-export default app;
+export default {
+    port: port,
+    fetch: app.fetch
+};
