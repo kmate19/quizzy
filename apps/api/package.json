@@ -5,8 +5,9 @@
     "scripts": {
         "build": "pnpm drizzle:generate && pnpm build:bun",
         "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts",
-        "start": "./api",
+        "start": "./dist/api",
         "dev": "bun run --hot ./src/index.ts",
+        "compose:dev": "docker compose -f compose_dev.yaml up -d --force-recreate --build",
         "drizzle:push": "drizzle-kit push",
         "drizzle:generate": "drizzle-kit generate",
         "drizzle:migrate": "drizzle-kit migrate",
