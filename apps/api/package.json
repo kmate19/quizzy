@@ -15,7 +15,7 @@
     "dependencies": {
         "@repo/connect": "workspace:*",
         "drizzle-orm": "^0.36.4",
-        "hono": "^4.6.10",
+        "hono": "^4.6.12",
         "pg": "^8.13.1"
     },
     "devDependencies": {

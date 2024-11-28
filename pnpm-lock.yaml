@@ -27,8 +27,8 @@ importers:
         specifier: ^0.36.4
         version: 0.36.4(@types/pg@8.11.10)(@types/react@18.3.12)(bun-types@1.1.34)(pg@8.13.1)(react@18.3.1)
       hono:
-        specifier: ^4.6.10
-        version: 4.6.10
+        specifier: ^4.6.12
+        version: 4.6.12
       pg:
         specifier: ^8.13.1
         version: 8.13.1
@@ -131,8 +131,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/connect
       hono:
-        specifier: ^4.6.10
-        version: 4.6.10
+        specifier: ^4.6.12
+        version: 4.6.12
     devDependencies:
       '@types/bun':
         specifier: ^1.1.13
@@ -1852,8 +1852,8 @@ packages:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
 
-  hono@4.6.10:
-    resolution: {integrity: sha512-IXXNfRAZEahFnWBhUUlqKEGF9upeE6hZoRZszvNkyAz/CYp+iVbxm3viMvStlagRJohjlBRGOQ7f4jfcV0XMGg==}
+  hono@4.6.12:
+    resolution: {integrity: sha512-eHtf4kSDNw6VVrdbd5IQi16r22m3s7mWPLd7xOMhg1a/Yyb1A0qpUFq8xYMX4FMuDe1nTKeMX5rTx7Nmw+a+Ag==}
     engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
@@ -4442,7 +4442,7 @@ snapshots:
 
   he@1.2.0: {}
 
-  hono@4.6.10: {}
+  hono@4.6.12: {}
 
   hookable@5.5.3: {}
 
