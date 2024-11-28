@@ -12,14 +12,17 @@ services:
       - "5432:5432"
     networks:
       - app-network
+
   adminer:
     image: adminer:latest
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_started
     networks:
       - app-network
+
   api:
     build:
       context: .
@@ -29,11 +32,13 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_started
     environment:
       - NODE_ENV=production
     networks:
       - app-network
+
   websocket:
     build:
       context: .
@@ -41,11 +46,13 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - api
+      api:
+        condition: service_started
     environment:
       - NODE_ENV=production
     networks:
       - app-network
+
   frontend:
     build:
       context: .
@@ -53,6 +60,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - websocket
+      websocket:
+        condition: service_started
     networks:
       - app-network
