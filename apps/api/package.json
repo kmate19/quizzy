@@ -5,7 +5,11 @@
     "scripts": {
         "build": "bun build --sourcemap --bytecode --minify --compile --outfile ./dist/api ./src/index.ts",
         "start": "./api",
-        "dev": "bun run --hot ./src/index.ts"
+        "dev": "bun run --hot ./src/index.ts",
+        "drizzle:push": "drizzle-kit push",
+        "drizzle:generate": "drizzle-kit generate",
+        "drizzle:migrate": "drizzle-kit migrate",
+        "drizzle:studio": "drizzle-kit studio"
     },
     "dependencies": {
         "@repo/connect": "workspace:*",
