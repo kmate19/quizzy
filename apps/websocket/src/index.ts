@@ -13,4 +13,7 @@ console.log(`Server is running on http://localhost:${port}`);
 
 console.log(add(6, 2));
 
-export default app;
+export default {
+    port: port,
+    fetch: app.fetch
+};

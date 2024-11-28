@@ -26,7 +26,7 @@ FROM alpine:latest AS prod
 WORKDIR /app
 RUN apk add --no-cache libstdc++ libgcc
 # ^ needed for bun binary to work
-COPY --from=builder /app/apps/websocket/websocket websocket
+COPY --from=builder /app/apps/websocket/dist/websocket websocket
 ENV NODE_ENV=production
 CMD ["./websocket"]
 EXPOSE 3000

@@ -26,7 +26,7 @@ FROM alpine:latest AS prod
 WORKDIR /app
 RUN apk add --no-cache libstdc++ libgcc
 # ^ needed for bun binary to work
-COPY --from=builder /app/apps/api/api api
+COPY --from=builder /app/apps/api/dist/api api
 ENV NODE_ENV=production
 CMD ["./api"]
 EXPOSE 3000
