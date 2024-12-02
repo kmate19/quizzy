@@ -10,6 +10,10 @@ app.get("/", async (c) => {
     return c.text("Hello Hono!");
 });
 
+app.get('/test', async (c) => {
+    return c.text('Test');
+});
+
 add(8, 2)
 
 const port = 3000;
