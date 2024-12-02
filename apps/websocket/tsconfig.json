@@ -3,8 +3,14 @@
         "target": "ESNext",
         "module": "NodeNext",
         "strict": true,
+        "allowImportingTsExtensions": true,
         "verbatimModuleSyntax": true,
         "skipLibCheck": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ]
+        }
     }
 }
