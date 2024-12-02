@@ -6,6 +6,7 @@ import HelloWorld from './components/HelloWorld.vue'
 
 <template>
   <header>
+    <video width=250 height=250 controls src="@/assets/ahaaa.mp4" />
     <img alt="Vue logo" class="logo" src="@/assets/img_0004s_0001_cn-2.jpg" width="125" height="125" />
 
     <div class="wrapper">
