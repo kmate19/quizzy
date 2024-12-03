@@ -7,7 +7,7 @@
         "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts",
         "start": "./dist/api",
         "dev": "bun run --hot ./src/index.ts",
-        "test": "pnpm compose:dev && bun test",
+        "test": "bun test",
         "drizzle:push": "drizzle-kit push",
         "drizzle:generate": "drizzle-kit generate",
         "drizzle:migrate": "drizzle-kit migrate",
