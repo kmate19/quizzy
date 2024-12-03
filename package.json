@@ -2,11 +2,11 @@
     "name": "quizzy",
     "private": true,
     "scripts": {
-        "dev": "turbo watch dev compose:dev drizzle:studio",
-        "dev:slim": "turbo watch dev",
+        "dev": "turbo watch dev drizzle:studio",
         "build": "turbo build",
         "start": "turbo start",
         "prod_test": "docker compose -f compose_prod_test.yaml up -d --force-recreate --build",
+        "db_dev": "docker compose -f compose_dev.yaml up -d --force-recreate --build",
         "lint": "turbo lint",
         "format": "prettier --write \"**/*.{ts,tsx,md}\""
     },

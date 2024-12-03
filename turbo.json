@@ -31,10 +31,6 @@
                 "drizzle:push"
             ]
         },
-        "compose:dev": {
-            "cache": false,
-            "persistent": true
-        },
         "drizzle:push": {
             "cache": false,
             "interactive": true

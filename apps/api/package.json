@@ -8,7 +8,6 @@
         "start": "./dist/api",
         "dev": "bun run --hot ./src/index.ts",
         "test": "pnpm compose:dev && bun test",
-        "compose:dev": "docker compose -f compose_dev.yaml up -d --force-recreate --build",
         "drizzle:push": "drizzle-kit push",
         "drizzle:generate": "drizzle-kit generate",
         "drizzle:migrate": "drizzle-kit migrate",
