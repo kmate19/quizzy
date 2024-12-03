@@ -18,6 +18,8 @@ export const usersTable = pgTable("users", {
     updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => sql`CURRENT_TIMESTAMP`),
 });
 
+export type User = typeof friendshipsTable.$inferInsert;
+
 export const usersRelations = relations(usersTable, ({ many }) => ({
     friendships: many(friendshipsTable),
     tokens: many(userTokensTable),

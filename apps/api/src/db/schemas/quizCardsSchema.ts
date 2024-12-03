@@ -12,6 +12,8 @@ export const quizCardsTable = pgTable("quiz_cards", {
     updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => sql`CURRENT_TIMESTAMP`),
 });
 
+export type QuizCard = typeof quizCardsTable.$inferInsert;
+
 export const quizCardsRelations = relations(quizCardsTable, ({ one }) => ({
     quiz: one(quizzesTable, {
         fields: [quizCardsTable.quizId],
