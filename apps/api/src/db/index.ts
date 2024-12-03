@@ -7,10 +7,6 @@ const url = Bun.env.NODE_ENV === 'production'
 
 const opts = Bun.env.NODE_ENV === 'production' ? {} : { logger: true };
 
-
-console.log('Node env', Bun.env.NODE_ENV);
-console.log('Connecting to', url);
-
 const db = drizzle(url!, opts);
 
 if (Bun.env.NODE_ENV === 'production') {
