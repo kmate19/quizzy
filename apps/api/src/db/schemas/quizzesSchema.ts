@@ -8,7 +8,7 @@ export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requ
 export const quizzesTable = pgTable("quizzes", {
     id: serial().primaryKey(),
     userId: uuid().notNull().references(() => usersTable.id),
-    title: varchar({ length: 24 }).notNull(),
+    title: varchar({ length: 24 }).notNull().unique(),
     description: varchar({ length: 255 }).notNull(),
     status: quizStatusEnum().notNull().default("draft"),
     createdAt: timestamp().notNull().defaultNow(),
