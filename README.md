@@ -2,7 +2,7 @@
 
 Install [PNPM](https://pnpm.io):
 ```
-npm i -g pnpm
+corepack enable pnpm
 ```
 
 Install [Docker](https://www.docker.com/products/docker-desktop/)
@@ -23,6 +23,7 @@ pnpm i -g turbo
 To develop all apps and packages, run the following command:
 
 ```
+pnpm db_dev
 pnpm dev
 ```
 
@@ -76,12 +77,12 @@ Then work on this branch and push it to the remote repository.
 
 ## Commits
 Commit messages should be descriptive of the changes made in the commit. 
-For example, if you added a feature that allows users to upload images, your commit message could be `(feat): add image upload feature`.
+For example, if you added a feature that allows users to upload images, your commit message could be `feat: add image upload feature`.
 Try to have more commits with smaller changes rather than a few commits with many changes.
 For example when building an image upload feature some smaller commits could be:
-- `(feat): add image upload component`
-- `(feat): add image upload API`
-- `(feat): add image upload tests`
+- `feat(frontend): add image upload component`
+- `feat(backend): add image upload API`
+- `feat(backend): add image upload tests`
 
 ## Testing
 Before pushing, run the following command:
