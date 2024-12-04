@@ -1,6 +1,7 @@
 import db from "@/db/index.ts";
 import { LoginUserSchema, RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import postgresErrorHandler from "@/utils/postgresErrorHandler.ts";
+import sendEmail from "@/utils/sendEmail.ts";
 import { zValidator } from "@hono/zod-validator";
 import { genSalt, hash } from "bcrypt";
 import { Hono } from "hono";
@@ -33,6 +34,8 @@ const auth = new Hono().basePath("/auth")
                 return;
             }
         }
+
+        await sendEmail(userdata.email);
 
         return c.text("Hello Auth!");
     })
