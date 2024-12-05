@@ -1,4 +1,11 @@
 {
+  "tailwindCSS.includeLanguages": {
+        "javascript": "javascript",
+        "html": "HTML"
+    },
+  "editor.quickSuggestions": {
+       "strings": true
+  },
   "eslint.workingDirectories": [
     {
       "mode": "auto"
