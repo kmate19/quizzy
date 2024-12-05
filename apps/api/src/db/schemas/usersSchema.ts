@@ -21,6 +21,7 @@ export const usersTable = pgTable("users", {
 });
 
 export type User = typeof usersTable.$inferInsert;
+
 export const RegisterUserSchema = createInsertSchema(usersTable).pick({ email: true, password: true, username: true });
 export const LoginUserSchema = createSelectSchema(usersTable).pick({ password: true }).extend({ username_or_email: z.string() });
 
