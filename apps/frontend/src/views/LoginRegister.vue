@@ -11,13 +11,13 @@ const flipLogin = () => {
   isLoginForm.value = !isLoginForm.value;
   setTimeout(() => {
     isRegisterForm.value = !isRegisterForm.value;
-  }, 350);
+  }, 500);
 };
 const flipRegister = () => {
   isRegisterForm.value = !isRegisterForm.value;
   setTimeout(() => {
     isLoginForm.value = !isLoginForm.value;
-  }, 350);
+  }, 500);
 };
 
 const emailRules = [
@@ -52,20 +52,20 @@ const confirmPasswordRules = [
   <MistBackground>
     <div class="!flex !items-center !justify-center">
       <v-card
-        class="!max-w-full !max-h-full !p-10 !rounded-2xl text-black "
+        class="!max-w-full !max-h-full !p-10 !rounded-2xl text-black
+         bg-black bg-opacity-50 backdrop-blur-md
+         !min-w-100 !min-h-fit"
         prepend-icon="$login"
         theme="dark"
-        :min-width="350"
-        :min-height="700"
       >
         <template v-slot:title>
           <div class="min-w-full flex justify-evenly">
           <span class="font-weight-black text-3xl">{{isLoginForm ? 'Bejelentkezés' : 'Regisztráció'}}</span>
           </div>
         </template>
-        <v-card-text class="bg-surface-light pt-4 rounded-xl p-24 h-fit">
+        <v-card-text class="bg-surface-light !bg-opacity-25 pt-4 rounded-xl p-24 h-fit">
           <transition name="flip">
-            <div class="p-10" v-show="isLoginForm">
+            <div class="p-10" v-if="isLoginForm">
               <v-text-field label="Felhasználónév" required></v-text-field>
               <v-text-field label="Jelszó" type="password" required></v-text-field>
               <div class="flex flex-wrap items-center">
@@ -76,19 +76,19 @@ const confirmPasswordRules = [
             </div>
           </transition>
           <transition name="flip">
-              <div class="p-10" v-show="isRegisterForm">
-              <v-text-field label="Email" :rules="emailRules" required></v-text-field>
-              <v-text-field label="Felhasználónév" :rules="usernameRules" required></v-text-field>
-              <v-text-field label="Jelszó" v-model="password" type="password" :rules="passwordRules" required></v-text-field>
-              <v-text-field label="Jelszó megerősítés" v-model="confirmPassword" type="password" :rules="confirmPasswordRules" required></v-text-field>
-              <div class="flex flex-wrap items-center">
-                <v-btn class="w-full !mt-5">Regisztráció</v-btn>
-                <br>
-                <v-btn class="w-full !mt-5" @click="flipRegister">Van már fiókod? Lépj be!</v-btn>
-              </div>
+              <div class="p-10" v-if="isRegisterForm">
+                <v-text-field label="Email" :rules="emailRules" required></v-text-field>
+                <v-text-field label="Felhasználónév" :rules="usernameRules" required></v-text-field>
+                <v-text-field label="Jelszó" v-model="password" type="password" :rules="passwordRules" required></v-text-field>
+                <v-text-field label="Jelszó megerősítés" v-model="confirmPassword" type="password" :rules="confirmPasswordRules" required></v-text-field>
+                <div class="flex flex-wrap items-center">
+                  <v-btn class="w-full !mt-5">Regisztráció</v-btn>
+                  <br>
+                  <v-btn class="w-full !mt-5" @click="flipRegister">Van már fiókod? Lépj be!</v-btn>
+                </div>
               </div>
           </transition>
-          <v-alert v-if="password !== confirmPassword" type="error" class="w-full">
+          <v-alert v-if="password !== confirmPassword && isRegisterForm" type="error" class="w-full">
                 A jelszavak nem egyeznek.
                 </v-alert>
         </v-card-text>
@@ -97,21 +97,18 @@ const confirmPasswordRules = [
   </MistBackground>
 </template>
 
-<style>
-body{
-  background-color:floralwhite;
-}
+<style scoped>
 
 .flip-enter-active {
   transform: scale(0);
-  transition: transform 0.4s;
+  transition: transform 0.5s;
 }
 .flip-enter-to {
   transform: scale(1);
 }
 
  .flip-leave-active {
-  transition: transform 0.4s;
+  transition: transform 0.5s;
 }
 
 .flip-leave-to {
