@@ -3,7 +3,6 @@ import { LoginUserSchema, RegisterUserSchema, usersTable } from "@/db/schemas/us
 import postgresErrorHandler from "@/utils/postgresErrorHandler.ts";
 import sendEmail from "@/utils/sendEmail.ts";
 import { zValidator } from "@hono/zod-validator";
-import { genSalt, hash } from "bcrypt";
 import { Hono } from "hono";
 
 const auth = new Hono().basePath("/auth")
@@ -13,9 +12,7 @@ const auth = new Hono().basePath("/auth")
 
         // PERF: Probably would be better to check if the user is duplicate first and maybe use worker threads
         try {
-            const saltrounds = 10;
-            const salt = await genSalt(saltrounds);
-            userdata.password = await hash(userdata.password, salt);
+            userdata.password = await Bun.password.hash(userdata.password);
         } catch (error) {
             c.status(500);
             return;
