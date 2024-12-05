@@ -1,0 +1,7 @@
+{
+    "name": "@repo/localadmin",
+    "scripts": {
+        "start": "dotnet run",
+        "dev": "dotnet run --no-build"
+    }
+}
