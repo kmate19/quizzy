@@ -3,6 +3,8 @@ import { pgEnum, text, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-
 import { friendshipsTable } from "./friendshipsSchema.ts";
 import { userTokensTable } from "./userTokensSchema.ts";
 import { userRolesTable } from "./userRolesSchema.ts";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "away"]);
 export const authStatusEnum = pgEnum("auth_status", ["pending", "active", "blocked"]);
@@ -19,6 +21,9 @@ export const usersTable = pgTable("users", {
 });
 
 export type User = typeof usersTable.$inferInsert;
+
+export const RegisterUserSchema = createInsertSchema(usersTable).pick({ email: true, password: true, username: true });
+export const LoginUserSchema = createSelectSchema(usersTable).pick({ password: true }).extend({ username_or_email: z.string() });
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
     friendships: many(friendshipsTable),
