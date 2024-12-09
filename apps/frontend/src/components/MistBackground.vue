@@ -2,6 +2,7 @@
   <div class="mist-background-container">
     <canvas ref="canvas" class="mist-canvas"></canvas>
     <div class="mist-content-wrapper">
+      <!-- Your content goes here -->
     </div>
   </div>
 </template>
@@ -16,12 +17,19 @@ let particles = []
 let mouseX = 0
 let mouseY = 0
 
-const PARTICLE_COUNT = 20
-const PARTICLE_BASE_RADIUS = 150
-const PARTICLE_VARIANCE = 100
-const PARTICLE_SPEED = 0.1
-const MOUSE_INFLUENCE_DISTANCE = 300
-const MOUSE_REPEL_SPEED = 0.5
+const PARTICLE_COUNT = 50
+const PARTICLE_BASE_RADIUS = 100
+const PARTICLE_VARIANCE = 50
+const PARTICLE_SPEED = 0.2
+const MOUSE_INFLUENCE_DISTANCE = 200
+const MOUSE_REPEL_SPEED = 0.3
+
+const COLORS = [
+  [0, 100, 0],    // Dark Green
+  [0, 0, 100],    // Dark Blue
+  [100, 0, 0],    // Dark Red
+  [100, 100, 0]   // Dark Yellow
+]
 
 class Particle {
   constructor(x, y) {
@@ -32,14 +40,13 @@ class Particle {
     this.radius = PARTICLE_BASE_RADIUS + Math.random() * PARTICLE_VARIANCE
     this.vx = (Math.random() - 0.5) * PARTICLE_SPEED
     this.vy = (Math.random() - 0.5) * PARTICLE_SPEED
-    this.alpha = Math.random() * 0.3 + 0.1
-    this.angle = Math.random() * Math.PI * 2
+    this.alpha = Math.random() * 0.15 + 0.05
+    this.color = COLORS[Math.floor(Math.random() * COLORS.length)]
   }
 
   update() {
     this.x += this.vx
     this.y += this.vy
-    this.angle += 0.01
 
     const dx = mouseX - this.x
     const dy = mouseY - this.y
@@ -65,26 +72,18 @@ class Particle {
     if (this.y < -this.radius) this.y = window.innerHeight + this.radius
     if (this.y > window.innerHeight + this.radius) this.y = -this.radius
 
-    this.alpha += (Math.random() - 0.5) * 0.005
-    this.alpha = Math.max(0.1, Math.min(0.4, this.alpha))
+    this.alpha += (Math.random() - 0.5) * 0.01
+    this.alpha = Math.max(0.05, Math.min(0.2, this.alpha))
   }
 
   draw() {
-    ctx.save()
-    ctx.translate(this.x, this.y)
-    ctx.rotate(this.angle)
-
-    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius)
-    gradient.addColorStop(0, `rgba(147, 112, 219, ${this.alpha})`)
-    gradient.addColorStop(0.5, `rgba(147, 112, 219, ${this.alpha * 0.5})`)//EGESZ ELTUNIK HA NULLOZOD
-    gradient.addColorStop(1, 'rgba(147, 112, 219, 0)')
-
     ctx.beginPath()
-    ctx.ellipse(0, 0, this.radius, this.radius * 0.6, 0, 0, Math.PI * 2)
+    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius)
+    gradient.addColorStop(0, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.alpha})`)
+    gradient.addColorStop(1, `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, 0)`)
     ctx.fillStyle = gradient
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
     ctx.fill()
-
-    ctx.restore()
   }
 }
 
@@ -101,7 +100,7 @@ function createParticles() {
 }
 
 function animate() {
-  ctx.fillStyle = 'rgba(25, 10, 41, 0.03)'
+  ctx.fillStyle = 'rgba(10, 10, 10, 0.1)'
   ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
 
   particles.forEach(particle => {
@@ -151,6 +150,7 @@ onUnmounted(() => {
   height: 100%;
   overflow: hidden;
   pointer-events: none;
+  background-color: #0a0a0a;
 }
 
 .mist-canvas {
