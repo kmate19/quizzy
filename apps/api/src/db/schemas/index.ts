@@ -3,6 +3,8 @@ export * from './permissionsSchema.ts';
 export * from './quizCardsSchema.ts';
 export * from './quizzesSchema.ts';
 export * from './resourceAccessControlSchema.ts';
+export * from './roleResourcesSchema.ts';
+export * from './userResourcesSchema.ts';
 export * from './rolesPermissionsSchema.ts';
 export * from './rolesSchema.ts';
 export * from './userRolesSchema.ts';
