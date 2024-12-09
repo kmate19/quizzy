@@ -1,27 +1,16 @@
 import db from "@/db/index.ts";
 import { LoginUserSchema, RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import postgresErrorHandler from "@/utils/postgresErrorHandler.ts";
+import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import sendEmail from "@/utils/email/sendEmail.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
-import type { CookieOptions } from "hono/utils/cookie";
 import { z } from "zod";
-
-export const cookieOpts: CookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    domain: Bun.env.DOMAIN,
-    maxAge: 60 * 60 * 24 * 30,
-}
-
-// TODO: This should be in a config file
-export const cookieName = "321vmnf";
+import ENV from "@/config/env.ts";
+import GLOBALS from "@/config/globals.ts";
 
 const auth = new Hono().basePath("/auth")
 
@@ -78,6 +67,7 @@ const auth = new Hono().basePath("/auth")
                 .leftJoin(userTokensTable, eq(userTokensTable.user_id, usersTable.id))
                 .where(eq(userTokensTable.token, emailHash));
 
+            console.log(userAndToken);
             if (userAndToken.length > 1) {
                 throw new Error("Multiple users found!");
             }
@@ -88,6 +78,7 @@ const auth = new Hono().basePath("/auth")
             await db.delete(userTokensTable).where(eq(userTokensTable.id, userAndToken.user_tokens!.id));
 
         } catch (error) {
+            console.log(error)
             c.status(500);
             return;
         }
@@ -97,7 +88,7 @@ const auth = new Hono().basePath("/auth")
 
     .post("/login", zValidator('json', LoginUserSchema), async (c) => {
         const loginUserData = c.req.valid('json');
-        const accessCookie = getCookie(c, cookieName);
+        const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
 
         // NOTE: Keep an eye on this in the future so its not an infinite redirect loop
         if (accessCookie) {
@@ -110,9 +101,11 @@ const auth = new Hono().basePath("/auth")
                 eq(usersTable.username, loginUserData.username_or_email),
                 eq(usersTable.email, loginUserData.username_or_email)
             ));
-            if (user.length > 1) {
-                throw new Error("Multiple users found!");
+
+            if (user.length > 1 || user.length === 0) {
+                throw new Error("Multiple or no users found!");
             }
+
             user = user[0];
         } catch (error) {
             const err = postgresErrorHandler(error as Error & { code: string });
@@ -136,8 +129,7 @@ const auth = new Hono().basePath("/auth")
         }
 
         const refreshTokenPayload = { userId: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 };
-        // TODO: fix env later
-        const refreshToken = await sign(refreshTokenPayload, Bun.env.REFRESH_JWT_SECRET! || "asd");
+        const refreshToken = await sign(refreshTokenPayload, ENV.REFRESH_JWT_SECRET());
 
         let userToken;
         try {
@@ -156,22 +148,21 @@ const auth = new Hono().basePath("/auth")
         }
 
         const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 30 };
-        // TODO: fix env later
-        const accessToken = await sign(accessTokenPayload, Bun.env.ACCESS_JWT_SECRET! || "asdf")
+        const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
 
-        setCookie(c, cookieName, accessToken, cookieOpts);
+        setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
 
         return c.redirect("/");
     })
 
     .get("/logout", async (c) => {
-        const accessCookie = getCookie(c, cookieName);
+        const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
 
         if (!accessCookie) {
             return c.redirect("/login");
         }
 
-        const payload = await verify(accessCookie, Bun.env.ACCESS_JWT_SECRET! || "asdf");
+        const payload = await verify(accessCookie, ENV.ACCESS_JWT_SECRET());
 
         try {
             await db.delete(userTokensTable).where(eq(userTokensTable.id, payload.forId as number));
@@ -180,7 +171,7 @@ const auth = new Hono().basePath("/auth")
             return;
         }
 
-        deleteCookie(c, cookieName);
+        deleteCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
 
         return c.redirect("/login");
     })

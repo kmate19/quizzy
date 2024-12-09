@@ -1,6 +1,7 @@
+import ENV from "@/config/env.ts";
+import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import { cookieName, cookieOpts } from "@/routes/auth.ts";
 import { eq } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
@@ -10,13 +11,13 @@ import { JwtTokenExpired } from "hono/utils/jwt/types";
 const checkJwt = createMiddleware(async (c, next) => {
     let accessCookie;
     try {
-        accessCookie = getCookie(c, cookieName)
+        accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)
 
         if (!accessCookie) {
             return c.redirect("/login");
         }
 
-        await verify(accessCookie, Bun.env.ACCESS_JWT_SECRET! || "asdf");
+        await verify(accessCookie, ENV.ACCESS_JWT_SECRET());
     } catch (error) {
         if (error instanceof JwtTokenExpired) {
             const { payload } = decode(accessCookie!);
@@ -28,10 +29,9 @@ const checkJwt = createMiddleware(async (c, next) => {
 
             const accessTokenPayload = { userId: payload.userId, forId: payload.forId, exp: Math.floor(Date.now() / 1000) + 30 };
 
-            // TODO: fix env later
-            const accessToken = await sign(accessTokenPayload, Bun.env.ACCESS_JWT_SECRET! || "asdf")
+            const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
 
-            setCookie(c, cookieName, accessToken, cookieOpts)
+            setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
         }
     }
 
