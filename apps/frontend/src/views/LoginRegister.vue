@@ -170,8 +170,8 @@ const onLogin = () => {
           backdrop-blur-md
           rounded-2xl
           ">
-          <h1 class="title text-9xl text-purple-300">Quizzy</h1>
-          <h3 class="quote text-5xl text-purple-300">Fun way to learn haha</h3>
+            <h1 class="title text-9xl text-white">Quizzy</h1>
+            <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
         </div>
       </div>
 </template>
@@ -242,11 +242,9 @@ const onLogin = () => {
   }
   .headers h1{
     font-size: 5vh;
-    line-height: 1;
   }
    .headers h3{
     font-size: 3vh;
-    line-height: 1;
   }
 }
 </style>
