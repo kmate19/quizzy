@@ -1,13 +1,13 @@
 import db from "@/db/index.ts";
-import { LoginUserSchema, RegisterUserSchema, usersTable, type User } from "@/db/schemas/usersSchema.ts";
+import { LoginUserSchema, RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
 import postgresErrorHandler from "@/utils/postgresErrorHandler.ts";
 import sendEmail from "@/utils/email/sendEmail.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq, or } from "drizzle-orm";
 import { Hono } from "hono";
-import { setCookie } from "hono/cookie";
-import { sign } from "hono/jwt";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { sign, verify } from "hono/jwt";
 import type { CookieOptions } from "hono/utils/cookie";
 import { z } from "zod";
 
@@ -19,6 +19,8 @@ const cookieOpts: CookieOptions = {
     domain: Bun.env.DOMAIN,
     maxAge: 60 * 60 * 24 * 30,
 }
+
+const cookieName = "321vmnf";
 
 const auth = new Hono().basePath("/auth")
 
@@ -70,7 +72,6 @@ const auth = new Hono().basePath("/auth")
         let userAndToken;
 
         try {
-            //await db.select().from(userTokensTable).where(eq(userTokensTable.token, emailHash));
             userAndToken = await db.select()
                 .from(usersTable)
                 .leftJoin(userTokensTable, eq(userTokensTable.user_id, usersTable.id))
@@ -79,6 +80,7 @@ const auth = new Hono().basePath("/auth")
             if (userAndToken.length > 1) {
                 throw new Error("Multiple users found!");
             }
+
             userAndToken = userAndToken[0];
 
             await db.update(usersTable).set({ auth_status: "active" }).where(eq(usersTable.id, userAndToken.users.id));
@@ -130,24 +132,51 @@ const auth = new Hono().basePath("/auth")
         // TODO: fix env later
         const refreshToken = await sign(refreshTokenPayload, Bun.env.REFRESH_JWT_SECRET! || "asd");
 
+        let userToken;
         try {
-            await db.insert(userTokensTable).values({ user_id: user.id, token: refreshToken, token_type: "refresh", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30) });
+            userToken = await db.insert(userTokensTable)
+                .values({
+                    user_id: user.id,
+                    token: refreshToken,
+                    token_type: "refresh", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+                })
+                .returning({ id: userTokensTable.id });
+
+            userToken = userToken[0];
         } catch (error) {
             c.status(500);
             return;
         }
 
-        const accessTokenPayload = { userId: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 10 };
+        const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 60 * 10 };
         // TODO: fix env later
         const accessToken = await sign(accessTokenPayload, Bun.env.ACCESS_JWT_SECRET! || "asdf")
 
-        setCookie(c, "321vmnf", accessToken, cookieOpts);
+        setCookie(c, cookieName, accessToken, cookieOpts);
 
         return c.json({ message: "Logged in!" });
     })
 
     .post("/logout", async (c) => {
-        return c.status(404)
+        const cookie = getCookie(c, cookieName);
+
+        if (!cookie) {
+            c.status(400);
+            return c.json({ message: "Not logged in!" });
+        }
+
+        const payload = await verify(cookie, Bun.env.ACCESS_JWT_SECRET! || "asdf");
+
+        try {
+            await db.delete(userTokensTable).where(eq(userTokensTable.id, payload.forId as number));
+        } catch (error) {
+            c.status(500);
+            return;
+        }
+
+        deleteCookie(c, cookieName);
+
+        return c.redirect("/login");
     })
 
     .post("/refresh_token", async (c) => {
