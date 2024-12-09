@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import * as zod from 'zod';
 import { useField, useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -34,6 +34,19 @@ const loginForm = ref({
   username: '',
   password: '',
 })
+
+const isBig = ref(window.innerWidth >= 1440? true : false);
+
+watch(
+  () => window.innerWidth,
+  (newWidth) => {
+    isBig.value = newWidth >= 1440;
+  }
+);
+
+window.addEventListener('resize', () => {
+  isBig.value = window.innerWidth >= 1440;
+});
 
 const validationSchema = zod.object({
     email: zod.string()
@@ -171,7 +184,7 @@ const onLogin = () => {
           rounded-2xl
           ">
             <h1 class="title text-9xl text-white">Quizzy</h1>
-            <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
+            <h3 v-show="isBig" class="quote text-5xl text-white">Fun way to learn haha</h3>
         </div>
       </div>
 </template>
@@ -241,10 +254,7 @@ const onLogin = () => {
     height: 25%;
   }
   .headers h1{
-    font-size: 5vh;
-  }
-   .headers h3{
-    font-size: 3vh;
+    font-size: 10vh;
   }
 }
 </style>
