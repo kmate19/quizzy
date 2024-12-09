@@ -1,4 +1,5 @@
 import { createTransport } from "nodemailer";
+import createEmailTemplate from "./createEmail.ts";
 
 const transporter = createTransport({
     service: "gmail",
@@ -8,12 +9,13 @@ const transporter = createTransport({
     }
 })
 
-export default async function sendEmail(userEmail: string) {
+export default async function sendEmail(userEmail: string, emailToken: string) {
     console.log("Sending email to: ", userEmail);
     const mailOpts = {
         from: `"Quizzy" <${Bun.env.EMAIL_USER}>`,
         to: userEmail,
         subject: "Test Email",
+        html: createEmailTemplate(Bun.env.DOMAIN || "http://localhost:3000", emailToken)
     }
 
     try {
