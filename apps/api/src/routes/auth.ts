@@ -47,7 +47,7 @@ const auth = new Hono().basePath("/auth")
         }
 
         // NOTE: This should use a normal smtp server in the future, not gmail also workers
-        //await sendEmail(registerUserData.email);
+        await sendEmail(registerUserData.email);
 
         return c.redirect("/login");
     })

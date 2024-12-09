@@ -32,6 +32,11 @@
         "dev": {
             "cache": false,
             "persistent": true,
+            "env": [
+                "NODE_ENV",
+                "EMAIL_USER",
+                "EMAIL_PASS"
+            ],
             "dependsOn": [
                 "drizzle:push"
             ]
