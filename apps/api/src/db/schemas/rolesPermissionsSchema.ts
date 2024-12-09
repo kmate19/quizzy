@@ -5,8 +5,8 @@ import { permissionsTable } from "./permissionsSchema.ts";
 
 export const rolesPermissionsTable = pgTable("roles_permissions", {
     id: serial().primaryKey(),
-    role_id: serial().notNull(),
-    permission_id: serial().notNull(),
+    role_id: serial().notNull().references(() => rolesTable.id),
+    permission_id: serial().notNull().references(() => permissionsTable.id),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 });
