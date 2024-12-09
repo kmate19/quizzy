@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, serial, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, serial, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { quizCardsTable } from "./quizCardsSchema.ts";
 
@@ -13,6 +13,10 @@ export const quizzesTable = pgTable("quizzes", {
     status: quizStatusEnum().notNull().default("draft"),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        uniqueIndex().on(table.title),
+    ];
 });
 
 export type Quiz = typeof quizzesTable.$inferInsert;

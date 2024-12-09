@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, text, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { pgEnum, text, pgTable, timestamp, uuid, varchar, uniqueIndex } from "drizzle-orm/pg-core";
 import { friendshipsTable } from "./friendshipsSchema.ts";
 import { userTokensTable } from "./userTokensSchema.ts";
 import { userRolesTable } from "./userRolesSchema.ts";
@@ -18,6 +18,11 @@ export const usersTable = pgTable("users", {
     auth_status: authStatusEnum().notNull().default("pending"),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        uniqueIndex().on(table.username),
+        uniqueIndex().on(table.email),
+    ];
 });
 
 export type User = typeof usersTable.$inferInsert;

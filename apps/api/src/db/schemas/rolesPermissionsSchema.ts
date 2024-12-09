@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, serial, } from "drizzle-orm/pg-core";
+import { pgTable, timestamp, serial, index, } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesSchema.ts";
 import { permissionsTable } from "./permissionsSchema.ts";
 
@@ -9,6 +9,11 @@ export const rolesPermissionsTable = pgTable("roles_permissions", {
     permission_id: serial().notNull().references(() => permissionsTable.id),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        index().on(table.role_id),
+        index().on(table.permission_id),
+    ];
 });
 
 export type RolePermission = typeof rolesPermissionsTable.$inferInsert;

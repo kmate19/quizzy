@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, serial, uuid, } from "drizzle-orm/pg-core";
+import { pgTable, timestamp, serial, uuid, index, } from "drizzle-orm/pg-core";
 import { resourceAccessControlTable } from "./resourceAccessControlSchema.ts";
 import { usersTable } from "./usersSchema.ts";
 
@@ -9,6 +9,11 @@ export const userResourcesTable = pgTable("user_resources", {
     resource_access_id: serial().notNull().references(() => resourceAccessControlTable.id),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        index().on(table.user_id),
+        index().on(table.resource_access_id),
+    ];
 });
 
 export type UserAccess = typeof userResourcesTable.$inferInsert;
