@@ -11,7 +11,7 @@ import { sign, verify } from "hono/jwt";
 import type { CookieOptions } from "hono/utils/cookie";
 import { z } from "zod";
 
-const cookieOpts: CookieOptions = {
+export const cookieOpts: CookieOptions = {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
@@ -20,7 +20,8 @@ const cookieOpts: CookieOptions = {
     maxAge: 60 * 60 * 24 * 30,
 }
 
-const cookieName = "321vmnf";
+// TODO: This should be in a config file
+export const cookieName = "321vmnf";
 
 const auth = new Hono().basePath("/auth")
 
@@ -154,7 +155,7 @@ const auth = new Hono().basePath("/auth")
             return;
         }
 
-        const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 60 * 10 };
+        const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 30 };
         // TODO: fix env later
         const accessToken = await sign(accessTokenPayload, Bun.env.ACCESS_JWT_SECRET! || "asdf")
 
@@ -163,7 +164,7 @@ const auth = new Hono().basePath("/auth")
         return c.redirect("/");
     })
 
-    .post("/logout", async (c) => {
+    .get("/logout", async (c) => {
         const accessCookie = getCookie(c, cookieName);
 
         if (!accessCookie) {
