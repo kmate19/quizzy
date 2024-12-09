@@ -2,7 +2,6 @@
   <div class="mist-background-container">
     <canvas ref="canvas" class="mist-canvas"></canvas>
     <div class="mist-content-wrapper">
-      <slot></slot>
     </div>
   </div>
 </template>
