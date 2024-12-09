@@ -32,9 +32,10 @@ const auth = new Hono().basePath("/auth")
             }
         }
 
+        // NOTE: This should use a normal smtp server in the future, not gmail also workers
         await sendEmail(userdata.email);
 
-        return c.text("Hello Auth!");
+        return c.redirect("/login");
     })
 
     .post("/login", zValidator('json', LoginUserSchema), async (c) => {
