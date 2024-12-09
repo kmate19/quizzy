@@ -11,12 +11,12 @@ import { sign, verify } from "hono/jwt";
 import { z } from "zod";
 import ENV from "@/config/env.ts";
 import GLOBALS from "@/config/globals.ts";
+import getOneStrict from "@/utils/db/getOneStrict.ts";
 
 const auth = new Hono().basePath("/auth")
 
     .post("/register", zValidator('json', RegisterUserSchema), async (c) => {
         const registerUserData = c.req.valid('json')
-        let insertResult;
 
         // PERF: Probably would be better to check if the user is duplicate first and maybe use worker threads
         try {
@@ -26,9 +26,9 @@ const auth = new Hono().basePath("/auth")
             return;
         }
 
+        let insertResult;
         try {
-            insertResult = await db.insert(usersTable).values(registerUserData).returning({ id: usersTable.id });
-            insertResult = insertResult[0];
+            insertResult = getOneStrict(await db.insert(usersTable).values(registerUserData).returning({ id: usersTable.id }));
         } catch (error) {
             const err = postgresErrorHandler(error as Error & { code: string });
 
@@ -59,28 +59,20 @@ const auth = new Hono().basePath("/auth")
 
     .get("/verify/:emailHash", zValidator("param", z.object({ emailHash: z.string() })), async (c) => {
         const emailHash = c.req.valid("param").emailHash;
-        let userAndToken;
 
         try {
-            userAndToken = await db.select()
+            const userAndToken = getOneStrict(await db.select()
                 .from(usersTable)
                 .leftJoin(userTokensTable, eq(userTokensTable.user_id, usersTable.id))
-                .where(eq(userTokensTable.token, emailHash));
-
-            console.log(userAndToken);
-            if (userAndToken.length > 1) {
-                throw new Error("Multiple users found!");
-            }
-
-            userAndToken = userAndToken[0];
+                .where(eq(userTokensTable.token, emailHash)));
 
             await db.update(usersTable).set({ auth_status: "active" }).where(eq(usersTable.id, userAndToken.users.id));
             await db.delete(userTokensTable).where(eq(userTokensTable.id, userAndToken.user_tokens!.id));
 
         } catch (error) {
             console.log(error)
-            c.status(500);
-            return;
+            // NOTE: inform frontend that the login page needs a path param to take if the email verification failed
+            return c.redirect("/login/e=1");
         }
 
         return c.redirect("/login");
@@ -97,16 +89,11 @@ const auth = new Hono().basePath("/auth")
 
         let user;
         try {
-            user = await db.select().from(usersTable).where(or(
+            user = getOneStrict(await db.select().from(usersTable).where(or(
                 eq(usersTable.username, loginUserData.username_or_email),
                 eq(usersTable.email, loginUserData.username_or_email)
-            ));
+            )));
 
-            if (user.length > 1 || user.length === 0) {
-                throw new Error("Multiple or no users found!");
-            }
-
-            user = user[0];
         } catch (error) {
             const err = postgresErrorHandler(error as Error & { code: string });
 
@@ -131,26 +118,23 @@ const auth = new Hono().basePath("/auth")
         const refreshTokenPayload = { userId: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 };
         const refreshToken = await sign(refreshTokenPayload, ENV.REFRESH_JWT_SECRET());
 
-        let userToken;
         try {
-            userToken = await db.insert(userTokensTable)
+            const userToken = getOneStrict(await db.insert(userTokensTable)
                 .values({
                     user_id: user.id,
                     token: refreshToken,
                     token_type: "refresh", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
                 })
-                .returning({ id: userTokensTable.id });
+                .returning({ id: userTokensTable.id }));
 
-            userToken = userToken[0];
+            const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 30 };
+            const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
+            setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
+
         } catch (error) {
             c.status(500);
             return;
         }
-
-        const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 30 };
-        const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
-
-        setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
 
         return c.redirect("/");
     })
