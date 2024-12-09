@@ -91,11 +91,17 @@ const auth = new Hono().basePath("/auth")
             return;
         }
 
-        return c.json({ message: "Email verified!" });
+        return c.redirect("/login");
     })
 
     .post("/login", zValidator('json', LoginUserSchema), async (c) => {
         const loginUserData = c.req.valid('json');
+        const accessCookie = getCookie(c, cookieName);
+
+        // NOTE: Keep an eye on this in the future so its not an infinite redirect loop
+        if (accessCookie) {
+            return c.redirect("/");
+        }
 
         let user;
         try {
@@ -154,18 +160,17 @@ const auth = new Hono().basePath("/auth")
 
         setCookie(c, cookieName, accessToken, cookieOpts);
 
-        return c.json({ message: "Logged in!" });
+        return c.redirect("/");
     })
 
     .post("/logout", async (c) => {
-        const cookie = getCookie(c, cookieName);
+        const accessCookie = getCookie(c, cookieName);
 
-        if (!cookie) {
-            c.status(400);
-            return c.json({ message: "Not logged in!" });
+        if (!accessCookie) {
+            return c.redirect("/login");
         }
 
-        const payload = await verify(cookie, Bun.env.ACCESS_JWT_SECRET! || "asdf");
+        const payload = await verify(accessCookie, Bun.env.ACCESS_JWT_SECRET! || "asdf");
 
         try {
             await db.delete(userTokensTable).where(eq(userTokensTable.id, payload.forId as number));
@@ -178,9 +183,5 @@ const auth = new Hono().basePath("/auth")
 
         return c.redirect("/login");
     })
-
-    .post("/refresh_token", async (c) => {
-        return c.status(404)
-    });
 
 export default auth;
