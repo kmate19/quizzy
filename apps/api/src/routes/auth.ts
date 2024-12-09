@@ -2,7 +2,6 @@ import db from "@/db/index.ts";
 import { LoginUserSchema, RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
-import sendEmail from "@/utils/email/sendEmail.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq, or } from "drizzle-orm";
 import { Hono } from "hono";
@@ -41,18 +40,18 @@ const auth = new Hono().basePath("/auth")
             }
         }
 
-        // PERF: not sure how fast this is
-        const emailToken = new Bun.CryptoHasher("shake128").update(registerUserData.email).digest("hex");
+        const emailToken = new Bun.CryptoHasher("sha1").update(registerUserData.email).digest("hex");
 
         try {
+            // TODO: make cron job to delete expired tokens
             await db.insert(userTokensTable).values({ user_id: insertResult.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
         } catch (error) {
             c.status(500);
             return;
         }
 
-        // TODO: This should use a normal smtp server in the future, not gmail also workers
-        await sendEmail(registerUserData.email, emailToken);
+        const worker = new Worker(new URL("../workers/emailWorker.ts", import.meta.url).href, { type: "module" });
+        worker.postMessage({ email: registerUserData.email, emailToken });
 
         return c.redirect("/login");
     })
