@@ -1,4 +1,5 @@
 function assertEnv<T>(env: T | undefined, name: string): T {
+    env = env === "" ? undefined : env;
     if (env === undefined) {
         throw new Error(name + " is not defined in the environment and has no default value!");
     }
@@ -6,6 +7,7 @@ function assertEnv<T>(env: T | undefined, name: string): T {
 }
 
 function assertEnvProd<T>(env: T | undefined, name: string): T | undefined {
+    env = env === "" ? undefined : env;
     if (env === undefined && Bun.env.NODE_ENV === "production") {
         throw new Error(name + " is not defined in the environment and this is a production environment!");
     }

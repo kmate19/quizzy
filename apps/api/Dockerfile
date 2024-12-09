@@ -22,7 +22,6 @@ ENV PATH=$PATH:/root/.bun/bin
 
 RUN pnpm install --frozen-lockfile
 
-ENV NODE_ENV=production
 RUN pnpm run --filter api build
 
 FROM alpine:latest AS prod
@@ -31,8 +30,5 @@ RUN apk add --no-cache libstdc++ libgcc
 # ^ needed for bun binary to work
 COPY --from=builder /app/apps/api/dist/api api
 COPY --from=builder /app/apps/api/migrations/ migrations/
-ENV NODE_ENV=production
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
 CMD ["./api"]
 EXPOSE 3000

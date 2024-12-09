@@ -27,15 +27,19 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-      args:
-        - DATABASE_URL=$DATABASE_URL
     ports:
       - "3000:3000"
     depends_on:
       db:
         condition: service_started
     environment:
+      - DATABASE_URL=$DATABASE_URL
+      - EMAIL_USER=$EMAIL_USER
+      - EMAIL_PASS=$EMAIL_PASS
       - NODE_ENV=production
+      - DOMAIN=localhost
+      - REFRESH_JWT_SECRET=bababababa
+      - ACCESS_JWT_SECRET=abababab
     networks:
       - app-network
 
