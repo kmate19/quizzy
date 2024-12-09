@@ -9,7 +9,7 @@
         "test": "bun test"
     },
     "dependencies": {
-        "hono": "^4.6.12",
+        "hono": "^4.6.13",
         "@repo/connect": "workspace:*"
     },
     "devDependencies": {
