@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { text, pgTable, timestamp, serial, varchar, boolean } from "drizzle-orm/pg-core";
+import { text, pgTable, timestamp, serial, varchar, boolean, uniqueIndex } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { permissionsTable } from "./permissionsSchema.ts";
 
@@ -10,6 +10,10 @@ export const rolesTable = pgTable("roles", {
     is_system_role: boolean().notNull().default(false),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        uniqueIndex().on(table.name),
+    ];
 });
 
 export type Role = typeof rolesTable.$inferInsert;

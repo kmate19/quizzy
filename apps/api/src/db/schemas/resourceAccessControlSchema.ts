@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, serial, uuid, boolean, } from "drizzle-orm/pg-core";
+import { pgTable, timestamp, serial, uuid, boolean, index, } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesSchema.ts";
 import { resourceTypeEnum } from "./permissionsSchema.ts";
 import { usersTable } from "./usersSchema.ts";
@@ -15,6 +15,11 @@ export const resourceAccessControlTable = pgTable("resource_access_control", {
     can_delete: boolean().notNull().default(false),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        index().on(table.user_id),
+        index().on(table.role_id),
+    ];
 });
 
 export type ResourceAccessControl = typeof resourceAccessControlTable.$inferInsert;

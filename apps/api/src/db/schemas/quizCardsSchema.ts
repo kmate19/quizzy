@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, serial, smallint, timestamp, varchar } from "drizzle-orm/pg-core";
+import { index, pgTable, serial, smallint, timestamp, varchar } from "drizzle-orm/pg-core";
 import { quizzesTable } from "./quizzesSchema.ts";
 
 export const quizCardsTable = pgTable("quiz_cards", {
@@ -10,6 +10,11 @@ export const quizCardsTable = pgTable("quiz_cards", {
     correct_answer_index: smallint().notNull(),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        index().on(table.quiz_id),
+        index().on(table.question),
+    ];
 });
 
 export type QuizCard = typeof quizCardsTable.$inferInsert;

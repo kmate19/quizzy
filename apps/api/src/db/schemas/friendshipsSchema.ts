@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, serial, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, serial, timestamp, uuid } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 
 export const friendshipStatusEnum = pgEnum("friendship_status", ["pending", "accepted", "blocked"]);
@@ -11,6 +11,11 @@ export const friendshipsTable = pgTable("friendships", {
     status: friendshipStatusEnum().notNull().default("pending"),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        index().on(table.user_id),
+        index().on(table.friend_id),
+    ];
 });
 
 export type Friendship = typeof friendshipsTable.$inferInsert;

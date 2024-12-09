@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { text, pgTable, timestamp, uuid, serial, pgEnum } from "drizzle-orm/pg-core";
+import { text, pgTable, timestamp, uuid, serial, pgEnum, index } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 
 export const tokenTypeEnum = pgEnum("token_type", ["email", "refresh"]);
@@ -12,6 +12,10 @@ export const userTokensTable = pgTable("user_tokens", {
     expires_at: timestamp().notNull(),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        index().on(table.token),
+    ];
 });
 
 export type UserTokens = typeof userTokensTable.$inferInsert;
