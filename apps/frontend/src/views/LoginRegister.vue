@@ -4,6 +4,7 @@ import * as zod from 'zod';
 import { useField, useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import MistBackground from '@/components/MistBackground.vue';
+import * as Alerts from '@/components/Alerts.vue';
 
 const isLoginForm = ref(true);
 const isRegisterForm = ref(false);
@@ -98,12 +99,11 @@ const onLogin = () => {
 <template>
   <MistBackground>
   </MistBackground>
-      <div class="wrapper flex justify-center items-center mr-auto p-40">
+      <div class="wrapper">
         <v-card
-          class="!max-w-full !max-h-full !p-10 !rounded-2xl text-black
+          class="vcard !p-10 !rounded-2xl text-black
           bg-black bg-opacity-50 backdrop-blur-md
-          !min-h-full duration-500"
-          prepend-icon="$login"
+          !min-h-fit duration-500"
           theme="dark"
           :min-width="400"
         >
@@ -117,17 +117,8 @@ const onLogin = () => {
           <transition name="flip" mode="out-in">
             <div class="p-10" v-if="isLoginForm" key="login">
           <v-text-field label="Felhasználónév" v-model="loginForm.username" class="!pb-0"></v-text-field>
-            <span v-if="loginErrors?.username" class="text-red-500">
-              <span v-for="error in loginErrors?.username?._errors">
-            {{error}}<br>
-              </span>
-            </span>
+            
           <v-text-field label="Jelszó" type="password" v-model="loginForm.password" class="!pb-0"></v-text-field>
-          <span v-if="loginErrors?.password" class="text-red-500">
-              <span v-for="error in loginErrors?.password?._errors">
-            {{error}}<br>
-              </span>
-            </span>
           <div class="flex flex-wrap items-center">
             <v-btn type="submit" class="w-full !mt-5">Bejelentkezés</v-btn>
             <br>
@@ -175,13 +166,11 @@ const onLogin = () => {
           </v-card-text>
         </v-card>
         <div class="headers flex flex-col justify-center items-center text-center
-        mt-10bg-black bg-opacity-50
+          bg-opacity-50
           backdrop-blur-md
           rounded-2xl
-          m-20
-          pb-10
           ">
-          <h1 class="title text-9xl text-purple-300 neon-text p-20">Quizzy</h1>
+          <h1 class="title text-9xl text-purple-300">Quizzy</h1>
           <h3 class="quote text-5xl text-purple-300">Fun way to learn haha</h3>
         </div>
       </div>
@@ -205,17 +194,59 @@ const onLogin = () => {
   transform: scale(0);
 }
 
+.wrapper{
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  padding: 5px;
+}
+
+.headers{
+  height: 50%;
+  width: 50%;
+  align-self: center;
+  justify-content: space-evenly;
+  gap: 20px;
+}
+
+.vcard{
+  height: 50%;
+  align-self: center;
+}
+
+.title{
+  font-size: 10vh;
+  line-height: 1;
+} 
+.quote{
+  font-size: 6vh;
+  line-height: 1;
+}
+
 @media only screen and (max-width: 1440px) {
   .wrapper {
-    flex-direction: column-reverse;
-    padding: 0;
+    flex-direction: column-reverse !important;
+    justify-content: center;
+    align-items: center;
+    justify-content: space-evenly;
   }
   .headers{
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: space-evenly;
-    margin: 2px;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    height: 25%;
+  }
+  .headers h1{
+    font-size: 5vh;
+    line-height: 1;
+  }
+   .headers h3{
+    font-size: 3vh;
+    line-height: 1;
   }
 }
-
 </style>
