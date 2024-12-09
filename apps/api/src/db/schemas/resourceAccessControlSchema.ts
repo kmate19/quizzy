@@ -3,6 +3,7 @@ import { pgTable, timestamp, serial, uuid, boolean, index, } from "drizzle-orm/p
 import { rolesTable } from "./rolesSchema.ts";
 import { resourceTypeEnum } from "./permissionsSchema.ts";
 import { usersTable } from "./usersSchema.ts";
+import { userApiKeys } from "./userApiKeysSchema.ts";
 
 export const resourceAccessControlTable = pgTable("resource_access_control", {
     id: serial().primaryKey(),
@@ -27,4 +28,5 @@ export type ResourceAccessControl = typeof resourceAccessControlTable.$inferInse
 export const resourceAccessControlRelations = relations(resourceAccessControlTable, ({ many }) => ({
     role: many(rolesTable),
     user: many(usersTable),
+    api_keys: many(userApiKeys),
 }));
