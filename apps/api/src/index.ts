@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import auth from "./routes/auth.ts";
 import checkJwt from "./middlewares/checkJwt.ts";
+import ENV from "./config/env.ts";
+
+console.log(ENV.NODE_ENV())
 
 const app = new Hono().basePath("/api/v1");
 
