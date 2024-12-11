@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, serial, uuid, boolean, index, } from "drizzle-orm/pg-core";
+import { pgTable, timestamp, serial, uuid, boolean, index, integer, } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesSchema.ts";
 import { resourceTypeEnum } from "./permissionsSchema.ts";
 import { usersTable } from "./usersSchema.ts";
@@ -7,7 +7,7 @@ import { userApiKeys } from "./userApiKeysSchema.ts";
 
 export const resourceAccessControlTable = pgTable("resource_access_control", {
     id: serial().primaryKey(),
-    role_id: serial().references(() => rolesTable.id),
+    role_id: integer().references(() => rolesTable.id),
     user_id: uuid().references(() => usersTable.id),
     resource_type: resourceTypeEnum().notNull(),
     can_read: boolean().notNull().default(false),
