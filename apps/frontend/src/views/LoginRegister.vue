@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import * as zod from 'zod';
-import { useField, useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
+
 import MistBackground from '@/components/MistBackground.vue';
-import * as Alerts from '@/components/Alerts.vue';
 
 const isLoginForm = ref(true);
 const isRegisterForm = ref(false);
@@ -35,20 +33,7 @@ const loginForm = ref({
   password: '',
 })
 
-const isBig = ref(window.innerWidth >= 1440? true : false);
-
-watch(
-  () => window.innerWidth,
-  (newWidth) => {
-    isBig.value = newWidth >= 1440;
-  }
-);
-
-window.addEventListener('resize', () => {
-  isBig.value = window.innerWidth >= 1440;
-});
-
-const validationSchema = zod.object({
+const registerSchema = zod.object({
     email: zod.string()
       .min(1, { message: 'A mező kitöltése kötelező' })
       .email({ message: 'Helytelen formátum' }),
@@ -76,13 +61,13 @@ const loginvalidSchema = zod.object({
 });
 
 type loginSchemaType = zod.infer<typeof loginvalidSchema>;
-type regSchemaType = zod.infer<typeof validationSchema>;
+type regSchemaType = zod.infer<typeof registerSchema>;
 
 const regErrors = ref<zod.ZodFormattedError<regSchemaType> | null >(null)
 const loginErrors = ref<zod.ZodFormattedError<loginSchemaType> | null >(null)
 
 const onRegistration = () => {
-  const valid = validationSchema.safeParse(regForm.value);
+  const valid = registerSchema.safeParse(regForm.value);
 
   if(!valid.success) {
     regErrors.value = valid.error.format();
@@ -96,12 +81,12 @@ const onRegistration = () => {
 
 const onLogin = () => {
   const valid = loginvalidSchema.safeParse(loginForm.value);
-
+  //login api call
   if(!valid.success) {
-    loginErrors.value = valid.error.format();
+    loginErrors.value = valid.error.format();//returns the error object from api call
     console.log('Invalid form', loginErrors.value);
   }
-  else{
+  else{//correct username and password -> login
     loginErrors.value = null;
     console.log('Valid form', loginForm.value.username, loginForm.value.password);
   }
@@ -115,23 +100,28 @@ const onLogin = () => {
       <div class="wrapper">
         <v-card
           class="vcard !p-10 !rounded-2xl text-black
-          bg-black bg-opacity-50 backdrop-blur-md
-          !min-h-fit duration-500"
+          !bg-transparent bg-opacity-50 backdrop-blur-sm
+          !min-h-fit duration-500 transition-all"
           theme="dark"
-          :min-width="400"
+          :min-width="500"
         >
           <template v-slot:title>
-        <div class="min-w-full flex justify-evenly">
-        <span class="font-weight-black text-3xl">{{isLoginForm ? 'Bejelentkezés' : 'Regisztráció'}}</span>
-        </div>
+            <div class="min-w-full flex justify-evenly">
+              <span class="font-weight-black text-3xl">{{isLoginForm ? 'Bejelentkezés' : 'Regisztráció'}}</span>
+            </div>
           </template>
-          <v-card-text class="bg-surface-light !bg-opacity-25 pt-4 rounded-xl p-24 h-fit">
+          <v-card-text class="bg-transparent backdrop-blur-2xl !bg-opacity-25 pt-4 rounded-xl p-24 h-fit">
         <form @submit.prevent="onLogin">
           <transition name="flip" mode="out-in">
             <div class="p-10" v-if="isLoginForm" key="login">
-          <v-text-field label="Felhasználónév" v-model="loginForm.username" class="!pb-0"></v-text-field>
-            
-          <v-text-field label="Jelszó" type="password" v-model="loginForm.password" class="!pb-0"></v-text-field>
+          <v-text-field clearable label="Felhasználónév" v-model="loginForm.username" class="!pb-0"></v-text-field>
+          <span v-if="loginErrors" class="text-red-500">
+              Helytelen felhasználónév vagy jelszó
+          </span>
+          <v-text-field clearable label="Jelszó" type="password" v-model="loginForm.password" class="!pb-0"></v-text-field>
+          <span v-if="loginErrors" class="text-red-500">
+              Helytelen felhasználónév vagy jelszó
+          </span>
           <div class="flex flex-wrap items-center">
             <v-btn type="submit" class="w-full !mt-5">Bejelentkezés</v-btn>
             <br>
@@ -144,32 +134,44 @@ const onLogin = () => {
         <form @submit.prevent="onRegistration">
           <transition name="flip" mode="out-in">
           <div class="p-10" v-if="isRegisterForm" key="register">
-            <v-text-field label="Email" name="email" v-model="regForm.email" required></v-text-field>
+            <v-text-field 
+            label="Email" 
+            name="email" 
+            v-model="regForm.email" 
+            required></v-text-field>
             <span v-if="regErrors?.email" class="text-red-500">
-              <span v-for="error in regErrors?.email?._errors">
-            {{error}}<br>
-              </span>
+              {{regErrors.email._errors[0]}}
             </span>
-            <v-text-field label="Felhasználónév" name="username" v-model="regForm.username" required></v-text-field>
+            <v-text-field 
+            label="Felhasználónév" 
+            name="username" 
+            v-model="regForm.username" 
+            required></v-text-field>
             <span v-if="regErrors?.username" class="text-red-500">
-              <span v-for="error in regErrors?.username?._errors">
-            {{error}}<br>
-              </span>
+              {{regErrors.username._errors[0]}}
             </span>
-            <v-text-field label="Jelszó" v-model="regForm.password" type="password"  required></v-text-field>
+            <v-text-field 
+            label="Jelszó" 
+            v-model="regForm.password"
+            hint="Min. 8 karakter, tartalmazzon kis- és nagybetűt, valamint speciális karaktert"
+            clearable
+            type="password"  
+            required></v-text-field>
             <span v-if="regErrors?.password" class="text-red-500">
-              <span v-for="error in regErrors?.password?._errors">
-            {{error}}<br>
-              </span>
+              {{regErrors.password._errors[0]}}
             </span>
-            <v-text-field label="Jelszó megerősítés" v-model="regForm.confirmPassword" type="password" required></v-text-field>
+            <v-text-field 
+             label="Jelszó megerősítés" 
+             v-model="regForm.confirmPassword" 
+             type="password" 
+             required></v-text-field>
             <span v-if="regErrors?.confirmPassword" class="text-red-500">
-              <span v-for="error in regErrors?.confirmPassword?._errors">
-            {{error}}<br>
-              </span>
+                {{regErrors.confirmPassword._errors[0]}}
             </span>
             <div class="flex flex-wrap items-center">
-              <v-btn class="w-full !mt-5" @click="onRegistration">Regisztráció</v-btn>
+                <v-btn 
+                class="w-full !mt-5"
+                @click="onRegistration">Regisztráció</v-btn>
               <br>
               <v-btn class="w-full !mt-5" @click="flipRegister">Van már fiókod? Lépj be!</v-btn>
             </div>
@@ -184,7 +186,7 @@ const onLogin = () => {
           rounded-2xl
           ">
             <h1 class="title text-9xl text-white">Quizzy</h1>
-            <h3 v-show="isBig" class="quote text-5xl text-white">Fun way to learn haha</h3>
+            <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
         </div>
       </div>
 </template>
@@ -243,18 +245,20 @@ const onLogin = () => {
     flex-direction: column-reverse !important;
     justify-content: center;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: space-around;
   }
   .headers{
-    flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    width: auto;
+    width: 50%;
     height: 25%;
   }
   .headers h1{
-    font-size: 10vh;
+    font-size: 8vh;
+  }
+  .headers h3{
+    font-size: 3vh;
   }
 }
 </style>
