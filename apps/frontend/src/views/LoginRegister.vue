@@ -185,12 +185,23 @@ const togglePassword = () => {
                 :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append-inner="togglePassword"
               >
+              
                 <template v-slot:details>
                   <div class="text-caption text-wrap mb-5">
                     Min. 8 karakter, tartalmazzon kis- és nagybetűt, valamint speciális karaktert
                   </div>
                 </template>
               </v-text-field>
+              <button
+                @click="togglePassword"
+                class="absolute right-2 top-1/2 transform 
+                -translate-y-1/2 text-gray-500
+                hover:text-gray-700 focus:outline-none"
+                type="button"
+              >
+                <EyeIcon v-if="!showPassword" class="h-5 w-5" />
+                <EyeOffIcon v-else class="h-5 w-5" />
+              </button>
               <span v-if="regErrors?.password" class="text-red-500">
                 {{regErrors.password._errors[0]}}
               </span>
@@ -203,16 +214,6 @@ const togglePassword = () => {
               required
               variant="outlined"
               density="comfortable"></v-text-field>
-              <button
-                @click="togglePassword"
-                class="absolute right-2 top-1/2 transform 
-                -translate-y-1/2 text-gray-500
-                hover:text-gray-700 focus:outline-none"
-                type="button"
-              >
-                <EyeIcon v-if="!showPassword" class="h-5 w-5" />
-                <EyeOffIcon v-else class="h-5 w-5" />
-              </button>
               <span v-if="regErrors?.confirmPassword" class="text-red-500">
                   {{regErrors.confirmPassword._errors[0]}}
               </span>
@@ -277,7 +278,10 @@ v-text-field {
 
 @media only screen and (max-width: 1440px) {
   .wrapper {
+    padding: 50px;
     flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 50px;
   }
   .headers{
     flex-wrap: wrap;
@@ -299,5 +303,10 @@ v-text-field {
   white-space: normal;
   word-wrap: break-word;
   max-width: 100%;
+}
+
+:deep(.v-field__append-inner) {
+  align-self: center;
+  padding-top: 0 !important;
 }
 </style>
