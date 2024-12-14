@@ -9,6 +9,17 @@ const apikey = new Hono().basePath("/apikey")
     .post("/create", zValidator("json", postApiKeySchema), async (c) => {
         const apiKeyData = c.req.valid("json");
 
+
+        // INFO: argon2 slow but secure look more into this
+        // apiKeyData.key = await Bun.password.hash(apiKeyData.key);
+
+        apiKeyData.key = await Bun.password.hash(apiKeyData.key, {
+            algorithm: "bcrypt",
+            cost: 4,
+        });
+
+        // INFO: see userApiKeysSchema.ts for more info
+
         try {
             await db.insert(userApiKeys).values(apiKeyData);
         } catch (error) {
@@ -17,6 +28,8 @@ const apikey = new Hono().basePath("/apikey")
             c.status(400)
             c.json({ error: err.message });
         }
+
+        return c.json({ message: "API key created" });
     })
 
     .get("/list", async (c) => {
