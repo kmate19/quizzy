@@ -1,17 +1,18 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, uuid, serial, index, varchar, integer } from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, serial, index, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { resourceAccessControlTable } from "./resourceAccessControlSchema.ts";
 import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const userApiKeys = pgTable("user_api_keys", {
     id: serial().primaryKey(),
     user_id: uuid().notNull().references(() => usersTable.id),
-    // hashed argon2
+    // hashed bcrypt
     key: varchar({ length: 255 }).notNull().unique(),
     description: varchar({ length: 255 }),
-    access_permissions: integer().notNull().references(() => resourceAccessControlTable.id),
-    expires_at: timestamp().notNull(),
+    //access_permissions: integer().notNull().references(() => resourceAccessControlTable.id),
+    expires_at: timestamp({ mode: "string" }).notNull(),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => {
@@ -22,7 +23,12 @@ export const userApiKeys = pgTable("user_api_keys", {
 
 export type UserApiKey = typeof userApiKeys.$inferInsert;
 
-export const postApiKeySchema = createInsertSchema(userApiKeys).pick({ user_id: true, key: true, description: true, access_permissions: true, expires_at: true });
+
+// TODO: finish this with actual resourceAccessControl
+
+export const postApiKeySchema = createInsertSchema(userApiKeys)
+    .pick({ user_id: true, key: true, description: true, expires_at: true })
+    .extend({ expires_at: z.string().datetime() });
 
 export const userApiKeyRelations = relations(userApiKeys, ({ one, many }) => ({
     user: one(usersTable, {
