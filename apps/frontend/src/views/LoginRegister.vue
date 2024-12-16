@@ -100,8 +100,8 @@ const togglePassword = () => {
   <MistBackground/>
       <div class="wrapper">
         <v-card
-          class="vcard !p-10 !rounded-2xl text-black
-          !bg-transparent bg-opacity-50 backdrop-blur-sm
+          class="vcard !p-10 !rounded-2xl text-black  !bg-white/30
+           bg-opacity-50 backdrop-blur-sm
           !min-h-fit !min-w-fit !max-w-fit !max-h-fit"
           :min-width="400"
           theme="dark"
@@ -232,7 +232,7 @@ const togglePassword = () => {
           !bg-opacity-50
           !backdrop-blur-md
           !rounded-2xl
-          !bg-transparent
+           !bg-white/30
           ">
             <h1 class="title text-9xl text-white">Quizzy</h1>
             <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
