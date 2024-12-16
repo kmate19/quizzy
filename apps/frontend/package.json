@@ -39,7 +39,7 @@
         "prettier": "^3.3.3",
         "tailwindcss": "4.0.0-beta.3",
         "typescript": "~5.7.2",
-        "vite": "^5.4.10",
+        "vite": "^6.0.3",
         "vite-plugin-vue-devtools": "^7.5.4",
         "vitest": "^2.1.4",
         "vue-tsc": "^2.1.10"
