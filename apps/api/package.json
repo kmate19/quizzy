@@ -2,6 +2,9 @@
     "name": "@repo/api",
     "private": true,
     "type": "module",
+    "exports": {
+        "rpcType": "./src/rpcClient.ts"
+    },
     "scripts": {
         "build": "pnpm drizzle:generate && pnpm build:bun",
         "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts",
