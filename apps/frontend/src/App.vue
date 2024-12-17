@@ -5,4 +5,3 @@
 <template>
   <RouterView />
 </template>
-
