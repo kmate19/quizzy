@@ -1,9 +1,6 @@
 # .github/workflows/docker-build.yml
 name: Build and Push Docker Images
 
-permissions:
-  packages: write
-  contents: read
 
 on:
   push:
@@ -16,32 +13,42 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       api: ${{ steps.filter.outputs.api }}
       frontend: ${{ steps.filter.outputs.frontend }}
       websocket: ${{ steps.filter.outputs.websocket }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
             api:
               - 'apps/api/**'
-              - 'packages/**'  # If you have shared code
+              - 'packages/**'
             frontend:
               - 'apps/frontend/**'
-              - 'packages/**'  # If you have shared code
+              - 'apps/api/**' # Api and frontend are dependent because of rpc
+              - 'packages/**'
             websocket:
               - 'apps/websocket/**'
-              - 'packages/**'  # If you have shared code
+              - 'packages/**'
 
   build-api:
     needs: changes
     if: ${{ needs.changes.outputs.api == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -64,8 +71,12 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -88,8 +99,12 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.websocket == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
