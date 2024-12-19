@@ -4,9 +4,8 @@ import * as zod from 'zod';
 import router from '@/router';
 
 import MistBackground from '@/components/MistBackground.vue';
+import { baseRegisterSchema } from '@/schemas/RegistrationSchema';
 import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
-
-
 
 const isLoginForm = ref(true);
 
@@ -21,46 +20,32 @@ const regForm = ref({
   confirmPassword: '',
 })
 
+
 const loginForm = ref({
   username: '',
   password: '',
 })
 
-const registerSchema = zod.object({
-    email: zod.string()
-      .min(1, { message: 'A mező kitöltése kötelező' })
-      .email({ message: 'Helytelen formátum' }),
-    username: zod.string()
-      .min(1, { message: 'A mező kitöltése kötelező'}),
-    password: zod.string()
-      .min(1, { message: 'A mező kitöltése kötelező' })
-      .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia' })
-      .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt' })
-      .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt' })
-      .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert' }),
-    confirmPassword: zod.string()
-      .min(1, { message: 'A mező kitöltése kötelező' })
-      .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia' })
-      .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt' })
-      .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt' })
-      .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert' })
-      .refine((data) => data === regForm.value.password, { message: 'A jelszavak nem egyeznek' }),
-});
+type loginSchemaType = zod.infer<typeof loginvalidSchema>;
+type RegisterSchemaType = zod.infer<typeof baseRegisterSchema>;
 
+const createRegisterSchema = (password: string) =>
+baseRegisterSchema.refine(
+  (data) => data.confirmPassword === password,
+  { message: 'A jelszavak nem egyeznek', path: ['confirmPassword'] }
+);
 const loginvalidSchema = zod.object({
   username: zod.string()
     .min(1, { message: 'A mező kitöltése kötelező'}),
   password: zod.string().min(1, { message: 'A mező kitöltése kötelező'})
 });
 
-type loginSchemaType = zod.infer<typeof loginvalidSchema>;
-type regSchemaType = zod.infer<typeof registerSchema>;
-
-const regErrors = ref<zod.ZodFormattedError<regSchemaType> | null >(null)
+const regErrors = ref<zod.ZodFormattedError<RegisterSchemaType> | null >(null)
 const loginErrors = ref<zod.ZodFormattedError<loginSchemaType> | null >(null)
 
 const onRegistration = () => {
-  const valid = registerSchema.safeParse(regForm.value);
+  const schema = createRegisterSchema(regForm.value.password);
+  const valid = schema.safeParse(regForm.value);
 
   if(!valid.success) {
     regErrors.value = valid.error.format();
