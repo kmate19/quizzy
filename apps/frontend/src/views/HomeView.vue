@@ -1,16 +1,16 @@
-<script setup>
+<script setup lang="ts">
   import { ref, onMounted, onUnmounted } from 'vue'
   import MistBackground from '@/components/MistBackground.vue';
   import NavBar from '@/components/NavBar.vue';
   const isVisible = ref(false)
-  const cards = ref([])
-  const navContainer = ref(null)
+  const cards = ref<HTMLDivElement[]>()
+  const navContainer = ref<HTMLDivElement | null>(null)
   const isOutsideContainer = ref(false)
   
   const checkVisibility = () => {
-    if (cards.value.length === 0) return
+    if (cards.value?.length === 0) return
     const windowHeight = window.innerHeight
-    cards.value.forEach((card) => {
+    cards.value?.forEach((card) => {
       const cardTop = card.getBoundingClientRect().top
       if (cardTop < windowHeight - 100) {
         isVisible.value = true
