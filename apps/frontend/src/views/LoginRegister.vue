@@ -3,8 +3,6 @@ import { ref } from 'vue';
 import * as zod from 'zod';
 import router from '@/router';
 
-// FIX: ezt majd fixeld mert ennel a componentnel a setup nem ts, es ezert itt sir a ts es nem lehet buildelni,
-// tehat majd a componentek scriptjeit is tsbe kene irni maskepp error lesz,HomeViewnel ugyanez majd a setupot ott is ts-be ird at
 import MistBackground from '@/components/MistBackground.vue';
 import { baseRegisterSchema } from '@/schemas/RegistrationSchema';
 import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
