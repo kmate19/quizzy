@@ -1,7 +1,7 @@
-<script setup lang="ts">
+<script setup>
   import { ref, onMounted, onUnmounted } from 'vue'
   import MistBackground from '@/components/MistBackground.vue';
-  
+  import NavBar from '@/components/NavBar.vue';
   const isVisible = ref(false)
   const cards = ref([])
   const navContainer = ref(null)
@@ -41,22 +41,7 @@
 <template>
     <MistBackground />
       <div class="max-w-6xl mx-auto min-h-screen backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden">
-          <nav :class="['transition-all duration-300 ease-in-out', { 'fixed top-0 left-0 right-0': isOutsideContainer }]">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                  <a href="#" class="text-2xl font-bold text-white">Quizzy</a>
-                </div>
-                <div class="hidden md:block">
-                  <div class="ml-10 flex items-baseline space-x-4">
-                    <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Közös játék</a>
-                    <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Profil</a>
-                    <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Pulcsik</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </nav>
+        <NavBar/>
   
         <main class="p-4 sm:p-6 lg:p-8">
           <h1 class="text-4xl font-bold text-center text-white mb-8">Welcome to Los Hermanos Buenos</h1>
