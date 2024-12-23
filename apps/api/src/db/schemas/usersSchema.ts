@@ -5,6 +5,7 @@ import { userTokensTable } from "./userTokensSchema.ts";
 import { userRolesTable } from "./userRolesSchema.ts";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { reviewsTable } from "./reviewsSchema.ts";
 
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "away"]);
 export const authStatusEnum = pgEnum("auth_status", ["pending", "active", "blocked"]);
@@ -34,4 +35,5 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
     friendships: many(friendshipsTable),
     tokens: many(userTokensTable),
     roles: many(userRolesTable),
+    revies: many(reviewsTable)
 }));

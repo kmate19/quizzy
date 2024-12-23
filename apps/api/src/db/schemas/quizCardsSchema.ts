@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { index, pgTable, serial, smallint, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { bytea, quizzesTable } from "./quizzesSchema.ts";
+import { quizzesTable } from "./quizzesSchema.ts";
+import { bytea } from "./customTypes.ts";
 
 export const quizCardsTable = pgTable("quiz_cards", {
     id: serial().primaryKey(),
