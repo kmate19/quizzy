@@ -4,6 +4,7 @@ import { usersTable } from "./usersSchema.ts";
 import { quizCardsTable } from "./quizCardsSchema.ts";
 import { reviewsTable } from "./reviewsSchema.ts";
 import { languagesTable } from "./languagesSchema.ts";
+import { tagsTable } from "./tagsSchema.ts";
 
 export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
 
@@ -42,7 +43,6 @@ export const quizzesRelations = relations(quizzesTable, ({ one, many }) => ({
     }),
     cards: many(quizCardsTable),
     reviews: many(reviewsTable),
-    languages: many(languagesTable)
-    // TODO: add these tables
-    // tags: many(tagsTable)
+    languages: many(languagesTable),
+    tags: many(tagsTable)
 }));
