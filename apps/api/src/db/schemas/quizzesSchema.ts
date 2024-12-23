@@ -5,18 +5,7 @@ import { quizCardsTable } from "./quizCardsSchema.ts";
 import { reviewsTable } from "./reviewsSchema.ts";
 import { languagesTable } from "./languagesSchema.ts";
 import { tagsTable } from "./tagsSchema.ts";
-
-import { customType } from 'drizzle-orm/pg-core';
-
-// not builtin to drizzle yet
-export const bytea = customType<{ data: Buffer, default: false }>(
-    {
-        dataType() {
-            return 'bytea';
-        }
-    }
-);
-
+import { bytea } from "./customTypes.ts";
 
 export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
 
