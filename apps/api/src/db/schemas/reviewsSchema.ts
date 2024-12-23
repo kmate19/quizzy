@@ -1,6 +1,7 @@
 import { integer, real, pgTable, uuid, varchar, timestamp, index } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { quizzesTable } from "./quizzesSchema.ts";
+import { relations } from "drizzle-orm";
 
 
 export const reviewsTable = pgTable("reviews", {
@@ -19,3 +20,14 @@ export const reviewsTable = pgTable("reviews", {
         index().on(table.quiz_id)
     ];
 });
+
+export const reviewsRelations = relations(reviewsTable, ({ one }) => ({
+    quiz: one(quizzesTable, {
+        fields: [reviewsTable.quiz_id],
+        references: [quizzesTable.id],
+    }),
+    user: one(usersTable, {
+        fields: [reviewsTable.user_id],
+        references: [usersTable.id],
+    })
+}));
