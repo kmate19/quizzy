@@ -1,16 +1,28 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, serial, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { customType, integer, pgEnum, pgTable, real, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { quizCardsTable } from "./quizCardsSchema.ts";
 
-export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review"]);
+export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
+
+// not builtin to drizzle yet
+const bytea = customType<{ data: Buffer, default: false }>(
+    {
+        dataType() {
+            return 'bytea';
+        }
+    }
+);
 
 export const quizzesTable = pgTable("quizzes", {
-    id: serial().primaryKey(),
+    id: uuid().primaryKey(),
     user_id: uuid().notNull().references(() => usersTable.id),
     title: varchar({ length: 24 }).notNull().unique(),
     description: varchar({ length: 255 }).notNull(),
     status: quizStatusEnum().notNull().default("draft"),
+    rating: real().notNull().default(0),
+    plays: integer().notNull().default(0),
+    banner: bytea().notNull(),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => {
@@ -27,4 +39,8 @@ export const quizzesRelations = relations(quizzesTable, ({ one, many }) => ({
         references: [usersTable.id],
     }),
     cards: many(quizCardsTable)
+    // TODO: add these tables
+    // tags: many(tagsTable)
+    // languages: many(languagesTable)
+    // reviews: many(quizReviewsTable)
 }));
