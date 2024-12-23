@@ -1,12 +1,13 @@
 import { relations } from "drizzle-orm";
 import { index, pgTable, serial, smallint, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { quizzesTable } from "./quizzesSchema.ts";
+import { bytea, quizzesTable } from "./quizzesSchema.ts";
 
 export const quizCardsTable = pgTable("quiz_cards", {
     id: serial().primaryKey(),
     quiz_id: uuid().notNull().references(() => quizzesTable.id),
     question: varchar({ length: 255 }).notNull(),
     answer: varchar({ length: 255 }).notNull(),
+    picture: bytea().notNull(),
     correct_answer_index: smallint().notNull(),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),

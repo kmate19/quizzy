@@ -15,3 +15,4 @@ if (ENV.NODE_ENV() === 'production') {
 }
 
 export default db;
+

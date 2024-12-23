@@ -1,21 +1,24 @@
 import { relations } from "drizzle-orm";
-import { customType, integer, pgEnum, pgTable, real, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, real, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { quizCardsTable } from "./quizCardsSchema.ts";
 import { reviewsTable } from "./reviewsSchema.ts";
 import { languagesTable } from "./languagesSchema.ts";
 import { tagsTable } from "./tagsSchema.ts";
 
-export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
+import { customType } from 'drizzle-orm/pg-core';
 
 // not builtin to drizzle yet
-const bytea = customType<{ data: Buffer, default: false }>(
+export const bytea = customType<{ data: Buffer, default: false }>(
     {
         dataType() {
             return 'bytea';
         }
     }
 );
+
+
+export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
 
 export const quizzesTable = pgTable("quizzes", {
     id: uuid().primaryKey(),
