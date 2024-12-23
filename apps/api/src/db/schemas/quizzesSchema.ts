@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { customType, integer, pgEnum, pgTable, real, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema.ts";
 import { quizCardsTable } from "./quizCardsSchema.ts";
+import { reviewsTable } from "./reviewsSchema.ts";
 
 export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
 
@@ -38,9 +39,9 @@ export const quizzesRelations = relations(quizzesTable, ({ one, many }) => ({
         fields: [quizzesTable.user_id],
         references: [usersTable.id],
     }),
-    cards: many(quizCardsTable)
+    cards: many(quizCardsTable),
+    reviews: many(reviewsTable)
     // TODO: add these tables
     // tags: many(tagsTable)
     // languages: many(languagesTable)
-    // reviews: many(quizReviewsTable)
 }));
