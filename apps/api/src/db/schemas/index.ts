@@ -10,3 +10,4 @@ export * from './rolesSchema.ts';
 export * from './userRolesSchema.ts';
 export * from './userTokensSchema.ts';
 export * from './usersSchema.ts';
+export * from './reviewsSchema.ts';

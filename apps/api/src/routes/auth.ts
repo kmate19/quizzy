@@ -50,7 +50,12 @@ const auth = new Hono().basePath("/auth")
             return;
         }
 
-        const worker = new Worker(new URL("../workers/emailWorker.ts", import.meta.url).href, { type: "module" });
+        // I love bun
+        const emailWorkerUrl = ENV.NODE_ENV() === "production" ?
+            "../workers/emailWorker.ts"
+            : new URL("../workers/emailWorker.ts", import.meta.url).href;
+
+        const worker = new Worker(emailWorkerUrl);
         worker.postMessage({ email: registerUserData.email, emailToken });
 
         return c.redirect("/login");
@@ -64,6 +69,14 @@ const auth = new Hono().basePath("/auth")
                 .from(usersTable)
                 .leftJoin(userTokensTable, eq(userTokensTable.user_id, usersTable.id))
                 .where(eq(userTokensTable.token, emailHash)));
+
+            //const a = await db.query.usersTable.findFirst({
+            //    with: {
+            //        tokens: {
+            //            where: eq(userTokensTable.token, emailHash)
+            //        }
+            //    }
+            //})
 
             await db.update(usersTable).set({ auth_status: "active" }).where(eq(usersTable.id, userAndToken.users.id));
             await db.delete(userTokensTable).where(eq(userTokensTable.id, userAndToken.user_tokens!.id));
