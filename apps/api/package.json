@@ -10,7 +10,7 @@
     },
     "scripts": {
         "build": "pnpm drizzle:generate && pnpm build:bun",
-        "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts",
+        "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts ./src/workers/emailWorker.ts",
         "start": "./dist/api",
         "dev": "bun run --hot ./src/index.ts",
         "test": "bun test",
