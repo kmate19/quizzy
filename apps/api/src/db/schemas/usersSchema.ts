@@ -35,5 +35,5 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
     friendships: many(friendshipsTable),
     tokens: many(userTokensTable),
     roles: many(userRolesTable),
-    revies: many(reviewsTable)
+    reviews: many(reviewsTable)
 }));
