@@ -53,7 +53,12 @@ const auth = new Hono().basePath("/auth")
 
         // NOTE: Worker paths need to be from the CWD of the running script, not relative to the file that imports it XD!
         // also workers silently throw errors which dont get propogated to the main thread, so we need to event listener haha
-        const worker = new Worker("./src/workers/emailWorker.ts");
+        // actually this still doesnt work since bun docs are wrong, after compiling the file extension becomes .js so thats why it cant find the file in prod
+        // ALSO THE RELATIVE PATHS NEED TO BE CHANGED SINCE FOLDER STRUCTURE CHANGES AFTER COMPILATION 
+        // (why am i even compiling if theres one more issue because of this, im refactoring)
+        const workerExtension = ENV.NODE_ENV() === "production" ? ".js" : ".ts";
+        const workerRelativePath = ENV.NODE_ENV() === "production" ? "./" : "../";
+        const worker = new Worker(new URL(workerRelativePath + "workers/emailWorker" + workerExtension, import.meta.url).href);
         worker.onerror = (e) => {
             console.error(e);
         };
