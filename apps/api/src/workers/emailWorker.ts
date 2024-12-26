@@ -24,5 +24,5 @@ self.onmessage = async (e) => {
         }
     }
     // idk this doesnt work
-    self.terminate();
+    //self.terminate();
 }
