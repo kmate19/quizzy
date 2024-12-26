@@ -50,12 +50,13 @@ const auth = new Hono().basePath("/auth")
             return;
         }
 
-        // I love bun
-        const emailWorkerUrl = ENV.NODE_ENV() === "production" ?
-            "../workers/emailWorker.ts"
-            : new URL("../workers/emailWorker.ts", import.meta.url).href;
 
-        const worker = new Worker(emailWorkerUrl);
+        // NOTE: Worker paths need to be from the CWD of the running script, not relative to the file that imports it XD!
+        // also workers silently throw errors which dont get propogated to the main thread, so we need to event listener haha
+        const worker = new Worker("./src/workers/emailWorker.ts");
+        worker.onerror = (e) => {
+            console.error(e);
+        };
         worker.postMessage({ email: registerUserData.email, emailToken });
 
         return c.redirect("/login");
