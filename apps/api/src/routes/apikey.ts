@@ -33,7 +33,7 @@ const apikey = new Hono().basePath("/apikey")
     })
 
     .get("/list", async (c) => {
-        // List all API keys
+        // List own API keys
     })
 
     .delete("/delete/:id", async (c) => {

@@ -1,4 +1,4 @@
-function assertEnvProd(env: string | undefined, name: string, defval: string): string | void {
+function assertEnvProd(env: string | undefined, name: string, defval: string): string {
     env = env === "" ? undefined : env;
     if (env === undefined && Bun.env.NODE_ENV === "production") {
         throw new Error(name + " is not defined in the environment and this is a production environment!");
