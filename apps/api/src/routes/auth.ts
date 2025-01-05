@@ -11,6 +11,8 @@ import { z } from "zod";
 import ENV from "@/config/env.ts";
 import GLOBALS from "@/config/globals.ts";
 import getOneStrict from "@/utils/db/getOneStrict.ts";
+import { userRolesTable } from "@/db/schemas/userRolesSchema.ts";
+import { rolesTable } from "@/db/schemas/rolesSchema.ts";
 
 const auth = new Hono().basePath("/auth")
 
@@ -27,7 +29,14 @@ const auth = new Hono().basePath("/auth")
 
         let insertResult;
         try {
-            insertResult = getOneStrict(await db.insert(usersTable).values(registerUserData).returning({ id: usersTable.id }));
+            await db.transaction(async (tx) => {
+                insertResult = getOneStrict(await tx.insert(usersTable).values(registerUserData).returning({ id: usersTable.id }));
+                const roleId = getOneStrict(await tx.select({ id: rolesTable.id }).from(rolesTable).where(eq(rolesTable.name, "default")))
+                await tx.insert(userRolesTable).values({
+                    user_id: insertResult.id,
+                    role_id: roleId.id
+                });
+            });
         } catch (error) {
             const err = postgresErrorHandler(error as Error & { code: string });
 
@@ -102,6 +111,7 @@ const auth = new Hono().basePath("/auth")
 
         // NOTE: Keep an eye on this in the future so its not an infinite redirect loop
         if (accessCookie) {
+            console.log("user already logged in");
             return c.redirect("/");
         }
 
@@ -145,7 +155,7 @@ const auth = new Hono().basePath("/auth")
                 })
                 .returning({ id: userTokensTable.id }));
 
-            const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 30 };
+            const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 60 * 30 };
             const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
             setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
 

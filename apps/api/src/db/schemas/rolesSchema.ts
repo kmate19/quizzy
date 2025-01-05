@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { text, pgTable, timestamp, serial, varchar, boolean, uniqueIndex } from "drizzle-orm/pg-core";
-import { usersTable } from "./usersSchema.ts";
 import { permissionsTable } from "./permissionsSchema.ts";
+import { userRolesTable } from "./userRolesSchema.ts";
 
 export const rolesTable = pgTable("roles", {
     id: serial().primaryKey(),
@@ -20,5 +20,5 @@ export type Role = typeof rolesTable.$inferInsert;
 
 export const rolesRelations = relations(rolesTable, ({ many }) => ({
     permissions: many(permissionsTable),
-    users: many(usersTable),
+    users: many(userRolesTable),
 }));
