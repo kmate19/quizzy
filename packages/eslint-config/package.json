@@ -6,11 +6,11 @@
         "library.js"
     ],
     "devDependencies": {
-        "eslint-config-turbo": "^2.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.19.0",
+        "@typescript-eslint/parser": "^8.19.0",
         "eslint-config-prettier": "^9.1.0",
+        "eslint-config-turbo": "^2.3.3",
         "eslint-plugin-only-warn": "^1.1.0",
-        "@typescript-eslint/parser": "^8.16.0",
-        "@typescript-eslint/eslint-plugin": "^8.17.0",
         "typescript": "5.7.2"
     },
     "packageManager": "pnpm@9.13.2"
