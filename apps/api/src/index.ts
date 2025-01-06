@@ -32,3 +32,5 @@ export default {
     port: port,
     fetch: app.fetch
 };
+
+export type AppType = typeof app;
