@@ -19,12 +19,5 @@
     "packageManager": "pnpm@9.13.2",
     "engines": {
         "node": ">=18"
-    },
-    "dependencies": {
-        "@vee-validate/zod": "^4.15.0",
-        "lucide-vue-next": "^0.469.0",
-        "ngrok": "5.0.0-beta.2",
-        "vee-validate": "^4.15.0",
-        "zod": "^3.24.1"
     }
 }
