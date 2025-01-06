@@ -137,8 +137,8 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2
       tailwindcss:
-        specifier: 4.0.0-beta.3
-        version: 4.0.0-beta.3
+        specifier: 4.0.0-beta.8
+        version: 4.0.0-beta.8
       typescript:
         specifier: ~5.7.2
         version: 5.7.2
@@ -2787,6 +2787,9 @@ packages:
 
   tailwindcss@4.0.0-beta.3:
     resolution: {integrity: sha512-Cem7SF6OYcijYA1ZOGmuZHxk704iOxsRboFCXIpSJSR0XFft/NNz93Yoo0kHZIGNlqZmnQItI7JUSdR++Y9hZQ==}
+
+  tailwindcss@4.0.0-beta.8:
+    resolution: {integrity: sha512-21HmdRq9tHDLJZavb2cRBGJxBvRODpwb0/t3tRbMOl65hJE6zG6K6lD6lLS3IOC35u4SOjKjdZiJJi9AuWCf+Q==}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -5507,6 +5510,8 @@ snapshots:
       tslib: 2.8.1
 
   tailwindcss@4.0.0-beta.3: {}
+
+  tailwindcss@4.0.0-beta.8: {}
 
   tapable@2.2.1: {}
 
