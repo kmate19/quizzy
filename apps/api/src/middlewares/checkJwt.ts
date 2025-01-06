@@ -7,11 +7,12 @@ import { eq } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { decode, sign, verify } from "hono/jwt";
-import { JwtTokenExpired } from "hono/utils/jwt/types";
+import { JwtTokenExpired, type JWTPayload } from "hono/utils/jwt/types";
 
 const authJwtMiddleware = (role?: string) => {
-    return createMiddleware(async (c, next) => {
+    return createMiddleware<{ Variables: { accessTokenPayload: JWTPayload } }>(async (c, next) => {
         let accessCookie;
+        let accessTokenPayload: JWTPayload;
         try {
             accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)
 
@@ -19,11 +20,11 @@ const authJwtMiddleware = (role?: string) => {
                 return c.redirect("/login");
             }
 
-            const payload = await verify(accessCookie, ENV.ACCESS_JWT_SECRET());
+            accessTokenPayload = await verify(accessCookie, ENV.ACCESS_JWT_SECRET());
 
             if (role) {
                 const userRole = await db.query.usersTable.findFirst({
-                    where: eq(usersTable.id, payload.userId as string),
+                    where: eq(usersTable.id, accessTokenPayload.userId as string),
                     with: {
                         roles: {
                             with: {
@@ -47,7 +48,7 @@ const authJwtMiddleware = (role?: string) => {
                     return c.redirect("/login");
                 }
 
-                const accessTokenPayload = { userId: payload.userId, forId: payload.forId, exp: Math.floor(Date.now() / 1000) + 60 * 30 };
+                accessTokenPayload = { userId: payload.userId, forId: payload.forId, exp: Math.floor(Date.now() / 1000) + 60 * 30 };
 
                 const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
 
@@ -55,7 +56,7 @@ const authJwtMiddleware = (role?: string) => {
             }
         }
 
-        console.log("authJwtMiddleware")
+        c.set("accessTokenPayload", accessTokenPayload!);
         await next();
     })
 };

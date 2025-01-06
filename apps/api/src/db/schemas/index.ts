@@ -11,3 +11,5 @@ export * from './userRolesSchema.ts';
 export * from './userTokensSchema.ts';
 export * from './usersSchema.ts';
 export * from './reviewsSchema.ts';
+export * from './userApiKeyResourcesSchema.ts';
+export * from './userApiKeysSchema.ts';
