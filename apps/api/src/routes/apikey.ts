@@ -3,9 +3,11 @@ import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema.ts
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { JWTPayload } from "hono/utils/jwt/types";
+import { tryDecode } from "hono/utils/url";
+import { z } from "zod";
 
 const generateApiKey = (length = 32, includeSpecial = true) => {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' +
@@ -45,7 +47,6 @@ const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().bas
                     api_keys: {
                         columns: {
                             user_id: false,
-                            id: false,
                         }
                     }
                 }
@@ -63,8 +64,16 @@ const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().bas
 
     })
 
-    .delete("/delete/:id", async (c) => {
-        // Delete an API key
+    .delete("/delete/:id", zValidator("param", z.object({ id: z.string().regex(/^\d+$/).transform(Number) })), async (c) => {
+        try {
+            await db.delete(userApiKeys).where(and(eq(userApiKeys.user_id, c.get("accessTokenPayload").userId as string), eq(userApiKeys.id, c.req.valid("param").id)));
+        } catch (error) {
+            console.log(error);
+            c.status(500);
+            return c.body('')
+        }
+
+        return c.json({ message: "API key deleted" });
     });
 
 export default apikey;
