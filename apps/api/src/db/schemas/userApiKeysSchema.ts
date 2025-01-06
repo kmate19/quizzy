@@ -27,7 +27,7 @@ export type UserApiKey = typeof userApiKeys.$inferInsert;
 // TODO: finish this with actual resourceAccessControl
 
 export const postApiKeySchema = createInsertSchema(userApiKeys)
-    .pick({ user_id: true, key: true, description: true, expires_at: true })
+    .pick({ description: true, expires_at: true })
     .extend({ expires_at: z.string().datetime() });
 
 export const userApiKeyRelations = relations(userApiKeys, ({ one, many }) => ({

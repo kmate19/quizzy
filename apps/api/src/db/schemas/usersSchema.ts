@@ -6,6 +6,7 @@ import { userRolesTable } from "./userRolesSchema.ts";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { reviewsTable } from "./reviewsSchema.ts";
+import { userApiKeys } from "./userApiKeysSchema.ts";
 
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "away"]);
 export const authStatusEnum = pgEnum("auth_status", ["pending", "active", "blocked"]);
@@ -36,6 +37,5 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
     tokens: many(userTokensTable),
     roles: many(userRolesTable),
     reviews: many(reviewsTable),
-    // TODO:
-    //api_keys: many(userTokensTable),
+    api_keys: many(userApiKeys),
 }));
