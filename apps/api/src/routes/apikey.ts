@@ -2,6 +2,7 @@ import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
+import checkJwt from "@/middlewares/checkJwt.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
@@ -18,7 +19,7 @@ function generateApiKey(prefix: string = "pk"): string {
     return `${prefix}_${randomChars}`;
 };
 
-const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().basePath("/apikey")
+const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().basePath("/apikey").use(checkJwt("admin"))
     .post("/create", zValidator("json", postApiKeySchema), async (c) => {
         const apiKeyData = c.req.valid("json");
 

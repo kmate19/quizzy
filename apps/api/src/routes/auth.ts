@@ -53,7 +53,7 @@ const auth = new Hono().basePath("/auth")
 
         try {
             // TODO: make cron job to delete expired tokens
-            await db.insert(userTokensTable).values({ user_id: insertResult.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
+            await db.insert(userTokensTable).values({ user_id: insertResult!.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
         } catch (error) {
             c.status(500);
             return;
