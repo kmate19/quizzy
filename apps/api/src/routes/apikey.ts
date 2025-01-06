@@ -6,7 +6,6 @@ import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { JWTPayload } from "hono/utils/jwt/types";
-import { tryDecode } from "hono/utils/url";
 import { z } from "zod";
 
 const generateApiKey = (length = 32, includeSpecial = true) => {
@@ -37,11 +36,9 @@ const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().bas
     })
 
     .get("/list", async (c) => {
-        const asd = c.get("accessTokenPayload");
-
         try {
             const keys = await db.query.usersTable.findFirst({
-                where: eq(usersTable.id, asd.userId as string),
+                where: eq(usersTable.id, c.get("accessTokenPayload").userId as string),
                 columns: {},
                 with: {
                     api_keys: {
