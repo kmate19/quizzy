@@ -1,3 +1,4 @@
+import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
@@ -8,13 +9,13 @@ import { Hono } from "hono";
 import type { JWTPayload } from "hono/utils/jwt/types";
 import { z } from "zod";
 
-const generateApiKey = (length = 32, includeSpecial = true) => {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' +
-        (includeSpecial ? '!@#$%^&*()-_=+[]{}|;:,.<>?' : '');
+function generateApiKey(prefix: string = "pk"): string {
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    return Array.from(crypto.getRandomValues(new Uint8Array(length)))
+    const randomChars = Array.from(crypto.getRandomValues(new Uint8Array(32)))
         .map(byte => charset[byte % charset.length])
         .join('');
+    return `${prefix}_${randomChars}`;
 };
 
 const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().basePath("/apikey")
@@ -24,6 +25,10 @@ const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().bas
         // NOTE: probably should be in a worker
         const key = generateApiKey();
         try {
+            const keys = await db.query.userApiKeys.findMany({ where: eq(usersTable.id, c.get("accessTokenPayload").userId as string) });
+
+            if (keys.length >= GLOBALS.MAX_ACTIVE_API_KEYS) throw new Error("You have reached the maximum number of API keys");
+
             await db.insert(userApiKeys).values({ ...apiKeyData, key, user_id: c.get("accessTokenPayload").userId as string });
         } catch (error) {
             const err = postgresErrorHandler(error as Error & { code: string });
@@ -37,23 +42,18 @@ const apikey = new Hono<{ Variables: { accessTokenPayload: JWTPayload } }>().bas
 
     .get("/list", async (c) => {
         try {
-            const keys = await db.query.usersTable.findFirst({
-                where: eq(usersTable.id, c.get("accessTokenPayload").userId as string),
-                columns: {},
-                with: {
-                    api_keys: {
-                        columns: {
-                            user_id: false,
-                        }
-                    }
-                }
+            const keys = await db.query.userApiKeys.findMany({
+                where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId as string),
+                columns: {
+                    user_id: false,
+                },
             })
             if (!keys) {
                 throw new Error("No keys found");
             }
             // hide the full key
-            keys.api_keys.map(key => key.key = key.key.substring(0, 3) + "..." + key.key.substring(key.key.length - 3, key.key.length));
-            return c.json({ keys: keys.api_keys });
+            keys.map(key => key.key = key.key.substring(0, 3) + "..." + key.key.substring(key.key.length - 3, key.key.length));
+            return c.json({ keys: keys });
         } catch (error) {
             c.status(500);
             return c.body('')
