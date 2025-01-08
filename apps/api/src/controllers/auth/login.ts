@@ -3,6 +3,7 @@ import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
+import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import getOneStrict from "@/utils/db/getOneStrict.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
@@ -52,7 +53,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
     const refreshToken = await sign(refreshTokenPayload, ENV.REFRESH_JWT_SECRET());
 
     try {
-        const userToken = getOneStrict(await db.insert(userTokensTable)
+        const userRefreshToken = getOneStrict(await db.insert(userTokensTable)
             .values({
                 user_id: user.id,
                 token: refreshToken,
@@ -60,7 +61,12 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
             })
             .returning({ id: userTokensTable.id }));
 
-        const accessTokenPayload = { userId: user.id, forId: userToken.id, exp: Math.floor(Date.now() / 1000) + 60 * 30 };
+        const accessTokenPayload: QuizzyJWTPAYLOAD = {
+            userId: user.id,
+            refreshTokenId: userRefreshToken.id,
+            exp: Math.floor(Date.now() / 1000) + 60 * 30
+        }
+
         const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
         setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
 

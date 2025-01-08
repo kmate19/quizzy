@@ -8,7 +8,7 @@ import { z } from "zod";
 
 const deleteHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("param", z.object({ id: z.string().regex(/^\d+$/).transform(Number) })), async (c) => {
     try {
-        await db.delete(userApiKeys).where(and(eq(userApiKeys.user_id, c.get("accessTokenPayload").userId as string), eq(userApiKeys.id, c.req.valid("param").id)));
+        await db.delete(userApiKeys).where(and(eq(userApiKeys.user_id, c.get("accessTokenPayload").userId), eq(userApiKeys.id, c.req.valid("param").id)));
     } catch (error) {
         console.log(error);
         c.status(500);
