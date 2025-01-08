@@ -13,11 +13,11 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
     // NOTE: probably should be in a worker
     const key = generateApiKey();
     try {
-        const keys = await db.query.userApiKeys.findMany({ where: eq(usersTable.id, c.get("accessTokenPayload").userId as string) });
+        const keys = await db.query.userApiKeys.findMany({ where: eq(usersTable.id, c.get("accessTokenPayload").userId) });
 
         if (keys.length >= GLOBALS.MAX_ACTIVE_API_KEYS) throw new Error("You have reached the maximum number of API keys");
 
-        await db.insert(userApiKeys).values({ ...apiKeyData, key, user_id: c.get("accessTokenPayload").userId as string });
+        await db.insert(userApiKeys).values({ ...apiKeyData, key, user_id: c.get("accessTokenPayload").userId });
     } catch (error) {
         const err = postgresErrorHandler(error as Error & { code: string });
 

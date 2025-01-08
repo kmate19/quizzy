@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
     try {
         const keys = await db.query.userApiKeys.findMany({
-            where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId as string),
+            where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId),
             columns: {
                 user_id: false,
             },
