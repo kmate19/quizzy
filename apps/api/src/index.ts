@@ -11,7 +11,7 @@ const app = new Hono().basePath("/api/v1")
     .use(ENV.NODE_ENV() === "development" ? logger() : async () => { })
     .use(cors())
     .route('/', auth)
-    .route('/', apikey);
+    .route('/', apikey)
 
 const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);

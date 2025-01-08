@@ -7,7 +7,7 @@ export const tokenTypeEnum = pgEnum("token_type", ["email", "refresh"]);
 export const userTokensTable = pgTable("user_tokens", {
     id: serial().primaryKey(),
     user_id: uuid().notNull().references(() => usersTable.id),
-    token: text().notNull(),
+    token: text().notNull().unique(),
     token_type: tokenTypeEnum().notNull(),
     expires_at: timestamp().notNull(),
     created_at: timestamp().notNull().defaultNow(),
