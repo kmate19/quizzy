@@ -5,7 +5,6 @@ import { rolesTable } from "@/db/schemas/rolesSchema.ts";
 import { userRolesTable } from "@/db/schemas/userRolesSchema.ts";
 import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import getOneStrict from "@/utils/db/getOneStrict.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
@@ -14,45 +13,27 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUs
     const registerUserData = c.req.valid('json')
 
     // PERF: Probably would be better to check if the user is duplicate first and maybe use worker threads
-    try {
-        registerUserData.password = await Bun.password.hash(registerUserData.password);
-    } catch (error) {
-        c.status(500);
-        return;
-    }
+    registerUserData.password = await Bun.password.hash(registerUserData.password)
 
     let insertResult;
-    try {
-        await db.transaction(async (tx) => {
-            insertResult = getOneStrict(await tx.insert(usersTable).values(registerUserData).returning({ id: usersTable.id }));
-            const roleId = getOneStrict(await tx.select({ id: rolesTable.id }).from(rolesTable).where(eq(rolesTable.name, "default")))
-            await tx.insert(userRolesTable).values({
-                user_id: insertResult.id,
-                role_id: roleId.id
-            });
+    const maybeError = await db.transaction(async (tx) => {
+        [insertResult] = await tx.insert(usersTable).values(registerUserData).returning({ id: usersTable.id });
+        const [roleId] = await tx.select({ id: rolesTable.id }).from(rolesTable).where(eq(rolesTable.name, "default"))
+        await tx.insert(userRolesTable).values({
+            user_id: insertResult.id,
+            role_id: roleId.id
         });
-    } catch (error) {
-        const err = postgresErrorHandler(error as Error & { code: string });
+    }).catch(e => postgresErrorHandler(e));
 
-        if (err.type === "dup") {
-            c.status(400);
-            return c.json({ message: `${err.columnName} is already taken!` });
-        } else {
-            c.status(500);
-            return;
-        }
+    if (maybeError) {
+        c.status(400)
+        return c.json({ error: maybeError.message });
     }
 
+    // TODO: make cron job to delete expired tokens
     const emailToken = new Bun.CryptoHasher("sha1").update(registerUserData.email).digest("hex");
 
-    try {
-        // TODO: make cron job to delete expired tokens
-        await db.insert(userTokensTable).values({ user_id: insertResult!.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
-    } catch (error) {
-        c.status(500);
-        return;
-    }
-
+    await db.insert(userTokensTable).values({ user_id: insertResult!.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
 
     // NOTE: Worker paths need to be from the CWD of the running script, not relative to the file that imports it XD!
     // also workers silently throw errors which dont get propogated to the main thread, so we need to event listener haha
