@@ -1,22 +1,13 @@
-import ENV from "@/config/env.ts";
 import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
+import checkJwt from "@/middlewares/checkJwt.ts";
 import { eq } from "drizzle-orm";
-import { deleteCookie, getCookie } from "hono/cookie";
-import { verify } from "hono/jwt";
+import { deleteCookie } from "hono/cookie";
 
-const logoutHandler = GLOBALS.CONTROLLER_FACTORY(async (c) => {
-    const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
-
-    if (!accessCookie) {
-        return c.redirect("/login");
-    }
-
-    const payload = await verify(accessCookie, ENV.ACCESS_JWT_SECRET());
-
+const logoutHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     try {
-        await db.delete(userTokensTable).where(eq(userTokensTable.id, payload.forId as number));
+        await db.delete(userTokensTable).where(eq(userTokensTable.id, c.get("accessTokenPayload").forId as number));
     } catch (error) {
         c.status(500);
         return;
