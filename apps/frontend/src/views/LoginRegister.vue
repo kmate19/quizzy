@@ -2,12 +2,21 @@
 import { ref } from 'vue';
 import * as zod from 'zod';
 import router from '@/router';
-
+import { clientv1 } from '@/lib/apiClient';
 import MistBackground from '@/components/MistBackground.vue';
 import { baseRegisterSchema } from '@/schemas/RegistrationSchema';
-import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
+import { EyeIcon, EyeOffIcon, HelpCircle } from 'lucide-vue-next';
+import { toast, type ToastOptions } from 'vue3-toastify';
 
 const isLoginForm = ref(true);
+
+const passwordRequirements = [
+  '• Minimum 8 karakter',
+  '• Legalább egy nagybetű',
+  '• Legalább egy kisbetű',
+  '• Legalább egy szám',
+  '• Jelszavak egyezése'
+]
 
 const flipLogin = () => {
   isLoginForm.value = !isLoginForm.value;
@@ -26,7 +35,6 @@ const loginForm = ref({
   password: '',
 })
 
-type loginSchemaType = zod.infer<typeof loginvalidSchema>;
 type RegisterSchemaType = zod.infer<typeof baseRegisterSchema>;
 
 const createRegisterSchema = (password: string) =>
@@ -34,41 +42,43 @@ const createRegisterSchema = (password: string) =>
     (data) => data.confirmPassword === password,
     { message: 'A jelszavak nem egyeznek', path: ['confirmPassword'] }
   );
-const loginvalidSchema = zod.object({
-  username: zod.string()
-    .min(1, { message: 'A mező kitöltése kötelező' }),
-  password: zod.string().min(1, { message: 'A mező kitöltése kötelező' })
-});
 
 const regErrors = ref<zod.ZodFormattedError<RegisterSchemaType> | null>(null)
-const loginErrors = ref<zod.ZodFormattedError<loginSchemaType> | null>(null)
 
-const onRegistration = () => {
+const onRegistration = async() => {
   const schema = createRegisterSchema(regForm.value.password);
   const valid = schema.safeParse(regForm.value);
 
   if (!valid.success) {
     regErrors.value = valid.error.format();
-    console.log('Invalid form', regErrors.value);
   }
   else {
     regErrors.value = null;
-    console.log('Valid form', regForm.value.email, regForm.value.username, regForm.value.password, regForm.value.confirmPassword);
-    //toast show
+    await clientv1.auth.register.$post({ json: regForm.value })
+    toast("Kérjük aktiválja fiókját a kapott e-mailen keresztül!", {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: "zoom",
+      pauseOnHover: false,
+    } as ToastOptions);
   }
 };
 
-const onLogin = () => {
-  const valid = loginvalidSchema.safeParse(loginForm.value);
+const onLogin = async() => {
 
-  if (!valid.success) {
-    loginErrors.value = valid.error.format();
-    console.log('Invalid form', loginErrors.value);
+  const res = await clientv1.auth.login.$post({ json: loginForm.value });
+
+  if (!res.success) {
+    toast("Helytelen felhasználónév vagy jelszó páros!", {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: "zoom",
+      pauseOnHover: false,
+    } as ToastOptions);
   }
   else {
-    loginErrors.value = null;
-    console.log('Valid form', loginForm.value.username, loginForm.value.password);
-    //localStorage.setItem('userData', JSON.stringify(api response));
     router.push('/home');
   }
 };
@@ -96,21 +106,18 @@ const togglePassword = () => {
         <form @submit.prevent="onLogin">
           <v-text-field label="Felhasználónév" v-model="loginForm.username" variant="outlined" density="comfortable">
           </v-text-field>
-          <span v-if="loginErrors" class="text-red-500">
-            Helytelen felhasználónév vagy jelszó
-          </span>
-          <v-text-field name="pw" label="Jelszó" v-model="loginForm.password" variant="outlined" density="comfortable"
-            :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="togglePassword" />
-          <button @click="togglePassword" class="absolute right-2 top-1/2 transform
-                    -translate-y-1/2 text-gray-500
-                    hover:text-gray-700 focus:outline-none" type="button">
-            <EyeIcon v-if="!showPassword" class="h-5 w-5" />
-            <EyeOffIcon v-else class="h-5 w-5" />
-          </button>
-          <span v-if="loginErrors" class="text-red-500 !mt-0">
-            Helytelen felhasználónév vagy jelszó
-          </span>
+            <v-text-field name="pw" label="Jelszó" v-model="loginForm.password" variant="outlined" density="comfortable"
+              :type="showPassword ? 'text' : 'password'" 
+              @click:append-inner="togglePassword" class="relative">
+              <button @click="togglePassword" class="absolute right-2 top-1/2 transform
+              -translate-y-1/2 text-white
+              hover:text-gray-700 focus:outline-none" type="button"
+              :append-inner-icon="showPassword ? 
+              'mdi-eye-off' : 'mdi-eye'">
+                <EyeIcon v-if="!showPassword" class="h-5 w-5" />
+                <EyeOffIcon v-else class="h-5 w-5" />
+              </button>
+            </v-text-field>
           <div class="flex flex-wrap items-center">
             <v-btn type="submit" class="w-full !mt-5" variant="outlined">Bejelentkezés</v-btn>
             <br>
@@ -120,43 +127,47 @@ const togglePassword = () => {
       </div>
       <div v-else>
         <form @submit.prevent="onRegistration">
-          <div class="">
+          <div class="flex flex-col">
             <v-text-field label="Email" name="email" v-model="regForm.email" required variant="outlined"
-              density="comfortable"></v-text-field>
-            <span v-if="regErrors?.email" class="text-red-500">
-              {{ regErrors.email._errors[0] }}
-            </span>
+              density="comfortable"
+              :error-messages="regErrors?.email?._errors[0]"
+              class="!mb-5"
+              ></v-text-field>
+            
             <v-text-field label="Felhasználónév" name="username" v-model="regForm.username" required variant="outlined"
-              density="comfortable"></v-text-field>
-            <span v-if="regErrors?.username" class="text-red-500">
-              {{ regErrors.username._errors[0] }}
-            </span>
+              density="comfortable"
+              :error-messages="regErrors?.username?._errors[0]"
+              class="!mb-5"
+              ></v-text-field>
+            
             <v-text-field label="Jelszó" v-model="regForm.password" name="pw" required variant="outlined"
               density="comfortable" :type="showPassword ? 'text' : 'password'"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="togglePassword">
-
-              <template v-slot:details>
-                <div class="text-caption text-wrap mb-5">
-                  Min. 8 karakter, tartalmazzon kis- és nagybetűt, valamint speciális karaktert
-                </div>
-              </template>
+               @click:append-inner="togglePassword"
+              class="relative !mb-5"
+              :error-messages="regErrors?.password?._errors[0]"
+              persistent-hint
+              :messages="passwordRequirements">
+                <button @click="togglePassword" class="absolute right-2 top-1/2 transform
+                -translate-y-1/2 text-white
+                hover:text-gray-700 focus:outline-none" type="button" 
+                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
+                <EyeIcon v-if="!showPassword" class="h-5 w-5" />
+                <EyeOffIcon v-else class="h-5 w-5" />
+              </button>
             </v-text-field>
-            <button @click="togglePassword" class="absolute right-2 top-1/2 transform
-                -translate-y-1/2 text-gray-500
-                hover:text-gray-700 focus:outline-none" type="button">
-              <EyeIcon v-if="!showPassword" class="h-5 w-5" />
-              <EyeOffIcon v-else class="h-5 w-5" />
-            </button>
-            <span v-if="regErrors?.password" class="text-red-500">
-              {{ regErrors.password._errors[0] }}
-            </span>
-            <v-text-field label="Jelszó megerősítés" v-model="regForm.confirmPassword"
-              :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="togglePassword" name="pw" required variant="outlined"
-              density="comfortable"></v-text-field>
-            <span v-if="regErrors?.confirmPassword" class="text-red-500">
-              {{ regErrors.confirmPassword._errors[0] }}
-            </span>
+            
+            <v-text-field label="Jelszó megerősítés" 
+            v-model="regForm.confirmPassword"
+            :type="showPassword ? 'text' : 'password'" 
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append-inner="togglePassword" 
+            name="pw" 
+            required variant="outlined"
+            density="comfortable"
+            :error-messages="regErrors?.confirmPassword?._errors[0]"
+            class="!mb-5">
+          </v-text-field>
+            
             <div class="flex flex-wrap items-center">
               <v-btn class="w-full !mt-5" @click="onRegistration" variant="outlined">Regisztráció</v-btn>
               <br>

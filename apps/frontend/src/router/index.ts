@@ -5,7 +5,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/login',
       name: 'loginRegister',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
@@ -14,7 +14,7 @@ const router = createRouter({
     },
     //redirect to login with alert on error
     {
-      path: '/home',
+      path: '/',
       name: 'home',
       component: () => import('@/views/HomeView.vue'),
     }
