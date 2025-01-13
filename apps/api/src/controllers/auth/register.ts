@@ -58,7 +58,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUs
     const res = {
         message: 'user created'
     } satisfies ApiResponse;
-    return c.json(res);
+    return c.json(res, 200);
 })
 
 export default registerHandler;

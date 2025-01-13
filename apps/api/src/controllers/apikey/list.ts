@@ -29,7 +29,7 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
         message: "API keys found",
         data: keys
     }
-    return c.json(res);
+    return c.json(res, 200);
 })
 
 export default listHandler;

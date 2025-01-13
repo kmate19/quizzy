@@ -21,7 +21,7 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(zValidator("param", z.object({ 
     const res = {
         message: "user verified"
     } as ApiResponse;
-    return c.json(res);
+    return c.json(res, 200);
 })
 
 export default verifyHandler;
