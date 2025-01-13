@@ -13,12 +13,23 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
     })
 
     if (keys.length === 0) {
-        return c.json({ message: "No API keys found" });
+        const res = {
+            message: "No API keys found",
+            error: {
+                message: "No API keys found",
+                case: "not_found"
+            }
+        }
+        return c.json(res, 404);
     }
 
     // hide the full keys
     keys.map(key => key.key = key.key.substring(0, 3) + "..." + key.key.substring(key.key.length - 3, key.key.length));
-    return c.json({ keys: keys });
+    const res = {
+        message: "API keys found",
+        data: keys
+    }
+    return c.json(res);
 })
 
 export default listHandler;

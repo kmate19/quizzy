@@ -5,6 +5,7 @@ import { rolesTable } from "@/db/schemas/rolesSchema.ts";
 import { userRolesTable } from "@/db/schemas/userRolesSchema.ts";
 import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
+import type { ApiResponse } from "@/types.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
@@ -26,8 +27,14 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUs
     }).catch(e => postgresErrorHandler(e));
 
     if (maybeError) {
-        c.status(400)
-        return c.json({ error: maybeError.message });
+        const res = {
+            message: 'user not created',
+            error: {
+                message: maybeError.message,
+                case: "auth"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 400);
     }
 
     // TODO: make cron job to delete expired tokens
@@ -48,7 +55,10 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUs
     };
     worker.postMessage({ email: registerUserData.email, emailToken });
 
-    return c.redirect("/login");
+    const res = {
+        message: 'user created'
+    } satisfies ApiResponse;
+    return c.json(res);
 })
 
 export default registerHandler;

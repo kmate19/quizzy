@@ -17,7 +17,14 @@ const authJwtMiddleware = (role?: string) => {
         const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)
 
         if (!accessCookie) {
-            return c.redirect("/login");
+            const res = {
+                message: "user not logged in",
+                error: {
+                    message: "user not logged in",
+                    case: "unauthorized"
+                }
+            }
+            return c.json(res, 401);
         }
 
         const accessTokenPayloadOrError = await verify(accessCookie, ENV.ACCESS_JWT_SECRET()).catch(e => e) as QuizzyJWTPAYLOAD;
@@ -26,8 +33,15 @@ const authJwtMiddleware = (role?: string) => {
             refreshAccessToken(c, accessCookie)
         } else if (accessTokenPayloadOrError instanceof Error) {
             console.log(accessTokenPayloadOrError);
-            c.status(500);
-            return c.redirect("/login");
+            // TODO: gracefully handle this error
+            const res = {
+                message: "internal server error",
+                error: {
+                    message: "internal server error",
+                    case: "internal"
+                }
+            }
+            return c.json(res, 500);
         }
 
         if (role) {
@@ -43,8 +57,14 @@ const authJwtMiddleware = (role?: string) => {
             });
 
             if (!userAndRoles.roles.some(r => r.role.name === role)) {
-                c.status(404);
-                return c.redirect("/404");
+                const res = {
+                    message: "user does not have the required role",
+                    error: {
+                        message: "user does not have the required role",
+                        case: "forbidden"
+                    }
+                }
+                return c.json(res, 403);
             }
         }
 
@@ -59,7 +79,14 @@ async function refreshAccessToken(c: Context, accessCookie: string) {
     // TODO: Check if the refresh token is still valid
     const res = await db.select().from(userTokensTable).where(eq(userTokensTable.id, payload.refreshTokenId))
     if (!res.length) {
-        return c.redirect("/login");
+        const res = {
+            message: "refresh token not found",
+            error: {
+                message: "refresh token not found",
+                case: "unauthorized"
+            }
+        }
+        return c.json(res, 401);
     }
 
     const newAccessTokenPayload = { userId: payload.userId, refreshTokenId: payload.refreshTokenId, exp: Math.floor(Date.now() / 1000) + 60 * 30 };

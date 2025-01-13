@@ -3,7 +3,7 @@ import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import type { QuizzyJWTPAYLOAD } from "@/types.ts";
+import type { ApiResponse, QuizzyJWTPAYLOAD } from "@/types.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq, or } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
@@ -15,7 +15,14 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
     // NOTE: Keep an eye on this in the future so its not an infinite redirect loop
     if (getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)) {
         // user already logged in
-        return c.redirect("/");
+        const res = {
+            message: 'user is already has a login cookie',
+            error: {
+                message: 'user cant have a login cookie and try to log in',
+                case: "conflict"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 400);
     }
 
     const [user] = await db.select().from(usersTable).where(or(
@@ -24,22 +31,50 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
     ));
 
     if (!user) {
-        c.status(404);
-        return c.json({ message: "This user doesn't exist!" });
+        const res = {
+            message: 'user not found',
+            error: {
+                message: 'user not found',
+                case: "not_found",
+                field: "username_or_email"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 404);
     }
 
     if (!await Bun.password.verify(loginUserData.password, user.password)) {
-        c.status(400);
-        return c.json({ message: "Invalid password!" });
+        const res = {
+            message: 'invalid password',
+            error: {
+                message: 'invalid password',
+                case: "auth",
+                field: "password"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 401);
     }
 
     switch (user.auth_status) {
         case "pending":
-            c.status(400);
-            return c.json({ message: "Account not verified! Please check your inbox for the verification email!" });
+            const pending_res = {
+                message: "Account not verified! Please check your inbox for the verification email!",
+                error: {
+                    message: "Account not verified! Please check your inbox for the verification email!",
+                    case: "auth",
+                    field: "auth_status"
+                }
+            }
+            return c.json(pending_res, 401);
         case "blocked":
-            c.status(400);
-            return c.json({ message: "Your account can't be accessed at this time. Please contant an administrator." });
+            const blocked_res = {
+                message: "Your account can't be accessed at this time. Please contant an administrator.",
+                error: {
+                    message: "Your account can't be accessed at this time. Please contant an administrator.",
+                    case: "auth",
+                    field: "auth_status"
+                }
+            }
+            return c.json(blocked_res, 401);
     }
 
     const refreshTokenPayload = { userId: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 };
@@ -62,7 +97,10 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
     const accessToken = await sign(accessTokenPayload, ENV.ACCESS_JWT_SECRET())
     setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
 
-    return c.redirect("/");
+    const res = {
+        message: 'login successful',
+    } satisfies ApiResponse;
+    return c.json(res);
 })
 
 export default loginHandler;
