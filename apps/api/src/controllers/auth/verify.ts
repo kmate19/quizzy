@@ -2,6 +2,7 @@ import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
+import type { ApiResponse } from "@/types.ts";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -17,7 +18,10 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(zValidator("param", z.object({ 
     await db.update(usersTable).set({ auth_status: "active" }).where(eq(usersTable.id, userAndToken.users.id));
     await db.delete(userTokensTable).where(eq(userTokensTable.id, userAndToken.user_tokens!.id));
 
-    return c.redirect("/login");
+    const res = {
+        message: "user verified"
+    } as ApiResponse;
+    return c.json(res);
 })
 
 export default verifyHandler;
