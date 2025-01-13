@@ -12,7 +12,7 @@ const deleteHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
     const res = {
         message: "API key deleted"
     }
-    return c.json(res);
+    return c.json(res, 200);
 });
 
 export default deleteHandler;

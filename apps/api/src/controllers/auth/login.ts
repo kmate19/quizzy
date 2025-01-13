@@ -100,7 +100,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
     const res = {
         message: 'login successful',
     } satisfies ApiResponse;
-    return c.json(res);
+    return c.json(res, 200);
 })
 
 export default loginHandler;

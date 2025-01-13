@@ -32,7 +32,7 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
         message: "API key created, you will only see the full key once, so save it",
         data: key
     } as ApiResponse;
-    return c.json(res);
+    return c.json(res, 200);
 })
 
 function generateApiKey(prefix: string = "pk"): string {

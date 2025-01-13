@@ -14,7 +14,7 @@ const logoutHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     const res = {
         message: 'user logged out'
     } satisfies ApiResponse;
-    return c.json(res)
+    return c.json(res, 200)
 })
 
 export default logoutHandler;
