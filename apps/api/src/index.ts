@@ -4,6 +4,7 @@ import ENV from "./config/env.ts";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import apikey from "./routes/apikey.ts";
+import type { ApiResponse } from "./types.ts";
 
 console.log(ENV.NODE_ENV())
 
@@ -22,3 +23,4 @@ export default {
 };
 
 export type AppType = typeof app;
+export type ApiRes = ApiResponse;
