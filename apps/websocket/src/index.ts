@@ -4,36 +4,39 @@ import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { genLobbyId } from "./utils/utils.ts";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
 
 const lobbies: Map<string, Set<ServerWebSocket>> = new Map()
 
-const app = new Hono().basePath("/ws")
+const app = new Hono()
     .use(logger())
     .use(cors())
-    .get("/server/:lobbyid", upgradeWebSocket(async (c) => {
+    .get("/ws/server/:lobbyid/:hash", upgradeWebSocket(async (c) => {
+        const lobbyid = c.req.param("lobbyid")
         return {
             onMessage: (event, ws) => {
                 console.log(`client sent message ${event.data.toString()} to lobby ${c.req.param("lobbyid")}`)
                 lobbies.get(c.req.param("lobbyid"))?.forEach((client) => {
-                    console.log(`uhh client ${client}`)
+                    console.log("uhh client", client)
                     if (client !== ws.raw) {
-                        console.log(`uhh client NOT EQUAL ${client}`)
+                        console.log("not sending to theirselves")
                         client.send(event.data.toString())
                     }
                 });
             },
             onOpen: (_, ws) => {
-                if (!lobbies.has(c.req.param("lobbyid"))) {
-                    lobbies.set(c.req.param("lobbyid"), new Set())
-                    console.log(`client created lobby ${c.req.param("lobbyid")}`)
-                } else {
-                    lobbies.get(c.req.param("lobbyid"))?.add(ws.raw!)
-                    console.log(`client joined lobby ${c.req.param("lobbyid")}`)
+                if (!lobbies.has(lobbyid)) {
+                    ws.close(4000, "Lobby does not exist")
+                    return
                 }
 
-                ws.raw?.ping(); // Send periodic pings to ensure connection health
+                lobbies.get(lobbyid)!.add(ws.raw!)
+                console.log(`client joined lobby ${lobbyid}`)
+
+                ws.raw?.ping();
 
                 const interval = setInterval(() => {
                     if (ws.raw?.readyState === 3) {
@@ -43,7 +46,14 @@ const app = new Hono().basePath("/ws")
                     }
                 }, 30000);
 
+                const alldata = [...lobbies.get(lobbyid)!].map((ws) => ws.data as any)
+
+                console.log("sending", alldata)
+
+                console.log("sending", JSON.stringify(alldata))
+
                 ws.raw!.subscribe(c.req.param("lobbyid"))
+                ws.send(JSON.stringify(alldata))
             },
             onClose: (_, ws) => {
                 console.log(`client left lobby ${c.req.param("lobbyid")}`)
@@ -57,15 +67,23 @@ const app = new Hono().basePath("/ws")
             }
         }
     }))
-    .get("/broadcast", async (c) => {
-        return c.text("")
+    .post("/reserve/session", zValidator('query', z.object({ timestamp: z.string().regex(/^\d+$/).transform(Number) })), async (c) => {
+        const timestamp = c.req.valid('query').timestamp
+        const timediff = Date.now() - timestamp
+        console.log(`timediff: ${timediff}`)
+        if (timediff > 1500) {
+            return c.json({}, 400)
+        }
+        const lobbyid = genLobbyId();
+
+        if (lobbies.has(lobbyid)) {
+            return c.json({}, 400)
+        }
+
+        lobbies.set(lobbyid, new Set())
+
+        return c.json({ code: lobbyid })
     })
-//// move to api
-//.get("lobby/getcode", async (c) => {
-//    const lobbyid = genLobbyId();
-//
-//    return c.json({ code: lobbyid })
-//})
 
 export const server = Bun.serve({
     fetch: app.fetch,
