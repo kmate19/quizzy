@@ -4,8 +4,7 @@
     "type": "module",
     "exports": {
         ".": {
-            "import": "./src/index.ts",
-            "types": "./src/index.ts"
+            "types": "./src/public.d.ts"
         }
     },
     "scripts": {

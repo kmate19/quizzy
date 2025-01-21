@@ -7,7 +7,7 @@ import apikey from "./routes/apikey.ts";
 
 console.log(ENV.NODE_ENV())
 
-const app = new Hono().basePath("/api/v1")
+export const app = new Hono().basePath("/api/v1")
     .use(ENV.NODE_ENV() === "development" ? logger() : async () => { })
     .use(cors())
     .route('/', auth)
@@ -20,5 +20,3 @@ export default {
     port: port,
     fetch: app.fetch
 };
-
-export type AppType = typeof app;
