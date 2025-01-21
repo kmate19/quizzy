@@ -31,7 +31,6 @@ jobs:
               - 'packages/**'
             frontend:
               - 'apps/frontend/**'
-              - 'apps/api/**' # Api and frontend are dependent because of rpc
               - 'packages/**'
             websocket:
               - 'apps/websocket/**'
