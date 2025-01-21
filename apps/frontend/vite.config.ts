@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 import { defineConfig } from 'vite'
 //import tailwindcss from '@tailwindcss/vite'
@@ -12,12 +13,28 @@ export default defineConfig({
     //tailwindcss(),
     vue(),
     vueDevTools(),
+    visualizer({ open: true })
   ],
   server: {
     proxy: {
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true,
+      }
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "zod": ["zod"],
+          "vue": ["vue"],
+          "vuetify": ["vuetify"],
+          "vuetify-components": ["vuetify/components"],
+          "vue-router": ["vue-router"],
+          "pinia": ["pinia"],
+          "lucide": ["lucide-vue-next"],
+        }
       }
     }
   },
