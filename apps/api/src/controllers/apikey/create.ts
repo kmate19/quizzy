@@ -3,8 +3,8 @@ import db from "@/db/index.ts";
 import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import checkJwt from "@/middlewares/checkJwt.ts";
-import type { ApiResponse } from "@/types.ts";
 import { zValidator } from "@hono/zod-validator";
+import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
 
 const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("json", postApiKeySchema), async (c) => {

@@ -3,8 +3,9 @@ import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import type { ApiResponse, QuizzyJWTPAYLOAD } from "@/types.ts";
+import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import { zValidator } from "@hono/zod-validator";
+import type { ApiResponse } from "@repo/types";
 import { eq, or } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
@@ -63,7 +64,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
                     case: "auth",
                     field: "auth_status"
                 }
-            }
+            } satisfies ApiResponse;
             return c.json(pending_res, 401);
         case "blocked":
             const blocked_res = {
@@ -73,7 +74,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSche
                     case: "auth",
                     field: "auth_status"
                 }
-            }
+            } satisfies ApiResponse;
             return c.json(blocked_res, 401);
     }
 

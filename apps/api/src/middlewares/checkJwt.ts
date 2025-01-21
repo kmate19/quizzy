@@ -4,6 +4,7 @@ import db from "@/db/index.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
+import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
@@ -23,7 +24,7 @@ const authJwtMiddleware = (role?: string) => {
                     message: "user not logged in",
                     case: "unauthorized"
                 }
-            }
+            } as ApiResponse;
             return c.json(res, 401);
         }
 
@@ -38,9 +39,9 @@ const authJwtMiddleware = (role?: string) => {
                 message: "internal server error",
                 error: {
                     message: "internal server error",
-                    case: "internal"
+                    case: "server"
                 }
-            }
+            } satisfies ApiResponse;
             return c.json(res, 500);
         }
 
@@ -63,7 +64,7 @@ const authJwtMiddleware = (role?: string) => {
                         message: "user does not have the required role",
                         case: "forbidden"
                     }
-                }
+                } satisfies ApiResponse;
                 return c.json(res, 403);
             }
         }
@@ -85,7 +86,7 @@ async function refreshAccessToken(c: Context, accessCookie: string) {
                 message: "refresh token not found",
                 case: "unauthorized"
             }
-        }
+        } satisfies ApiResponse;
         return c.json(res, 401);
     }
 
