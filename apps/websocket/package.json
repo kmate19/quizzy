@@ -13,7 +13,8 @@
         "hono": "^4.6.16"
     },
     "devDependencies": {
-        "@types/bun": "^1.1.14"
+        "@types/bun": "^1.1.14",
+        "@repo/types": "workspace:*"
     },
     "packageManager": "pnpm@9.13.2"
 }
