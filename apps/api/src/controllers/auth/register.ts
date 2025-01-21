@@ -5,9 +5,9 @@ import { rolesTable } from "@/db/schemas/rolesSchema.ts";
 import { userRolesTable } from "@/db/schemas/userRolesSchema.ts";
 import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import type { ApiResponse } from "@/types.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
+import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUserSchema), async (c) => {

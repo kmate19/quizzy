@@ -2,8 +2,8 @@ import GLOBALS from "@/config/globals.ts";
 import db from "@/db/index.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import type { ApiResponse } from "@/types.ts";
 import { zValidator } from "@hono/zod-validator";
+import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -20,7 +20,7 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(zValidator("param", z.object({ 
 
     const res = {
         message: "user verified"
-    } as ApiResponse;
+    } satisfies ApiResponse;
     return c.json(res, 200);
 })
 
