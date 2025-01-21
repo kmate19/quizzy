@@ -21,3 +21,22 @@ export declare type ApiResponse<T = unknown> = {
         }
     }
 }
+
+type WebsocketMessageType = "message" | "subscribe" | "unsubscribe" | "ping" | "pong" | "ack" | "connect" | "disconnect" | "handshake" | "error";
+
+export type WebsocketMessage<T = unknown> = {
+    type: WebsocketMessageType;
+    successful: boolean;
+    data?: T,
+    clientId?: string; // Unique client identifier assigned by the server
+    ext?: {
+        ack?: boolean; // Acknowledgment request
+        timesync?: {
+            l: number; // Latency
+            o: number; // Offset
+            tc?: number; // Client timestamp
+            ts?: number; // Server timestamp
+            p?: number; // Server processing time
+        };
+    };
+}

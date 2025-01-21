@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { genLobbyId } from "./utils/utils.ts";
+import { genLobbyId } from "./utils/utils";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -11,25 +11,23 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
 
 const lobbies: Map<string, Set<ServerWebSocket>> = new Map()
 
-const app = new Hono()
+export const app = new Hono()
     .use(logger())
     .use(cors())
-    .get("/ws/server/:lobbyid/:hash", upgradeWebSocket(async (c) => {
+    .get("/ws/server/:lobbyid/:hash", zValidator('param', z.object({ lobbyid: z.string().length(8), hash: z.string() })), upgradeWebSocket(async (c) => {
         const lobbyid = c.req.param("lobbyid")
         return {
             onMessage: (event, ws) => {
-                console.log(`client sent message ${event.data.toString()} to lobby ${c.req.param("lobbyid")}`)
-                lobbies.get(c.req.param("lobbyid"))?.forEach((client) => {
-                    console.log("uhh client", client)
+                console.log(`client sent message ${event.data.toString()} to lobby ${lobbyid}`)
+                lobbies.get(lobbyid)?.forEach((client) => {
                     if (client !== ws.raw) {
-                        console.log("not sending to theirselves")
                         client.send(event.data.toString())
                     }
                 });
             },
             onOpen: (_, ws) => {
                 if (!lobbies.has(lobbyid)) {
-                    ws.close(4000, "Lobby does not exist")
+                    ws.close(1003, "Lobby does not exist")
                     return
                 }
 
@@ -46,22 +44,16 @@ const app = new Hono()
                     }
                 }, 30000);
 
-                const alldata = [...lobbies.get(lobbyid)!].map((ws) => ws.data as any)
-
-                console.log("sending", alldata)
-
-                console.log("sending", JSON.stringify(alldata))
-
-                ws.raw!.subscribe(c.req.param("lobbyid"))
-                ws.send(JSON.stringify(alldata))
+                ws.raw!.subscribe(lobbyid)
+                ws.send(`welcome to lobby ${lobbyid}`)
             },
             onClose: (_, ws) => {
-                console.log(`client left lobby ${c.req.param("lobbyid")}`)
-                const lobby = lobbies.get(c.req.param("lobbyid"))
+                console.log(`client left lobby ${lobbyid}`)
+                const lobby = lobbies.get(lobbyid)
                 if (lobby) {
                     lobby.delete(ws.raw!)
                     if (lobby.size === 0) {
-                        lobbies.delete(c.req.param("lobbyid"))
+                        lobbies.delete(lobbyid)
                     }
                 }
             }
@@ -82,7 +74,10 @@ const app = new Hono()
 
         lobbies.set(lobbyid, new Set())
 
-        return c.json({ code: lobbyid })
+        return c.json({ code: lobbyid }, 200)
+    })
+    .get("/health", async (c) => {
+        return c.json({ status: "ok" }, 200)
     })
 
 export const server = Bun.serve({
