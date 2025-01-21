@@ -26,6 +26,7 @@
     "devDependencies": {
         "@playwright/test": "^1.49.1",
         "@repo/api": "workspace:*",
+        "@repo/types": "workspace:*",
         "@tailwindcss/postcss": "4.0.0-beta.3",
         "@tsconfig/node22": "^22.0.0",
         "@types/bun": "^1.1.14",

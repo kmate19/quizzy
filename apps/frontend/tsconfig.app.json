@@ -22,5 +22,10 @@
         "types": [
             "bun"
         ]
-    }
+    },
+    "references": [
+        {
+            "path": "./node_modules/@repo/types"
+        }
+    ]
 }

@@ -1,0 +1,5 @@
+{
+    "name": "@repo/types",
+    "private": true,
+    "packageManager": "pnpm@9.13.2"
+}
