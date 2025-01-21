@@ -1,4 +1,3 @@
-import ENV from "@/config/env";
 import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { rolesTable } from "@/db/schemas/rolesSchema";
@@ -7,13 +6,27 @@ import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler";
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
 import type { ApiResponse } from "repo";
+import { eq, or } from "drizzle-orm";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUserSchema), async (c) => {
     const registerUserData = c.req.valid('json')
 
-    // PERF: Probably would be better to check if the user is duplicate first and maybe use worker threads
+    const [user] = await db.select().from(usersTable).where(or(eq(usersTable.email, registerUserData.email), eq(usersTable.username, registerUserData.username)))
+
+    if (user) {
+        const message = user.email === registerUserData.email ? "email already exists" : "username already exists";
+        const res = {
+            message: 'user not created',
+            error: {
+                message: message,
+                case: "auth"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 400);
+    }
+
+    // PERF: maybe use worker threads
     registerUserData.password = await Bun.password.hash(registerUserData.password)
 
     let insertResult;

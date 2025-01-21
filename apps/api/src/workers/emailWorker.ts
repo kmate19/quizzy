@@ -23,6 +23,5 @@ self.onmessage = async (e) => {
             await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
         }
     }
-    // idk this doesnt work
-    //self.terminate();
+    process.exit(0);
 }
