@@ -3,6 +3,7 @@ import db from "@/db/index.ts";
 import { userApiKeys } from "@/db/schemas/userApiKeysSchema.ts";
 import checkJwt from "@/middlewares/checkJwt.ts";
 import { eq } from "drizzle-orm";
+import type { ApiResponse } from "repo";
 
 const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
     const keys = await db.query.userApiKeys.findMany({
@@ -19,7 +20,7 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
                 message: "No API keys found",
                 case: "not_found"
             }
-        }
+        } satisfies ApiResponse;
         return c.json(res, 404);
     }
 
@@ -28,7 +29,7 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
     const res = {
         message: "API keys found",
         data: keys
-    }
+    } satisfies ApiResponse;
     return c.json(res, 200);
 })
 

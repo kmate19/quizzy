@@ -4,8 +4,8 @@ import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema.ts
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import checkJwt from "@/middlewares/checkJwt.ts";
 import { zValidator } from "@hono/zod-validator";
-import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
+import type { ApiResponse } from "repo";
 
 const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("json", postApiKeySchema), async (c) => {
     const apiKeyData = c.req.valid("json");
@@ -22,7 +22,7 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
                 message: "You have reached the maximum number of API keys",
                 case: "forbidden"
             }
-        } as ApiResponse;
+        } satisfies ApiResponse;
         return c.json(res, 403);
     }
 
@@ -31,7 +31,7 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
     const res = {
         message: "API key created, you will only see the full key once, so save it",
         data: key
-    } as ApiResponse;
+    } satisfies ApiResponse;
     return c.json(res, 200);
 })
 

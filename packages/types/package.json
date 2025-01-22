@@ -1,5 +1,15 @@
 {
-    "name": "@repo/types",
+    "name": "@types/repo",
     "private": true,
+    "type": "module",
+    "types": "index.d.ts",
+    "files": [
+        "index.d.ts"
+    ],
+    "exports": {
+        ".": {
+            "types": "./index.d.ts"
+        }
+    },
     "packageManager": "pnpm@9.13.2"
 }
