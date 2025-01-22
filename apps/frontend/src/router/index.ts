@@ -1,4 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import LoginRegisterView from '@/views/LoginRegister.vue'
+import HomeView from '@/views/HomeView.vue'
+//import getCookie from '../utils/cookie'
+
 
 // lazy load mert sir a vite
 const router = createRouter({
@@ -7,18 +11,26 @@ const router = createRouter({
     {
       path: '/login',
       name: 'loginRegister',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('@/views/LoginRegister.vue'),
+      component: LoginRegisterView,
     },
-    //redirect to login with alert on error
     {
       path: '/',
       name: 'home',
-      component: () => import('@/views/HomeView.vue'),
+      component: HomeView,
+      meta: { requiresAuth: true },
     }
   ],
 })
+
+/*router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const hasAuthCookie = getCookie('321vmnf'); 
+
+  if (requiresAuth && !hasAuthCookie) {
+    next('/login');
+  } else {
+    next();
+  }
+});*/
 
 export default router
