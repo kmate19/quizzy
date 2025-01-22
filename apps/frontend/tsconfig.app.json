@@ -11,20 +11,16 @@
     ],
     "compilerOptions": {
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-        "baseUrl": ".",
         "paths": {
             "@/*": [
                 "./src/*",
+                // HACK: kljdwajklwadjklwadjklwadjklwadfjkl this needs fixing 🤡🤡🤡🤡🤡
                 "./node_modules/@repo/api/src/*"
             ]
         },
         "types": [
+            "repo",
             "bun"
         ]
-    },
-    "references": [
-        {
-            "path": "./node_modules/@repo/types"
-        }
-    ]
+    }
 }

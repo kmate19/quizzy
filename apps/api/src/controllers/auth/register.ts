@@ -7,8 +7,8 @@ import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler.ts";
 import { zValidator } from "@hono/zod-validator";
-import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
+import type { ApiResponse } from "repo";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUserSchema), async (c) => {
     const registerUserData = c.req.valid('json')

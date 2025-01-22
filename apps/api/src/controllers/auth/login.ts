@@ -5,10 +5,10 @@ import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import { zValidator } from "@hono/zod-validator";
-import type { ApiResponse } from "@repo/types";
 import { eq, or } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
+import type { ApiResponse } from "repo";
 
 const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSchema), async (c) => {
     const loginUserData = c.req.valid('json');

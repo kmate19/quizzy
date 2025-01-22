@@ -4,7 +4,6 @@ import db from "@/db/index.ts";
 import { usersTable } from "@/db/schemas/usersSchema.ts";
 import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
-import type { ApiResponse } from "@repo/types";
 import { eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
@@ -12,6 +11,7 @@ import { createMiddleware } from "hono/factory";
 import { decode, sign, verify } from "hono/jwt";
 import type { TokenHeader } from "hono/utils/jwt/jwt";
 import { JwtTokenExpired } from "hono/utils/jwt/types";
+import type { ApiResponse } from "repo";
 
 const authJwtMiddleware = (role?: string) => {
     return createMiddleware<{ Variables: { accessTokenPayload: QuizzyJWTPAYLOAD } }>(async (c, next) => {

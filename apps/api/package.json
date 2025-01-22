@@ -31,7 +31,7 @@
     "devDependencies": {
         "@types/bun": "^1.1.14",
         "@types/nodemailer": "^6.4.17",
-        "@repo/types": "workspace:*",
+        "@types/repo": "workspace:*",
         "@types/pg": "^8.11.10",
         "drizzle-kit": "^0.30.1"
     },

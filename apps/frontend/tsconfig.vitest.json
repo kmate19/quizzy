@@ -6,7 +6,8 @@
         "types": [
             "node",
             "jsdom",
-            "bun"
+            "bun",
+            "repo"
         ]
     }
 }

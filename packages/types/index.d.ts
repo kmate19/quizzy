@@ -6,7 +6,7 @@ type ApiError = {
     field?: string;
 }
 
-export type ApiResponse<T = unknown> = {
+export declare type ApiResponse<T = unknown> = {
     message: string;
     data?: T;
     error?: ApiError;
