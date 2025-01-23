@@ -19,6 +19,7 @@
       return path
     }
   }
+  const path = route.fullPath.split('/')[1] == 'profile'
 
 </script>
 
@@ -34,7 +35,7 @@
                 <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Közös játék</a>
                 <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Játék készítés</a>
                 <a @click="router.push('/profile')" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Profil</a>
-                <v-btn @click="OnLogOut">Kijelentkezés</v-btn>
+                <v-btn v-show="!path" @click="OnLogOut">Kijelentkezés</v-btn>
             </div>
             </div>
         </div>
