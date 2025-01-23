@@ -74,29 +74,36 @@
       },
     ],
     number_of_quizzes: 4
-  }
-  const fileInput = ref(null)
-  const profileImage = ref(user.pfp)
-  const showSaveButton = ref(false)
-  const tempImage = ref(null)
   
+}
+const fileInput = ref<HTMLInputElement | null>(null); 
+const profileImage = ref<string | null>(user.pfp);
+const showSaveButton = ref<boolean>(false);
+const tempImage = ref<File | null>(null);
+
+const handleFileChange = (event: Event) => {
+  const inputElement = event.target as HTMLInputElement; 
+  const file = inputElement.files?.[0];
+
+  if (file) {
+    tempImage.value = file;
+    profileImage.value = URL.createObjectURL(file);
+    showSaveButton.value = true;
+  }
+};
+
+const openFileDialog = () => {
+  fileInput.value?.click(); // Optional chaining to avoid errors if fileInput.value is null
+};
+
   const OnLogOut = () =>{
     clientv1.auth.logout.$get()
     router.push('/login')
   }
 
-  const openFileDialog = () => {
-    fileInput.value.click()
-  }
   
-  const handleFileChange = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      tempImage.value = file
-      profileImage.value = URL.createObjectURL(file)
-      showSaveButton.value = true
-    }
-  }
+  
+  
   
   const saveProfileImage = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000))
