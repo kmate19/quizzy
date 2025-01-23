@@ -3,6 +3,8 @@
   import { PencilIcon, XIcon } from 'lucide-vue-next'
   import NavBar from '@/components/NavBar.vue'
   import MistBackground from '@/components/MistBackground.vue'
+  import { clientv1 } from '@/lib/apiClient'
+  import router from '@/router'
   
   const user = {
     playedgames: 200,
@@ -37,7 +39,6 @@
         activity_status: "online",
         pfp: "/placeholder.svg?height=48&width=48"
       },
-      // ... other friends
     ],
     number_of_friends: 3,
     quizzes: [
@@ -71,17 +72,19 @@
         games: "308",
         quize_img: "/placeholder.svg?height=80&width=80"
       },
-      // ... other quizzes
     ],
-    number_of_quizzes: 3
+    number_of_quizzes: 4
   }
-  
-  // Profile image handling
   const fileInput = ref(null)
   const profileImage = ref(user.pfp)
   const showSaveButton = ref(false)
   const tempImage = ref(null)
   
+  const OnLogOut = () =>{
+    clientv1.auth.logout.$get()
+    router.push('/login')
+  }
+
   const openFileDialog = () => {
     fileInput.value.click()
   }
@@ -132,15 +135,11 @@
 
 <template>
     <div class="min-h-screen w-full bg-gradient-to-br from-purple-900 via-black to-green-900 p-8">
-      <!-- Bokeh background effects -->
       <div class="fixed inset-0 pointer-events-none overflow-hidden">
         <MistBackground />
       </div>
-  
-      <!-- Main content -->
       <div class="relative max-w-7xl mx-auto">
         <NavBar />
-        <!-- Profile Header -->
         <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
           <div class="flex items-center gap-8">
             <div class="relative">
@@ -170,8 +169,6 @@
               </p>
             </div>
           </div>
-          
-          <!-- Stats -->
           <div class="flex-1 flex justify-end items-center gap-8">
             <div class="text-center">
               <div class="text-4xl font-bold text-white mb-2">{{ user.playedgames }}</div>
@@ -191,12 +188,10 @@
                     class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
               Jelszó módosítás
             </button>
+            <v-btn @click="OnLogOut">Kijelentkezés</v-btn>
           </div>
         </div>
-  
-        <!-- Friends and Quizzes Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <!-- Friends Section -->
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
               Barátok
@@ -221,8 +216,6 @@
               </div>
             </div>
           </div>
-  
-          <!-- Quizzes Section -->
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
               Saját quizzyk
@@ -247,8 +240,7 @@
           </div>
         </div>
       </div>
-  
-      <!-- Password Change Modal -->
+  >
       <div v-if="showPasswordModal" 
            class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
