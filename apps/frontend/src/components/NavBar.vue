@@ -33,11 +33,11 @@
             <div class="ml-10 flex items-baseline space-x-4">
                 <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Közös játék</a>
                 <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Játék készítés</a>
-                <a href="#" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Profil</a>
-                <v-btn @click="OnLogOut">Kijelentjezes</v-btn>
+                <a @click="router.push('/profile')" class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium">Profil</a>
+                <v-btn @click="OnLogOut">Kijelentkezés</v-btn>
             </div>
             </div>
         </div>
         </div>
         </nav>        
-</template>
+</template>D
