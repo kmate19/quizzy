@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// WARN: vigyazz azzal h ne importolj be semmit ami az apibol van csak az ApiType-ot, csak mert ts cringe es megtalal mast is amit nem kene dehat ja
-// pelda, ez igy gatya-> import apikey from '@/routes/apikey';
 import { ref } from 'vue'
 import * as zod from 'zod'
 import router from '@/router'

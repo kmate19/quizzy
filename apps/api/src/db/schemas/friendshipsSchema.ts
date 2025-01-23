@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { index, pgEnum, pgTable, serial, timestamp, uuid } from "drizzle-orm/pg-core";
-import { usersTable } from "./usersSchema.ts";
+import { usersTable } from "./usersSchema";
 
 export const friendshipStatusEnum = pgEnum("friendship_status", ["pending", "accepted", "blocked"]);
 

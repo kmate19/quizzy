@@ -9,6 +9,7 @@ COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY apps/api/src ./apps/api/src/
 COPY apps/api/tsconfig.json ./apps/api/
+COPY apps/api/tsconfig.build.json ./apps/api/
 COPY apps/api/drizzle.config.ts ./apps/api/
 COPY packages/ ./packages/
 

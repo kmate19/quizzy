@@ -1,6 +1,6 @@
 declare var self: Worker;
 
-import sendEmail from "@/utils/email/sendEmail.ts";
+import sendEmail from "@/utils/email/sendEmail";
 
 const RETRIES = 3;
 const RETRY_DELAY = 2000;

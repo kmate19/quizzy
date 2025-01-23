@@ -1,8 +1,8 @@
-import ENV from "@/config/env.ts";
-import GLOBALS from "@/config/globals.ts";
-import db from "@/db/index.ts";
-import { usersTable } from "@/db/schemas/usersSchema.ts";
-import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
+import ENV from "@/config/env";
+import GLOBALS from "@/config/globals";
+import db from "@/db/index";
+import { usersTable } from "@/db/schemas/usersSchema";
+import { userTokensTable } from "@/db/schemas/userTokensSchema";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import { eq } from "drizzle-orm";
 import type { Context } from "hono";

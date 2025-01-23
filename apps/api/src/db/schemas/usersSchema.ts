@@ -1,12 +1,12 @@
 import { relations } from "drizzle-orm";
 import { pgEnum, text, pgTable, timestamp, uuid, varchar, uniqueIndex } from "drizzle-orm/pg-core";
-import { friendshipsTable } from "./friendshipsSchema.ts";
-import { userTokensTable } from "./userTokensSchema.ts";
-import { userRolesTable } from "./userRolesSchema.ts";
+import { friendshipsTable } from "./friendshipsSchema";
+import { userTokensTable } from "./userTokensSchema";
+import { userRolesTable } from "./userRolesSchema";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { reviewsTable } from "./reviewsSchema.ts";
-import { userApiKeys } from "./userApiKeysSchema.ts";
+import { reviewsTable } from "./reviewsSchema";
+import { userApiKeys } from "./userApiKeysSchema";
 
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "away"]);
 export const authStatusEnum = pgEnum("auth_status", ["pending", "active", "blocked"]);

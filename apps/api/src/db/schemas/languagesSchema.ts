@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { uniqueIndex, pgTable, serial, timestamp, varchar, pgEnum } from "drizzle-orm/pg-core";
-import { quizzesTable } from "./quizzesSchema.ts";
+import { quizzesTable } from "./quizzesSchema";
 
 export const languageSupportEnum = pgEnum("language_support", ["official", "partial", "none"]);
 

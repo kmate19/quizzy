@@ -1,9 +1,9 @@
 import { relations } from "drizzle-orm";
 import { pgTable, timestamp, serial, uuid, index, integer, } from "drizzle-orm/pg-core";
-import { rolesTable } from "./rolesSchema.ts";
-import { resourceTypeEnum } from "./permissionsSchema.ts";
-import { usersTable } from "./usersSchema.ts";
-import { userApiKeys } from "./userApiKeysSchema.ts";
+import { rolesTable } from "./rolesSchema";
+import { resourceTypeEnum } from "./permissionsSchema";
+import { usersTable } from "./usersSchema";
+import { userApiKeys } from "./userApiKeysSchema";
 
 // TODO:
 

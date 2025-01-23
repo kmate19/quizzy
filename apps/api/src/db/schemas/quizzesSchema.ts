@@ -1,11 +1,11 @@
 import { relations } from "drizzle-orm";
 import { integer, pgEnum, pgTable, real, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
-import { usersTable } from "./usersSchema.ts";
-import { quizCardsTable } from "./quizCardsSchema.ts";
-import { reviewsTable } from "./reviewsSchema.ts";
-import { languagesTable } from "./languagesSchema.ts";
-import { tagsTable } from "./tagsSchema.ts";
-import { bytea } from "./customTypes.ts";
+import { usersTable } from "./usersSchema";
+import { quizCardsTable } from "./quizCardsSchema";
+import { reviewsTable } from "./reviewsSchema";
+import { languagesTable } from "./languagesSchema";
+import { tagsTable } from "./tagsSchema";
+import { bytea } from "./customTypes";
 
 export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
 

@@ -1,7 +1,7 @@
-import GLOBALS from "@/config/globals.ts";
-import db from "@/db/index.ts";
-import { userTokensTable } from "@/db/schemas/userTokensSchema.ts";
-import checkJwt from "@/middlewares/checkJwt.ts";
+import GLOBALS from "@/config/globals";
+import db from "@/db/index";
+import { userTokensTable } from "@/db/schemas/userTokensSchema";
+import checkJwt from "@/middlewares/checkJwt";
 import { eq } from "drizzle-orm";
 import { deleteCookie } from "hono/cookie";
 import type { ApiResponse } from "repo";
