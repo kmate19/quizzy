@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, timestamp, uuid, serial, index, varchar } from "drizzle-orm/pg-core";
-import { usersTable } from "./usersSchema.ts";
-import { resourceAccessControlTable } from "./resourceAccessControlSchema.ts";
+import { usersTable } from "./usersSchema";
+import { resourceAccessControlTable } from "./resourceAccessControlSchema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 

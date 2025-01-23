@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import verifyHandler from "@/controllers/auth/verify.ts";
-import registerHandler from "@/controllers/auth/register.ts";
-import loginHandler from "@/controllers/auth/login.ts";
-import logoutHandler from "@/controllers/auth/logout.ts";
+import verifyHandler from "@/controllers/auth/verify";
+import registerHandler from "@/controllers/auth/register";
+import loginHandler from "@/controllers/auth/login";
+import logoutHandler from "@/controllers/auth/logout";
 
 const auth = new Hono().basePath("/auth")
     .post("/register", ...registerHandler)

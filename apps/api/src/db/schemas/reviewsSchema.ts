@@ -1,6 +1,6 @@
 import { integer, real, pgTable, uuid, varchar, timestamp, index } from "drizzle-orm/pg-core";
-import { usersTable } from "./usersSchema.ts";
-import { quizzesTable } from "./quizzesSchema.ts";
+import { usersTable } from "./usersSchema";
+import { quizzesTable } from "./quizzesSchema";
 import { relations } from "drizzle-orm";
 
 

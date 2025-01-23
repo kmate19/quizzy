@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import auth from "./routes/auth.ts";
-import ENV from "./config/env.ts";
+import auth from "./routes/auth";
+import ENV from "./config/env";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import apikey from "./routes/apikey.ts";
+import apikey from "./routes/apikey";
 
 console.log(ENV.NODE_ENV())
 

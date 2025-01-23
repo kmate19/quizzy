@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, timestamp, serial, uuid, index, integer, } from "drizzle-orm/pg-core";
-import { resourceAccessControlTable } from "./resourceAccessControlSchema.ts";
-import { usersTable } from "./usersSchema.ts";
+import { resourceAccessControlTable } from "./resourceAccessControlSchema";
+import { usersTable } from "./usersSchema";
 
 export const userResourcesTable = pgTable("user_resources", {
     id: serial().primaryKey(),

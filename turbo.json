@@ -4,7 +4,8 @@
     "tasks": {
         "build": {
             "dependsOn": [
-                "^build"
+                "^build",
+                "^tsc:hc"
             ],
             "inputs": [
                 "$TURBO_DEFAULT$",
@@ -38,8 +39,13 @@
                 "EMAIL_PASS"
             ],
             "dependsOn": [
-                "drizzle:push"
+                "drizzle:push",
+                "tsc:hc"
             ]
+        },
+        "tsc:hc": {
+            "cache": true,
+            "interactive": false
         },
         "drizzle:push": {
             "cache": false,

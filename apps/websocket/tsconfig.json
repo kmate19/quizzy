@@ -1,21 +1,21 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "NodeNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
         "strict": true,
-        "allowImportingTsExtensions": true,
-        "verbatimModuleSyntax": true,
         "skipLibCheck": true,
-        "outDir": "dist",
+        "noEmit": true,
+        "lib": [
+            "ESNext"
+        ],
         "paths": {
             "@/*": [
                 "./src/*"
             ]
         }
     },
-    "references": [
-        {
-            "path": "./node_modules/@repo/types"
-        }
+    "include": [
+        "src/**/*"
     ]
 }

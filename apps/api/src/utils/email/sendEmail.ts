@@ -1,6 +1,6 @@
 import { createTransport } from "nodemailer";
-import createEmailTemplate from "./createEmail.ts";
-import ENV from "@/config/env.ts";
+import createEmailTemplate from "./createEmail";
+import ENV from "@/config/env";
 
 const transporter = createTransport({
     service: "gmail",

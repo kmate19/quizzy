@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import * as schema from './schemas/index.ts';
-import ENV from '@/config/env.ts';
-import GLOBALS from '@/config/globals.ts';
+import * as schema from './schemas/index';
+import ENV from '@/config/env';
+import GLOBALS from '@/config/globals';
 import { reset, seed } from 'drizzle-seed';
 import { getTableName } from 'drizzle-orm';
 

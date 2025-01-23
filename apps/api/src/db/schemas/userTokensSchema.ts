@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { text, pgTable, timestamp, uuid, serial, pgEnum, index } from "drizzle-orm/pg-core";
-import { usersTable } from "./usersSchema.ts";
+import { usersTable } from "./usersSchema";
 
 export const tokenTypeEnum = pgEnum("token_type", ["email", "refresh"]);
 

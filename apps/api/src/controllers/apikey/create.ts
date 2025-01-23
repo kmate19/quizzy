@@ -1,8 +1,8 @@
-import GLOBALS from "@/config/globals.ts";
-import db from "@/db/index.ts";
-import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema.ts";
-import { usersTable } from "@/db/schemas/usersSchema.ts";
-import checkJwt from "@/middlewares/checkJwt.ts";
+import GLOBALS from "@/config/globals";
+import db from "@/db/index";
+import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema";
+import { usersTable } from "@/db/schemas/usersSchema";
+import checkJwt from "@/middlewares/checkJwt";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
 import type { ApiResponse } from "repo";

@@ -1,6 +1,6 @@
 import { uniqueIndex, integer, pgTable, uuid } from "drizzle-orm/pg-core";
-import { quizzesTable } from "./quizzesSchema.ts";
-import { languagesTable } from "./languagesSchema.ts";
+import { quizzesTable } from "./quizzesSchema";
+import { languagesTable } from "./languagesSchema";
 import { relations } from "drizzle-orm";
 
 

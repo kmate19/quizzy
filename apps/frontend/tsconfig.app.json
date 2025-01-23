@@ -13,9 +13,7 @@
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
         "paths": {
             "@/*": [
-                "./src/*",
-                // HACK: kljdwajklwadjklwadjklwadjklwadfjkl this needs fixing 🤡🤡🤡🤡🤡
-                "./node_modules/@repo/api/src/*"
+                "./src/*"
             ]
         },
         "types": [

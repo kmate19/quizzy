@@ -3,15 +3,20 @@
     "private": true,
     "type": "module",
     "exports": {
-        ".": {
-            "types": "./src/public.d.ts"
+        "./hc": {
+            "import": {
+                "default": "./dist/hc.js",
+                "types": "./dist/hc.d.ts"
+            }
         }
     },
     "scripts": {
         "build": "pnpm drizzle:generate && pnpm build:bun",
         "build:bun": "bun build --sourcemap --minify --compile --outfile ./dist/api --target bun ./src/index.ts ./src/workers/emailWorker.ts",
+        "tsc:hc": "tsc -p tsconfig.build.json",
         "start": "./dist/api",
         "dev": "bun run --hot ./src/index.ts",
+        "prepare": "pnpm tsc:hc",
         "test": "bun test",
         "drizzle:push": "drizzle-kit push",
         "drizzle:generate": "drizzle-kit generate",

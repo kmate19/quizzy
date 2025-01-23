@@ -1,6 +1,6 @@
-import createHandler from "@/controllers/apikey/create.ts";
-import deleteHandler from "@/controllers/apikey/delete.ts";
-import listHandler from "@/controllers/apikey/list.ts";
+import createHandler from "@/controllers/apikey/create";
+import deleteHandler from "@/controllers/apikey/delete";
+import listHandler from "@/controllers/apikey/list";
 import { Hono } from "hono";
 
 

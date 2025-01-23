@@ -1,5 +1,4 @@
-import { hc } from 'hono/client';
-import type { ApiType } from "@repo/api"
+import { hcWithType } from "@repo/api/hc"
 
 // TODO: change domain in prod
-export const clientv1 = hc<ApiType>("/").api.v1;
+export const clientv1 = hcWithType("/").api.v1;

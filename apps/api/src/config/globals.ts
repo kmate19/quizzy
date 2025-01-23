@@ -1,5 +1,5 @@
 import type { CookieOptions } from "hono/utils/cookie"
-import ENV from "./env.ts"
+import ENV from "./env"
 import { createFactory } from "hono/factory";
 
 const controllerFactory = createFactory().createHandlers;

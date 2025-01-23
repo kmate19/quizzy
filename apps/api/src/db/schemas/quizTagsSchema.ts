@@ -1,6 +1,6 @@
 import { pgTable, serial, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { quizzesTable } from "./quizzesSchema.ts";
-import { tagsTable } from "./tagsSchema.ts";
+import { quizzesTable } from "./quizzesSchema";
+import { tagsTable } from "./tagsSchema";
 import { relations } from "drizzle-orm";
 
 export const quizTagsTable = pgTable("quiz_tags", {
