@@ -25,20 +25,20 @@
     },
     "dependencies": {
         "@hono/zod-validator": "^0.4.2",
-        "drizzle-orm": "^0.38.3",
+        "drizzle-orm": "^0.38.4",
         "drizzle-seed": "^0.3.0",
         "drizzle-zod": "^0.6.1",
-        "hono": "^4.6.16",
-        "nodemailer": "^6.9.16",
+        "hono": "^4.6.18",
+        "nodemailer": "^6.10.0",
         "pg": "^8.13.1",
         "zod": "^3.24.1"
     },
     "devDependencies": {
-        "@types/bun": "^1.1.14",
+        "@types/bun": "^1.2.0",
         "@types/nodemailer": "^6.4.17",
+        "@types/pg": "^8.11.11",
         "@types/repo": "workspace:*",
-        "@types/pg": "^8.11.10",
-        "drizzle-kit": "^0.30.1"
+        "drizzle-kit": "^0.30.2"
     },
     "packageManager": "pnpm@9.13.2"
 }
