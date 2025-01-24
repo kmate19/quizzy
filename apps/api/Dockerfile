@@ -15,7 +15,7 @@ COPY packages/ ./packages/
 
 # begin add bun
 RUN apk add --no-cache bash curl
-RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.42"
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.2.0"
 # ^ need to install bun like this as npm install is currently broken on musl
 ENV PATH=$PATH:/root/.bun/bin 
 # ^ this is hacky, but we know its going to be in the root

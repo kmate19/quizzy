@@ -17,6 +17,10 @@ const GLOBALS = {
     MAX_ACTIVE_API_KEYS: 10,
     CONTROLLER_FACTORY: controllerFactory,
     DB_ROLES: [{ name: "default", description: "Default user role." }, { name: "admin", description: "Basic admin role." }],
+    WORKERCONF: {
+        workerExtension: ENV.NODE_ENV() === "production" ? ".js" : ".ts",
+        workerRelativePath: ENV.NODE_ENV() === "production" ? "./" : "../../"
+    }
 } as const;
 
 export default GLOBALS;

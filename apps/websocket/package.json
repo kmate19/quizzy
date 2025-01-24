@@ -9,10 +9,10 @@
         "test": "bun test"
     },
     "dependencies": {
-        "hono": "^4.6.16"
+        "hono": "^4.6.18"
     },
     "devDependencies": {
-        "@types/bun": "^1.1.14",
+        "@types/bun": "^1.2.0",
         "@types/repo": "workspace:*"
     },
     "packageManager": "pnpm@9.13.2"
