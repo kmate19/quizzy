@@ -1,14 +1,15 @@
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import type { AppType } from "@/index.ts";
+import type { AppType } from "@/index";
 import { hc } from "hono/client"; // need hc here to start an actual server for websockets, testClient doesnt work here
 import type { Server } from "bun";
+import { generateSessionHash } from "@/utils/utils";
 
 const client = hc<AppType>('http://localhost:3001')
 
 let server: Server;
 beforeAll(async () => {
-    const { server: importedServer } = await import("@/index.ts")
+    const { server: importedServer } = await import("@/index")
     server = importedServer
 });
 
@@ -44,13 +45,38 @@ describe("websocket connection", () => {
             }
         });
     });
-    test("create lobby before websocket then websocket opens, and sends message back", async () => {
-        const res = await client.reserve.session.$post({ query: { timestamp: Date.now().toString() } })
+    test("websocket closes with 1003, cause gets invalid hash", async () => {
+        const res = await client.reserve.session[":code?"].$post({ param: { code: "" }, query: { ts: Date.now().toString() } })
         expect(res.status).toBe(200);
         const code = (await res.json()).code
 
         await new Promise<void>((resolve, reject) => {
             const ws = client.ws.server[":lobbyid"][":hash"].$ws({ param: { lobbyid: code, hash: "ihkwdfqhjkfqjkhf3wgkjhq" } })
+
+            const timeout = setTimeout(() => {
+                reject(new Error("timeout"))
+            }, 1000)
+
+            ws.onclose = (e) => {
+                clearTimeout(timeout)
+                try {
+                    expect(e.code).toBe(1003); // change this to a typed websocket response later
+                    expect(e.reason).toBe("Hash mismatch");
+                    resolve()
+                } catch (e) {
+                    reject(e)
+                }
+            }
+        });
+    });
+    test("create lobby before websocket then websocket opens, and sends message back", async () => {
+        const res = await client.reserve.session[":code?"].$post({ param: { code: "" }, query: { ts: Date.now().toString() } })
+        expect(res.status).toBe(200);
+        const code = (await res.json()).code
+
+        const hash = generateSessionHash(code, Bun.env.HASH_SECRET || "asd")
+        await new Promise<void>((resolve, reject) => {
+            const ws = client.ws.server[":lobbyid"][":hash"].$ws({ param: { lobbyid: code, hash } })
 
             const timeout = setTimeout(() => {
                 reject(new Error("timeout"))

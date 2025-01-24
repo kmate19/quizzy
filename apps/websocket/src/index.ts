@@ -3,9 +3,11 @@ import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { genLobbyId } from "./utils/utils";
+import { generateSessionHash, genLobbyId } from "./utils/utils";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import { websocketMessageSchema } from "@/schemas/zodschemas";
+import type { WebsocketMessage } from "repo";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
 
@@ -16,8 +18,19 @@ export const app = new Hono()
     .use(cors())
     .get("/ws/server/:lobbyid/:hash", zValidator('param', z.object({ lobbyid: z.string().length(8), hash: z.string() })), upgradeWebSocket(async (c) => {
         const lobbyid = c.req.param("lobbyid")
+        const hash = c.req.param("hash")
         return {
             onMessage: (event, ws) => {
+                const validType = websocketMessageSchema.safeParse(event.data)
+                if (validType.error) {
+                    const res = {
+                        type: "error",
+                        successful: false,
+                        errMessage: validType.error.message,
+                    } satisfies WebsocketMessage
+                    ws.close(1003, JSON.stringify(res))
+                    return
+                }
                 console.log(`client sent message ${event.data.toString()} to lobby ${lobbyid}`)
                 lobbies.get(lobbyid)?.forEach((client) => {
                     if (client !== ws.raw) {
@@ -28,6 +41,11 @@ export const app = new Hono()
             onOpen: (_, ws) => {
                 if (!lobbies.has(lobbyid)) {
                     ws.close(1003, "Lobby does not exist")
+                    return
+                }
+
+                if (hash !== generateSessionHash(lobbyid, Bun.env.HASH_SECRET || "asd")) {
+                    ws.close(1003, "Hash mismatch")
                     return
                 }
 
@@ -59,23 +77,37 @@ export const app = new Hono()
             }
         }
     }))
-    .post("/reserve/session", zValidator('query', z.object({ timestamp: z.string().regex(/^\d+$/).transform(Number) })), async (c) => {
-        const timestamp = c.req.valid('query').timestamp
-        const timediff = Date.now() - timestamp
-        console.log(`timediff: ${timediff}`)
-        if (timediff > 1500) {
-            return c.json({}, 400)
-        }
-        const lobbyid = genLobbyId();
+    .post("/reserve/session/:code?",
+        zValidator('param', z.object({ code: z.string().optional() })),
+        zValidator('query', z.object({ ts: z.string().regex(/^\d+$/).transform(Number) })),
+        async (c) => {
+            const timestamp = c.req.valid('query').ts
+            const timediff = Date.now() - timestamp
+            console.log(`timediff: ${timediff}`)
+            if (timediff > 1500) {
+                return c.json({}, 400)
+            }
 
-        if (lobbies.has(lobbyid)) {
-            return c.json({}, 400)
-        }
 
-        lobbies.set(lobbyid, new Set())
+            const code = c.req.valid('param').code
+            if (code) {
+                if (lobbies.has(code)) {
+                    return c.json({ code }, 200)
+                } else {
+                    return c.json({}, 400)
+                }
+            }
 
-        return c.json({ code: lobbyid }, 200)
-    })
+            const lobbyid = genLobbyId();
+
+            if (lobbies.has(lobbyid)) {
+                return c.json({}, 400)
+            }
+
+            lobbies.set(lobbyid, new Set())
+
+            return c.json({ code: lobbyid }, 200)
+        })
     .get("/health", async (c) => {
         return c.json({ status: "ok" }, 200)
     })

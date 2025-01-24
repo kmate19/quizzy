@@ -15,3 +15,16 @@ export function genLobbyId() {
 
     return result;
 }
+
+// TODO: put into shared to use with client
+export function generateSessionHash(lobbyCode: string, secretKey: string): string {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const data = `${lobbyCode}:${timestamp}`;
+
+    // Create HMAC
+    return crypto
+        .createHmac("sha256", secretKey)
+        .update(data)
+        .digest("hex");
+}
+

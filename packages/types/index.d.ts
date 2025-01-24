@@ -27,6 +27,7 @@ type WebsocketMessageType = "message" | "subscribe" | "unsubscribe" | "ping" | "
 export type WebsocketMessage<T = unknown> = {
     type: WebsocketMessageType;
     successful: boolean;
+    errMessage?: string;
     data?: T,
     clientId?: string; // Unique client identifier assigned by the server
     ext?: {
