@@ -5,6 +5,9 @@ import { reset } from "drizzle-seed";
 import db from "@/db";
 import * as schema from "@/db/schemas/index";
 import GLOBALS from "@/config/globals";
+import { eq } from "drizzle-orm";
+
+// PERF: optimize cause this is goofy
 
 beforeEach(async () => {
     await reset(db, schema);
@@ -18,11 +21,177 @@ const client = testClient(app).api.v1;
 // TODO: check email somehow
 
 describe("tests for api auth functionality", () => {
+    describe("login", () => {
+        // TODO: make this more foolproof even if 
+        // the user doesnt supply the cookie in the header, currently its 500 error
+        test("fails if already logged in (cookie check)", async () => {
+            const reg = await client.auth.register.$post({
+                json: {
+                    username: "mateka", email: "test@example.com", password: "123"
+                }
+            });
+            expect(reg.status).toBe(200);
+
+            // TODO: check email somehow
+            // NOTE: manually verify email
+            await db.update(schema.usersTable)
+                .set({ auth_status: "active" })
+                .where(eq(schema.usersTable.email, "test@example.com"))
+
+            const resUsername = await client.auth.login.$post({
+                json: {
+                    username_or_email: "mateka", password: "123"
+                }
+            });
+            const jsonUsername = await resUsername.json();
+            expect(resUsername.status).toBe(200);
+            expect(jsonUsername.message).toBe("login successful");
+
+            const cookies = resUsername.headers.getSetCookie();
+
+            const anotherLogin = await client.auth.login.$post({
+                json: {
+                    username_or_email: "test@example.com", password: "123"
+                }
+            }, { headers: { Cookie: cookies.join(';') } });
+
+            const jsonAnotherLogin = await anotherLogin.json();
+            expect(anotherLogin.status).toBe(400);
+            expect(jsonAnotherLogin.message).toBe("user already has a login cookie");
+        });
+        test("fails if banned", async () => {
+            const reg = await client.auth.register.$post({
+                json: {
+                    username: "mateka", email: "test@example.com", password: "123"
+                }
+            });
+            expect(reg.status).toBe(200);
+
+            // TODO: check email somehow
+            // NOTE: manually verify email
+            await db.update(schema.usersTable)
+                .set({ auth_status: "blocked" })
+                .where(eq(schema.usersTable.email, "test@example.com"))
+
+            const res_username = await client.auth.login.$post({
+                json: {
+                    username_or_email: "mateka", password: "123"
+                }
+            });
+            const json_username = await res_username.json();
+            expect(res_username.status).toBe(401);
+            expect(json_username.message).toBe("Your account can't be accessed at this time. Please contant an administrator.");
+        });
+        test("fails if not verified", async () => {
+            const reg = await client.auth.register.$post({
+                json: {
+                    username: "mateka", email: "test@example.com", password: "123"
+                }
+            });
+            expect(reg.status).toBe(200);
+
+            const res_username = await client.auth.login.$post({
+                json: {
+                    username_or_email: "mateka", password: "123"
+                }
+            });
+            const json_username = await res_username.json();
+            expect(res_username.status).toBe(401);
+            expect(json_username.message).toBe("Account not verified! Please check your inbox for the verification email!");
+        });
+        test("fails when invalid password", async () => {
+            const reg = await client.auth.register.$post({
+                json: {
+                    username: "mateka", email: "test@example.com", password: "123"
+                }
+            });
+            expect(reg.status).toBe(200);
+
+            // TODO: check email somehow
+            // NOTE: manually verify email
+            await db.update(schema.usersTable)
+                .set({ auth_status: "active" })
+                .where(eq(schema.usersTable.email, "test@example.com"))
+
+            const res_username = await client.auth.login.$post({
+                json: {
+                    username_or_email: "mateka", password: "1234"
+                }
+            });
+            const json_username = await res_username.json();
+            expect(res_username.status).toBe(401);
+            expect(json_username.message).toBe("invalid password");
+        });
+        test("get cookie with successful login", async () => {
+            const reg = await client.auth.register.$post({
+                json: {
+                    username: "mateka", email: "test@example.com", password: "123"
+                }
+            });
+            expect(reg.status).toBe(200);
+
+            // TODO: check email somehow
+            // NOTE: manually verify email
+            await db.update(schema.usersTable)
+                .set({ auth_status: "active" })
+                .where(eq(schema.usersTable.email, "test@example.com"))
+
+            const res_username = await client.auth.login.$post({
+                json: {
+                    username_or_email: "mateka", password: "123"
+                }
+            });
+            const json_username = await res_username.json();
+            expect(res_username.status).toBe(200);
+            expect(json_username.message).toBe("login successful");
+
+            const cookies = res_username.headers.getSetCookie();
+            expect(cookies).toHaveLength(1);
+        });
+        test("login success with email and username both, also tests logout", async () => {
+            const reg = await client.auth.register.$post({
+                json: {
+                    username: "mateka", email: "test@example.com", password: "123"
+                }
+            });
+            expect(reg.status).toBe(200);
+
+
+            // TODO: check email somehow
+            // NOTE: manually verify email
+            await db.update(schema.usersTable)
+                .set({ auth_status: "active" })
+                .where(eq(schema.usersTable.email, "test@example.com"))
+
+            const res_username = await client.auth.login.$post({
+                json: {
+                    username_or_email: "mateka", password: "123"
+                }
+            });
+            const json_username = await res_username.json();
+            expect(res_username.status).toBe(200);
+            expect(json_username.message).toBe("login successful");
+
+            const cookies = res_username.headers.getSetCookie();
+
+            const logout = await client.auth.logout.$get({}, { headers: { Cookie: cookies.join(';') } });
+            expect(logout.status).toBe(200);
+
+            const res_email = await client.auth.login.$post({
+                json: {
+                    username_or_email: "test@example.com", password: "123"
+                }
+            },);
+            const json_email = await res_email.json();
+            expect(res_email.status).toBe(200);
+            expect(json_email.message).toBe("login successful");
+        });
+    });
     describe("registration", () => {
         test("register success (email not checked)", async () => {
             const res = await client.auth.register.$post({
                 json: {
-                    username: "mateka", email: "kissmate019@gmail.com", password: "123456"
+                    username: "mateka", email: "test@example.com", password: "123456"
                 }
             })
 
@@ -34,7 +203,7 @@ describe("tests for api auth functionality", () => {
         test("fails cause bad data", async () => {
             const res = await client.auth.register.$post({
                 json: {
-                    username: "mateka", email: "kissmate01m", password: "123456"
+                    username: "mateka", email: "t321492145190uio", password: "123456"
                 }
             })
 
@@ -46,13 +215,13 @@ describe("tests for api auth functionality", () => {
         test("fails cause duplicate username/email error", async () => {
             await client.auth.register.$post({
                 json: {
-                    username: "mateka", email: "kissmate019@gmail.com", password: "123456"
+                    username: "mateka", email: "test@example.com", password: "123456"
                 }
             })
 
             const res_email = await client.auth.register.$post({
                 json: {
-                    username: "mateka2", email: "kissmate019@gmail.com", password: "123456"
+                    username: "mateka2", email: "test@example.com", password: "123456"
                 }
             })
 
@@ -65,7 +234,7 @@ describe("tests for api auth functionality", () => {
 
             const res_username = await client.auth.register.$post({
                 json: {
-                    username: "mateka", email: "kissmatee019@gmail.com", password: "123456"
+                    username: "mateka", email: "test2@example.com", password: "123456"
                 }
             })
 
