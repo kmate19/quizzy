@@ -13,11 +13,10 @@ import type { ApiResponse } from "repo";
 const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSchema), async (c) => {
     const loginUserData = c.req.valid('json');
 
-    // NOTE: Keep an eye on this in the future so its not an infinite redirect loop
     if (getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)) {
         // user already logged in
         const res = {
-            message: 'user is already has a login cookie',
+            message: 'user already has a login cookie',
             error: {
                 message: 'user cant have a login cookie and try to log in',
                 case: "conflict"
