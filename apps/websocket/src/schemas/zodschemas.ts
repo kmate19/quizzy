@@ -14,8 +14,12 @@ assertequal<typeof _valid2>();
 export const websocketMessageSchema = z.object({
     type: wsMessageTypeZEnum,
     successful: z.boolean(),
-    errMessage: z.string().optional(),
-    data: z.unknown().optional(),
+    server: z.boolean(),
+    error: z.object({
+        message: z.string(),
+        raw: z.custom<Error | string>((v) => v instanceof Error || typeof v === "string").optional(),
+    }).optional(),
+    data: z.custom().optional(),
     clientId: z.string().optional(),
     ext: z.object({
         ack: z.boolean().optional(),
