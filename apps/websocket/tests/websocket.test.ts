@@ -7,7 +7,7 @@ import { generateSessionHash } from "@/utils/utils";
 import { WebsocketMessage } from "repo";
 import { createWebsocketEnv } from "./testUtils/helpers";
 
-const client = hc<AppType>('http://localhost:3001')
+const client = hc<AppType>('http://localhost:3001').ws
 
 let server: Server;
 beforeAll(async () => {

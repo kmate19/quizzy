@@ -13,7 +13,7 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
 
 const lobbies: Map<string, Set<ServerWebSocket>> = new Map()
 
-export const app = new Hono()
+export const app = new Hono().basePath("/ws")
     .use(logger())
     .use(cors())
     .get("/ws/server/:lobbyid/:hash", zValidator('param', z.object({ lobbyid: z.string().length(8), hash: z.string() })), upgradeWebSocket(async (c) => {

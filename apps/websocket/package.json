@@ -2,11 +2,21 @@
     "name": "@repo/websocket",
     "private": true,
     "type": "module",
+    "exports": {
+        "./hc": {
+            "import": {
+                "default": "./dist/hc.js",
+                "types": "./dist/hc.d.ts"
+            }
+        }
+    },
     "scripts": {
         "build": "bun build --sourcemap --bytecode --minify --compile --outfile ./dist/websocket --target bun ./src/index.ts",
         "start": "./dist/websocket",
         "dev": "bun run --hot ./src/index.ts",
-        "test": "bun test"
+        "test": "bun test",
+        "tsc:hc": "tsc -p tsconfig.build.json",
+        "prepare": "pnpm tsc:hc"
     },
     "dependencies": {
         "@hono/zod-validator": "^0.4.2",

@@ -1,6 +1,6 @@
-type ApiErrorCase = 'validation' | 'auth' | 'server' | 'not_found' | 'forbidden' | 'conflict' | 'bad_request' | 'unauthorized';
+declare type ApiErrorCase = 'validation' | 'auth' | 'server' | 'not_found' | 'forbidden' | 'conflict' | 'bad_request' | 'unauthorized';
 
-type ApiError = {
+declare type ApiError = {
     message: string;
     case: ApiErrorCase;
     field?: string;
@@ -22,14 +22,14 @@ export declare type ApiResponse<T = unknown> = {
     }
 }
 
-type WebsocketMessageType = "message" | "subscribe" | "unsubscribe" | "ping" | "pong" | "ack" | "connect" | "disconnect" | "handshake" | "error";
+declare type WebsocketMessageType = "message" | "subscribe" | "unsubscribe" | "ping" | "pong" | "ack" | "connect" | "disconnect" | "handshake" | "error";
 
-type WebsocketError = {
+declare type WebsocketError = {
     message: string,
     raw?: string | Error;
 }
 
-export type WebsocketMessage<T = unknown> = {
+export declare type WebsocketMessage<T = unknown> = {
     type: WebsocketMessageType;
     successful: boolean;
     server: boolean;
