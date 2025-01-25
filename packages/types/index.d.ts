@@ -24,10 +24,16 @@ export declare type ApiResponse<T = unknown> = {
 
 type WebsocketMessageType = "message" | "subscribe" | "unsubscribe" | "ping" | "pong" | "ack" | "connect" | "disconnect" | "handshake" | "error";
 
+type WebsocketError = {
+    message: string,
+    raw?: string | Error;
+}
+
 export type WebsocketMessage<T = unknown> = {
     type: WebsocketMessageType;
     successful: boolean;
-    errMessage?: string;
+    server: boolean;
+    error?: WebsocketError;
     data?: T,
     clientId?: string; // Unique client identifier assigned by the server
     ext?: {

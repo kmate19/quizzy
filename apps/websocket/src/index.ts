@@ -26,9 +26,15 @@ export const app = new Hono()
                     const res = {
                         type: "error",
                         successful: false,
-                        errMessage: validType.error.message,
+                        server: true,
+                        error: {
+                            message: "Invalid message type",
+                            raw: validType.error
+                        }
                     } satisfies WebsocketMessage
-                    ws.close(1003, JSON.stringify(res))
+                    ws.send(JSON.stringify(res))
+                    // need to send res as a regular message, since ws close frames reasons only accept 123 bytes
+                    ws.close(1003, "Invalid message type")
                     return
                 }
                 console.log(`client sent message ${event.data.toString()} to lobby ${lobbyid}`)
@@ -40,11 +46,29 @@ export const app = new Hono()
             },
             onOpen: (_, ws) => {
                 if (!lobbies.has(lobbyid)) {
+                    const res = {
+                        type: "error",
+                        successful: false,
+                        server: true,
+                        error: {
+                            message: "Lobby does not exist",
+                        }
+                    } satisfies WebsocketMessage
+                    ws.send(JSON.stringify(res))
                     ws.close(1003, "Lobby does not exist")
                     return
                 }
 
                 if (hash !== generateSessionHash(lobbyid, Bun.env.HASH_SECRET || "asd")) {
+                    const res = {
+                        type: "error",
+                        successful: false,
+                        server: true,
+                        error: {
+                            message: "Hash mismatch",
+                        }
+                    } satisfies WebsocketMessage
+                    ws.send(JSON.stringify(res))
                     ws.close(1003, "Hash mismatch")
                     return
                 }
@@ -63,7 +87,15 @@ export const app = new Hono()
                 }, 30000);
 
                 ws.raw!.subscribe(lobbyid)
-                ws.send(`welcome to lobby ${lobbyid}`)
+                const res = {
+                    type: "connect",
+                    successful: true,
+                    server: true,
+                    data: {
+                        message: `welcome to lobby ${lobbyid}`
+                    }
+                } satisfies WebsocketMessage
+                ws.send(JSON.stringify(res))
             },
             onClose: (_, ws) => {
                 console.log(`client left lobby ${lobbyid}`)
