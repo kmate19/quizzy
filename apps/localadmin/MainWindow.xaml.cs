@@ -7,25 +7,48 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.ComponentModel;
-using FuzzySharp;
+using System.Runtime.CompilerServices;
+using localadmin.ViewModels;
+using System.Diagnostics;
 
 
 namespace localadmin;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    UserViewModel viewModel=new UserViewModel();
+    private object _currentView;
+    public UserViewModel UserViewModel { get; } = new UserViewModel();
+    public ReviewViewModel ReviewViewModel { get; } = new ReviewViewModel();
+    public QuizViewModel QuizViewModel { get; } = new QuizViewModel();
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = viewModel;
-        viewModel.ApplyFilter("");
+        CurrentView = UserViewModel;
+        DataContext = this;
+    }
+
+    public object CurrentView
+    {
+        get => _currentView;
+        set
+        {
+            _currentView = value;
+            OnPropertyChanged(nameof(CurrentView));
+            Debug.WriteLine($"CurrentView changed to: {value?.GetType().Name}");
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
     {
         string url = "https://www.google.com";
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+        Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
     }
 
 
@@ -43,13 +66,40 @@ public partial class MainWindow : Window
         if (textBox.Text == "")
         {
             textBox.Text = "Search";
-            viewModel.ApplyFilter(textBox.Text);
+            //CurrentView.ApplyFilter(textBox.Text);
         }
     }
 
     private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
     {
         var textBox = sender as TextBox;
-        viewModel.ApplyFilter(textBox.Text);
+
+        if (CurrentView == UserViewModel)
+        {
+            UserViewModel.SearchUsers(textBox?.Text);
+        }
+        else if (CurrentView == ReviewViewModel)
+        {
+            ReviewViewModel.SearchReviews(textBox?.Text);
+        }
+        else if (CurrentView == QuizViewModel)
+        {
+            QuizViewModel.SearchQuizes(textBox?.Text);
+        }
+    }
+
+    private void UsersButton_Click(object sender, RoutedEventArgs e)
+    {
+        CurrentView = UserViewModel;
+    }
+
+    private void Quizbutton_Click(object sender, RoutedEventArgs e)
+    {
+        CurrentView = QuizViewModel;
+    }
+
+    private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
+    {
+        CurrentView = ReviewViewModel;
     }
 }

@@ -18,4 +18,8 @@
     <Resource Include="icon.ico" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DataTemplates\" />
+  </ItemGroup>
+
 </Project>

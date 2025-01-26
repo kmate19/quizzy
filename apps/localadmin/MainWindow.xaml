@@ -6,7 +6,16 @@
         xmlns:local="clr-namespace:localadmin"
         xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
         mc:Ignorable="d" WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow"
-        Title="Quizzy" Height="650" Width="1000" ResizeMode="NoResize">
+        Title="Quizzy" Height="650" Width="1000">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DataTemplates\UserTemplate.xaml" />
+                <ResourceDictionary Source="DataTemplates\QuizTemplate.xaml"/>
+                <ResourceDictionary Source="DataTemplates\ReviewTemplate.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
@@ -33,6 +42,27 @@
             
             <!--buttons-->
 
+            <Button x:Name="UsersButton" Style="{StaticResource MenuButton}" Click="UsersButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconImage Style="{StaticResource IconStyle}" Icon="User"></fa:IconImage>
+                    <TextBlock Text="Users"/>
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="QuizButton" Style="{StaticResource MenuButton}" Click="Quizbutton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconImage Style="{StaticResource IconStyle}" Icon="CircleQuestion"></fa:IconImage>
+                    <TextBlock Text="Quizzes"/>
+                </StackPanel>
+            </Button>
+
+            <Button x:Name="ReviewsButtons" Style="{StaticResource MenuButton}" Click="ReviewsButtons_Click">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconImage Style="{StaticResource IconStyle}" Icon="star"></fa:IconImage>
+                    <TextBlock Text="Reviews"/>
+                </StackPanel>
+            </Button>
+
             <Button Style="{StaticResource MenuButton}" Click="RedirectToMainPage">
                 <StackPanel Orientation="Horizontal">
                     <fa:IconImage Style="{StaticResource IconStyle}" Icon="WindowRestore"></fa:IconImage>
@@ -40,19 +70,6 @@
                 </StackPanel>
             </Button>
 
-            <Button Style="{StaticResource MenuButton}">
-                <StackPanel Orientation="Horizontal">
-                    <fa:IconImage Style="{StaticResource IconStyle}" Icon="CircleQuestion"></fa:IconImage>
-                    <TextBlock Text="Create a quiz"/>
-                </StackPanel>
-            </Button>
-
-            <Button Style="{StaticResource MenuButton}">
-                <StackPanel Orientation="Horizontal">
-                    <fa:IconImage Style="{StaticResource IconStyle}" Icon="star"></fa:IconImage>
-                    <TextBlock Text="Reviews"/>
-                </StackPanel>
-            </Button>
         </StackPanel>
         
         
@@ -60,67 +77,29 @@
         <!--Main-->
         <Grid Grid.Column="1">
             <Border>
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0.5, 0" EndPoint="0.5, 1">
-                    <GradientStop Color="BlueViolet" Offset="0"/>
-                    <GradientStop Color="Blue" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0.5, 0" EndPoint="0.5 1">
+                        <GradientStop Color="Blue" Offset="1"/>
+                        <GradientStop Color="BlueViolet" Offset="0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
             </Border>
 
             <!--Search Bar-->
+            <Grid Width="200" Height="35" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 10 10 0">
+                <Border CornerRadius="10" Background="White" BorderBrush="Gray" BorderThickness="1">
+                    <Grid>
+                        <fa:IconImage Icon="MagnifyingGlass" HorizontalAlignment="Left" Width="50" Height="20" Margin="5" />
+                        <TextBox Width="180" Height="35" HorizontalAlignment="Stretch" Margin="35,0,5,0" FontSize="20" Background="Transparent" 
+                      BorderThickness="0" VerticalContentAlignment="Center" Text="Search" 
+                      GotFocus="Searchbar_gotFocus" LostFocus="Searchbar_lostFocus" TextChanged="Searchbar_textChanged" Opacity="0.7" />
+                    </Grid>
+                </Border>
+            </Grid>
 
-            <TextBox Text="Search" Width="180" Height="35" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 10 10 0" FontSize="20" 
-                     GotFocus="Searchbar_gotFocus" LostFocus="Searchbar_lostFocus" TextChanged="Searchbar_textChanged">
-                <TextBox.Resources>
-                    <Style TargetType="{x:Type Border}">
-                        <Setter Property="CornerRadius" Value="10"/>
-                    </Style>
-                </TextBox.Resources>
-            </TextBox>
-
-            <ListView Name="lvDataBinding" HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="20 50 20 20" Grid.Row="3" Background="{x:Null}" ItemsSource="{Binding Users}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderBrush="Black" BorderThickness="0" CornerRadius="3" Margin="0,3" Grid.ColumnSpan="4" Background="White">
-                            <Grid Background="White" Margin="0,1">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="220"/>
-                                    <ColumnDefinition Width="200"/>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="60"/>
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Vertical" Margin="50,5" >
-                                    <TextBlock Text="Name" Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Username}" FontSize="20" />
-                                </StackPanel>
-                                <StackPanel Orientation="Vertical" Grid.Column="1">
-                                    <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Email}" FontSize="20" />
-                                </StackPanel>
-                                <StackPanel Orientation="Vertical" Grid.Column="2">
-                                    <TextBlock Text="Role" Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Role}" FontSize="20" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Grid.Column="3">
-                                    <Button Content="Modify" Style="{StaticResource GridButtons}"/>
-                                    <Button Content="Delete" Style="{StaticResource GridButtons}"/>
-                                </StackPanel>
-                            </Grid>
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="5" ShadowDepth="5" />
-                            </Border.Effect>
-                        </Border>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            
-            
-            
-            
+            <!-- ContentControl to Switch Views -->
+            <ContentControl Content="{Binding CurrentView}" Margin="0 50 0 0">
+            </ContentControl>
         </Grid>
     </Grid>
 </Window>
