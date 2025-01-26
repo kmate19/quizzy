@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import MistBackground from '@/components/MistBackground.vue'
-import { Search } from 'lucide-vue-next'
 import NavBar from '@/components/NavBar.vue'
+import CategoriesBtn from '@/components/CategoriesBtn.vue'
+import { Search } from 'lucide-vue-next'
 const isVisible = ref(false)
 const cards = ref<HTMLDivElement[]>()
 const navContainer = ref<HTMLDivElement | null>(null)
@@ -63,7 +64,7 @@ onUnmounted(() => {
   >
     <NavBar />
     <main class="p-4 sm:p-6 lg:p-8">
-      <div class="relative m-5">
+      <div class="relative m-5 flex items-center justify-between">
         <div
           :class="[
             'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
@@ -71,7 +72,7 @@ onUnmounted(() => {
           ]"
         >
           <div class="flex items-center px-4 py-2" @click="toggleExpand">
-            <Search class="h-5 w-5 text-gray-500" />
+            <Search class="h-5 w-5 text-gray" />
           </div>
           <input
             type="text"
@@ -84,10 +85,12 @@ onUnmounted(() => {
             @blur="isExpanded = false"
           />
         </div>
+        <CategoriesBtn />
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 
+      overflow-y-scroll custom-scrollbar">
         <div
-          v-for="i in 9"
+          v-for="i in 5"
           :key="i"
           class="bg-white/50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0"
           :class="{ 'fade-in': isVisible }"
