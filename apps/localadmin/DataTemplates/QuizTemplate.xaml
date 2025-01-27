@@ -4,6 +4,11 @@
                     xmlns:local="clr-namespace:localadmin.ViewModels">
     <DataTemplate DataType="{x:Type local:QuizViewModel}">
         <ItemsControl ItemsSource="{Binding FiltredQuizzes}" Background="Transparent">
+            <ItemsControl.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="View user" Command="{Binding viewUser}"/>
+                </ContextMenu>
+            </ItemsControl.ContextMenu>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" />

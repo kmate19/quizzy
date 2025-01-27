@@ -10,22 +10,21 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using localadmin.ViewModels;
 using System.Diagnostics;
+using localadmin.Services;
 
 
 namespace localadmin;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    private object _currentView;
+
+    public NavigationService navigationService = new NavigationService();
+
     public UserViewModel UserViewModel { get; } = new UserViewModel();
     public ReviewViewModel ReviewViewModel { get; } = new ReviewViewModel();
     public QuizViewModel QuizViewModel { get; } = new QuizViewModel();
-    public MainWindow()
-    {
-        InitializeComponent();
-        CurrentView = UserViewModel;
-        DataContext = this;
-    }
+
+    private object _currentView;
 
     public object CurrentView
     {
@@ -38,11 +37,26 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    public MainWindow()
+    {
+        InitializeComponent();
+        navigationService.ViewModelChanged += viewModel => CurrentView = viewModel;
+
+        navigationService.NavigateTo(UserViewModel);
+        
+        DataContext = this;
+    }
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected void OnPropertyChanged(string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    private void OnViewModelChanged(object newViewModel)
+    {
+        CurrentView = newViewModel;
+        DataContext = CurrentView;
     }
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
@@ -50,7 +64,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         string url = "https://www.google.com";
         Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
     }
-
 
     private void Searchbar_gotFocus(object sender, RoutedEventArgs e)
     {
@@ -66,7 +79,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (textBox.Text == "")
         {
             textBox.Text = "Search";
-            //CurrentView.ApplyFilter(textBox.Text);
         }
     }
 
@@ -90,16 +102,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void UsersButton_Click(object sender, RoutedEventArgs e)
     {
-        CurrentView = UserViewModel;
+        navigationService.NavigateTo(UserViewModel);
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
-        CurrentView = QuizViewModel;
+        navigationService.NavigateTo(QuizViewModel);
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
-        CurrentView = ReviewViewModel;
+        navigationService.NavigateTo(ReviewViewModel);
     }
 }

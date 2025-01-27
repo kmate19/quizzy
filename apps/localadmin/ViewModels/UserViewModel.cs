@@ -17,25 +17,25 @@ namespace localadmin.ViewModels
             {
                 new User()
                 {
-                    Username = "Alice Smith",
+                    Username = "Goku",
                     Email = "alice@example.com",
                     Role = "Administrator"
                 },
                 new User()
                 {
-                    Username = "Bob Johnson",
+                    Username = "Vegeta",
                     Email = "bob@example.com",
                     Role = "Editor"
                 },
                 new User()
                 {
-                    Username = "Charlie Brown",
+                    Username = "Piccowo",
                     Email = "charlie@example.com",
                     Role = "Viewer"
                 },
                 new User()
                 {
-                    Username = "Diana Prince",
+                    Username = "Gohan",
                     Email = "diana@example.com",
                     Role = "Editor"
                 },

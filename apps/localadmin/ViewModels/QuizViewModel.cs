@@ -13,6 +13,7 @@ namespace localadmin.ViewModels
 
         public QuizViewModel()
         {
+
             Quizzes = new ObservableCollection<Quiz> {
             new Quiz { MadeBy = "Goku", Description = "bbbbbbb" },
             new Quiz { MadeBy = "Vegeta", Description = "bbbbbbb" },
@@ -31,6 +32,10 @@ namespace localadmin.ViewModels
             {
                 FiltredQuizzes.Add(quiz);
             }
+        }
+        public void viewUser()
+        {
+            NavigationService.
         }
     }
 }
