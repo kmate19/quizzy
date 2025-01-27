@@ -1,30 +1,51 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { XIcon, Settings2 } from 'lucide-vue-next'
+import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
 
 const isModalOpen = ref(false)
 const selectedCategoriesData = ref<string[]>([])
+const searchQuery = ref('')
 
-//make a list of categories atlest 16 categories, use real like data like 'industry'
 const categories = [
-  'Technology',
-  'Science',
-  'Business',
-  'Health',
+  'Action',
+  'Adventure',
+  'Casual',
+  'Indie',
+  'Massively Multiplayer',
+  'Racing',
+  'RPG',
+  'Simulation',
   'Sports',
-  'Art',
+  'Strategy',
+  'Puzzle',
+  'Shooter',
+  'Platformer',
+  'Fighting',
+  'Family',
+  'Board Games',
+  'Educational',
+  'Card',
+  'Casino',
   'Music',
-  'Food',
-  'Travel',
-  'Fashion',
-  'Education',
-  'Automotive',
-  'Entertainment',
-  'Lifestyle',
-  'Politics',
-  'Industry',
+  'Trivia',
+  'Word',
+  'Arcade',
+  'Horror',
+  'Survival',
+  'Open World',
+  'Sandbox',
+  'MMO',
+  'VR',
+  'Co-op',
+  'Singleplayer',
 ]
+
 const selectedCategories = computed(() => selectedCategoriesData.value)
+
+const filteredCategories = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+  return categories.filter((category) => category.toLowerCase().includes(query))
+})
 
 const isSelected = (category: string): boolean => {
   return selectedCategoriesData.value.includes(category)
@@ -38,6 +59,17 @@ const toggleCategory = (category: string) => {
     selectedCategoriesData.value.push(category)
   }
 }
+
+const saveCategories = () => {
+  isModalOpen.value = false
+  emit('save', selectedCategoriesData.value)
+}
+
+const clearSelectedCategories = () => {
+  selectedCategoriesData.value = []
+}
+
+const emit = defineEmits(['save'])
 </script>
 
 <template>
@@ -79,11 +111,30 @@ const toggleCategory = (category: string) => {
           </div>
         </div>
 
-        <div class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-40">
+        <div class="mb-4 relative flex">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Kategóriák keresése..."
+            class="w-full px-4 py-2 pl-10 bg-gray-600 text-white font-bold rounded-full focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
+          <Search
+            class="w-5 h-5 text-white absolute left-3 top-1/2 transform -translate-y-1/2"
+          />
+          <button
+            @click="clearSelectedCategories"
+            class="ml-2 p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-full w-11 flex justify-center items-center"
+            aria-label="Clear selected categories"
+          >
+            <XIcon class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-60 mb-4">
           <label
-            v-for="category in categories"
+            v-for="category in filteredCategories"
             :key="category"
-            class="space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer max-w-fit"
+            class="space-x-3 p-2 rounded hover:bg-gray-500 cursor-pointer max-w-fit"
           >
             <input
               type="checkbox"
@@ -93,12 +144,24 @@ const toggleCategory = (category: string) => {
             />
             <div
               class="flex-1 px-3 py-1 rounded-full"
-              :class="isSelected(category) ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'"
+              :class="
+                isSelected(category)
+                  ? 'bg-gray-700 text-white'
+                  : 'bg-white/50 backdrop-blur-md text-white'
+              "
             >
               {{ category }}
             </div>
           </label>
         </div>
+
+        <button
+          @click="saveCategories"
+          class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-colors"
+        >
+          <Save class="w-5 h-5" />
+          Kategóriák mentése
+        </button>
       </div>
     </div>
   </div>
