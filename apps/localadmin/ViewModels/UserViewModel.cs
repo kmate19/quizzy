@@ -8,11 +8,14 @@ namespace localadmin.ViewModels
 {
     public class UserViewModel
     {
+        public NavigationService _navigationService { get; set; }
         public ObservableCollection<User> Users { get; set; } = new ObservableCollection<User>();
         public ObservableCollection<User> FilteredUsers { get; private set; }
 
-        public UserViewModel()
+        public UserViewModel(NavigationService navigationService)
         {
+            _navigationService = navigationService;
+
             Users = new ObservableCollection<User>
             {
                 new User()
@@ -56,6 +59,14 @@ namespace localadmin.ViewModels
             foreach (var user in results)
             {
                 FilteredUsers.Add(user);
+            }
+        }
+
+        private void OnNavigatedTo(object viewModel, object parameter)
+        {
+            if (viewModel == this && parameter is string username)
+            {
+                SearchUsers(username);
             }
         }
     }

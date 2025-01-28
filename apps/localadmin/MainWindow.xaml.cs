@@ -12,19 +12,17 @@ using localadmin.ViewModels;
 using System.Diagnostics;
 using localadmin.Services;
 
-
 namespace localadmin;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
+    public NavigationService NavigationService { get; } = new NavigationService();
 
-    public NavigationService navigationService = new NavigationService();
+    public UserViewModel UserViewModel { get; }
+    public ReviewViewModel ReviewViewModel { get; }
+    public QuizViewModel QuizViewModel { get; }
 
-    public UserViewModel UserViewModel { get; } = new UserViewModel();
-    public ReviewViewModel ReviewViewModel { get; } = new ReviewViewModel();
-    public QuizViewModel QuizViewModel { get; } = new QuizViewModel();
-
-    private object _currentView;
+    private object _currentView = null!;
 
     public object CurrentView
     {
@@ -40,23 +38,29 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public MainWindow()
     {
         InitializeComponent();
-        navigationService.ViewModelChanged += viewModel => CurrentView = viewModel;
 
-        navigationService.NavigateTo(UserViewModel);
-        
+        UserViewModel = new UserViewModel(NavigationService);
+        ReviewViewModel = new ReviewViewModel(NavigationService);
+        QuizViewModel = new QuizViewModel(NavigationService);
+
+        NavigationService.ViewModelChanged += OnViewModelChanged;
+
+        CurrentView = UserViewModel;
+
         DataContext = this;
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected void OnPropertyChanged(string propertyName = null)
+    protected void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
     private void OnViewModelChanged(object newViewModel)
     {
+        Debug.WriteLine($"Switching to: {newViewModel.GetType().Name}");
         CurrentView = newViewModel;
-        DataContext = CurrentView;
     }
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
@@ -68,15 +72,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void Searchbar_gotFocus(object sender, RoutedEventArgs e)
     {
         var textBox = sender as TextBox;
-        if (textBox.Text == "Search")
+        if (textBox != null && textBox.Text == "Search")
         {
             textBox.Text = string.Empty;
         }
     }
+
     private void Searchbar_lostFocus(object sender, RoutedEventArgs e)
     {
         var textBox = sender as TextBox;
-        if (textBox.Text == "")
+        if (textBox != null && textBox.Text == "")
         {
             textBox.Text = "Search";
         }
@@ -85,33 +90,37 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
     {
         var textBox = sender as TextBox;
+        if (textBox != null && textBox.Text == "Search")
+        {
+            return;
+        }
 
         if (CurrentView == UserViewModel)
         {
-            UserViewModel.SearchUsers(textBox?.Text);
+            UserViewModel.SearchUsers(textBox?.Text ?? string.Empty);
         }
         else if (CurrentView == ReviewViewModel)
         {
-            ReviewViewModel.SearchReviews(textBox?.Text);
+            ReviewViewModel.SearchReviews(textBox?.Text ?? string.Empty);
         }
         else if (CurrentView == QuizViewModel)
         {
-            QuizViewModel.SearchQuizes(textBox?.Text);
+            QuizViewModel.SearchQuizes(textBox?.Text ?? string.Empty);
         }
     }
 
     private void UsersButton_Click(object sender, RoutedEventArgs e)
     {
-        navigationService.NavigateTo(UserViewModel);
+        NavigationService.NavigateTo(UserViewModel);
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
-        navigationService.NavigateTo(QuizViewModel);
+        NavigationService.NavigateTo(QuizViewModel);
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
-        navigationService.NavigateTo(ReviewViewModel);
+        NavigationService.NavigateTo(ReviewViewModel);
     }
 }

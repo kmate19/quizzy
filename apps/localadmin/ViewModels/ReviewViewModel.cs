@@ -8,11 +8,14 @@ namespace localadmin.ViewModels
 {
     public class ReviewViewModel
     {
+        public NavigationService _navigationService { get; set; }
         public ObservableCollection<Review> Reviews {  get; set; }
         public ObservableCollection<Review> FilteredReviews { get; private set; }
 
-        public ReviewViewModel()
+        public ReviewViewModel(NavigationService navigationService)
         {
+            _navigationService = navigationService;
+
             Reviews = new ObservableCollection<Review>
             {
                 new Review{MadeBy= "Goku", ReviewText="Excellent service! Will definitely come back again.", Rating=3},
