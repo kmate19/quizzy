@@ -81,10 +81,9 @@ const checkVisibility = () => {
 
 const filterCards = (categories: string[]) => {
   if (categories.length === 0) {
-    console.log('mockMockCards.value before reset:', mockMockCards.value); 
-    mockCards.value = [...mockMockCards.value]; 
-    console.log('mockCards.value after reset:', mockCards.value); 
+    mockCards.value = [...mockMockCards.value];  
   } else {
+    console.log(categories)
     mockCards.value = mockCards.value.filter((card) => categories.includes(card.category));
   }
 };
