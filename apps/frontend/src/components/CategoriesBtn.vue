@@ -3,41 +3,17 @@ import { ref, computed } from 'vue'
 import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
 
 const isModalOpen = ref(false)
-const selectedCategoriesData = ref<string[]>([])
 const searchQuery = ref('')
+const selectedCategoriesData = ref<string[]>([])
 
 const categories = [
   'Action',
-  'Adventure',
-  'Casual',
-  'Indie',
-  'Massively Multiplayer',
-  'Racing',
-  'RPG',
-  'Simulation',
-  'Sports',
-  'Strategy',
-  'Puzzle',
-  'Shooter',
-  'Platformer',
-  'Fighting',
-  'Family',
-  'Board Games',
-  'Educational',
-  'Card',
-  'Casino',
-  'Music',
-  'Trivia',
-  'Word',
-  'Arcade',
-  'Horror',
-  'Survival',
-  'Open World',
-  'Sandbox',
-  'MMO',
-  'VR',
-  'Co-op',
-  'Singleplayer',
+"Adventure",
+"Casual",
+"Simulation",
+"Educational",
+"Trivia",
+"Horror"
 ]
 
 const selectedCategories = computed(() => selectedCategoriesData.value)
@@ -70,6 +46,7 @@ const clearSelectedCategories = () => {
 }
 
 const emit = defineEmits(['save'])
+
 </script>
 
 <template>
@@ -91,10 +68,10 @@ const emit = defineEmits(['save'])
           @click="isModalOpen = false"
           class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
         >
-          <XIcon class="w-5 h-5" />
+          <XIcon class="w-5 h-5 text-red-800" />
         </button>
 
-        <h2 class="text-xl font-semibold mb-4 text-white">Válassz kategóriákat</h2>
+        <h2 class="text-xl font-semibold mb-4 text-white">Kategóriák</h2>
 
         <div v-if="selectedCategories.length > 0" class="mb-4">
           <div class="flex flex-wrap gap-2 overflow-y-scroll custom-scrollbar max-h-40">
@@ -118,13 +95,10 @@ const emit = defineEmits(['save'])
             placeholder="Kategóriák keresése..."
             class="w-full px-4 py-2 pl-10 bg-gray-600 text-white font-bold rounded-full focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
-          <Search
-            class="w-5 h-5 text-white absolute left-3 top-1/2 transform -translate-y-1/2"
-          />
+          <Search class="w-5 h-5 text-white absolute left-3 top-1/2 transform -translate-y-1/2" />
           <button
             @click="clearSelectedCategories"
             class="ml-2 p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-full w-11 flex justify-center items-center"
-            aria-label="Clear selected categories"
           >
             <XIcon class="w-5 h-5" />
           </button>

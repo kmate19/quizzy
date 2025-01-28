@@ -4,69 +4,60 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
-import type {Card, FuzzySearchResult} from '@/utils/search'
-import {fuzzySearch} from '@/utils/search'
+import type { Card, FuzzySearchResult } from '@/utils/search'
+import { fuzzySearch } from '@/utils/search'
 const isVisible = ref(false)
 const cards = ref<HTMLDivElement[]>()
 const isExpanded = ref(false)
 const searchText = ref('')
-const searchCards = ref<FuzzySearchResult<Card>[]>([])
 
-const search = (searchText: string) => {
-  if (searchText === '') {
-    searchCards.value = mockCards.map((card) => ({item: card, score: 1}))
-    return
-  }
-  else{
-    searchCards.value = fuzzySearch(searchText, mockCards, {keys: ['name']})
-  }
-}
+const mockMockCards = ref<Card[]>([
+  {
+    name: 'Project Phoenix',
+    desc: 'Develop a new mobile application for task management and collaboration.',
+    category: 'Action',
+    created_by: 'Alice Johnson',
+  },
+  {
+    name: 'Website Redesign',
+    desc: 'Revamp the company website for a modern and user-friendly experience.',
+    category: 'Adventure',
+    created_by: 'Bob Williams',
+  },
+  {
+    name: 'Marketing Campaign - Summer Sale',
+    desc: 'Plan and execute a summer sale marketing campaign across social media and email.',
+    category: 'Casual',
+    created_by: 'Charlie Davis',
+  },
+  {
+    name: 'Database Optimization',
+    desc: 'Optimize the database performance to improve application speed and efficiency.',
+    category: 'Simulation',
+    created_by: 'Diana Rodriguez',
+  },
+  {
+    name: 'User Onboarding Flow Improvement',
+    desc: 'Analyze and improve the user onboarding flow to increase user engagement.',
+    category: 'Educational',
+    created_by: 'Ethan Martinez',
+  },
+  {
+    name: 'Security Audit',
+    desc: 'Conduct a comprehensive security audit of the system to identify and fix vulnerabilities.',
+    category: 'Trivia',
+    created_by: 'Fiona Green',
+  },
+  {
+    name: 'Content Creation - Blog Posts',
+    desc: 'Create a series of blog posts on industry trends and best practices.',
+    category: 'Horror',
+    created_by: 'George Wilson',
+  },
+])
 
-const mockCards: Card[] = [
-  {
-    name: "Project Phoenix",
-    desc: "Develop a new mobile application for task management and collaboration.",
-    category: "Project Management",
-    created_by: "Alice Johnson",
-  },
-  {
-    name: "Website Redesign",
-    desc: "Revamp the company website for a modern and user-friendly experience.",
-    category: "Web Development",
-    created_by: "Bob Williams",
-  },
-  {
-    name: "Marketing Campaign - Summer Sale",
-    desc: "Plan and execute a summer sale marketing campaign across social media and email.",
-    category: "Marketing",
-    created_by: "Charlie Davis",
-  },
-  {
-    name: "Database Optimization",
-    desc: "Optimize the database performance to improve application speed and efficiency.",
-    category: "Database",
-    created_by: "Diana Rodriguez",
-  },
-  {
-    name: "User Onboarding Flow Improvement",
-    desc: "Analyze and improve the user onboarding flow to increase user engagement.",
-    category: "UX Design",
-    created_by: "Ethan Martinez",
-  },
-  {
-    name: "Security Audit",
-    desc: "Conduct a comprehensive security audit of the system to identify and fix vulnerabilities.",
-    category: "Security",
-    created_by: "Fiona Green",
-  },
-  {
-    name: "Content Creation - Blog Posts",
-    desc: "Create a series of blog posts on industry trends and best practices.",
-    category: "Content Marketing",
-    created_by: "George Wilson",
-  },
-];
-
+const mockCards = ref<Card[]>([])
+mockCards.value = [...mockMockCards.value]
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
@@ -88,8 +79,20 @@ const checkVisibility = () => {
   })
 }
 
-const getGames = (categories: string[]) => {
-  console.log('categories ' + categories)
+const filterCards = (categories: string[]) => {
+  if (categories.length === 0) {
+    console.log('mockMockCards.value before reset:', mockMockCards.value); 
+    mockCards.value = [...mockMockCards.value]; 
+    console.log('mockCards.value after reset:', mockCards.value); 
+  } else {
+    mockCards.value = mockCards.value.filter((card) => categories.includes(card.category));
+  }
+};
+
+const search = (searchText: string) => {
+  console.log(searchText)
+  
+  
 }
 
 onMounted(() => {
@@ -126,49 +129,29 @@ onMounted(() => {
               @blur="isExpanded = false"
             />
           </div>
-          <CategoriesBtn @save="getGames" />
+          <CategoriesBtn @save="filterCards" />
         </div>
         <div
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-6 max-h-[780px]"
-          v-if="searchCards?.length===0"
         >
           <div
             v-for="card in mockCards"
             :key="card.name"
-            class="bg-white/50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0"
+            class="bg-white/50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col items-center"
             :class="{ 'fade-in': isVisible }"
             ref="cards"
           >
             <div class="w-full h-40 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
               kep
             </div>
-            <div class="flex items-center justify-center">
+            <div class="flex items-center justify-center text-center">
               <h2 class="text-xl font-semibold text-white mb-2">{{ card.name }}</h2>
             </div>
-            <p class="text-gray-700 flex flex-wrap justify-center items-center">
+            <div class="flex items-center justify-center text-center">
+              <h3 class="text-xl font-semibold text-white mb-2">{{ card.category }}</h3>
+            </div>
+            <p class="text-gray-700 flex flex-wrap justify-center items-center text-center">
               {{ card.desc }}
-            </p>
-          </div>
-        </div>
-        <div
-          v-else
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-6 max-h-[780px]"
-        >
-          <div
-            v-for="sCard in searchCards"
-            :key="sCard.item.name"
-            class="bg-white/50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0"
-            :class="{ 'fade-in': isVisible }"
-            ref="cards"
-          >
-            <div class="w-full h-40 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
-              kep
-            </div>
-            <div class="flex items-center justify-center">
-              <h2 class="text-xl font-semibold text-white mb-2">{{ sCard.item.name }}</h2>
-            </div>
-            <p class="text-gray-700 flex flex-wrap justify-center items-center">
-              {{ sCard.item.desc }}
             </p>
           </div>
         </div>
