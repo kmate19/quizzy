@@ -58,7 +58,8 @@ const emit = defineEmits(['save'])
   <div class="relative w-10 h-10">
     <button
       @click="isModalOpen = true"
-      class="w-16 h-10 rounded-full border-2 bg-white border-gray-300 flex items-center justify-center p-3 hover:border-gray-400 transition-colors relative"
+      class="w-16 h-10 rounded-full border-2 bg-white hover:bg-gray-500
+      duration-500 border-gray-300 flex items-center justify-center p-3 hover:border-gray-400 transition-colors relative"
       aria-label="Open category selector"
     >
       <Settings2 class="w-5 h-5 text-grey" absoluteStrokeWidth />

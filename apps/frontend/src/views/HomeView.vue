@@ -58,6 +58,12 @@ const mockMockCards = ref<Card[]>([
   },
 ])
 
+type SavePayload = {
+  categories: string[]
+  includeName: boolean
+  includeDesc: boolean
+}
+
 const mockCards = ref<Card[]>([])
 mockCards.value = [...mockMockCards.value]
 
@@ -81,27 +87,22 @@ const checkVisibility = () => {
   })
 }
 
-interface Category {
-  value: string
-}
-interface SavePayload {
-  categories: Category[]
-  includeName: boolean
-  includeDesc: boolean
-}
+
 
 const handleSave = (payload: SavePayload) => {
-  console.log('payload:', payload)
-  const categories = payload.categories.map((category) => category.value)
+  console.log(payload.categories)
+  const categories = payload.categories
   isNameIncluded.value = payload.includeName
   isDescIncluded.value = payload.includeDesc
   filterCards(categories)
 }
 
 const filterCards = (categories: string[]) => {
+
   if (categories.length === 0) {
     mockCards.value = [...mockMockCards.value]
   } else {
+    mockCards.value = [...mockMockCards.value]
     mockCards.value = mockCards.value.filter((card) => categories.includes(card.category))
   }
 }
@@ -135,39 +136,39 @@ onMounted(() => {
       <div class="relative mx-5 mb-5 mt-5 flex items-center gap-1">
         <div
           :class="[
-            'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
-            isExpanded ? 'w-[75%] justify-center' : 'w-14 cursor-pointer hover:bg-gray-50',
+        'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
+        isExpanded ? 'w-[75%] justify-center cursor-pointer hover:bg-gray-500' : 'w-14 cursor-pointer hover:bg-gray-500',
           ]"
         >
           <div class="flex items-center px-4 py-2" @click="toggleExpand">
-            <Search class="h-6 w-6 text-gray" />
+        <Search class="h-6 w-6 text-gray" />
           </div>
           <input
-            type="text"
-            v-model="searchText"
-            @keydown.enter="search(searchText)"
-            placeholder="Keresés..."
-            class="search-input w-full bg-transparent outline-none pr-4"
-            :class="{ 'opacity-0': !isExpanded, 'opacity-100': isExpanded }"
-            :disabled="!isExpanded"
-            @blur="isExpanded = false"
+        type="text"
+        v-model="searchText"
+        @keydown.enter="search(searchText)"
+        placeholder="Keresés..."
+        class="search-input w-full bg-transparent outline-none pr-4"
+        :class="{ 'opacity-0': !isExpanded, 'opacity-100': isExpanded }"
+        :disabled="!isExpanded"
           />
         </div>
-        <CategoriesBtn @save="handleSave" />
+        <CategoriesBtn @save="handleSave"/>
       </div>
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 max-h-[calc(100vh-200px)]"
+        class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 max-h-[calc(100vh-200px)] min-h-[calc(100vh-200px)]"
       >
         <template v-if="mockCards.length > 0">
           <div
             v-for="card in mockCards"
             :key="card.name"
-            class="bg-white/50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col items-center"
+            class="bg-white/50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col 
+            items-center max-h-fit"
             :class="{ 'fade-in': isVisible }"
             ref="cards"
           >
             <div class="w-full h-40 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
-              kep
+              gatya
             </div>
             <div class="flex items-center justify-center text-center">
               <h2 class="text-xl font-semibold text-white mb-2">{{ card.name }}</h2>

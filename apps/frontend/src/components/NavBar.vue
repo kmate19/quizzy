@@ -103,25 +103,25 @@ const path = route.fullPath.split('/')[1] == 'profil'
       <div v-if="isMobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a
-            class="text-white hover:bg-white/50 block px-3 py-2 rounded-md text-base font-medium"
+            class="text-white hover:bg-gray-700  block px-3 py-2 rounded-md text-base font-medium"
             >Közös játék</a
           >
           <a
-            class="text-white hover:bg-white/50 block px-3 py-2 rounded-md text-base font-medium"
+            class="text-white hover:bg-gray-700   block px-3 py-2 rounded-md text-base font-medium"
             >Játék készítés</a
           >
           <a
             @click="router.push(path?'/':'/profil')"
-            class="text-white hover:bg-white/50 block px-3 py-2 rounded-md text-base font-medium"
+            class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
             >{{path?'Kezdőlap':'Profil'}}</a
           >
-          <button
+          <a
             v-show="!path"
             @click="OnLogOut"
             class="text-white bg-red-500 hover:bg-red-800 block w-full text-left px-3 py-2 rounded-md text-base font-medium"
           >
             Kijelentkezés
-          </button>
+        </a>
         </div>
       </div>
     </transition>
