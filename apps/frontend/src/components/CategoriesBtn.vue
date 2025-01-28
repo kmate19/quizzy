@@ -5,15 +5,17 @@ import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedCategoriesData = ref<string[]>([])
+const includeDesc = ref(false)
+const includeName = ref(true)
 
 const categories = [
   'Action',
-"Adventure",
-"Casual",
-"Simulation",
-"Educational",
-"Trivia",
-"Horror"
+  'Adventure',
+  'Casual',
+  'Simulation',
+  'Educational',
+  'Trivia',
+  'Horror',
 ]
 
 const selectedCategories = computed(() => selectedCategoriesData.value)
@@ -38,7 +40,11 @@ const toggleCategory = (category: string) => {
 
 const saveCategories = () => {
   isModalOpen.value = false
-  emit('save', selectedCategoriesData.value)
+  emit('save', {
+    categories: selectedCategoriesData.value,
+    includeName: includeName.value,
+    includeDesc: includeDesc.value
+  })
 }
 
 const clearSelectedCategories = () => {
@@ -46,7 +52,6 @@ const clearSelectedCategories = () => {
 }
 
 const emit = defineEmits(['save'])
-
 </script>
 
 <template>
@@ -128,7 +133,31 @@ const emit = defineEmits(['save'])
             </div>
           </label>
         </div>
-
+        <div class="mb-4 flex flex-col space-y-2">
+          <h2 class="text-xl font-semibold mb-4 text-white">Keresési paraméterek</h2>
+          <button
+            @click="includeName = !includeName"
+            :class="[
+              'w-full py-2 px-4 rounded-full font-bold transition-colors',
+              includeName
+                ? 'bg-gray-700 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-500',
+            ]"
+          >
+            Név
+          </button>
+          <button
+            @click="includeDesc = !includeDesc"
+            :class="[
+              'w-full py-2 px-4 rounded-full font-bold transition-colors duration-300',
+              includeDesc
+                ? 'bg-gray-700 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-500',
+            ]"
+          >
+            Leírás
+          </button>
+        </div>
         <button
           @click="saveCategories"
           class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-colors"
