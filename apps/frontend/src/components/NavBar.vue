@@ -28,7 +28,7 @@ const handlePath = () => {
     return path
   }
 }
-const path = route.fullPath.split('/')[1] == 'profile'
+const path = route.fullPath.split('/')[1] == 'profil'
 </script>
 
 <template>
@@ -47,18 +47,19 @@ const path = route.fullPath.split('/')[1] == 'profile'
           <div class="ml-10 flex items-baseline space-x-4">
             <a
               href="#"
-              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium"
+              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
               >Közös játék</a
             >
             <a
               href="#"
-              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium"
+              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
               >Játék készítés</a
             >
             <a
-              @click="router.push('/profile')"
-              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium"
-              >Profil</a
+
+              @click="router.push(path?'/':'/profil')"
+              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
+              >{{ path? 'Kezdőlap':'Profil' }}</a
             >
             <button
               v-show="!path"
@@ -102,19 +103,17 @@ const path = route.fullPath.split('/')[1] == 'profile'
       <div v-if="isMobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a
-            href="#"
             class="text-white hover:bg-white/50 block px-3 py-2 rounded-md text-base font-medium"
             >Közös játék</a
           >
           <a
-            href="#"
             class="text-white hover:bg-white/50 block px-3 py-2 rounded-md text-base font-medium"
             >Játék készítés</a
           >
           <a
-            @click="router.push('/profile')"
+            @click="router.push(path?'/':'/profil')"
             class="text-white hover:bg-white/50 block px-3 py-2 rounded-md text-base font-medium"
-            >Profil</a
+            >{{path?'Kezdőlap':'Profil'}}</a
           >
           <button
             v-show="!path"
