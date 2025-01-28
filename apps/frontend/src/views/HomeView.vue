@@ -4,12 +4,14 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
-import type { Card, FuzzySearchResult } from '@/utils/search'
+import type { Card } from '@/utils/search'
 import { fuzzySearch } from '@/utils/search'
 const isVisible = ref(false)
 const cards = ref<HTMLDivElement[]>()
 const isExpanded = ref(false)
 const searchText = ref('')
+const isNameIncluded = ref(true)
+const isDescIncluded = ref(false)
 
 const mockMockCards = ref<Card[]>([
   {
@@ -79,21 +81,45 @@ const checkVisibility = () => {
   })
 }
 
-const filterCards = (categories: string[]) => {
-  if (categories.length === 0) {
-    mockCards.value = [...mockMockCards.value];  
-  } else {
-    console.log(categories)
-    mockCards.value = mockCards.value.filter((card) => categories.includes(card.category));
-  }
-};
-
-const search = (searchText: string) => {
-  console.log(searchText)
-  
-  
+interface Category {
+  value: string
+}
+interface SavePayload {
+  categories: Category[]
+  includeName: boolean
+  includeDesc: boolean
 }
 
+const handleSave = (payload: SavePayload) => {
+  console.log('payload:', payload)
+  const categories = payload.categories.map((category) => category.value)
+  isNameIncluded.value = payload.includeName
+  isDescIncluded.value = payload.includeDesc
+  filterCards(categories)
+}
+
+const filterCards = (categories: string[]) => {
+  if (categories.length === 0) {
+    mockCards.value = [...mockMockCards.value]
+  } else {
+    mockCards.value = mockCards.value.filter((card) => categories.includes(card.category))
+  }
+}
+
+const search = (searchText: string) => {
+  if (!searchText) {
+    mockCards.value = [...mockMockCards.value]
+  } else {
+    const searchResults = fuzzySearch(searchText, mockMockCards.value, {
+  keys: [
+    isNameIncluded.value ? 'name' : undefined,
+    isDescIncluded.value ? 'desc' : undefined
+  ].filter((key): key is keyof Card => key !== undefined),
+  threshold: 0.5,
+});
+    mockCards.value = searchResults
+  }
+}
 onMounted(() => {
   checkVisibility()
 })
@@ -101,38 +127,38 @@ onMounted(() => {
 
 <template>
   <MistBackground />
-  <div class="">
-    <div
-      class="max-w-6xl mx-auto backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden max-h-screen"
-    >
-      <NavBar />
-      <main class="p-4 sm:p-6 lg:p-8">
-        <div class="relative m-5 flex items-center justify-between">
-          <div
-            :class="[
-              'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
-              isExpanded ? 'w-full' : 'w-14 cursor-pointer hover:bg-gray-50',
-            ]"
-          >
-            <div class="flex items-center px-4 py-2" @click="toggleExpand">
-              <Search class="h-5 w-5 text-gray" />
-            </div>
-            <input
-              type="text"
-              v-model="searchText"
-              @keydown.enter="search(searchText)"
-              placeholder="Keresés..."
-              class="search-input w-full bg-transparent outline-none pr-4"
-              :class="{ 'opacity-0': !isExpanded, 'opacity-100': isExpanded }"
-              :disabled="!isExpanded"
-              @blur="isExpanded = false"
-            />
-          </div>
-          <CategoriesBtn @save="filterCards" />
-        </div>
+  <div
+    class="max-w-6xl mx-auto m-2 backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden max-h-screen"
+  >
+    <NavBar />
+    <main>
+      <div class="relative mx-5 mb-5 mt-5 flex items-center gap-1">
         <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-6 max-h-[780px]"
+          :class="[
+            'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
+            isExpanded ? 'w-[75%] justify-center' : 'w-14 cursor-pointer hover:bg-gray-50',
+          ]"
         >
+          <div class="flex items-center px-4 py-2" @click="toggleExpand">
+            <Search class="h-6 w-6 text-gray" />
+          </div>
+          <input
+            type="text"
+            v-model="searchText"
+            @keydown.enter="search(searchText)"
+            placeholder="Keresés..."
+            class="search-input w-full bg-transparent outline-none pr-4"
+            :class="{ 'opacity-0': !isExpanded, 'opacity-100': isExpanded }"
+            :disabled="!isExpanded"
+            @blur="isExpanded = false"
+          />
+        </div>
+        <CategoriesBtn @save="handleSave" />
+      </div>
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 max-h-[calc(100vh-200px)]"
+      >
+        <template v-if="mockCards.length > 0">
           <div
             v-for="card in mockCards"
             :key="card.name"
@@ -153,9 +179,12 @@ onMounted(() => {
               {{ card.desc }}
             </p>
           </div>
+        </template>
+        <div v-else class="col-span-full flex items-center justify-center h-full">
+          <p class="text-2xl font-semibold text-white">Nincs ilyen találat</p>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -165,6 +194,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -173,5 +203,38 @@ onMounted(() => {
 
 .fade-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+.search-input {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+  border: transparent;
 }
 </style>
