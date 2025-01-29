@@ -12,13 +12,10 @@
 
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <!-- ContextMenu is now defined at the item level -->
                     <Border BorderBrush="Black" BorderThickness="2" Background="White" CornerRadius="10" Margin="10" Width="200" Height="200">
                         <Border.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="View user"
-                                      Command="{Binding DataContext.ViewUserCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                      CommandParameter="{Binding}"/>
+                                <MenuItem Header="View user" Command="{Binding ViewUserCommand}" />
                             </ContextMenu>
                         </Border.ContextMenu>
                         <StackPanel Margin="10">

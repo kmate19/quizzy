@@ -17,6 +17,7 @@ namespace localadmin;
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     public NavigationService NavigationService { get; } = new NavigationService();
+    private readonly SharedStateService _sharedState;
 
     public UserViewModel UserViewModel { get; }
     public ReviewViewModel ReviewViewModel { get; }
@@ -41,7 +42,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         UserViewModel = new UserViewModel(NavigationService);
         ReviewViewModel = new ReviewViewModel(NavigationService);
-        QuizViewModel = new QuizViewModel(NavigationService);
+        QuizViewModel = new QuizViewModel(NavigationService, _sharedState);
 
         NavigationService.ViewModelChanged += OnViewModelChanged;
 
@@ -92,7 +93,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var textBox = sender as TextBox;
         if (textBox != null && textBox.Text == "Search")
         {
-            return;
+            _sharedState.SearchText = textBox.Text;
         }
 
         if (CurrentView == UserViewModel)
