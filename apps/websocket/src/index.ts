@@ -13,7 +13,7 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
 
 const lobbies: Map<string, Set<ServerWebSocket>> = new Map()
 
-export const app = new Hono().basePath("/ws")
+export const hono = new Hono().basePath("/ws")
     .use(logger())
     .use(cors())
     .get("/ws/server/:lobbyid/:hash", zValidator('param', z.object({ lobbyid: z.string().length(8), hash: z.string() })), upgradeWebSocket(async (c) => {
@@ -114,7 +114,7 @@ export const app = new Hono().basePath("/ws")
         zValidator('query', z.object({ ts: z.string().regex(/^\d+$/).transform(Number) })),
         async (c) => {
             const timestamp = c.req.valid('query').ts
-            const timediff = Date.now() - timestamp
+            const timediff = Math.abs(Date.now() - timestamp)
             console.log(`timediff: ${timediff}`)
             if (timediff > 1500) {
                 return c.json({}, 400)
@@ -145,11 +145,11 @@ export const app = new Hono().basePath("/ws")
     })
 
 export const server = Bun.serve({
-    fetch: app.fetch,
+    fetch: hono.fetch,
     port: 3001,
     websocket
 })
 
 console.log("Server is running on port 3001")
 
-export type AppType = typeof app
+export type AppType = typeof hono
