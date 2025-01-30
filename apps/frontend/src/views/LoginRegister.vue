@@ -7,7 +7,7 @@ import MistBackground from '@/components/MistBackground.vue'
 import { baseRegisterSchema } from '@/schemas/RegistrationSchema'
 import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
-import wrapper from '@/utils/wrappers'
+// import wrapper from '@/utils/wrappers'
 
 const isLoginForm = ref(true)
 
@@ -68,7 +68,7 @@ const onLogin = async () => {
   const res = await clientv1.auth.login.$post({ json: loginForm.value })
 
   if (!res.ok) {
-    wrapper(res)
+    //  wrapper(res)
   } else {
     router.push('/')
   }
