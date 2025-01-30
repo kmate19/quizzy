@@ -5,6 +5,7 @@ import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
 import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
+import { toast, type ToastOptions } from 'vue3-toastify'
 
 const asd = () => {
   alert('asd')
@@ -96,7 +97,7 @@ const handleFileChange = (event: Event) => {
 }
 
 const openFileDialog = () => {
-  fileInput.value?.click() // Optional chaining to avoid errors if fileInput.value is null
+  fileInput.value?.click()
 }
 
 const OnLogOut = () => {
@@ -130,35 +131,41 @@ const closePasswordModal = () => {
 
 const handlePasswordChange = async () => {
   if (passwordForm.value.new !== passwordForm.value.confirm) {
-    alert('Jelszavak nem egyeznek!')
+    toast("A jelszavak nem egyeznek", {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+    
     return
   }
 
   await new Promise((resolve) => setTimeout(resolve, 1000))
   closePasswordModal()
 }
+
 </script>
 
 <template>
-  <div class="min-h-screen w-full bg-gradient-to-br from-purple-900 via-black to-green-900 p-8">
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
       <MistBackground />
     </div>
     <div class="relative max-w-7xl mx-auto">
       <NavBar />
-      <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
+      <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8 ">
         <div class="flex flex-wrap items-center gap-8">
           <div class="relative">
             <img
               :src="profileImage || ''"
-              alt="Profile picture"
               class="w-32 h-32 rounded-full object-cover border-4 border-white/30"
             />
             <div
               class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
               @click="openFileDialog"
             >
-              <PencilIcon class="w-5 h-5 text-white" />
+              <PencilIcon class=" w-5 h-5 text-white" />
             </div>
             <input
               type="file"
@@ -204,12 +211,12 @@ const handlePasswordChange = async () => {
           <div class="flex gap-4">
             <button
               @click="openPasswordModal"
-              class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-800 transition-colors"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900"
             >
               Jelszó módosítás
             </button>
             <button
-              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-800 transition-colors"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-red-900"
               @click="OnLogOut"
             >
               Kijelentkezés
@@ -218,18 +225,19 @@ const handlePasswordChange = async () => {
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
+        <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 ">
           <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
             Barátok
             <span class="text-sm font-normal text-white/70">
               {{ user.friends.length }} összesen
             </span>
           </h2>
-          <div class="space-y-4 overflow-y-scroll custom-scrollbar" style="max-height: 400px">
+          <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
             <div
               v-for="friend in user.friends"
               :key="friend.name"
-              class="flex items-center gap-4 p-6 rounded-xl bg-white/5 hover:bg-white/10 transition-colors h-32"
+              class="flex gap-4 p-2 rounded-xl hover:bg-white/20 h-32 text-white ease-in-out
+      bg-white/10 border-white/30 border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300"
             >
               <img
                 :src="friend.pfp"
@@ -257,12 +265,13 @@ const handlePasswordChange = async () => {
               {{ user.quizzes.length }} összesen
             </span>
           </h2>
-          <div class="space-y-4 overflow-y-auto custom-scrollbar" style="max-height: 400px">
+          <div class="space-y-4 overflow-y-auto custom-scrollbar p-6" style="max-height: 400px">
             <div
               @click="asd()"
               v-for="quiz in user.quizzes"
               :key="quiz.name"
-              class="quizzy flex gap-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors h-32"
+              class="quizzy flex gap-4 p-2 rounded-xl hover:bg-white/20 h-32 text-white ease-in-out
+              bg-white/10 border-white/30 border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300"
             >
               <img
                 :src="quiz.quize_img"
@@ -299,7 +308,7 @@ const handlePasswordChange = async () => {
           <div>
             <label class="block text-white mb-2">Jelenlegi jelszó</label>
             <input
-              type="password"
+              type="text"
               v-model="passwordForm.current"
               class="w-full px-4 py-2 rounded-lg bg-white/5 border
                border-white/10 text-white focus:outline-none focus:border-white/30"
@@ -308,7 +317,7 @@ const handlePasswordChange = async () => {
           <div>
             <label class="block text-white mb-2">Új jelszó</label>
             <input
-              type="password"
+              type="text"
               v-model="passwordForm.new"
               class="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30"
             />
@@ -316,27 +325,27 @@ const handlePasswordChange = async () => {
           <div>
             <label class="block text-white mb-2">Új jelszó megerősítése</label>
             <input
-              type="password"
+              type="text"
               v-model="passwordForm.confirm"
               class="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30"
             />
           </div>
           <button
             type="submit"
-            class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
           >
             Jelszó módosítása
           </button>
         </form>
       </div>
     </div>
-  </div>
 </template>
 
 <style>
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+  scroll-behavior: smooth;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -365,4 +374,38 @@ const handlePasswordChange = async () => {
 button {
   cursor: pointer;
 }
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+
 </style>

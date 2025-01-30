@@ -58,8 +58,9 @@ const emit = defineEmits(['save'])
   <div class="relative w-10 h-10">
     <button
       @click="isModalOpen = true"
-      class="w-16 h-10 rounded-full border-2 bg-white hover:bg-gray-500
-      duration-500 border-gray-300 flex items-center justify-center p-3 hover:border-gray-400 transition-colors relative"
+      class="w-16 h-10 rounded-full border-2 bg-white/30 
+      border-gray-300 flex items-center justify-center p-3 hover:border-gray-400 relative text-white
+      transition-all duration-300 ease-in-out cursor-pointer glass-button"
       aria-label="Open category selector"
     >
       <Settings2 class="w-5 h-5 text-grey" absoluteStrokeWidth />
@@ -247,5 +248,13 @@ const emit = defineEmits(['save'])
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.5);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 </style>
