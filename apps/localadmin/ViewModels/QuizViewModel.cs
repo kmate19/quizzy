@@ -10,37 +10,27 @@ using localadmin.Services;
 
 namespace localadmin.ViewModels
 {
-    public class QuizViewModel : INotifyPropertyChanged
+    public class QuizViewModel
     {
-        private readonly NavigationService _navigationService;
-        private readonly SharedStateService _sharedState;
         public ObservableCollection<Quiz> Quizzes { get; set; }
         public ObservableCollection<Quiz> FiltredQuizzes { get; set; }
 
-        public QuizViewModel(NavigationService navigationService, SharedStateService sharedState)
+        private readonly NavigationService navigationService;
+
+        public QuizViewModel(NavigationService navigation)
         {
-            _navigationService = navigationService;
-            _sharedState = sharedState;
-            _sharedState.PropertyChanged += SharedState_PropertyChanged;
+            this.navigationService=navigation;
 
             Quizzes = new ObservableCollection<Quiz>
         {
-            new Quiz(_navigationService) { MadeBy = "Goku", Description = "bbbbbbb" },
-            new Quiz(_navigationService) { MadeBy = "Vegeta", Description = "bbbbbbb" },
-            new Quiz(_navigationService) { MadeBy = "Piccolo", Description = "bbbbbbb" },
-            new Quiz(_navigationService) { MadeBy = "Jiren", Description = "bbbbbbb" },
-            new Quiz(_navigationService) { MadeBy = "Bulma", Description = "bbbbbbb" }
+            new Quiz(navigationService) { MadeBy = "Goku", Description = "bbbbbbb" },
+            new Quiz(navigationService) { MadeBy = "Vegeta", Description = "bbbbbbb" },
+            new Quiz(navigationService) { MadeBy = "Piccolo", Description = "bbbbbbb" },
+            new Quiz(navigationService) { MadeBy = "Jiren", Description = "bbbbbbb" },
+            new Quiz(navigationService) { MadeBy = "Bulma", Description = "bbbbbbb" }
         };
 
             FiltredQuizzes = new ObservableCollection<Quiz>(Quizzes);
-        }
-
-        private void SharedState_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SharedStateService.SearchText))
-            {
-                SearchQuizes(_sharedState.SearchText);
-            }
         }
 
         public void SearchQuizes(string query)

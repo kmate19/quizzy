@@ -61,13 +61,5 @@ namespace localadmin.ViewModels
                 FilteredUsers.Add(user);
             }
         }
-
-        private void OnNavigatedTo(object viewModel, object parameter)
-        {
-            if (viewModel == this && parameter is string username)
-            {
-                SearchUsers(username);
-            }
-        }
     }
 }

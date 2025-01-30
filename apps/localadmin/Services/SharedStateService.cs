@@ -9,14 +9,20 @@ namespace localadmin.Services
 {
     public class SharedStateService : INotifyPropertyChanged
     {
-        private string _searchText;
+        private static readonly SharedStateService _instance = new SharedStateService();
+        public static SharedStateService Instance => _instance;
+
+        private string _searchText = "Search";
         public string SearchText
         {
             get => _searchText;
             set
             {
-                _searchText = value;
-                OnPropertyChanged(nameof(SearchText));
+                if (_searchText != value)
+                {
+                    _searchText = value;
+                    OnPropertyChanged(nameof(SearchText));
+                }
             }
         }
 

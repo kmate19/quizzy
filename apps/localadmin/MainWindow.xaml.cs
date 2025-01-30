@@ -17,7 +17,7 @@ namespace localadmin;
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     public NavigationService NavigationService { get; } = new NavigationService();
-    private readonly SharedStateService _sharedState;
+    public SharedStateService sharedState { get; } = SharedStateService.Instance;
 
     public UserViewModel UserViewModel { get; }
     public ReviewViewModel ReviewViewModel { get; }
@@ -40,9 +40,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         InitializeComponent();
 
+
+        //1db shared state servicet kene hasznalni
         UserViewModel = new UserViewModel(NavigationService);
         ReviewViewModel = new ReviewViewModel(NavigationService);
-        QuizViewModel = new QuizViewModel(NavigationService, _sharedState);
+        QuizViewModel = new QuizViewModel(NavigationService);
 
         NavigationService.ViewModelChanged += OnViewModelChanged;
 
@@ -91,22 +93,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
     {
         var textBox = sender as TextBox;
-        if (textBox != null && textBox.Text == "Search")
-        {
-            _sharedState.SearchText = textBox.Text;
-        }
+        if (textBox == null || textBox.Text == "Search") return;
 
-        if (CurrentView == UserViewModel)
+        sharedState.SearchText = textBox.Text;
+
+        if (CurrentView is UserViewModel userViewModel)
         {
-            UserViewModel.SearchUsers(textBox?.Text ?? string.Empty);
+            userViewModel.SearchUsers(sharedState.SearchText);
         }
-        else if (CurrentView == ReviewViewModel)
+        else if (CurrentView is ReviewViewModel reviewViewModel)
         {
-            ReviewViewModel.SearchReviews(textBox?.Text ?? string.Empty);
+            reviewViewModel.SearchReviews(sharedState.SearchText);
         }
-        else if (CurrentView == QuizViewModel)
+        else if (CurrentView is QuizViewModel quizViewModel)
         {
-            QuizViewModel.SearchQuizes(textBox?.Text ?? string.Empty);
+            quizViewModel.SearchQuizes(sharedState.SearchText);
         }
     }
 

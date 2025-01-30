@@ -91,7 +91,7 @@
                     <Grid>
                         <fa:IconImage Icon="MagnifyingGlass" HorizontalAlignment="Left" Width="50" Height="20" Margin="5" />
                         <TextBox Width="180" Height="35" HorizontalAlignment="Stretch" Margin="35,0,5,0" FontSize="20" Background="Transparent" 
-                      BorderThickness="0" VerticalContentAlignment="Center"  Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      BorderThickness="0" VerticalContentAlignment="Center" Text="{Binding Source={x:Static services:SharedStateService.Instance}, Path=SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       GotFocus="Searchbar_gotFocus" LostFocus="Searchbar_lostFocus" TextChanged="Searchbar_textChanged" Opacity="0.7" />
                     </Grid>
                 </Border>

@@ -5,6 +5,11 @@
     <DataTemplate DataType="{x:Type local:UserViewModel}">
         <Grid>
             <ListView HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="View quizes" Command="{Binding ViewQuizesCommand}"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Border BorderBrush="Black" BorderThickness="0" CornerRadius="3" Margin="0,3" Grid.ColumnSpan="4" Background="White">

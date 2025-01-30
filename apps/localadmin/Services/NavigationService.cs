@@ -13,6 +13,7 @@ namespace localadmin.Services
 
         public void NavigateTo(object viewModel)
         {
+            Debug.WriteLine("navigated to"+viewModel.GetType().Name);
             ViewModelChanged?.Invoke(viewModel);
         }
     }
