@@ -72,9 +72,10 @@ const emit = defineEmits(['save'])
       <div class="bg-white/0 backdrop-blur-3xl rounded-lg w-full max-w-md p-6 relative">
         <button
           @click="isModalOpen = false"
-          class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          class="absolute top-4 right-4 text-gray-500 hover:scale-110 transition-all duration-300 border-4 w-10 h-10 flex justify-center items-center
+           border-red-800 rounded-full bg-red-800"
         >
-          <XIcon class="w-5 h-5 text-red-800" />
+          <XIcon class="w-5 h-5 text-white" />
         </button>
 
         <h2 class="text-xl font-semibold mb-4 text-white">Kategóriák</h2>
@@ -106,7 +107,7 @@ const emit = defineEmits(['save'])
             @click="clearSelectedCategories"
             class="ml-2 p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-full w-11 flex justify-center items-center"
           >
-            <XIcon class="w-5 h-5" />
+            <XIcon class="w-5 h-5 " />
           </button>
         </div>
 
@@ -126,8 +127,8 @@ const emit = defineEmits(['save'])
               class="flex-1 px-3 py-1 rounded-full"
               :class="
                 isSelected(category)
-                  ? 'bg-gray-700 text-white'
-                  : 'bg-white/50 backdrop-blur-md text-white'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-red-600 backdrop-blur-md text-white'
               "
             >
               {{ category }}
@@ -141,8 +142,8 @@ const emit = defineEmits(['save'])
             :class="[
               'w-full py-2 px-4 rounded-full font-bold transition-colors',
               includeName
-                ? 'bg-gray-700 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-500',
+                ? 'bg-green-600 text-white'
+                : 'bg-red-600 text-white hover:bg-gray-500',
             ]"
           >
             Név
@@ -152,8 +153,8 @@ const emit = defineEmits(['save'])
             :class="[
               'w-full py-2 px-4 rounded-full font-bold transition-colors duration-300',
               includeDesc
-                ? 'bg-gray-700 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-500',
+                ? 'bg-green-600 text-white'
+                : 'bg-red-600 text-white hover:bg-gray-500',
             ]"
           >
             Leírás
