@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, uuid, serial, index, varchar } from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, serial, index, varchar, integer } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 import { resourceAccessControlTable } from "./resourceAccessControlSchema";
 import { createInsertSchema } from "drizzle-zod";
@@ -7,6 +7,8 @@ import { z } from "zod";
 
 export const userApiKeys = pgTable("user_api_keys", {
     id: serial().primaryKey(),
+    // increment each time a user creates a new key under their own uuid
+    id_by_user: integer().notNull(),
     user_id: uuid().notNull().references(() => usersTable.id),
     // hashed bcrypt
     key: varchar({ length: 255 }).notNull().unique(),
