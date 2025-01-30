@@ -8,6 +8,7 @@ COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY apps/frontend/ ./apps/frontend/
 COPY apps/api/ ./apps/api/
+COPY apps/websocket/ ./apps/websocket/
 COPY packages/ ./packages/
 RUN pnpm install --frozen-lockfile
 RUN pnpm run --filter frontend build

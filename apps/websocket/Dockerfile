@@ -8,6 +8,7 @@ COPY apps/websocket/package.json ./apps/websocket/
 COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY apps/websocket/src ./apps/websocket/src/
+COPY apps/websocket/tsconfig.build.json ./apps/websocket/
 COPY apps/websocket/tsconfig.json ./apps/websocket/
 COPY packages/ ./packages/
 
