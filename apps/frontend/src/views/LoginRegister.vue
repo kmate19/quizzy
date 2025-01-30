@@ -9,7 +9,6 @@ import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 
-
 const isLoginForm = ref(true)
 
 const passwordRequirements = [
@@ -89,10 +88,11 @@ const onRegistration = async () => {
 }
 
 const onLogin = async () => {
-  const loginRes = await (await clientv1.auth.login.$post({ json: loginForm.value }))
+  const loginRes = await await clientv1.auth.login.$post({ json: loginForm.value })
+  console.log(loginRes.status)
 
   if (loginRes.status === 404) {
-    const res = await loginRes.json() satisfies ApiResponse
+    const res = (await loginRes.json()) satisfies ApiResponse
     toast(res.error.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
@@ -121,38 +121,62 @@ const showPassword = ref(false)
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
-
 </script>
 
 <template>
   <MistBackground />
   <div class="wrapper">
-    <v-card ref="card" class="vcard !p-10 !rounded-2xl text-black
-       !bg-white/10 bg-opacity-50 backdrop-blur-md
-        !min-h-fit !min-w-fit !max-w-fit !max-h-fit" theme="dark">
-      <transition name="fade" enter-active-class="transition ease-out duration-300"
-        leave-active-class="transition ease-in duration-300" mode="out-in">
+    <v-card
+      ref="card"
+      class="vcard !p-10 !rounded-2xl text-black !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly"
+      theme="dark"
+    >
+      <transition
+        name="fade"
+        enter-active-class="transition ease-out duration-300"
+        leave-active-class="transition ease-in duration-300"
+        mode="out-in"
+      >
         <div v-if="isLoginForm">
           <div class="flex justify-evenly flex-row mb-2">
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
           <form @submit.prevent="onLogin">
-            <v-text-field label="Felhasználónév" v-model="loginForm.username_or_email" variant="outlined"
-              density="comfortable">
+            <v-text-field
+              label="Felhasználónév"
+              v-model="loginForm.username_or_email"
+              variant="outlined"
+              density="comfortable"
+              class="!mb-5"
+            >
             </v-text-field>
-            <v-text-field name="pw" label="Jelszó" v-model="loginForm.password" variant="outlined" density="comfortable"
-              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative">
-              <button @click="togglePassword"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-700 focus:outline-none"
-                type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
+            <v-text-field
+              name="pw"
+              label="Jelszó"
+              v-model="loginForm.password"
+              variant="outlined"
+              density="comfortable"
+              :type="showPassword ? 'text' : 'password'"
+              @click:append-inner="togglePassword"
+              class="relative !mb-5"
+            >
+              <button
+                @click="togglePassword"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none"
+                type="button"
+                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              >
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
             </v-text-field>
-            <div class="flex flex-wrap items-center">
-              <v-btn type="submit" class="w-full !mt-5" variant="outlined">Bejelentkezés</v-btn>
-              <br />
-              <v-btn class="w-full !mt-5" @click="flipLogin" variant="outlined">Nincs fiókod? Regisztrálj!</v-btn>
+            <div class="w-full max-w-md space-y-6">
+              <button type="submit" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
+                Bejelentkezés
+              </button>
+              <button type="button" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out" @click="flipLogin">
+                Regisztráció
+              </button>
             </div>
           </form>
         </div>
@@ -172,41 +196,77 @@ const togglePassword = () => {
             </div>
           </div>
           <form @submit.prevent="onRegistration">
-            <v-text-field label="Email" name="email" v-model="regForm.email" required variant="outlined"
-              density="comfortable" :error-messages="regErrors?.email?._errors[0]" class="!mb-5"></v-text-field>
+            <v-text-field
+              label="Email"
+              name="email"
+              v-model="regForm.email"
+              variant="outlined"
+              density="comfortable"
+              :error-messages="regErrors?.email?._errors[0]"
+              class="!mb-5"
+            ></v-text-field>
 
-            <v-text-field label="Felhasználónév" name="username" v-model="regForm.username" required variant="outlined"
-              density="comfortable" :error-messages="regErrors?.username?._errors[0]" class="!mb-5"></v-text-field>
+            <v-text-field
+              label="Felhasználónév"
+              name="username"
+              v-model="regForm.username"
+              variant="outlined"
+              density="comfortable"
+              :error-messages="regErrors?.username?._errors[0]"
+              class="!mb-5"
+            ></v-text-field>
 
-            <v-text-field label="Jelszó" v-model="regForm.password" name="pw" required variant="outlined"
-              density="comfortable" :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword"
-              class="relative !mb-5" :error-messages="regErrors?.password?._errors[0]">
-              <button @click="togglePassword"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-700 focus:outline-none"
-                type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
+            <v-text-field
+              label="Jelszó"
+              v-model="regForm.password"
+              name="pw"
+              variant="outlined"
+              density="comfortable"
+              :type="showPassword ? 'text' : 'password'"
+              @click:append-inner="togglePassword"
+              class="relative !mb-5"
+              :error-messages="regErrors?.password?._errors[0]"
+            >
+              <button
+                @click="togglePassword"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-whitefocus:outline-none hover:text-gray-400"
+                type="button"
+                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              >
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
             </v-text-field>
 
-            <v-text-field label="Jelszó megerősítés" v-model="regForm.confirmPassword"
-              :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="togglePassword" name="pw" required variant="outlined" density="comfortable"
-              :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-5">
+            <v-text-field
+              label="Jelszó megerősítés"
+              v-model="regForm.confirmPassword"
+              :type="showPassword ? 'text' : 'password'"
+              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="togglePassword"
+              name="pw"
+              variant="outlined"
+              density="comfortable"
+              :error-messages="regErrors?.confirmPassword?._errors[0]"
+              class="!mb-5"
+            >
             </v-text-field>
 
-            <div class="flex flex-wrap items-center">
-              <v-btn class="w-full !mt-5" @click="onRegistration" variant="outlined">Regisztráció</v-btn>
-              <br />
-              <v-btn class="w-full !mt-5" @click="flipLogin" variant="outlined">Van már fiókod? Lépj be!</v-btn>
+            <div class="w-full max-w-md space-y-6">
+              <button type="submit" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
+                Regisztráció
+              </button>
+              <button type="button" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out" @click="flipLogin">
+                Bejelentkezés
+              </button>
             </div>
           </form>
         </div>
       </transition>
     </v-card>
-    <v-card class="headers !flex !flex-col !justify-center
-       !items-center !text-center !bg-opacity-50
-        !backdrop-blur-md !rounded-2xl !bg-white/10">
+    <v-card
+      class="headers !flex !flex-col !justify-center !items-center !text-center !bg-opacity-50 !backdrop-blur-md !rounded-2xl !bg-white/10"
+    >
       <h1 class="title text-9xl text-white">Quizzy</h1>
       <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
     </v-card>
@@ -232,10 +292,7 @@ const togglePassword = () => {
 }
 
 .vcard {
-  height: 50%;
   align-self: center;
-  transition: height 0.3s ease, width 0.3s ease;
-  overflow: hidden;
 }
 
 .title {
@@ -254,10 +311,17 @@ v-text-field {
 
 @media only screen and (max-width: 1440px) {
   .wrapper {
-    padding: 50px;
+    padding: 20px;
     flex-direction: column-reverse;
     justify-content: flex-end;
-    gap: 50px;
+    gap: 10px;
+  }
+
+  .vcard{
+    display: flex;
+    flex-direction: column;
+    -ms-flex-align: center;
+    justify-content: space-evenly;
   }
 
   .headers {
@@ -292,10 +356,43 @@ v-text-field {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+  transition: 0.3s ease-out;
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s ease-out;
+  transition: opacity 0.3s ease-in;
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 </style>

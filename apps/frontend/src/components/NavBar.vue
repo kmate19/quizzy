@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { ref } from 'vue'
-import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 
 const route = useRoute()
@@ -15,10 +14,6 @@ router.afterEach(() => {
   isMobileMenuOpen.value = false
 })
 
-const OnLogOut = () => {
-  clientv1.auth.logout.$get()
-  router.push('/login')
-}
 const handlePath = () => {
   const path =
     route.fullPath.split('/')[1].charAt(0).toUpperCase() + route.fullPath.split('/')[1].slice(1)
@@ -28,7 +23,6 @@ const handlePath = () => {
     return path
   }
 }
-const path = route.fullPath.split('/')[1] == 'profil'
 </script>
 
 <template>
@@ -46,6 +40,12 @@ const path = route.fullPath.split('/')[1] == 'profil'
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             <a
+
+              @click="router.push('/')"
+              class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
+              >Kezdőlap</a
+            >
+            <a
               href="#"
               class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
               >Közös játék</a
@@ -57,17 +57,10 @@ const path = route.fullPath.split('/')[1] == 'profil'
             >
             <a
 
-              @click="router.push(path?'/':'/profil')"
+              @click="router.push('/profil')"
               class="text-white hover:bg-white/50 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
-              >{{ path? 'Kezdőlap':'Profil' }}</a
+              >Profil</a
             >
-            <button
-              v-show="!path"
-              @click="OnLogOut"
-              class="text-white bg-red-500 hover:bg-red-800 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Kijelentkezés
-            </button>
           </div>
         </div>
         <div class="md:hidden">
@@ -102,6 +95,12 @@ const path = route.fullPath.split('/')[1] == 'profil'
     >
       <div v-if="isMobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          
+          <a
+            @click="router.push('/')"
+            class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+            >Kezdőlap</a
+          >
           <a
             class="text-white hover:bg-gray-700  block px-3 py-2 rounded-md text-base font-medium"
             >Közös játék</a
@@ -111,17 +110,13 @@ const path = route.fullPath.split('/')[1] == 'profil'
             >Játék készítés</a
           >
           <a
-            @click="router.push(path?'/':'/profil')"
+            @click="router.push('/profil')"
             class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-            >{{path?'Kezdőlap':'Profil'}}</a
+            >Profil</a
           >
-          <a
-            v-show="!path"
-            @click="OnLogOut"
-            class="text-white bg-red-500 hover:bg-red-800 block w-full text-left px-3 py-2 rounded-md text-base font-medium"
-          >
-            Kijelentkezés
-        </a>
+          
+         
+          
         </div>
       </div>
     </transition>

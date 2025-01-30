@@ -16,13 +16,13 @@ const isDescIncluded = ref(false)
 const mockMockCards = ref<Card[]>([
   {
     name: 'Project Phoenix',
-    desc: 'Develop a new mobile application for task management and collaboration.',
+    desc: 'Develop a new mobile application for task management and collaboration. Json',
     category: 'Action',
     created_by: 'Alice Johnson',
   },
   {
     name: 'Website Redesign',
-    desc: 'Revamp the company website for a modern and user-friendly experience.',
+    desc: 'Revamp the company website for a modern and user-friendly experience. Json',
     category: 'Adventure',
     created_by: 'Bob Williams',
   },
@@ -111,7 +111,7 @@ const search = (searchText: string) => {
   if (!searchText) {
     mockCards.value = [...mockMockCards.value]
   } else {
-    const searchResults = fuzzySearch(searchText, mockMockCards.value, {
+    const searchResults = fuzzySearch(searchText, mockCards.value, {
   keys: [
     isNameIncluded.value ? 'name' : undefined,
     isDescIncluded.value ? 'desc' : undefined
@@ -137,7 +137,7 @@ onMounted(() => {
         <div
           :class="[
         'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
-        isExpanded ? 'w-[75%] justify-center cursor-pointer hover:bg-gray-500' : 'w-14 cursor-pointer hover:bg-gray-500',
+        isExpanded ? 'w-[75%] justify-center cursor-pointer' : 'w-14 cursor-pointer hover:scale-110',
           ]"
         >
           <div class="flex items-center px-4 py-2" @click="toggleExpand">
@@ -156,7 +156,7 @@ onMounted(() => {
         <CategoriesBtn @save="handleSave"/>
       </div>
       <div
-        class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 max-h-[calc(100vh-200px)] min-h-[calc(100vh-200px)]"
+        class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 max-h-[calc(100vh-200px)]"
       >
         <template v-if="mockCards.length > 0">
           <div
