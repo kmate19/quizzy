@@ -8,41 +8,43 @@ namespace localadmin.ViewModels
 {
     public class UserViewModel
     {
-        public NavigationService _navigationService { get; set; }
+        private readonly NavigationService NavigationService;
+        private readonly SharedStateService SharedState;
         public ObservableCollection<User> Users { get; set; } = new ObservableCollection<User>();
         public ObservableCollection<User> FilteredUsers { get; private set; }
 
-        public UserViewModel(NavigationService navigationService)
+        public UserViewModel(NavigationService Navigation, SharedStateService State)
         {
-            _navigationService = navigationService;
+            NavigationService = Navigation;
+            SharedState = State;
 
             Users = new ObservableCollection<User>
             {
-                new User()
+                new User(NavigationService, SharedState)
                 {
                     Username = "Goku",
                     Email = "alice@example.com",
                     Role = "Administrator"
                 },
-                new User()
+                new User(NavigationService, SharedState)
                 {
                     Username = "Vegeta",
                     Email = "bob@example.com",
                     Role = "Editor"
                 },
-                new User()
+                new User(NavigationService, SharedState)
                 {
                     Username = "Piccowo",
                     Email = "charlie@example.com",
                     Role = "Viewer"
                 },
-                new User()
+                new User(NavigationService, SharedState)
                 {
                     Username = "Gohan",
                     Email = "diana@example.com",
                     Role = "Editor"
                 },
-                new User()
+                new User(NavigationService, SharedState)
                 {
                     Username = "Edward Elric",
                     Email = "edward@example.com",

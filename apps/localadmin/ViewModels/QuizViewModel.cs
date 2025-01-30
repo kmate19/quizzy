@@ -12,22 +12,26 @@ namespace localadmin.ViewModels
 {
     public class QuizViewModel
     {
+        private readonly NavigationService NavigationService;
+        private readonly SharedStateService SharedState;
+
         public ObservableCollection<Quiz> Quizzes { get; set; }
         public ObservableCollection<Quiz> FiltredQuizzes { get; set; }
 
-        private readonly NavigationService navigationService;
 
-        public QuizViewModel(NavigationService navigation)
+        public QuizViewModel(NavigationService Navigation, SharedStateService State)
         {
-            this.navigationService=navigation;
+            NavigationService=Navigation;
+            SharedState = State;
+
 
             Quizzes = new ObservableCollection<Quiz>
         {
-            new Quiz(navigationService) { MadeBy = "Goku", Description = "bbbbbbb" },
-            new Quiz(navigationService) { MadeBy = "Vegeta", Description = "bbbbbbb" },
-            new Quiz(navigationService) { MadeBy = "Piccolo", Description = "bbbbbbb" },
-            new Quiz(navigationService) { MadeBy = "Jiren", Description = "bbbbbbb" },
-            new Quiz(navigationService) { MadeBy = "Bulma", Description = "bbbbbbb" }
+            new Quiz(NavigationService, SharedState) { MadeBy = "Goku", Description = "bbbbbbb" },
+            new Quiz(NavigationService, SharedState) { MadeBy = "Vegeta", Description = "bbbbbbb" },
+            new Quiz(NavigationService, SharedState) { MadeBy = "Piccolo", Description = "bbbbbbb" },
+            new Quiz(NavigationService, SharedState) { MadeBy = "Jiren", Description = "bbbbbbb" },
+            new Quiz(NavigationService, SharedState) { MadeBy = "Bulma", Description = "bbbbbbb" }
         };
 
             FiltredQuizzes = new ObservableCollection<Quiz>(Quizzes);

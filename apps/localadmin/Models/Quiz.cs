@@ -17,25 +17,25 @@ namespace localadmin.Models
         public string MadeBy { get; set; }
         public string Description { get; set; }
 
-        private readonly NavigationService navigationService;
+        private readonly NavigationService NavigationService;
 
-        private readonly SharedStateService sharedState;
+        private readonly SharedStateService SharedState;
         public ICommand ViewUserCommand { get; }
 
-        public Quiz(NavigationService navigation)
+        public Quiz(NavigationService navigation, SharedStateService sharedState)
         {
-            navigationService= navigation;
-            sharedState = new SharedStateService();
+            NavigationService= navigation;
+            SharedState = sharedState;
             ViewUserCommand = new RelayCommand(ViewUser);
         }
         
         private void ViewUser(object parameter)
         {
             Debug.WriteLine("viewing user profile: " + MadeBy);
-            UserViewModel userView= new UserViewModel(navigationService);
-            sharedState.SearchText = MadeBy;
-            navigationService?.NavigateTo(userView);
-            userView.SearchUsers(sharedState.SearchText);
+            UserViewModel userView= new UserViewModel(NavigationService, SharedState);
+            SharedState.SearchText = MadeBy;
+            NavigationService?.NavigateTo(userView);
+            userView.SearchUsers(SharedState.SearchText);
         }
     }
 }

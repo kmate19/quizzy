@@ -9,7 +9,7 @@ namespace localadmin.Services
 {
     public class SharedStateService : INotifyPropertyChanged
     {
-        private static readonly SharedStateService _instance = new SharedStateService();
+        private static readonly SharedStateService _instance = new();
         public static SharedStateService Instance => _instance;
 
         private string _searchText = "Search";

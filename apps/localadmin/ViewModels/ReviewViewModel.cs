@@ -8,13 +8,15 @@ namespace localadmin.ViewModels
 {
     public class ReviewViewModel
     {
-        public NavigationService _navigationService { get; set; }
+        private readonly NavigationService NavigationService;
+        private readonly SharedStateService SharedState;
         public ObservableCollection<Review> Reviews {  get; set; }
         public ObservableCollection<Review> FilteredReviews { get; private set; }
 
-        public ReviewViewModel(NavigationService navigationService)
+        public ReviewViewModel(NavigationService Navigation, SharedStateService State)
         {
-            _navigationService = navigationService;
+            NavigationService = Navigation;
+            SharedState = State;
 
             Reviews = new ObservableCollection<Review>
             {

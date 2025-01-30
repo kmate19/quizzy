@@ -19,20 +19,16 @@ namespace localadmin.Models
         private readonly NavigationService navigationService;
 
         private readonly SharedStateService sharedState;
-        public ICommand ViewQuizCommand { get; }
+        //public ICommand ViewQuizCommand { get; }
 
         public User(NavigationService navigationService, SharedStateService sharedState)
         {
             this.navigationService = navigationService;
             this.sharedState = sharedState;
-            ViewQuizCommand=new RelayCommand(ViewQuiz);
+            //ViewQuizCommand=new RelayCommand(ViewQuiz);
         }
 
-        public User()
-        {
-
-        }
-
+        /*
         private void ViewQuiz(object parameter)
         {
             QuizViewModel quizViewModel = new QuizViewModel(navigationService);
@@ -40,5 +36,6 @@ namespace localadmin.Models
             navigationService.NavigateTo(quizViewModel);
             quizViewModel.SearchQuizes(Username);
         }
+        */
     }
 }
