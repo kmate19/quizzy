@@ -1,10 +1,9 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema";
-import { usersTable } from "@/db/schemas/usersSchema";
 import checkJwt from "@/middlewares/checkJwt";
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 
 const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("json", postApiKeySchema), async (c) => {
@@ -13,7 +12,7 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
     // PERF: probably should be in a worker
     const key = generateApiKey();
 
-    const keys = await db.query.userApiKeys.findMany({ where: eq(usersTable.id, c.get("accessTokenPayload").userId) });
+    const keys = await db.query.userApiKeys.findMany({ where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId) });
 
     if (keys.length >= GLOBALS.MAX_ACTIVE_API_KEYS) {
         const res = {
@@ -26,7 +25,9 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("
         return c.json(res, 403);
     }
 
-    await db.insert(userApiKeys).values({ ...apiKeyData, key, user_id: c.get("accessTokenPayload").userId });
+    const [id_by_user] = await db.select({ maxId: sql<number>`count(*)` }).from(userApiKeys).where(eq(userApiKeys.user_id, c.get("accessTokenPayload").userId));
+
+    await db.insert(userApiKeys).values({ ...apiKeyData, id_by_user: id_by_user.maxId, key, user_id: c.get("accessTokenPayload").userId });
 
     const res = {
         message: "API key created, you will only see the full key once, so save it",
