@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import * as zod from 'zod'
 import router from '@/router'
 import { clientv1 } from '@/lib/apiClient'
@@ -10,6 +10,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 
 const isLoginForm = ref(true)
+const cardHeight = ref(0);
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -18,6 +19,16 @@ const passwordRequirements = [
   '• Legalább egy szám',
   '• Jelszavak egyezése',
 ]
+
+const showPasswordRequirements = () => {
+  toast(passwordRequirements.join('\n'), {
+    autoClose: 5000,
+    position: toast.POSITION.TOP_CENTER,
+    type: 'info',
+    transition: 'zoom',
+    pauseOnHover: false,
+  });
+};
 
 const flipLogin = () => {
   isLoginForm.value = !isLoginForm.value
@@ -121,23 +132,41 @@ const showPassword = ref(false)
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
+
+const updateCardHeight = () => {
+  nextTick(() => {
+    const content = document.querySelector('.form-content') as HTMLDivElement | null;
+    if (content) {
+      cardHeight.value = content.offsetHeight;
+    }
+  });
+};
+
+onMounted(() => {
+  updateCardHeight();
+});
+
 </script>
 
 <template>
   <MistBackground />
   <div class="wrapper">
-    <v-card
-      ref="card"
-      class="vcard !p-10 !rounded-2xl text-black !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly"
-      theme="dark"
+    <div
+      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
+       backdrop-blur-md transition-all duration-1000 !hover:bg-red-950
+        flex flex-col
+        justify-evenly relative overflow-hidden text-white"
+      :style="{ height: `${cardHeight+100}px` }"
     >
       <transition
         name="fade"
         enter-active-class="transition ease-out duration-300"
         leave-active-class="transition ease-in duration-300"
         mode="out-in"
+        @enter="updateCardHeight"
+        @leave="updateCardHeight"
       >
-        <div v-if="isLoginForm">
+        <div v-if="isLoginForm" class="form-content" key="login">
           <div class="flex justify-evenly flex-row mb-2">
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
@@ -180,19 +209,11 @@ const togglePassword = () => {
             </div>
           </form>
         </div>
-        <div v-else>
+        <div v-else class="form-content" key="register">
           <div class="flex justify-evenly flex-row mb-2">
             <div class="flex items-center">
               <span class="font-weight-black text-3xl">Regisztráció</span>
-              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="
-                toast(passwordRequirements.join('\n'), {
-                  autoClose: 5000,
-                  position: toast.POSITION.TOP_CENTER,
-                  type: 'info',
-                  transition: 'zoom',
-                  pauseOnHover: false,
-                } as ToastOptions)
-                " />
+              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
             </div>
           </div>
           <form @submit.prevent="onRegistration">
@@ -263,7 +284,7 @@ const togglePassword = () => {
           </form>
         </div>
       </transition>
-    </v-card>
+    </div>
     <v-card
       class="headers !flex !flex-col !justify-center !items-center !text-center !bg-opacity-50 !backdrop-blur-md !rounded-2xl !bg-white/10"
     >
@@ -293,6 +314,11 @@ const togglePassword = () => {
 
 .vcard {
   align-self: center;
+  transition: height 0.3s ease-in-out;
+}
+
+.form-content {
+  width: 100%;
 }
 
 .title {
@@ -317,7 +343,7 @@ v-text-field {
     gap: 10px;
   }
 
-  .vcard{
+  .vcard {
     display: flex;
     flex-direction: column;
     -ms-flex-align: center;
@@ -356,12 +382,18 @@ v-text-field {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transition: 0.3s ease-out;
+  transform: translateY(20px);
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease-in;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .glass-button {
