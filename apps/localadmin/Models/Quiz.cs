@@ -14,13 +14,14 @@ namespace localadmin.Models
 {
     public class Quiz
     {
-        public string MadeBy { get; set; }
-        public string Description { get; set; }
-
         private readonly NavigationService NavigationService;
 
         private readonly SharedStateService SharedState;
         public ICommand ViewUserCommand { get; }
+
+        public string MadeBy { get; set; }
+        public string Description { get; set; }
+
 
         public Quiz(NavigationService navigation, SharedStateService sharedState)
         {

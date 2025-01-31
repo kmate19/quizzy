@@ -3,50 +3,48 @@
                     xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
                     xmlns:local="clr-namespace:localadmin.ViewModels">
     <DataTemplate DataType="{x:Type local:UserViewModel}">
-        <Grid>
-            <ListView HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent">
-                <ListView.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="View quizes" Command="{Binding ViewQuizesCommand}"/>
-                    </ContextMenu>
-                </ListView.ContextMenu>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderBrush="Black" BorderThickness="0" CornerRadius="3" Margin="0,3" Grid.ColumnSpan="4" Background="White">
-                            <Grid Background="White" Margin="0,1">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="220" />
-                                    <ColumnDefinition Width="200" />
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="60" />
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Vertical" Margin="50,5">
-                                    <TextBlock Text="Name" Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Username}" FontSize="20" />
-                                </StackPanel>
-                                <StackPanel Orientation="Vertical" Grid.Column="1">
-                                    <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Email}" FontSize="20" />
-                                </StackPanel>
-                                <StackPanel Orientation="Vertical" Grid.Column="2">
-                                    <TextBlock Text="Role" Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Role}" FontSize="20" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Grid.Column="3">
-                                    <Button Content="Modify" Style="{StaticResource GridButtons}" />
-                                    <Button Content="Delete" Style="{StaticResource GridButtons}" />
-                                </StackPanel>
-                            </Grid>
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="5" ShadowDepth="5" />
-                            </Border.Effect>
-                        </Border>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </Grid>
+        <ItemsControl HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="Black" BorderThickness="0" CornerRadius="3" Margin="0,3" Grid.ColumnSpan="4" Background="White">
+                        <Border.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="View quizes" Command="{Binding ViewQuizCommand}"/>
+                            </ContextMenu>
+                        </Border.ContextMenu>
+                        <Grid Background="White" Margin="0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="220" />
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="60" />
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Vertical" Margin="50,5">
+                                <TextBlock Text="Name" Foreground="#33B6EF" FontSize="20" />
+                                <TextBlock Text="{Binding Username}" FontSize="20" />
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="1">
+                                <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
+                                <TextBlock Text="{Binding Email}" FontSize="20" />
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="2">
+                                <TextBlock Text="Role" Foreground="#33B6EF" FontSize="20" />
+                                <TextBlock Text="{Binding Role}" FontSize="20" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Grid.Column="3">
+                                <Button Content="Modify" Style="{StaticResource GridButtons}" />
+                                <Button Content="Delete" Style="{StaticResource GridButtons}" />
+                            </StackPanel>
+                        </Grid>
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="5" ShadowDepth="5" />
+                        </Border.Effect>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </DataTemplate>
 </ResourceDictionary>

@@ -77,7 +77,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void Searchbar_lostFocus(object sender, RoutedEventArgs e)
     {
-        if (sender is TextBox textBox && string.IsNullOrWhiteSpace(textBox.Text))
+        if (sender is TextBox textBox)
         {
             SharedState.SearchText = "Search";
         }
@@ -86,17 +86,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is not TextBox textBox) return;
-
-        /*
-        if (string.IsNullOrWhiteSpace(SharedState.SearchText))
-        {
-            UserViewModel.SearchUsers("");
-            ReviewViewModel.SearchReviews("");
-            QuizViewModel.SearchQuizes("");
-            return;
-        }
-        */
-        if (string.IsNullOrWhiteSpace(textBox.Text) || textBox.Text == "Search") return;
 
         switch (CurrentView)
         {
@@ -115,18 +104,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void UsersButton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(UserViewModel);
-        SharedState.SearchText = "";
+        QuizViewModel.SearchQuizes("");
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(QuizViewModel);
-        SharedState.SearchText = "";
+        QuizViewModel.SearchQuizes("");
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(ReviewViewModel);
-        SharedState.SearchText = "";
+        QuizViewModel.SearchQuizes("");
     }
 }

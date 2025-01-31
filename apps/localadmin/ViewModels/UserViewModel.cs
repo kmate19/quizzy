@@ -46,7 +46,7 @@ namespace localadmin.ViewModels
                 },
                 new User(NavigationService, SharedState)
                 {
-                    Username = "Edward Elric",
+                    Username = "Bulma",
                     Email = "edward@example.com",
                     Role = "Viewer"
                 }

@@ -13,25 +13,23 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border BorderBrush="Black" BorderThickness="2" CornerRadius="10" Margin="10" Background="White" Width="200" Height="250">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="10">
-                                <Image Source="../icon.ico" Width="40" Height="40" Margin="0,0,0,10" ClipToBounds="True"/>
-                                <TextBlock Text="{Binding MadeBy}" FontSize="16" FontWeight="Bold" TextAlignment="Center" />
-                                <TextBlock Text="2025.12.15" FontSize="10" Foreground="Gray" TextAlignment="Center" Margin="0,5,0,0" />
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
-                                    <TextBlock Text="{Binding Stars}" FontSize="20" Foreground="Gold"></TextBlock>
-                                </StackPanel>
-
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="100" Margin="0,5,0,0">
-                                    <TextBlock Text="{Binding ReviewText}" FontSize="14" TextWrapping="Wrap" Foreground="Black" />
-                                </ScrollViewer>
+                        <Border.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="View User" Command="{Binding ViewUserCommand}"/>
+                            </ContextMenu>
+                        </Border.ContextMenu>
+                        <StackPanel HorizontalAlignment="Center" Margin="10">
+                            <Image Source="../icon.ico" Width="40" Height="40" Margin="0,0,0,10" ClipToBounds="True"/>
+                            <TextBlock Text="{Binding MadeBy}" FontSize="16" FontWeight="Bold" TextAlignment="Center" />
+                            <TextBlock Text="2025.12.15" FontSize="10" Foreground="Gray" TextAlignment="Center" Margin="0,5,0,0" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+                                <TextBlock Text="{Binding Stars}" FontSize="20" Foreground="Gold"></TextBlock>
                             </StackPanel>
-                        </Grid>
+
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="100" Margin="0,5,0,0">
+                                <TextBlock Text="{Binding ReviewText}" FontSize="14" TextWrapping="Wrap" Foreground="Black" />
+                            </ScrollViewer>
+                        </StackPanel>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

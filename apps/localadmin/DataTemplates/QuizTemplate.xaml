@@ -18,6 +18,7 @@
                                 <MenuItem Header="View user" Command="{Binding ViewUserCommand}" />
                             </ContextMenu>
                         </Border.ContextMenu>
+                        
                         <StackPanel Margin="10">
                             <Image Source="../icon.ico" Height="100" Stretch="Fill" Margin="0,0,0,10"/>
                             <TextBlock Text="{Binding MadeBy}" FontSize="14" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0"/>
