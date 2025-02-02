@@ -6,7 +6,9 @@ import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
 import type { Card } from '../utils/search'
 import { fuzzySearch } from '@/utils/search'
-
+import { useCounterStore } from '@/stores/counter'
+const store = useCounterStore()
+const mockMockCards = store.returnMockMockCards()
 const isVisible = ref(false)
 const cards = ref<HTMLDivElement[]>()
 const isExpanded = ref(false)
@@ -15,6 +17,7 @@ const isNameIncluded = ref(true)
 const isDescIncluded = ref(false)
 const cardColors = ref<string[]>([]);
 const bgColors = ['bg-red-800', 'bg-blue-800', 'bg-yellow-600', 'bg-green-800']
+
 
 const getRandomColor = () => {
   const color = bgColors[Math.floor(Math.random() * bgColors.length)]
@@ -29,50 +32,8 @@ const getCardColor = (index: number) => {
   return cardColors.value[index];
 };
 
-const mockMockCards = ref<Card[]>([
-  {
-    name: 'Project Phoenix',
-    desc: 'Develop a new mobile application for task management and collaboration. Json',
-    category: 'Action',
-    created_by: 'Alice Johnson',
-  },
-  {
-    name: 'Website Redesign',
-    desc: 'Revamp the company website for a modern and user-friendly experience. Json',
-    category: 'Adventure',
-    created_by: 'Bob Williams',
-  },
-  {
-    name: 'Marketing Campaign - Summer Sale',
-    desc: 'Plan and execute a summer sale marketing campaign across social media and email.',
-    category: 'Casual',
-    created_by: 'Charlie Davis',
-  },
-  {
-    name: 'Database Optimization',
-    desc: 'Optimize the database performance to improve application speed and efficiency.',
-    category: 'Simulation',
-    created_by: 'Diana Rodriguez',
-  },
-  {
-    name: 'User Onboarding Flow Improvement',
-    desc: 'Analyze and improve the user onboarding flow to increase user engagement.',
-    category: 'Educational',
-    created_by: 'Ethan Martinez',
-  },
-  {
-    name: 'Security Audit',
-    desc: 'Conduct a comprehensive security audit of the system to identify and fix vulnerabilities.',
-    category: 'Trivia',
-    created_by: 'Fiona Green',
-  },
-  {
-    name: 'Content Creation - Blog Posts',
-    desc: 'Create a series of blog posts on industry trends and best practices.',
-    category: 'Horror',
-    created_by: 'George Wilson',
-  },
-])
+
+const filteredCards = ref<Card[]>([...mockMockCards.value])
 
 type SavePayload = {
   categories: string[]
@@ -109,42 +70,41 @@ const handleSave = (payload: SavePayload) => {
   isNameIncluded.value = payload.includeName;
   isDescIncluded.value = payload.includeDesc;
   filterCards(categories);
+  search(searchText.value); 
 }
 
 const filterCards = (categories: string[]) => {
   if (categories.length === 0) {
-    mockCards.value = [...mockMockCards.value]
+    filteredCards.value = [...mockMockCards.value]; 
   } else {
-    mockCards.value = [...mockMockCards.value]
-    mockCards.value = mockCards.value.filter((card) => categories.includes(card.category))
+    filteredCards.value = mockMockCards.value.filter((card) => categories.includes(card.category)); 
   }
-  search(searchText.value)
+  updateDisplayedCards(); 
 }
 
-const search = (searchText: string) => {
+const search = (searchText: string) => {;
   if (!searchText) {
-    mockCards.value = [...mockMockCards.value]
+    mockCards.value = [...filteredCards.value]; 
   } else {
-    mockCards.value = [...mockMockCards.value]
-    const searchResults = fuzzySearch(searchText, mockCards.value, {
+    const searchResults = fuzzySearch(searchText, filteredCards.value, { 
       keys: [
         isNameIncluded.value ? 'name' : undefined,
         isDescIncluded.value ? 'desc' : undefined,
       ].filter((key): key is keyof Card => key !== undefined),
       threshold: 0.5,
-    })
-    console.log(searchResults)
-    mockCards.value = searchResults
-    console.log(mockCards.value)
+    });
+    mockCards.value = searchResults; 
   }
+}
+
+const updateDisplayedCards = () => {
+  search(searchText.value);
 }
 
 
 onMounted(() => {
   checkVisibility();
   cardColors.value = mockCards.value.map(() => getRandomColor());
-  mockCards.value = mockCards.value.map(card => ({ ...card, highlightedParts: { name: card.name, desc: card.desc } }));
-  console.log("Card Colors:", cardColors.value);
 });
 </script>
 
