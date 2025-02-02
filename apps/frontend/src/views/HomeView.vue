@@ -4,7 +4,7 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
-import type { Card } from '@/utils/search'
+import type  {Card}  from '../utils/search'
 import { fuzzySearch } from '@/utils/search'
 const isVisible = ref(false)
 const cards = ref<HTMLDivElement[]>()
@@ -96,37 +96,41 @@ const checkVisibility = () => {
 }
 
 const handleSave = (payload: SavePayload) => {
-  console.log(payload.categories)
-  const categories = payload.categories
-  isNameIncluded.value = payload.includeName
-  isDescIncluded.value = payload.includeDesc
-  filterCards(categories)
+  console.log("Save Payload:", payload);
+  const categories = payload.categories;
+  isNameIncluded.value = payload.includeName;
+  isDescIncluded.value = payload.includeDesc;
+  filterCards(categories);
 }
 
 const filterCards = (categories: string[]) => {
   if (categories.length === 0) {
-    mockCards.value = [...mockMockCards.value]
+    mockCards.value = [...mockMockCards.value];
   } else {
-    mockCards.value = [...mockMockCards.value]
-    mockCards.value = mockCards.value.filter((card) => categories.includes(card.category))
+    mockCards.value = [...mockMockCards.value];
+    mockCards.value = mockCards.value.filter((card) => categories.includes(card.category));
   }
-  search(searchText.value)
+  console.log("Filtered mockCards:", mockCards.value);
+  search(searchText.value);
 }
 
 const search = (searchText: string) => {
+  console.log("Search Text:", searchText);
   if (!searchText) {
-    mockCards.value = [...mockMockCards.value]
+    mockCards.value = [...mockMockCards.value];
   } else {
+    mockCards.value = [...mockMockCards.value];
     const searchResults = fuzzySearch(searchText, mockCards.value, {
       keys: [
         isNameIncluded.value ? 'name' : undefined,
         isDescIncluded.value ? 'desc' : undefined,
       ].filter((key): key is keyof Card => key !== undefined),
       threshold: 0.5,
-    })
-    console.log(searchResults)
-    mockCards.value = searchResults
+    });
+    console.log("Search Results:", searchResults);
+    mockCards.value = searchResults;
   }
+  console.log("Updated mockCards:", mockCards.value);
 }
 
 const getCardColor = (index: number) => {
@@ -137,8 +141,9 @@ const getCardColor = (index: number) => {
 };
 
 onMounted(() => {
-  checkVisibility()
+  checkVisibility();
   cardColors.value = mockCards.value.map(() => getRandomColor());
+  console.log("Card Colors:", cardColors.value);
 });
 </script>
 
