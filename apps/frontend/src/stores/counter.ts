@@ -12,7 +12,7 @@ const mockMockCards = ref<Card[]>([
   {
     name: 'Website Redesign',
     desc: 'Revamp the company website for a modern and user-friendly experience. Json',
-    category: 'Adventure',
+    category: 'vaddiszno',
     created_by: 'Bob Williams',
   },
   {
