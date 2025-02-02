@@ -99,7 +99,7 @@ export function fuzzySearch(
   }
 
   const {
-    threshold = 0.2, // Reduced threshold for word-based search
+    threshold = 0.2, //sensitivity
     caseSensitive = false,
     trimWhitespace = true,
     keys,
@@ -133,7 +133,6 @@ export function fuzzySearch(
 
     let bestScore = 0
     for (const itemString of itemStrings) {
-      // Use word-based score calculation here
       const score = calculateWordBasedScore(normalizedQuery, itemString)
       bestScore = Math.max(bestScore, score)
     }
