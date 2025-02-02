@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
+import { useCounterStore } from '@/stores/counter'
 
+
+const store = useCounterStore()
+const categories = [...new Set(store.returnMockMockCards().value.map((card) => card.category))]
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedCategoriesData = ref<string[]>([])
 const includeDesc = ref(false)
 const includeName = ref(true)
-
-const categories = [
-  'Action',
-  'Adventure',
-  'Casual',
-  'Simulation',
-  'Educational',
-  'Trivia',
-  'Horror',
-]
 
 const selectedCategories = computed(() => selectedCategoriesData.value)
 
