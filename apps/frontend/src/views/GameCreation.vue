@@ -29,19 +29,10 @@ const questionImageInput = ref<HTMLInputElement | null>(null)
 const questionImagePreview = ref<string>('')
 const question = ref<string>('')
 const questionType = ref<'Igaz/Hamis' | 'Normál'>('Normál')
-const answers = ref<string[]>(['', '', '', ''])
+const answers = ref<string[]>(questionType.value === 'Igaz/Hamis' ? ['', ''] : ['', '', '', ''])
 const questionAnswerIndex = ref<number>(0)
 
 const createdQuestions = ref<Question[]>([])
-
-
-
-const fullQuiz = computed((): Quiz => ({
-  image: gameImagePreview.value,
-  title: gameTitle.value,
-  category: gameCategory.value,
-  questions: createdQuestions.value,
-}))
 
 const handleGameImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
@@ -116,7 +107,19 @@ const handleQuestionModify = (index: number) => {
   handleQuestionRemove(index)
 }
 
-const handleQuizyUpload = async() =>{
+const fullQuiz = computed(
+  (): Quiz => ({
+    image: gameImagePreview.value,
+    title: gameTitle.value,
+    category: gameCategory.value,
+    questions: createdQuestions.value,
+  }),
+)
+
+const handleQuizyUpload = async () => {
+  console.log(gameImagePreview.value + ' kep')
+  console.log(gameTitle.value + ' title')
+  console.log(gameCategory.value + ' category')
   console.log(fullQuiz.value)
 }
 </script>
@@ -186,13 +189,13 @@ const handleQuizyUpload = async() =>{
           />
         </div>
         <v-btn
-            block
-            color="success"
-            class="glass-button bg-white/10 backdrop-blur border border-white/20 mt-2"
-            @click="handleQuizyUpload"
-          >
-           Quiz feltöltése <Check class=""/>
-          </v-btn>
+          block
+          color="success"
+          class="glass-button bg-white/10 backdrop-blur border border-white/20 mt-2"
+          @click="handleQuizyUpload"
+        >
+          Quiz feltöltése <Check class="" />
+        </v-btn>
       </v-col>
       <!--Question-->
       <v-col
@@ -242,7 +245,6 @@ const handleQuizyUpload = async() =>{
             class="mb-2 glass-input"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
-
           <v-select
             v-model="questionType"
             :items="['Igaz/Hamis', 'Normál']"
@@ -250,18 +252,32 @@ const handleQuizyUpload = async() =>{
             variant="outlined"
             class="mb-2 glass-input"
             bg-color="rgba(255, 255, 255, 0.1)"
+            item-color="white"
           />
 
-          <div class="grid grid-cols-2 gap-2 mb-2">
-            <v-text-field
-              v-for="(answer, index) in answers"
-              :key="index"
-              v-model="answers[index]"
-              :label="`Válasz ${index + 1}`"
-              variant="outlined"
-              class="glass-input"
-              bg-color="rgba(255, 255, 255, 0.1)"
-            />
+          <div >
+            <div v-if="questionType == 'Normál'" class="grid grid-cols-2 gap-2 mb-2">
+              <v-text-field
+                v-for="(answer, index) in answers"
+                :key="index"
+                v-model="answers[index]"
+                :label="`Válasz ${index + 1}`"
+                variant="outlined"
+                class="glass-input"
+                bg-color="rgba(255, 255, 255, 0.1)"
+              />
+            </div>
+            <div v-else class="grid grid-cols-2 gap-2 mb-2">
+              <v-text-field
+                v-for="index in 2"
+                :key="index"
+                v-model="answers[index]"
+                :label="index==1?'Igaz':'Hamis'"
+                variant="outlined"
+                class="glass-input"
+                bg-color="rgba(255, 255, 255, 0.1)"
+              />
+            </div>
             <v-text-field
               v-model="questionAnswerIndex"
               label="Helyes válasz száma"
