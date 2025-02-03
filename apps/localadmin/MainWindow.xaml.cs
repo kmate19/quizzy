@@ -59,6 +59,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void OnViewModelChanged(object newViewModel)
     {
         CurrentView = newViewModel;
+        switch (CurrentView)
+        {
+            case UserViewModel userViewModel:
+                userViewModel.SearchUsers(SharedState.SearchText);
+                break;
+            case ReviewViewModel reviewViewModel:
+                reviewViewModel.SearchReviews(SharedState.SearchText);
+                break;
+            case QuizViewModel quizViewModel:
+                quizViewModel.SearchQuizes(SharedState.SearchText);
+                break;
+        }
     }
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
@@ -104,21 +116,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void UsersButton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(UserViewModel);
+        QuizViewModel.SearchQuizes(SharedState.SearchText);
         SharedState.SearchText = "Search";
-        QuizViewModel.SearchQuizes("");
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(QuizViewModel);
+        QuizViewModel.SearchQuizes(SharedState.SearchText);
         SharedState.SearchText = "Search";
-        QuizViewModel.SearchQuizes("");
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(ReviewViewModel);
+        QuizViewModel.SearchQuizes(SharedState.SearchText);
         SharedState.SearchText = "Search";
-        QuizViewModel.SearchQuizes("");
     }
 }

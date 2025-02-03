@@ -65,12 +65,6 @@ namespace localadmin.ViewModels
 
         public void SearchReviews(string query)
         {
-            if (query == "")
-            {
-                FilteredReviews = Reviews;
-                return;
-            }
-
             var results = SearchService.FuzzySearch(Reviews, query, review => [review.MadeBy]);
             FilteredReviews.Clear();
             foreach (var review in results)

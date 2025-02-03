@@ -10,6 +10,8 @@ using System.Windows;
 using System.Windows.Input;
 using localadmin.Services;
 using System.Windows.Forms;
+using System.Runtime;
+using System.Security.Cryptography.X509Certificates;
 
 namespace localadmin.Models
 {
@@ -25,6 +27,7 @@ namespace localadmin.Models
 
         private readonly SharedStateService SharedState;
         public ICommand ViewUserCommand { get; }
+        public ICommand ViewReviewCommand { get; }
         public string UUID { get; set; }
         public string UserID { get; set; }
         public string Title { get; set; }
@@ -51,6 +54,7 @@ namespace localadmin.Models
             NavigationService= navigation;
             SharedState = sharedState;
             ViewUserCommand = new RelayCommand(ViewUser);
+            ViewReviewCommand = new RelayCommand(ViewReview);
         }
         
         private void ViewUser(object parameter)
@@ -60,6 +64,14 @@ namespace localadmin.Models
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
+        }
+
+        private void ViewReview(object parameter)
+        {
+            ReviewViewModel reviewView=new ReviewViewModel(NavigationService, SharedState);
+            SharedState.SearchText = MadeBy;
+            NavigationService?.NavigateTo(reviewView);
+            reviewView.SearchReviews(SharedState.SearchText);
         }
     }
 }

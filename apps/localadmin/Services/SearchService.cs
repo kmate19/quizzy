@@ -12,7 +12,7 @@ namespace localadmin.Services
             Func<T, IEnumerable<string>> propertiesToSearch,
             int threshold = 70)
         {
-            if (string.IsNullOrWhiteSpace(query))
+            if (string.IsNullOrWhiteSpace(query) || query=="Search")
                 return items;
 
             return items.Where(item =>

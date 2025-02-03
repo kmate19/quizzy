@@ -72,12 +72,6 @@ namespace localadmin.ViewModels
 
         public void SearchQuizes(string query)
         {
-            if(query == "")
-            {
-                FiltredQuizzes = Quizzes;
-                return;
-            }
-
             var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.MadeBy, quiz.Title]);
             FiltredQuizzes.Clear();
             foreach (var quiz in results)

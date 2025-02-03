@@ -18,6 +18,7 @@ namespace localadmin.Models
         private readonly SharedStateService SharedState;
 
         public ICommand ViewUserCommand { get;}
+        public ICommand ViewQuizCommand { get;}
 
         public string UUID { get; set; }
         public string UserUUID { get; set; }
@@ -30,23 +31,6 @@ namespace localadmin.Models
         public DateTime UpdatedAt { get; set; }
 
         public string Stars => new string('★', (int)Rating) + new string('☆', 5 - (int)Rating);
-        /*
-        public string Stars
-        {
-            get
-            {
-                int fullStars = (int)Math.Floor(Rating);
-
-                bool hasHalfStar = (Rating - fullStars) >= 0.5;
-
-                int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-                return new string('★', fullStars)
-                     + (hasHalfStar ? "⯨" : "")
-                     + new string('☆', emptyStars);
-            }
-        }
-        */
 
         public string MadeBy
         {
@@ -57,20 +41,37 @@ namespace localadmin.Models
             }
         }
 
+        public string MadeOn
+        {
+            get
+            {
+                QuizViewModel quizView = new QuizViewModel(NavigationService, SharedState);
+                return quizView.Quizzes.Where(x => x.UUID == QuizUUID).First().Title;
+            }
+        }
+
         public Review(NavigationService navigation, SharedStateService sharedState)
         {
             NavigationService = navigation;
             SharedState = sharedState;
             ViewUserCommand = new RelayCommand(ViewUser);
+            ViewQuizCommand = new RelayCommand(ViewQuiz);
         }
 
         private void ViewUser(object parameter)
         {
-            Debug.WriteLine("viewing user profile: " + MadeBy);
             UserViewModel userView = new UserViewModel(NavigationService, SharedState);
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
+        }
+
+        private void ViewQuiz(object parameter) 
+        { 
+            QuizViewModel quizView=new QuizViewModel(NavigationService, SharedState);
+            SharedState.SearchText = MadeBy;
+            NavigationService?.NavigateTo(quizView);
+            quizView.SearchQuizes(SharedState.SearchText);
         }
     }
 }

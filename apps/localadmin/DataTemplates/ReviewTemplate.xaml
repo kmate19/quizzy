@@ -16,6 +16,7 @@
                         <Border.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="View User" Command="{Binding ViewUserCommand}"/>
+                                <MenuItem Header="View Quiz" Command="{Binding ViewQuizCommand}"/>
                             </ContextMenu>
                         </Border.ContextMenu>
                         <StackPanel HorizontalAlignment="Center" Margin="10">
