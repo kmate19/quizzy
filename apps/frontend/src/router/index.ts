@@ -2,10 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginRegisterView from '@/views/LoginRegister.vue'
 import HomeView from '@/views/HomeView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import GameCreation from '@/views/GameCreation.vue'
 
-
-
-// lazy load mert sir a vite
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -25,6 +23,14 @@ const router = createRouter({
       name: 'profile',
       component: ProfileView,
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/game_creation',
+      name: 'game_creation',
+      component: GameCreation,
+      meta:{
+        requiresAuth: true
+      },
     }
   ],
 })
