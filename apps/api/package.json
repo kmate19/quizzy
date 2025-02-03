@@ -28,9 +28,11 @@
         "drizzle-orm": "^0.38.4",
         "drizzle-seed": "^0.3.0",
         "drizzle-zod": "^0.6.1",
+        "file-type": "^20.0.1",
         "hono": "^4.6.18",
         "nodemailer": "^6.10.0",
         "pg": "^8.13.1",
+        "sharp": "^0.33.5",
         "zod": "^3.24.1"
     },
     "devDependencies": {

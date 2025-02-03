@@ -7,6 +7,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { reviewsTable } from "./reviewsSchema";
 import { userApiKeys } from "./userApiKeysSchema";
+import { bytea } from "./customTypes";
 
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "away"]);
 export const authStatusEnum = pgEnum("auth_status", ["pending", "active", "blocked"]);
@@ -17,6 +18,7 @@ export const usersTable = pgTable("users", {
     email: varchar({ length: 255 }).notNull().unique(),
     password: text().notNull(),
     activity_status: userStatusEnum().notNull().default("inactive"),
+    profile_picture: bytea(),
     auth_status: authStatusEnum().notNull().default("pending"),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
