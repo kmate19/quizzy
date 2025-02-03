@@ -4,6 +4,7 @@ import ENV from "./config/env";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import apikey from "./routes/apikey";
+import userprofile from "./routes/userprofile";
 
 console.log(ENV.NODE_ENV())
 
@@ -14,6 +15,7 @@ export const app = new Hono().basePath("/api/v1")
     .use(cors())
     .route('/', auth)
     .route('/', apikey)
+    .route('/', userprofile)
 
 const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);
