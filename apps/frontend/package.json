@@ -16,19 +16,19 @@
     },
     "dependencies": {
         "@mdi/font": "^7.4.47",
+        "@repo/api": "workspace:*",
+        "@repo/websocket": "workspace:*",
         "hono": "^4.6.18",
         "lucide-vue-next": "^0.474.0",
         "pinia": "^2.3.1",
         "vue": "^3.5.13",
         "vue-router": "^4.5.0",
         "vue3-toastify": "^0.2.8",
-        "zod": "^3.24.1",
-        "@repo/api": "workspace:*",
-        "@repo/websocket": "workspace:*"
+        "zod": "^3.24.1"
     },
     "devDependencies": {
         "@playwright/test": "^1.50.0",
-        "@tailwindcss/postcss": "4.0.0",
+        "@tailwindcss/vite": "^4.0.3",
         "@tsconfig/node22": "^22.0.0",
         "@types/bun": "^1.2.0",
         "@types/jsdom": "^21.1.7",
