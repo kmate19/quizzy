@@ -7,6 +7,10 @@ import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
+/*const res = await clientv1.userprofile.$get()
+
+console.log(res)*/
+
 const user = {
   playedgames: 200,
   games_won: 56,
