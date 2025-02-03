@@ -18,7 +18,6 @@ const isDescIncluded = ref(false)
 const cardColors = ref<string[]>([]);
 const bgColors = ['bg-red-800', 'bg-blue-800', 'bg-yellow-600', 'bg-green-800']
 
-
 const getRandomColor = () => {
   const color = bgColors[Math.floor(Math.random() * bgColors.length)]
   return color
@@ -205,9 +204,5 @@ onMounted(() => {
   background-color: rgba(155, 155, 155, 0.5);
   border-radius: 20px;
   border: transparent;
-}
-.highlighted {
-  background-color: #FFFF00; 
-  font-weight: bold; 
 }
 </style>

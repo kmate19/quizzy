@@ -42,7 +42,7 @@ const handlePath = () => {
             <a href="#"
               class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit">Közös
               játék</a>
-            <a href="#"
+            <a @click="router.push('/game_creation')"
               class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit">Játék
               készítés</a>
             <a @click="router.push('/profil')"
@@ -60,9 +60,9 @@ const handlePath = () => {
         </div>
       </div>
     </div>
-    <transition enter-active-class="transition duration-300 ease-out"
+    <transition enter-active-class="transition duration-300 ease-out-in"
       enter-from-class="transform -translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
-      leave-active-class="transition duration-200 ease-in" leave-from-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-full opacity-0">
       <div v-if="isMobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
@@ -74,7 +74,7 @@ const handlePath = () => {
           <a class="text-white hover:bg-gray-700  block px-3 py-2 rounded-md text-base font-medium">
             Közös játék
           </a>
-          <a class="text-white hover:bg-gray-700   block px-3 py-2 rounded-md text-base font-medium">
+          <a @click="router.push('/game_creation')" class="text-white hover:bg-gray-700   block px-3 py-2 rounded-md text-base font-medium">
             Játék készítés
           </a>
           <a @click="router.push('/profil')"
