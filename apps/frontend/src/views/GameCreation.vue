@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { X, Check } from 'lucide-vue-next'
 import { computed } from 'vue'
 
@@ -77,24 +77,26 @@ const clearQuestionImage = () => {
 }
 
 const addQuestion = () => {
-  createdQuestions.value.push({
+  const temp = {
     text: question.value,
     type: questionType.value,
     image: questionImagePreview.value || '/placeholder.svg?height=100&width=200',
     answers: [...answers.value],
     correctAnswerIndex: questionAnswerIndex.value,
-  })
+  }
+  console.log(temp)
+  createdQuestions.value.push(temp)
 
   question.value = ''
   questionImagePreview.value = ''
   if (questionImageInput.value) {
     questionImageInput.value.value = ''
   }
-  answers.value = ['', '', '', '']
+  answers.value = questionType.value == 'Normál' ? ['', '', '', ''] : ['', '']
 }
 
 const handleQuestionRemove = (index: number) => {
-  console.log(index+ " index")
+  console.log(index + ' index')
   createdQuestions.value.splice(index, 1)
 }
 
@@ -124,7 +126,13 @@ const handleQuizyUpload = async () => {
   console.log(fullQuiz.value)
 }
 
-//TODO it deletes multiple from createdQuestions
+watch(questionType, (newValue: string) => {
+  if (newValue === 'Normál') {
+    answers.value = ['', '', '', '']
+  } else {
+    answers.value = ['Igaz', 'Hamis']
+  }
+})
 </script>
 
 <template>
@@ -272,10 +280,10 @@ const handleQuizyUpload = async () => {
             </div>
             <div v-else class="grid grid-cols-2 gap-2 mb-2">
               <v-text-field
-                v-for="(answer, index) in ['Igaz', 'Hamis']"
+                v-for="(answer, index) in answers"
                 :key="index"
                 v-model="answers[index]"
-                :value="answer"
+                :value="index == 1 ? 'Igaz' : 'Hamis'"
                 variant="outlined"
                 bg-color="rgba(255, 255, 255, 0.1)"
               />
@@ -287,7 +295,11 @@ const handleQuizyUpload = async () => {
               class="glass-input w-full col-span-2"
               bg-color="rgba(255, 255, 255, 0.1)"
               type="number"
-              :rules="[(v) => (v >= 0 && v <= 4) || '1 és 4 között kell lennie!']"
+              :rules="
+                questionType == 'Normál'
+                  ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
+                  : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
+              "
               min="1"
               max="4"
             />
@@ -316,7 +328,7 @@ const handleQuizyUpload = async () => {
             <div
               v-for="(q, index) in createdQuestions"
               :key="index"
-              class="p-4 rounded-lg bg-white/5 backdrop-blur-sm"
+              class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500"
               @click="handleQuestionModify(index)"
             >
               <button
@@ -340,7 +352,7 @@ const handleQuizyUpload = async () => {
                 </div>
               </div>
               <h2 class="text-green-500">
-                Helyes válasz: {{ q.answers[questionAnswerIndex - 1] }}
+                Helyes válasz: {{ q.answers[q.correctAnswerIndex - 1] }}
               </h2>
             </div>
           </div>
