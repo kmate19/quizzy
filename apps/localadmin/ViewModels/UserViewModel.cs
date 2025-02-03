@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using localadmin.Models;
 using localadmin.Services;
+using static localadmin.Models.User;
 
 namespace localadmin.ViewModels
 {
@@ -22,34 +23,35 @@ namespace localadmin.ViewModels
             {
                 new User(NavigationService, SharedState)
                 {
-                    Username = "Goku",
-                    Email = "alice@example.com",
-                    Role = "Administrator"
+                    UUID = "f5e6a25f-8b92-441d-b58d-c3d5dbde2c0e",
+                    Username = "john_doe",
+                    Email = "john.doe@email.com",
+                    ActivityStatus = EActivityStatus.Active,
+                    AuthStatus = EAuthStatus.Active,
+                    CreatedAt = DateTime.UtcNow.AddMonths(-6),
+                    UpdatedAt = DateTime.UtcNow
                 },
                 new User(NavigationService, SharedState)
                 {
-                    Username = "Vegeta",
-                    Email = "bob@example.com",
-                    Role = "Editor"
+                    UUID = "d3d77b3a-d671-45b0-88c7-b9a6d7b98c68",
+                    Username = "jane_smith",
+                    Email = "jane.smith@email.com",
+                    ActivityStatus = EActivityStatus.Away,
+                    AuthStatus = EAuthStatus.Active,
+                    CreatedAt = DateTime.UtcNow.AddMonths(-3),
+                    UpdatedAt = DateTime.UtcNow
                 },
                 new User(NavigationService, SharedState)
                 {
-                    Username = "Piccowo",
-                    Email = "charlie@example.com",
-                    Role = "Viewer"
-                },
-                new User(NavigationService, SharedState)
-                {
-                    Username = "Gohan",
-                    Email = "diana@example.com",
-                    Role = "Editor"
-                },
-                new User(NavigationService, SharedState)
-                {
-                    Username = "Bulma",
-                    Email = "edward@example.com",
-                    Role = "Viewer"
-                }
+                    UUID = "ccf473a2-92ba-42b7-9444-98013b495ef4",
+                    Username = "mike_jones",
+                    Email = "mike.jones@email.com",
+                    ActivityStatus = EActivityStatus.Inactive,
+                    AuthStatus = EAuthStatus.Blocked,
+                    CreatedAt = DateTime.UtcNow.AddMonths(-12),
+                    UpdatedAt = DateTime.UtcNow.AddMonths(-2)
+                    }
+
             };
 
             FilteredUsers = new ObservableCollection<User>(Users);

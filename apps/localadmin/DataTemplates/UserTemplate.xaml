@@ -10,6 +10,7 @@
                         <Border.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="View quizes" Command="{Binding ViewQuizCommand}"/>
+                                <MenuItem Header="View Reviews" Command="{Binding ViewReviewCommand}"/>
                             </ContextMenu>
                         </Border.ContextMenu>
                         <Grid Background="White" Margin="0,1">
@@ -32,7 +33,7 @@
                             </StackPanel>
                             <StackPanel Orientation="Vertical" Grid.Column="2">
                                 <TextBlock Text="Role" Foreground="#33B6EF" FontSize="20" />
-                                <TextBlock Text="{Binding Role}" FontSize="20" />
+                                <TextBlock Text="{Binding Roles}" FontSize="20" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Grid.Column="3">
                                 <Button Content="Modify" Style="{StaticResource GridButtons}" />

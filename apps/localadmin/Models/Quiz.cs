@@ -9,18 +9,41 @@ using System.Web;
 using System.Windows;
 using System.Windows.Input;
 using localadmin.Services;
+using System.Windows.Forms;
 
 namespace localadmin.Models
 {
     public class Quiz
     {
+        public enum EQuizStatus{
+            Draft,
+            Published,
+            RequiresReview,
+            Private
+        }
         private readonly NavigationService NavigationService;
 
         private readonly SharedStateService SharedState;
         public ICommand ViewUserCommand { get; }
-
-        public string MadeBy { get; set; }
+        public string UUID { get; set; }
+        public string UserID { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
+        public EQuizStatus Status { get; set; }
+        public int Rating { get; set; }
+        public int Plays { get; set; }
+        public byte[] Banner { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        public string MadeBy
+        {
+            get
+            {
+                UserViewModel userView = new UserViewModel(NavigationService, SharedState);
+                return userView.Users.Where(x => x.UUID == UserID).First().Username;
+            }
+        }
 
 
         public Quiz(NavigationService navigation, SharedStateService sharedState)
@@ -32,7 +55,7 @@ namespace localadmin.Models
         
         private void ViewUser(object parameter)
         {
-            Debug.WriteLine("viewing user profile: " + MadeBy);
+            Debug.WriteLine("emebr: " + MadeBy);
             UserViewModel userView= new UserViewModel(NavigationService, SharedState);
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(userView);

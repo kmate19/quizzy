@@ -104,18 +104,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void UsersButton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(UserViewModel);
+        SharedState.SearchText = "Search";
         QuizViewModel.SearchQuizes("");
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(QuizViewModel);
+        SharedState.SearchText = "Search";
         QuizViewModel.SearchQuizes("");
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(ReviewViewModel);
+        SharedState.SearchText = "Search";
         QuizViewModel.SearchQuizes("");
     }
 }

@@ -27,7 +27,7 @@
                             </StackPanel>
 
                             <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="100" Margin="0,5,0,0">
-                                <TextBlock Text="{Binding ReviewText}" FontSize="14" TextWrapping="Wrap" Foreground="Black" />
+                                <TextBlock Text="{Binding Comment}" FontSize="14" TextWrapping="Wrap" Foreground="Black" />
                             </ScrollViewer>
                         </StackPanel>
                     </Border>
