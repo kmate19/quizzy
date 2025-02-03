@@ -132,7 +132,8 @@ onMounted(() => {
         class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 h-[calc(100vh-200px)]">
         <template v-if="mockCards.length > 0">
           <div v-for="(card, index) in mockCards" :key="card.name"
-            class="p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col border-4 border-white/30 items-center max-h-fit"
+            class="p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col 
+            border-4 border-white/30 items-center max-h-fit"
             :class="[getCardColor(index), { 'fade-in': isVisible }]" ref="cards">
             <div class="w-full h-40 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
               gatya
