@@ -70,6 +70,7 @@ const authJwtMiddleware = (role?: string) => {
         }
 
         c.set("accessTokenPayload", accessTokenPayloadOrError);
+        if (!next) return;
         await next();
     })
 };
