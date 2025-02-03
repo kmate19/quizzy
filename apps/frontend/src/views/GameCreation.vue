@@ -94,6 +94,7 @@ const addQuestion = () => {
 }
 
 const handleQuestionRemove = (index: number) => {
+  console.log(index+ " index")
   createdQuestions.value.splice(index, 1)
 }
 
@@ -122,6 +123,8 @@ const handleQuizyUpload = async () => {
   console.log(gameCategory.value + ' category')
   console.log(fullQuiz.value)
 }
+
+//TODO it deletes multiple from createdQuestions
 </script>
 
 <template>
@@ -255,7 +258,7 @@ const handleQuizyUpload = async () => {
             item-color="white"
           />
 
-          <div >
+          <div>
             <div v-if="questionType == 'Normál'" class="grid grid-cols-2 gap-2 mb-2">
               <v-text-field
                 v-for="(answer, index) in answers"
@@ -269,12 +272,11 @@ const handleQuizyUpload = async () => {
             </div>
             <div v-else class="grid grid-cols-2 gap-2 mb-2">
               <v-text-field
-                v-for="index in 2"
+                v-for="(answer, index) in ['Igaz', 'Hamis']"
                 :key="index"
                 v-model="answers[index]"
-                :label="index==1?'Igaz':'Hamis'"
+                :value="answer"
                 variant="outlined"
-                class="glass-input"
                 bg-color="rgba(255, 255, 255, 0.1)"
               />
             </div>
@@ -319,7 +321,7 @@ const handleQuizyUpload = async () => {
             >
               <button
                 class="w-fit h-fit bg-white/30 text-white hover:text-red-600 hover:bg-white rounded-full"
-                @click="handleQuestionRemove(index)"
+                @click.stop="handleQuestionRemove(index)"
               >
                 <X />
               </button>
