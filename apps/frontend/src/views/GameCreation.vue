@@ -3,7 +3,7 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { ref, watch } from 'vue'
-import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
+import { CloudUpload, CirclePlus } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
@@ -32,7 +32,7 @@ const questionImagePreview = ref<string>('')
 const question = ref<string>('')
 const questionType = ref<'2 válaszos' | 'Normál'>('Normál')
 const answers = ref<string[]>(questionType.value === '2 válaszos' ? ['', ''] : ['', '', '', ''])
-const questionAnswerIndex = ref<number>(0)
+const questionAnswerIndex = ref<number>(1)
 
 const createdQuestions = ref<Question[]>([])
 
@@ -114,7 +114,7 @@ const addQuestion = () => {
     type: questionType.value,
     image: questionImagePreview.value || '/placeholder.svg?height=100&width=200',
     answers: [...answers.value],
-    correctAnswerIndex: questionAnswerIndex.value,
+    correctAnswerIndex: Number(questionAnswerIndex.value) - 1,
   }
 
   createdQuestions.value.push(temp)
@@ -126,6 +126,7 @@ const addQuestion = () => {
     questionImageInput.value.value = ''
   }
   answers.value = questionType.value == 'Normál' ? ['', '', '', ''] : ['', '']
+  questionAnswerIndex.value = 1
 }
 
 const handleQuestionRemove = (index: number) => {
@@ -136,7 +137,7 @@ const handleQuestionRemove = (index: number) => {
 const handleQuestionModify = (index: number) => {
   const res: Question = createdQuestions.value[index]
   questionImagePreview.value = res.image
-  questionAnswerIndex.value = res.correctAnswerIndex
+  questionAnswerIndex.value = res.correctAnswerIndex + 1
   answers.value = res.answers
   questionType.value = res.type
   question.value = res.text
@@ -364,10 +365,7 @@ watch(questionType, (newValue: string) => {
               class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500"
               @click="handleQuestionModify(index)"
             >
-              <XButton
-                 @click.stop="handleQuestionRemove(index)" 
-              >
-              </XButton>
+              <XButton @click.stop="handleQuestionRemove(index)"> </XButton>
               <v-img :src="q.image" height="100" class="rounded mb-2" cover />
               <p class="text-white/90 mb-2">{{ q.text }}</p>
               <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
@@ -383,7 +381,7 @@ watch(questionType, (newValue: string) => {
                 </div>
               </div>
               <h2 class="text-green-500">
-                Helyes válasz: {{ q.answers[q.correctAnswerIndex - 1] }}
+                Helyes válasz: {{ q.answers[q.correctAnswerIndex] }}
               </h2>
             </div>
           </div>
