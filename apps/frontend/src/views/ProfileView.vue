@@ -105,6 +105,20 @@ const handleFileChange = (event: Event) => {
   const file = inputElement.files?.[0]
 
   if (file) {
+    const size = file.size / (1024 * 1024)
+
+    if (size > 2) {
+      toast('A fájl mérete túl nagy!\n(Max: 2 MB)', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      return
+    }
+
+
     tempImage.value = file
     profileImage.value = URL.createObjectURL(file)
     showSaveButton.value = true
@@ -124,6 +138,7 @@ const saveProfileImage = async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000))
   showSaveButton.value = false
 }
+
 const showPasswordModal = ref(false)
 const passwordForm = ref({
   current: '',
