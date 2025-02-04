@@ -2,12 +2,13 @@
 import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import { ref, watch } from 'vue'
-import { X, Check } from 'lucide-vue-next'
+import { X, CloudUpload, CirclePlus } from 'lucide-vue-next'
 import { computed } from 'vue'
+import { toast, type ToastOptions } from 'vue3-toastify'
 
 interface Question {
   text: string
-  type: 'Igaz/Hamis' | 'Normál'
+  type: '2 válaszos' | 'Normál'
   image: string
   answers: string[]
   correctAnswerIndex: number
@@ -28,8 +29,8 @@ const gameCategory = ref<string>('')
 const questionImageInput = ref<HTMLInputElement | null>(null)
 const questionImagePreview = ref<string>('')
 const question = ref<string>('')
-const questionType = ref<'Igaz/Hamis' | 'Normál'>('Normál')
-const answers = ref<string[]>(questionType.value === 'Igaz/Hamis' ? ['', ''] : ['', '', '', ''])
+const questionType = ref<'2 válaszos' | 'Normál'>('Normál')
+const answers = ref<string[]>(questionType.value === '2 válaszos' ? ['', ''] : ['', '', '', ''])
 const questionAnswerIndex = ref<number>(0)
 
 const createdQuestions = ref<Question[]>([])
@@ -38,6 +39,21 @@ const handleGameImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
+
+    const size = file.size / (1024 * 1024)
+
+    if (size > 2) {
+      gameImageInput.value = null
+      toast('A fájl mérete túl nagy!\n(Max: 2 MB)', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      return
+    }
+
     const reader = new FileReader()
 
     reader.onload = (e) => {
@@ -52,6 +68,21 @@ const handleQuestionImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
+
+    const size = file.size / (1024 * 1024)
+
+    if (size > 2) {
+      gameImageInput.value = null
+      toast('A fájl mérete túl nagy!\n(Max: 2 MB)', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+      return
+    }
+
     const reader = new FileReader()
 
     reader.onload = (e) => {
@@ -77,17 +108,18 @@ const clearQuestionImage = () => {
 }
 
 const addQuestion = () => {
-  const temp = {
+  const temp: Question = {
     text: question.value,
     type: questionType.value,
     image: questionImagePreview.value || '/placeholder.svg?height=100&width=200',
     answers: [...answers.value],
     correctAnswerIndex: questionAnswerIndex.value,
   }
-  console.log(temp)
+
   createdQuestions.value.push(temp)
 
   question.value = ''
+
   questionImagePreview.value = ''
   if (questionImageInput.value) {
     questionImageInput.value.value = ''
@@ -120,10 +152,18 @@ const fullQuiz = computed(
 )
 
 const handleQuizyUpload = async () => {
-  console.log(gameImagePreview.value + ' kep')
-  console.log(gameTitle.value + ' title')
-  console.log(gameCategory.value + ' category')
   console.log(fullQuiz.value)
+  resetInputValues()
+}
+
+const resetInputValues = () => {
+  const firstDiv = document.querySelector('.first')
+  const firstInputs = firstDiv!.querySelectorAll('input')
+  firstInputs!.forEach((el) => {
+    el.value = ''
+  })
+  gameImagePreview.value = ''
+  createdQuestions.value = []
 }
 
 watch(questionType, (newValue: string) => {
@@ -148,12 +188,12 @@ watch(questionType, (newValue: string) => {
         md="4"
         class="glass-panel transition-transform duration-200 ease-in-out hover:transform hover:-translate-y-0.5"
       >
-        <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10 text-white">
+        <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10 text-white first">
           <div class="mb-2">
             <input
               type="file"
               ref="gameImageInput"
-              accept="image/*"
+              accept=".png,.jpg,.jpeg,.svg"
               class="hidden"
               @change="handleGameImageUpload"
             />
@@ -168,8 +208,10 @@ watch(questionType, (newValue: string) => {
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
-                    <v-icon icon="mdi-upload" size="48" class="mb-2 text-white" />
-                    <span class="text-white/70">Borítókép feltöltése</span>
+                    <CirclePlus
+                      class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500"
+                      stroke-width="0.75"
+                    />
                   </div>
                 </template>
               </v-img>
@@ -187,7 +229,7 @@ watch(questionType, (newValue: string) => {
             v-model="gameTitle"
             label="Cím"
             variant="outlined"
-            class="mb-2 glass-input"
+            class="mb-2"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
 
@@ -199,13 +241,8 @@ watch(questionType, (newValue: string) => {
             bg-color="rgba(255, 255, 255, 0.1)"
           />
         </div>
-        <v-btn
-          block
-          color="success"
-          class="glass-button bg-white/10 backdrop-blur border border-white/20 mt-2"
-          @click="handleQuizyUpload"
-        >
-          Quiz feltöltése <Check class="" />
+        <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
+          Quiz feltöltése <CloudUpload />
         </v-btn>
       </v-col>
       <!--Question-->
@@ -219,7 +256,7 @@ watch(questionType, (newValue: string) => {
             <input
               type="file"
               ref="questionImageInput"
-              accept="image/*"
+              accept=".png,.jpg,.jpeg,.svg"
               class="hidden"
               @change="handleQuestionImageUpload"
             />
@@ -234,8 +271,10 @@ watch(questionType, (newValue: string) => {
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
-                    <v-icon icon="mdi-upload" size="48" class="mb-2 text-white" />
-                    <span class="text-white/70">Kérdés kép feltöltése</span>
+                    <CirclePlus
+                      class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500"
+                      stroke-width="0.75"
+                    />
                   </div>
                 </template>
               </v-img>
@@ -258,7 +297,7 @@ watch(questionType, (newValue: string) => {
           />
           <v-select
             v-model="questionType"
-            :items="['Igaz/Hamis', 'Normál']"
+            :items="['2 válaszos', 'Normál']"
             label="Kérdés fajtája"
             variant="outlined"
             class="mb-2 glass-input"
@@ -283,7 +322,7 @@ watch(questionType, (newValue: string) => {
                 v-for="(answer, index) in answers"
                 :key="index"
                 v-model="answers[index]"
-                :value="index == 1 ? 'Igaz' : 'Hamis'"
+                :placeholder="index == 1 ? 'Igaz' : 'Hamis'"
                 variant="outlined"
                 bg-color="rgba(255, 255, 255, 0.1)"
               />
@@ -305,14 +344,7 @@ watch(questionType, (newValue: string) => {
             />
           </div>
 
-          <v-btn
-            block
-            color="primary"
-            class="glass-button bg-white/10 backdrop-blur border border-white/20"
-            @click="addQuestion"
-          >
-            Kérdés hozzáadása
-          </v-btn>
+          <v-btn block color="primary" @click="addQuestion"> Kérdés hozzáadása </v-btn>
         </div>
       </v-col>
 
