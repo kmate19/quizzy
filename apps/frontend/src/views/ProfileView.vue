@@ -1,15 +1,30 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { PencilIcon, XIcon } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp } from 'lucide-vue-next'
+import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
 import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
-/*const res = await clientv1.userprofile.$get()
+const passwordRequirements = [
+  '• Minimum 8 karakter',
+  '• Legalább egy nagybetű',
+  '• Legalább egy kisbetű',
+  '• Legalább egy szám',
+  '• Jelszavak egyezése',
+]
 
-console.log(res)*/
+const showPasswordRequirements = () => {
+  toast(passwordRequirements.join('\n'), {
+    autoClose: 5000,
+    position: toast.POSITION.TOP_CENTER,
+    type: 'info',
+    transition: 'zoom',
+    pauseOnHover: false,
+  })
+}
 
 const user = {
   playedgames: 200,
@@ -235,9 +250,7 @@ const handlePasswordChange = async () => {
           <div
             v-for="friend in user.friends"
             :key="friend.name"
-            class="flex gap-4 p-2 rounded-xl hover:bg-white/20 h-32
-             text-white ease-in-out bg-multi-color-gradient
-              border-white border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+            class="flex gap-4 p-2 rounded-xl hover:bg-white/20 h-32 text-white ease-in-out bg-multi-color-gradient border-white border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300"
           >
             <img
               :src="friend.pfp"
@@ -269,8 +282,7 @@ const handlePasswordChange = async () => {
           <div
             v-for="quiz in user.quizzes"
             :key="quiz.name"
-            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white ease-in-out border-white border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300
-            bg-multi-color-gradient"
+            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white ease-in-out border-white border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300 bg-multi-color-gradient"
           >
             <img
               :src="quiz.quize_img"
@@ -296,35 +308,43 @@ const handlePasswordChange = async () => {
   >
     <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
-        <XIcon
+        <div class="flex justify-evenly flex-row">
+          <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
+          <CircleHelp
+            class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
+            @click="showPasswordRequirements"
+          />
+        </div>
+        <XButton
           @click="closePasswordModal"
-          class="w-6 h-6 text-white cursor-pointer hover:text-white/70"
         />
       </div>
-      <form @submit.prevent="handlePasswordChange" class="space-y-4">
+      <form @submit.prevent="handlePasswordChange" class="space-y-4 text-white">
         <div>
-          <label class="block text-white mb-2">Jelenlegi jelszó</label>
-          <input
+          <v-text-field
             type="text"
+            variant="outlined"
+            density="comfortable"
+            label="Jelenlegi jelszó"
             v-model="passwordForm.current"
-            class="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30"
           />
         </div>
         <div>
-          <label class="block text-white mb-2">Új jelszó</label>
-          <input
+          <v-text-field
             type="text"
+            variant="outlined"
+            density="comfortable"
+            label="Új jelszó"
             v-model="passwordForm.new"
-            class="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30"
           />
         </div>
         <div>
-          <label class="block text-white mb-2">Új jelszó megerősítése</label>
-          <input
+          <v-text-field
             type="text"
+            variant="outlined"
+            density="comfortable"
+            label="Új jelszó megerősítése"
             v-model="passwordForm.confirm"
-            class="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30"
           />
         </div>
         <button
@@ -425,6 +445,4 @@ button {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
 }
-
-
 </style>
