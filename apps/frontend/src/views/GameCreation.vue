@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
+import XButton from '@/components/XButton.vue'
 import { ref, watch } from 'vue'
-import { X, CloudUpload, CirclePlus } from 'lucide-vue-next'
+import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
@@ -363,12 +364,10 @@ watch(questionType, (newValue: string) => {
               class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500"
               @click="handleQuestionModify(index)"
             >
-              <button
-                class="w-fit h-fit bg-white/30 text-white hover:text-red-600 hover:bg-white rounded-full"
-                @click.stop="handleQuestionRemove(index)"
+              <XButton
+                 @click.stop="handleQuestionRemove(index)" 
               >
-                <X />
-              </button>
+              </XButton>
               <v-img :src="q.image" height="100" class="rounded mb-2" cover />
               <p class="text-white/90 mb-2">{{ q.text }}</p>
               <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
