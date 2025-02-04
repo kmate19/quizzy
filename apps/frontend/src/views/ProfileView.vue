@@ -118,7 +118,6 @@ const handleFileChange = (event: Event) => {
       return
     }
 
-
     tempImage.value = file
     profileImage.value = URL.createObjectURL(file)
     showSaveButton.value = true
