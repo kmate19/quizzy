@@ -26,11 +26,9 @@ namespace localadmin.Models
             Blocked
         }
         private readonly NavigationService navigationService;
-
         private readonly SharedStateService sharedState;
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
-
 
         public string UUID { get; set; }
         public string Username { get; set; }

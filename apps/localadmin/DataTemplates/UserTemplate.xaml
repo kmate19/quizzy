@@ -3,49 +3,78 @@
                     xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
                     xmlns:local="clr-namespace:localadmin.ViewModels">
     <DataTemplate DataType="{x:Type local:UserViewModel}">
-        <ItemsControl HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border BorderBrush="Black" BorderThickness="0" CornerRadius="3" Margin="0,3" Grid.ColumnSpan="4" Background="White">
-                        <Border.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="View quizes" Command="{Binding ViewQuizCommand}"/>
-                                <MenuItem Header="View Reviews" Command="{Binding ViewReviewCommand}"/>
-                            </ContextMenu>
-                        </Border.ContextMenu>
-                        <Grid Background="White" Margin="0,1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220" />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition Width="100" />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="60" />
-                            </Grid.RowDefinitions>
-                            <StackPanel Orientation="Vertical" Margin="50,5">
-                                <TextBlock Text="Name" Foreground="#33B6EF" FontSize="20" />
-                                <TextBlock Text="{Binding Username}" FontSize="20" />
-                            </StackPanel>
-                            <StackPanel Orientation="Vertical" Grid.Column="1">
-                                <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
-                                <TextBlock Text="{Binding Email}" FontSize="20" />
-                            </StackPanel>
-                            <StackPanel Orientation="Vertical" Grid.Column="2">
-                                <TextBlock Text="Role" Foreground="#33B6EF" FontSize="20" />
-                                <TextBlock Text="{Binding Roles}" FontSize="20" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Grid.Column="3">
-                                <Button Content="Modify" Style="{StaticResource GridButtons}" />
-                                <Button Content="Delete" Style="{StaticResource GridButtons}" />
-                            </StackPanel>
-                        </Grid>
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="5" ShadowDepth="5" />
-                        </Border.Effect>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent" Margin="0, 0, 5, 0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Expander Margin="0,3" Background="White" BorderBrush="Black" BorderThickness="0" Style="{StaticResource ExpanderAnimation}">
+                            <Expander.Header>
+                                <Grid Background="White" Margin="0,1" HorizontalAlignment="Stretch" Height="60">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Orientation="Vertical" Margin="0, 0, 20, 0">
+                                        <TextBlock Text="Name" Foreground="#33B6EF" FontSize="20" />
+                                        <TextBlock Text="{Binding Username}" FontSize="20" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0, 0, 20, 0">
+                                        <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
+                                        <TextBlock Text="{Binding Email}" FontSize="20" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0, 0, 20, 0">
+                                        <TextBlock Text="Role:" Foreground="#33B6EF" FontSize="20" />
+                                        <TextBlock Text="{Binding Roles}" FontSize="20"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Expander.Header>
+
+                            <Grid Width="auto" Margin="0, 10, 0, 0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="20, 0, 30, 0">
+                                    <TextBlock Text="Created At:" Foreground="#33B6EF" FontSize="20" />
+                                    <TextBlock Text="{Binding CreatedAt}" TextWrapping="Wrap" FontSize="20" Margin="0, 0, 0, 10"/>
+                                    <TextBlock Text="Updated At:" Foreground="#33B6EF" FontSize="20" />
+                                    <TextBlock Text="{Binding UpdatedAt}" TextWrapping="Wrap" FontSize="20" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Activity staus: " Foreground="#33B6EF" FontSize="20" />
+                                    <TextBlock Text="{Binding ActivityStatus}" Style="{StaticResource ActivityStatusStyle}" TextWrapping="Wrap" FontSize="20" Margin="0, 0, 0, 10"/>
+                                    <TextBlock Text="Authentication Status: " Foreground="#33B6EF" FontSize="20" />
+                                    <TextBlock Text="{Binding AuthStatus}" Style="{StaticResource AuthStatusStyle}" TextWrapping="Wrap" FontSize="20" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3">
+                                    <Button Content="View Quizzes" Command="{Binding ViewQuizCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
+                                    <Button Content="View Reviews" Command="{Binding ViewReviewCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4" Margin="20, 0, 40, 10">
+                                    <Button Content="Modify" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
+                                    <Button Background="Red" Content="Delete" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
+                                </StackPanel>
+                            </Grid>
+                        
+                            <Expander.Effect>
+                                <DropShadowEffect BlurRadius="5" ShadowDepth="3" />
+                            </Expander.Effect>
+                        
+                        </Expander>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </DataTemplate>
 </ResourceDictionary>

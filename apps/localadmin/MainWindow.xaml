@@ -7,7 +7,7 @@
         xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp" 
         xmlns:services="clr-namespace:localadmin.Services" d:DataContext="{d:DesignInstance Type=services:SharedStateService}"
         mc:Ignorable="d" WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow"
-        Title="Quizzy" Height="650" Width="1000">
+        Title="Quizzy" Height="650" Width="1100">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -93,13 +93,13 @@
                         <fa:IconImage Icon="MagnifyingGlass" HorizontalAlignment="Left" Width="50" Height="20" Margin="5" />
                         <TextBox Width="180" Height="35" HorizontalAlignment="Stretch" Margin="35,0,5,0" FontSize="20" Background="Transparent" 
                       BorderThickness="0" VerticalContentAlignment="Center" Text="{Binding Source={x:Static services:SharedStateService.Instance}, Path=SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                      GotFocus="Searchbar_gotFocus" LostFocus="Searchbar_lostFocus" TextChanged="Searchbar_textChanged" Opacity="0.7" />
+                      GotFocus="Searchbar_gotFocus" TextChanged="Searchbar_textChanged" Opacity="0.7" />
                     </Grid>
                 </Border>
             </Grid>
 
             <!-- ContentControl to Switch Views -->
-            <ContentControl Content="{Binding CurrentView}" Margin="0 50 0 0">
+            <ContentControl Content="{Binding CurrentView}" Margin="10 50 30 0">
             </ContentControl>
         </Grid>
     </Grid>

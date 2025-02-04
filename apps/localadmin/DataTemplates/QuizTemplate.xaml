@@ -3,31 +3,33 @@
                     xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
                     xmlns:local="clr-namespace:localadmin.ViewModels">
     <DataTemplate DataType="{x:Type local:QuizViewModel}">
-        <ItemsControl ItemsSource="{Binding FiltredQuizzes}" Background="Transparent">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding FiltredQuizzes}" Background="Transparent">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border BorderBrush="Black" BorderThickness="2" Background="White" CornerRadius="10" Margin="10" Width="200" Height="200">
-                        <Border.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="View User" Command="{Binding ViewUserCommand}" />
-                                <MenuItem Header="View Review" Command="{Binding ViewReviewCommand}"/>
-                            </ContextMenu>
-                        </Border.ContextMenu>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="2" Background="White" CornerRadius="10" Margin="10" Width="250" Height="300">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="View User" Command="{Binding ViewUserCommand}" />
+                                    <MenuItem Header="View Review" Command="{Binding ViewReviewCommand}"/>
+                                </ContextMenu>
+                            </Border.ContextMenu>
                         
-                        <StackPanel Margin="10">
-                            <Image Source="../icon.ico" Height="100" Stretch="Fill" Margin="0,0,0,10"/>
-                            <TextBlock Text="{Binding MadeBy}" FontSize="14" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding Description}" FontSize="12" TextAlignment="Center" Foreground="Gray" Margin="0,5,0,0"/>
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                            <StackPanel Margin="10">
+                                <Image Source="../icon.ico" Height="100" Stretch="Fill" Margin="0,0,0,10"/>
+                                <TextBlock Text="{Binding MadeBy}" FontSize="14" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding Description}" FontSize="12" TextAlignment="Center" Foreground="Gray" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </DataTemplate>
 </ResourceDictionary>

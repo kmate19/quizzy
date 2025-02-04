@@ -87,14 +87,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void Searchbar_lostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox textBox)
-        {
-            SharedState.SearchText = "Search";
-        }
-    }
-
     private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is not TextBox textBox) return;

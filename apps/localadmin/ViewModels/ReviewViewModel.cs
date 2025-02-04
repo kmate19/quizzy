@@ -54,7 +54,7 @@ namespace localadmin.ViewModels
                     Rating = 3,
                     Likes = 12,
                     Dislikes = 4,
-                    Comment = "The quiz was okay but could use more questions.",
+                    Comment = "The quiz was okay but could use more questions.The quiz was okay but could use more questions.The quiz was okay but could use more questions.The quiz was okay but could use more questions.",
                     CreatedAt = DateTime.UtcNow.AddDays(-20),
                     UpdatedAt = DateTime.UtcNow.AddDays(-18)
                 }
