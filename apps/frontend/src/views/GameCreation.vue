@@ -206,7 +206,7 @@ watch(questionType, (newValue: string) => {
               <v-img
                 :src="gameImagePreview || '/placeholder.svg?height=200&width=300'"
                 height="200"
-                cover
+                fit
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
@@ -269,7 +269,7 @@ watch(questionType, (newValue: string) => {
               <v-img
                 :src="questionImagePreview || '/placeholder.svg?height=200&width=300'"
                 height="200"
-                cover
+                fit
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
@@ -367,7 +367,7 @@ watch(questionType, (newValue: string) => {
               @click="handleQuestionModify(index)"
             >
               <XButton @click.stop="handleQuestionRemove(index)"> </XButton>
-              <v-img :src="q.image" height="100" class="rounded mb-2" cover />
+              <v-img :src="q.image" height="100" class="rounded mb-2" fit />
               <p class="text-white/90 mb-2">{{ q.text }}</p>
               <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
                 Típus: {{ q.type }}
