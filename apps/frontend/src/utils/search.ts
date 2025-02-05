@@ -1,21 +1,4 @@
-export interface Card {
-  name: string
-  desc: string
-  category: string
-  created_by: string
-}
-
-interface FuzzySearchOptionsForCard {
-  threshold?: number
-  caseSensitive?: boolean
-  trimWhitespace?: boolean
-  keys?: keyof Card | (keyof Card)[] | ((item: Card) => string | string[])
-}
-
-interface FuzzySearchResult<T> {
-  item: T
-  score: number
-}
+import type { FuzzySearchOptionsForCard, FuzzySearchResult, Card } from './type'
 
 function levenshteinDistance(s1: string, s2: string): number {
   if (s1.length === 0) return s2.length

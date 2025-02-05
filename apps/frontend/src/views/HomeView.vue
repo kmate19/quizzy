@@ -4,8 +4,10 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
-import { fuzzySearch, type Card } from '../utils/search'
+import { type Card } from '@/utils/type'
+import { fuzzySearch } from '@/utils/search'
 import { useCounterStore } from '@/stores/counter'
+
 
 const store = useCounterStore()
 const mockMockCards = store.returnMockMockCards()
@@ -102,6 +104,9 @@ onMounted(() => {
   checkVisibility()
   cardColors.value = mockCards.value.map(() => getRandomColor())
 })
+
+
+
 </script>
 
 <template>
@@ -141,16 +146,18 @@ onMounted(() => {
         <template v-if="mockCards.length > 0">
           <div
             v-for="(card, index) in mockCards"
-            :key="card.name"
-            class="p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col border-4 border-white/30 items-center max-h-fit"
+            :key="card.title"
+            class="p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col border-4
+             border-white/30 items-center max-h-fit
+             "
             :class="[getCardColor(index), { 'fade-in': isVisible }]"
             ref="cards"
           >
-            <div class="w-full h-40 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
-              gatya
+            <div class="w-full h-40  rounded-md mb-4 flex items-center justify-center">
+              <img :src="card.image" :alt="card.title" class="rounded mb-2 h-full w-fit" />
             </div>
             <div class="flex items-center justify-center text-center">
-              <h2 class="text-xl font-semibold text-white mb-2">{{ card.name }}</h2>
+              <h2 class="text-xl font-semibold text-white mb-2">{{ card.title }}</h2>
             </div>
             <div class="flex items-center justify-center text-center">
               <h3 class="text-xl font-semibold text-white mb-2">{{ card.category }}</h3>
