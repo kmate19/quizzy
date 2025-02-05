@@ -4,7 +4,7 @@ import { PencilIcon, CircleHelp } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
-import { clientv1 } from '@/lib/apiClient'
+//import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
@@ -129,7 +129,7 @@ const openFileDialog = () => {
 }
 
 const OnLogOut = () => {
-  clientv1.auth.logout.$get()
+  //clientv1.auth.logout.$get()
   router.push('/login')
 }
 
