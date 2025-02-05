@@ -1,7 +1,7 @@
 import { pgTable, serial, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
-import { quizzesTable } from "./quizzesSchema";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
+import { quizTagsTable } from "./quizTagsSchema";
 
 export const tagsTable = pgTable("tags", {
     id: serial().primaryKey(),
@@ -21,5 +21,5 @@ export const insertTagSchema = createInsertSchema(tagsTable).omit({
 });
 
 export const tagsRelations = relations(tagsTable, ({ many }) => ({
-    quizzes: many(quizzesTable)
+    quizzes: many(quizTagsTable)
 }));

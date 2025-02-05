@@ -3,11 +3,11 @@ import { integer, pgEnum, pgTable, real, timestamp, uniqueIndex, uuid, varchar }
 import { usersTable } from "./usersSchema";
 import { quizCardsTable } from "./quizCardsSchema";
 import { reviewsTable } from "./reviewsSchema";
-import { languagesTable } from "./languagesSchema";
-import { tagsTable } from "./tagsSchema";
 import { bytea } from "./customTypes";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { quizLanguagesTable } from "./quizLanguagesSchema";
+import { quizTagsTable } from "./quizTagsSchema";
 
 export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requires_review", "private"]);
 
@@ -48,6 +48,6 @@ export const quizzesRelations = relations(quizzesTable, ({ one, many }) => ({
     }),
     cards: many(quizCardsTable),
     reviews: many(reviewsTable),
-    languages: many(languagesTable),
-    tags: many(tagsTable)
+    languages: many(quizLanguagesTable),
+    tags: many(quizTagsTable)
 }));
