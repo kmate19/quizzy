@@ -92,7 +92,7 @@ const emit = defineEmits(['save'])
         <h2 class="text-xl font-semibold mb-4 text-white">Kategóriák</h2>
 
         <div v-if="selectedCategories.length > 0" class="mb-4">
-          <div class="flex flex-wrap gap-2 overflow-y-scroll custom-scrollbar max-h-40">
+          <div class="flex flex-wrap gap-2 overflow-y-scroll custom-scrollbar max-h-40 bg-">
             <div
               v-for="category in selectedCategories"
               :key="category"

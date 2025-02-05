@@ -3,7 +3,7 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { useRoute } from 'vue-router'
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick, toRaw } from 'vue'
 import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload } from '@/utils/type'
@@ -146,7 +146,7 @@ const addQuestion = () => {
       type: oneQuestion.value.type,
       answers: oneQuestion.value.answers,
       picture: oneQuestion.value.picture,
-      correct_answer_index: oneQuestion.value.correct_answer_index-1,
+      correct_answer_index: oneQuestion.value.correct_answer_index - 1,
     }
   )
 
@@ -156,10 +156,11 @@ const addQuestion = () => {
   }
   oneQuestion.value.answers = oneQuestion.value.type == 'Normál' ? ['', '', '', ''] : ['', '']
   oneQuestion.value.correct_answer_index = 0
+  oneQuestion.value.question = ''
+  oneQuestion.value.type = 'Normál'
 }
 
 const handleQuestionRemove = (index: number) => {
-  console.log(index + ' index')
   data.value.cards.splice(index, 1)
 }
 
@@ -176,7 +177,12 @@ const handleQuestionModify = (index: number) => {
 }
 
 const handleQuizyUpload = async () => {
+  await nextTick()
+  console.log(data.value.banner)
+  console.log(data.value.tags)
+  console.log(data.value.languages)
   console.log(data.value)
+  console.log(toRaw(data.value))
   resetInputValues()
 }
 
@@ -189,19 +195,26 @@ const resetInputValues = () => {
     correct_answer_index: 1,
   }
   for (const key in data.value) {
-     if (Object.prototype.hasOwnProperty.call(data.value, key)) {
+    if (Object.prototype.hasOwnProperty.call(data.value, key)) {
       const typedKey = key as keyof quizUpload;
 
-      if (typeof data.value[typedKey] === 'string') 
-      {
+      if (typeof data.value[typedKey] === 'string') {
         (data.value[typedKey] as string) = '';
-      } 
-      else if (Array.isArray(data.value[typedKey])) 
-      {
+      }
+      else if (Array.isArray(data.value[typedKey])) {
         (data.value[typedKey] as []) = [];
       }
     }
   }
+}
+
+
+const isSelectedTag = (tag: string): boolean => {
+  return data.value.tags.includes(tag)
+}
+
+const isSelectedIso = (code: string): boolean => {
+  return data.value.languages.includes(code)
 }
 
 watch(
@@ -248,19 +261,62 @@ watch(
 
           <v-text-field v-model="data.title" label="Cím" variant="outlined" class="mb-2"
             bg-color="rgba(255, 255, 255, 0.1)" />
-            <!--innnentol-->
-          <v-select v-model="data.tags" :items="tags" label="Kategóriák" variant="outlined" class="glass-input"
-            bg-color="rgba(255, 255, 255, 0.1)" multiple chips clearable></v-select>
-          <v-select v-model="data.languages" :items="isoCodes" label="Nyelvek" variant="outlined" class="glass-input"
-            bg-color="rgba(255, 255, 255, 0.1)" multiple chips clearable></v-select>
-            <!--idaig-->
-          <v-textarea v-model="data.description" label="Leírás" variant="outlined" class="mb-2 glass-input"
-            bg-color="rgba(255, 255, 255, 0.1)" />
+          <div class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-25 mb-4 rounded-md border-1 border-white/10 bg-white/20 p-1">
+          <label
+            v-for="t in tags"
+            :key="t"
+            class="space-x-2 p-1 rounded  max-w-fit"
+          >
+            <input
+              type="checkbox"
+              :value="t"
+              v-model="data.tags"
+              class="hidden"
+            />
+            <div
+              class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
+              :class="
+                isSelectedTag(t)
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-700 backdrop-blur-md '
+              "
+            >
+              {{ t }}
+            </div>
+          </label>
         </div>
-        <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
-          Quiz feltöltése
-          <CloudUpload />
-        </v-btn>
+        <div class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-25 mb-4 rounded-md border-1 border-white/10 p-1  bg-white/20">
+          <label
+            v-for="i in isoCodes"
+            :key="i"
+             class="space-x-2 p-1 rounded  max-w-fit"
+          >
+            <input
+              type="checkbox"
+              :value="i"
+              v-model="data.languages"
+              class="hidden"
+            />
+            <div
+              class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
+              :class="
+                isSelectedIso(i)
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-700  backdrop-blur-md'
+              "
+            >
+              {{ i }}
+            </div>
+          </label>
+        </div>
+          <v-textarea v-model="data.description" label="Leírás" variant="outlined" class="mb-2 glass-input"
+            bg-color="rgba(255, 255, 255, 0.1)"/>
+            <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
+            Quiz feltöltése
+            <CloudUpload />
+          </v-btn>
+        </div>
+
       </v-col>
       <!--Question-->
       <v-col cols="12" md="4" class="glass-panel transition-all duration-500 text-white">

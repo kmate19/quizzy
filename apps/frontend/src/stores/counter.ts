@@ -93,9 +93,43 @@ const mockQuizCardViews = ref<quizCardView[]>([
       },
     ],
   },
-]);
+])
 
-const isoCodes = ['HU','EN','GE']
+const isoCodes = [
+  'HU',
+  'EN',
+  'GE',
+  'JP',
+  'AF',
+  'DN',
+  'AX',
+  'AR',
+  'ES',
+  'RO',
+  'RU',
+  'US',
+  'CA',
+  'GB',
+  'FR',
+  'DE',
+  'IT',
+  'CN',
+  'IN',
+  'BR',
+  'MX',
+  'AU',
+  'ZA',
+  'KR',
+  'SE',
+  'NL',
+  'BE',
+  'CH',
+  'AT',
+  'NO',
+  'PL',
+  'GR',
+  'PT',
+]
 
 export const useCounterStore = defineStore('counter', () => {
   const count = ref(0)
@@ -110,15 +144,15 @@ export const useCounterStore = defineStore('counter', () => {
     return isoCodes
   }
   function returnAllTags() {
-    const allTagsArrays = mockQuizCardViews.value.map((card) => card.tags);
-    const allTags: string[] = [];
-  
+    const allTagsArrays = mockQuizCardViews.value.map((card) => card.tags)
+    const allTags: string[] = []
+
     for (const tags of allTagsArrays) {
-      allTags.push(...tags);
+      allTags.push(...tags)
     }
-  
-    return [...new Set(allTags)]; 
-  };
+
+    return [...new Set(allTags)]
+  }
   function returnMockCardByUuid(id: string) {
     const quiz = mockQuizCardViews.value.find((q: quizCardView) => q.id === id)
     if (!quiz) return null
@@ -133,5 +167,13 @@ export const useCounterStore = defineStore('counter', () => {
     }
   }
 
-  return { count, doubleCount, increment, returnMockMockCards, returnMockCardByUuid, returnIsoCards, returnAllTags }
+  return {
+    count,
+    doubleCount,
+    increment,
+    returnMockMockCards,
+    returnMockCardByUuid,
+    returnIsoCards,
+    returnAllTags,
+  }
 })
