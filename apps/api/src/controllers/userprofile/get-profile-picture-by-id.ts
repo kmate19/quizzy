@@ -2,12 +2,12 @@ import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { usersTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/checkJwt";
-import { zValidator } from "@hono/zod-validator";
+import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const getProfilePictureByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zValidator('param', z.object({ uuid: z.string().uuid() })), async (c) => {
+const getProfilePictureByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ uuid: z.string().uuid() })), async (c) => {
     const { uuid } = c.req.valid("param");
 
     const [pfp] = await db.select({

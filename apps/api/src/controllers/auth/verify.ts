@@ -2,12 +2,12 @@ import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
-import { zValidator } from "@hono/zod-validator";
+import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 import { z } from "zod";
 
-const verifyHandler = GLOBALS.CONTROLLER_FACTORY(zValidator("param", z.object({ emailHash: z.string() })), async (c) => {
+const verifyHandler = GLOBALS.CONTROLLER_FACTORY(zv("param", z.object({ emailHash: z.string() })), async (c) => {
     const emailHash = c.req.valid("param").emailHash;
 
     const [userAndToken] = await db.select()

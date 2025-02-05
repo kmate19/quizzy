@@ -3,14 +3,14 @@ import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
+import { zv } from "@/middlewares/zv";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
-import { zValidator } from "@hono/zod-validator";
 import { eq, or } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import type { ApiResponse } from "repo";
 
-const loginHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', LoginUserSchema), async (c) => {
+const loginHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSchema), async (c) => {
     const loginUserData = c.req.valid('json');
 
     if (getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)) {

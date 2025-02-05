@@ -5,11 +5,11 @@ import { userRolesTable } from "@/db/schemas/userRolesSchema";
 import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
 import postgresErrorHandler from "@/utils/db/postgresErrorHandler";
-import { zValidator } from "@hono/zod-validator";
 import type { ApiResponse } from "repo";
 import { eq, or } from "drizzle-orm";
+import { zv } from "@/middlewares/zv";
 
-const registerHandler = GLOBALS.CONTROLLER_FACTORY(zValidator('json', RegisterUserSchema), async (c) => {
+const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema), async (c) => {
     const registerUserData = c.req.valid('json')
 
     const [user] = await db.select().from(usersTable).where(or(eq(usersTable.email, registerUserData.email), eq(usersTable.username, registerUserData.username)))
