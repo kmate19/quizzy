@@ -1,10 +1,8 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import {
-    insertLanguageSchema,
     insertQuizCardsSchema,
     insertQuizSchema,
-    insertTagSchema,
     languagesTable,
     quizCardsTable,
     quizLanguagesTable,
@@ -21,8 +19,8 @@ import { z } from "zod";
 const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zValidator('json', z.object({
     quiz: insertQuizSchema,
     cards: insertQuizCardsSchema.array(),
-    languages: insertLanguageSchema.array().optional(),
-    tags: insertTagSchema.array().optional(),
+    languages: z.string().array().optional(),
+    tags: z.string().array().optional(),
 })), async (c) => {
     // TODO: this needs way more error handling
     const { userId } = c.get('accessTokenPayload');
@@ -45,12 +43,12 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zValidator('json'
             })
 
             languages ? languages.forEach(async (language) => {
-                const [languageId] = await tr.select({ id: languagesTable.id }).from(languagesTable).where(eq(languagesTable.iso_code, language.iso_code));
+                const [languageId] = await tr.select({ id: languagesTable.id }).from(languagesTable).where(eq(languagesTable.iso_code, language));
                 await tr.insert(quizLanguagesTable).values({ language_id: languageId.id, quiz_id: quizId.id });
             }) : {};
 
             tags ? tags.forEach(async (tag) => {
-                const [tagId] = await tr.select({ id: tagsTable.id }).from(tagsTable).where(eq(tagsTable.name, tag.name));
+                const [tagId] = await tr.select({ id: tagsTable.id }).from(tagsTable).where(eq(tagsTable.name, tag));
                 await tr.insert(quizTagsTable).values({ tag_id: tagId.id, quiz_id: quizId.id });
             }) : {};
         });
