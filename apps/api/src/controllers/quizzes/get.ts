@@ -4,7 +4,7 @@ import { quizzesTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/checkJwt";
 import { numericString } from "@/utils/schemas/zod-schemas";
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
+import { eq, getTableColumns } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
@@ -24,7 +24,8 @@ const getHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zValidator('query', z
         return c.json(res, 400);
     }
 
-    const quizzes = await db.select().from(quizzesTable).where(eq(quizzesTable.status, "published")).offset(limit * page).limit(limit);
+    const { status, ...rest } = getTableColumns(quizzesTable);
+    const quizzes = await db.select({ ...rest }).from(quizzesTable).where(eq(quizzesTable.status, "published")).offset(limit * page).limit(limit);
 
     const res = {
         message: "Quizzes fetched",
