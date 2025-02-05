@@ -11,12 +11,12 @@ import {
     tagsTable
 } from "@/db/schemas";
 import checkJwt from "@/middlewares/checkJwt";
-import { zValidator } from "@hono/zod-validator";
+import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zValidator('json', z.object({
+const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.object({
     quiz: insertQuizSchema,
     cards: insertQuizCardsSchema.array(),
     languages: z.string().array().optional(),

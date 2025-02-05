@@ -2,11 +2,11 @@ import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { postApiKeySchema, userApiKeys } from "@/db/schemas/userApiKeysSchema";
 import checkJwt from "@/middlewares/checkJwt";
-import { zValidator } from "@hono/zod-validator";
+import { zv } from "@/middlewares/zv";
 import { eq, sql } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 
-const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zValidator("json", postApiKeySchema), async (c) => {
+const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zv("json", postApiKeySchema), async (c) => {
     const apiKeyData = c.req.valid("json");
 
     // PERF: probably should be in a worker
