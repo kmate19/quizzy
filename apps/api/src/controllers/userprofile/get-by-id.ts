@@ -33,7 +33,7 @@ const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zValidator(
         data: userData,
     } satisfies ApiResponse;
 
-    c.json(res, 200);
+    return c.json(res, 200);
 })
 
 export default getProfileByIdHandler;

@@ -31,7 +31,7 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
         data: userData,
     } satisfies ApiResponse;
 
-    c.json(res, 200);
+    return c.json(res, 200);
 })
 
 export default getBaseDataHandler;
