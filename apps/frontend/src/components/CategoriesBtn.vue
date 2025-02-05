@@ -5,7 +5,7 @@ import { useCounterStore } from '@/stores/counter'
 
 
 const store = useCounterStore()
-const categories = [...new Set(store.returnMockMockCards().value.map((card) => card.category))]
+const categories = ref([''])
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedCategoriesData = ref<string[]>([])
@@ -14,10 +14,26 @@ const includeName = ref(true)
 
 const selectedCategories = computed(() => selectedCategoriesData.value)
 
+const extractCategories = () => {
+  const allTagsArrays = [...new Set(store.returnMockMockCards().value.map((card) => card.tags))];
+  const allTags: string[] = [];
+
+  for (const tags of allTagsArrays) {
+    allTags.push(...tags);
+  }
+
+  const uniqueTags = [...new Set(allTags)];
+  categories.value = uniqueTags;
+};
+
+extractCategories();
+
 const filteredCategories = computed(() => {
-  const query = searchQuery.value.toLowerCase()
-  return categories.filter((category) => category.toLowerCase().includes(query))
-})
+  const query = searchQuery.value.toLowerCase();
+  return categories.value.filter((category) =>
+    category.toLowerCase().includes(query)
+  );
+});
 
 const isSelected = (category: string): boolean => {
   return selectedCategoriesData.value.includes(category)
