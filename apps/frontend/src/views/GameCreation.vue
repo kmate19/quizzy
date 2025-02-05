@@ -3,7 +3,7 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { ref, watch } from 'vue'
-import { CloudUpload, CirclePlus } from 'lucide-vue-next'
+import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
@@ -188,9 +188,9 @@ watch(questionType, (newValue: string) => {
       <v-col
         cols="12"
         md="4"
-        class="glass-panel transition-transform duration-200 ease-in-out hover:transform hover:-translate-y-0.5"
+        class="glass-panel"
       >
-        <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10 text-white first">
+        <div class="p-6 rounded-lg backdrop-blur-lg  text-white first">
           <div class="mb-2">
             <input
               type="file"
@@ -200,8 +200,8 @@ watch(questionType, (newValue: string) => {
               @change="handleGameImageUpload"
             />
             <div
-              class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden cursor-pointer transition-all hover:opacity-75"
-              @click="$refs.gameImageInput.click()"
+              class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75"
+              
             >
               <v-img
                 :src="gameImagePreview || '/placeholder.svg?height=200&width=300'"
@@ -210,8 +210,8 @@ watch(questionType, (newValue: string) => {
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
-                    <CirclePlus
-                      class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500"
+                    <CirclePlus @click="$refs.gameImageInput.click()"
+                      class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
                       stroke-width="0.75"
                     />
                   </div>
@@ -219,10 +219,10 @@ watch(questionType, (newValue: string) => {
               </v-img>
               <div
                 v-if="gameImagePreview"
-                class="absolute top-2 right-2 p-1 rounded-full bg-black/50 cursor-pointer"
+                class="absolute top-2 right-2 rounded-full cursor-pointer transition-all duration-500 hover:bg-white hover:text-red-600 w-fit h-fit"
                 @click.stop="clearGameImage"
               >
-                <X class="hover:text-red-600 hover:bg-white rounded-full" />
+                <X class="rounded-full" />
               </div>
             </div>
           </div>
@@ -251,9 +251,9 @@ watch(questionType, (newValue: string) => {
       <v-col
         cols="12"
         md="4"
-        class="glass-panel transition-transform duration-200 ease-in-out hover:transform hover:-translate-y-0.5 text-white"
+        class="glass-panel transition-all duration-500 text-white"
       >
-        <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
+        <div class="p-6 rounded-lg backdrop-blur-lg">
           <div class="mb-2">
             <input
               type="file"
@@ -263,8 +263,8 @@ watch(questionType, (newValue: string) => {
               @change="handleQuestionImageUpload"
             />
             <div
-              class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden cursor-pointer transition-all hover:opacity-75"
-              @click="$refs.questionImageInput.click()"
+              class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75"
+             
             >
               <v-img
                 :src="questionImagePreview || '/placeholder.svg?height=200&width=300'"
@@ -273,15 +273,15 @@ watch(questionType, (newValue: string) => {
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
-                    <CirclePlus
-                      class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500"
+                    <CirclePlus  @click="$refs.questionImageInput.click()"
+                      class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
                       stroke-width="0.75"
                     />
                   </div>
                 </template>
               </v-img>
               <div
-                v-if="questionImagePreview"
+                v-if="questionImagePreview && !questionImagePreview.includes('/placeholder')"
                 class="absolute top-2 right-2 p-1 rounded-full bg-black/50 cursor-pointer"
                 @click.stop="clearQuestionImage"
               >
@@ -342,7 +342,7 @@ watch(questionType, (newValue: string) => {
                   : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
               "
               min="1"
-              max="4"
+              :max="questionType == 'Normál'?4:2"
             />
           </div>
 
@@ -354,7 +354,8 @@ watch(questionType, (newValue: string) => {
       <v-col
         cols="12"
         md="4"
-        class="glass-panel transition-transform duration-200 ease-in-out hover:transform hover:-translate-y-0.5 text-white max-h-[calc(100vh-100px)] overflow-y-scroll custom-scrollbar"
+        class="glass-panel transition-transform duration-200 ease-in-out hover:transform hover:-translate-y-0.5
+         text-white max-h-[calc(100vh-100px)] overflow-y-scroll custom-scrollbar"
       >
         <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
           <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
@@ -362,7 +363,7 @@ watch(questionType, (newValue: string) => {
             <div
               v-for="(q, index) in createdQuestions"
               :key="index"
-              class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500"
+              class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500 cursor-pointer"
               @click="handleQuestionModify(index)"
             >
               <XButton @click.stop="handleQuestionRemove(index)"> </XButton>
@@ -380,9 +381,7 @@ watch(questionType, (newValue: string) => {
                   {{ answer }}
                 </div>
               </div>
-              <h2 class="text-green-500">
-                Helyes válasz: {{ q.answers[q.correctAnswerIndex] }}
-              </h2>
+              <h2 class="text-green-500">Helyes válasz: {{ q.answers[q.correctAnswerIndex] }}</h2>
             </div>
           </div>
         </div>
