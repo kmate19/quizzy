@@ -4,9 +4,7 @@ import HomeView from '@/views/HomeView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import GameCreation from '@/views/GameCreation.vue'
 //import { clientv1 } from '@/lib/apiClient'
-import { ref, watch  } from 'vue'
-
-
+import { ref, watch } from 'vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,40 +33,50 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
       },
+      children: [
+        {
+          path: ':uuid',
+          name: 'game_creation_with_uuid',
+          component: GameCreation,
+          meta: {
+            requiresAuth: true,
+          },
+        },
+      ],
     },
   ],
 })
 
-const title = ref('Quizzy');
+const title = ref('Quizzy')
 
 router.beforeEach((toRoute, fromRoute, next) => {
-  let newTitle = 'Quizzy'; 
+  let newTitle = 'Quizzy'
 
   switch (toRoute.name?.toString()) {
     case 'loginRegister':
-      newTitle = 'Autentikáció';
-      break;
+      newTitle = 'Autentikáció'
+      break
     case 'home':
-      newTitle = 'Kezdőlap';
-      break;
+      newTitle = 'Kezdőlap'
+      break
     case 'profile':
-      newTitle = 'Profil';
-      break;
+      newTitle = 'Profil'
+      break
     case 'game_creation':
-      newTitle = 'Játék készítés';
-      break;
+      newTitle = 'Játék készítés'
+      break
   }
 
-  title.value = newTitle; 
-  next();
-});
+  title.value = newTitle
+  next()
+})
 
 watch(
   title,
   (newTitleValue) => {
-    document.title = `Quizzy - ${newTitleValue}`;
+    document.title = `Quizzy - ${newTitleValue}`
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 
 export default router
