@@ -1,13 +1,16 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, serial, smallint, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, serial, smallint, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { quizzesTable } from "./quizzesSchema";
 import { bytea } from "./customTypes";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+const quizTypeEnum = pgEnum("quiz_type", ["normal", "twochoice"]);
+
 export const quizCardsTable = pgTable("quiz_cards", {
     id: serial().primaryKey(),
     quiz_id: uuid().notNull().references(() => quizzesTable.id),
+    type: quizTypeEnum().notNull(),
     question: varchar({ length: 255 }).notNull(),
     answers: varchar({ length: 255 }).array().notNull(),
     picture: bytea().notNull(),
