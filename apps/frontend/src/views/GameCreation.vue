@@ -309,7 +309,7 @@ watch(
             </div>
           </label>
         </div>
-          <v-textarea v-model="data.description" label="Leírás" variant="outlined" class="mb-2 glass-input"
+          <v-textarea v-model="data.description" label="Leírás" variant="outlined" class="mb-2 glass-input gameDesc"
             bg-color="rgba(255, 255, 255, 0.1)"/>
             <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
             Quiz feltöltése
