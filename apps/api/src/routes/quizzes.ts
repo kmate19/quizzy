@@ -1,3 +1,7 @@
+import getHandlers from "@/controllers/quizzes/get";
+import getByIdHandlers from "@/controllers/quizzes/get-by-id";
+import getOwnHandlers from "@/controllers/quizzes/get-own";
+import publishHandlers from "@/controllers/quizzes/publish";
 import { Hono } from "hono";
 
 const quizzes = new Hono().basePath("/quizzes")
@@ -5,11 +9,10 @@ const quizzes = new Hono().basePath("/quizzes")
     // more rigorously, instead there should be a separate route for uploading
     // drafts where we do less validation, as drafts are only exposed to their
     // creators
-    .post("/publish",)
+    .post("/publish", ...publishHandlers)
     // gets max 50, default 20, minimum 10 limit quizzes at once
-    .get("/",)
-    // gets max 50, default 20, minimum 10 limit own quizzes at once
-    .get("/own")
-    .get("/:uuid",);
+    .get("/", ...getHandlers)
+    .get("/own", ...getOwnHandlers)
+    .get("/:uuid", ...getByIdHandlers);
 
 export default quizzes;
