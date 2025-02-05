@@ -5,7 +5,7 @@ import checkJwt from "@/middlewares/checkJwt";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 
-const getOwn = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
+const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     const { userId } = c.get("accessTokenPayload");
 
     const quizzes = await db.select().from(quizzesTable).where(eq(quizzesTable.user_id, userId));
@@ -18,4 +18,4 @@ const getOwn = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     return c.json(res, 200);
 });
 
-export default getOwn;
+export default getOwnHandlers;
