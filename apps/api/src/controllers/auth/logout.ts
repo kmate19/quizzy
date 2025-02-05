@@ -1,7 +1,7 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
-import checkJwt from "@/middlewares/checkJwt";
+import checkJwt from "@/middlewares/check-jwt";
 import { eq } from "drizzle-orm";
 import { deleteCookie } from "hono/cookie";
 import type { ApiResponse } from "repo";
