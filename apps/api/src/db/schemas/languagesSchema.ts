@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { uniqueIndex, pgTable, serial, timestamp, varchar, pgEnum } from "drizzle-orm/pg-core";
 import { quizzesTable } from "./quizzesSchema";
+import { createInsertSchema } from "drizzle-zod";
 
 export const languageSupportEnum = pgEnum("language_support", ["official", "partial", "none"]);
 
@@ -18,6 +19,15 @@ export const languagesTable = pgTable("languages", {
         uniqueIndex().on(table.iso_code),
         uniqueIndex().on(table.icon),
     ];
+});
+
+export const insertLanguageSchema = createInsertSchema(languagesTable).omit({
+    id: true,
+    created_at: true,
+    updated_at: true,
+    name: true,
+    icon: true,
+    support: true,
 });
 
 export const languagesRelations = relations(languagesTable, ({ many }) => ({
