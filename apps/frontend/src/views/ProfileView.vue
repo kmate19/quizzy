@@ -7,6 +7,9 @@ import MistBackground from '@/components/MistBackground.vue'
 //import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
+import { useCounterStore } from '@/stores/counter'
+
+const store = useCounterStore()
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -61,38 +64,7 @@ const user = {
     },
   ],
   number_of_friends: 3,
-  quizzes: [
-    {
-      category: 'WWII',
-      name: 'what happened in world war 2?',
-      games: '308',
-      quize_img: '/placeholder.svg?height=80&width=80',
-    },
-    {
-      category: 'WWII',
-      name: 'what happened in world war 2?',
-      games: '308',
-      quize_img: '/placeholder.svg?height=80&width=80',
-    },
-    {
-      category: 'WWII',
-      name: 'what happened in world war 2?',
-      games: '308',
-      quize_img: '/placeholder.svg?height=80&width=80',
-    },
-    {
-      category: 'WWII',
-      name: 'what happened in world war 2?',
-      games: '308',
-      quize_img: '/placeholder.svg?height=80&width=80',
-    },
-    {
-      category: 'WWII',
-      name: 'what happened in world war 2?',
-      games: '308',
-      quize_img: '/placeholder.svg?height=80&width=80',
-    },
-  ],
+  quizzes: store.returnMockMockCards(),
   number_of_quizzes: 4,
 }
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -174,6 +146,11 @@ const handlePasswordChange = async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000))
   closePasswordModal()
 }
+
+const handleQuizView = (uuid:string)=>{
+  router.push(`/game_creation/${uuid}`)
+}
+
 </script>
 
 <template>
@@ -264,7 +241,8 @@ const handlePasswordChange = async () => {
           <div
             v-for="friend in user.friends"
             :key="friend.name"
-            class="flex gap-4 p-2 rounded-xl hover:bg-white/20 h-32 text-white ease-in-out bg-multi-color-gradient border-white border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white
+            hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
           >
             <img
               :src="friend.pfp"
@@ -289,25 +267,35 @@ const handlePasswordChange = async () => {
         <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
           Saját quizzyk
           <span class="text-sm font-normal text-white/70">
-            {{ user.quizzes.length }} összesen
+            {{ user.quizzes.value.length }} összesen
           </span>
         </h2>
         <div class="space-y-4 overflow-y-auto custom-scrollbar p-6" style="max-height: 400px">
           <div
-            v-for="quiz in user.quizzes"
-            :key="quiz.name"
-            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white ease-in-out border-white border-4 shadow-lg hover:-translate-y-0.5 transition-all duration-300 bg-multi-color-gradient"
+            v-for="quiz in user.quizzes.value"
+            :key="quiz.title"
+            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white
+            hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
+            @click="quiz.status=='draft'?handleQuizView(quiz.uuid):''"
           >
             <img
-              :src="quiz.quize_img"
+              :src="quiz.image"
               alt="Quiz thumbnail"
               class="w-20 h-20 rounded-lg object-cover"
             />
-            <div class="flex-1">
-              <h3 class="text-white font-medium text-base">{{ quiz.name }}</h3>
+            <div class="flex-1 flex flex-col h-full">
+              <div>
+              <h3 class="text-white font-medium text-base">{{ quiz.title }}</h3>
               <p class="text-sm text-white/70 mb-2">Kategória: {{ quiz.category }}</p>
-              <p class="text-sm">
-                <span class="text-purple-300">{{ quiz.games }}</span> alkalommal játszott
+                <p class="text-sm">
+                <span class="text-white line-clamp-2">{{ quiz.desc.length > 100 ? quiz.desc.slice(0, 100) + '...' : quiz.desc }}</span>
+                </p>
+              </div>
+                <p class="text-md mt-auto self-end font-bold" :class="{
+                'text-white [text-shadow:_-1px_-1px_0_#000,_1px_-1px_0_#000,_-1px_1px_0_#000,_1px_1px_0_#000]': quiz.status === 'draft',
+                'text-green-400 [text-shadow:_-1px_-1px_0_#000,_1px_-1px_0_#000,_-1px_1px_0_#000,_1px_1px_0_#000]': quiz.status === 'active'
+                }">
+                {{ quiz.status }}
               </p>
             </div>
           </div>

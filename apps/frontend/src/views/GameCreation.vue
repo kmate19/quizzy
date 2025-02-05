@@ -2,30 +2,22 @@
 import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
+import { useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { toast, type ToastOptions } from 'vue3-toastify'
+import type { Question, Quiz, Card } from '@/utils/type'
+import { useCounterStore } from '@/stores/counter'
 
-interface Question {
-  text: string
-  type: '2 válaszos' | 'Normál'
-  image: string
-  answers: string[]
-  correctAnswerIndex: number
-}
-
-interface Quiz {
-  image: string
-  title: string
-  category: string
-  questions: Question[]
-}
+const store = useCounterStore()
+const route = useRoute()
 
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const gameImagePreview = ref<string>('')
 const gameTitle = ref<string>('')
 const gameCategory = ref<string>('')
+const gameDescription = ref<string>('')
 
 const questionImageInput = ref<HTMLInputElement | null>(null)
 const questionImagePreview = ref<string>('')
@@ -35,6 +27,33 @@ const answers = ref<string[]>(questionType.value === '2 válaszos' ? ['', ''] : 
 const questionAnswerIndex = ref<number>(1)
 
 const createdQuestions = ref<Question[]>([])
+
+const hasUuid = () => {
+  const uuid: string = route.params.uuid[0]
+  const quiz = store.returnMockCardByUuid(uuid)
+  console.log(quiz)
+  if (quiz) {
+    handleLoadDraft(quiz)
+  }
+}
+
+const handleLoadDraft = (q: Card) => {
+  gameImagePreview.value = q.image
+  gameTitle.value = q.title
+  gameCategory.value = q.category
+  gameDescription.value = q.desc
+  const firstQuestion: Question = q.questions[0]
+
+  questionImagePreview.value = firstQuestion.image
+  question.value = firstQuestion.text
+  questionType.value = firstQuestion.type
+  answers.value = firstQuestion.answers
+  questionAnswerIndex.value = firstQuestion.correctAnswerIndex + 1
+
+  createdQuestions.value = q.questions.slice(1)
+}
+
+hasUuid()
 
 const handleGameImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
@@ -150,6 +169,7 @@ const fullQuiz = computed(
     title: gameTitle.value,
     category: gameCategory.value,
     questions: createdQuestions.value,
+    desc: gameDescription.value,
   }),
 )
 
@@ -159,11 +179,9 @@ const handleQuizyUpload = async () => {
 }
 
 const resetInputValues = () => {
-  const firstDiv = document.querySelector('.first')
-  const firstInputs = firstDiv!.querySelectorAll('input')
-  firstInputs!.forEach((el) => {
-    el.value = ''
-  })
+  gameDescription.value = ''
+  gameTitle.value = ''
+  gameCategory.value = ''
   gameImagePreview.value = ''
   createdQuestions.value = []
 }
@@ -185,12 +203,8 @@ watch(questionType, (newValue: string) => {
       class="mx-auto max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
     >
       <!--"Cover"-->
-      <v-col
-        cols="12"
-        md="4"
-        class="glass-panel"
-      >
-        <div class="p-6 rounded-lg backdrop-blur-lg  text-white first">
+      <v-col cols="12" md="4" class="glass-panel">
+        <div class="p-6 rounded-lg backdrop-blur-lg text-white first">
           <div class="mb-2">
             <input
               type="file"
@@ -201,7 +215,6 @@ watch(questionType, (newValue: string) => {
             />
             <div
               class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75"
-              
             >
               <v-img
                 :src="gameImagePreview || '/placeholder.svg?height=200&width=300'"
@@ -210,7 +223,8 @@ watch(questionType, (newValue: string) => {
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
-                    <CirclePlus @click="$refs.gameImageInput.click()"
+                    <CirclePlus
+                      @click="$refs.gameImageInput.click()"
                       class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
                       stroke-width="0.75"
                     />
@@ -242,17 +256,20 @@ watch(questionType, (newValue: string) => {
             class="glass-input"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
+          <v-textarea
+            v-model="gameDescription"
+            label="Leírás"
+            variant="outlined"
+            class="mb-2 glass-input"
+            bg-color="rgba(255, 255, 255, 0.1)"
+          />
         </div>
         <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
           Quiz feltöltése <CloudUpload />
         </v-btn>
       </v-col>
       <!--Question-->
-      <v-col
-        cols="12"
-        md="4"
-        class="glass-panel transition-all duration-500 text-white"
-      >
+      <v-col cols="12" md="4" class="glass-panel transition-all duration-500 text-white">
         <div class="p-6 rounded-lg backdrop-blur-lg">
           <div class="mb-2">
             <input
@@ -264,7 +281,6 @@ watch(questionType, (newValue: string) => {
             />
             <div
               class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75"
-             
             >
               <v-img
                 :src="questionImagePreview || '/placeholder.svg?height=200&width=300'"
@@ -273,7 +289,8 @@ watch(questionType, (newValue: string) => {
               >
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
-                    <CirclePlus  @click="$refs.questionImageInput.click()"
+                    <CirclePlus
+                      @click="$refs.questionImageInput.click()"
                       class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
                       stroke-width="0.75"
                     />
@@ -342,7 +359,7 @@ watch(questionType, (newValue: string) => {
                   : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
               "
               min="1"
-              :max="questionType == 'Normál'?4:2"
+              :max="questionType == 'Normál' ? 4 : 2"
             />
           </div>
 
@@ -354,8 +371,7 @@ watch(questionType, (newValue: string) => {
       <v-col
         cols="12"
         md="4"
-        class="glass-panel transition-transform duration-200 ease-in-out hover:transform hover:-translate-y-0.5
-         text-white max-h-[calc(100vh-100px)] overflow-y-scroll custom-scrollbar"
+        class="glass-panel text-white max-h-[calc(100vh-100px)] overflow-y-scroll custom-scrollbar"
       >
         <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
           <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
