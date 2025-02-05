@@ -3,7 +3,7 @@ import verifyHandler from "@/controllers/auth/verify";
 import registerHandler from "@/controllers/auth/register";
 import loginHandler from "@/controllers/auth/login";
 import logoutHandler from "@/controllers/auth/logout";
-import checkJwt from "@/middlewares/checkJwt";
+import checkJwt from "@/middlewares/check-jwt";
 import { z } from "zod";
 import { zv } from "@/middlewares/zv";
 

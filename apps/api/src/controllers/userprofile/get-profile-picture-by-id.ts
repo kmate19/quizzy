@@ -1,7 +1,7 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { usersTable } from "@/db/schemas";
-import checkJwt from "@/middlewares/checkJwt";
+import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";

@@ -1,7 +1,7 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { quizzesTable } from "@/db/schemas";
-import checkJwt from "@/middlewares/checkJwt";
+import checkJwt from "@/middlewares/check-jwt";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 

@@ -1,5 +1,5 @@
 import { createTransport } from "nodemailer";
-import createEmailTemplate from "./createEmail";
+import createEmailTemplate from "./create-email";
 import ENV from "@/config/env";
 
 const transporter = createTransport({

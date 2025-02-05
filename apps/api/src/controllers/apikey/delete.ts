@@ -1,7 +1,7 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { userApiKeys } from "@/db/schemas/userApiKeysSchema";
-import checkJwt from "@/middlewares/checkJwt";
+import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { numericString } from "@/utils/schemas/zod-schemas";
 import { and, eq } from "drizzle-orm";

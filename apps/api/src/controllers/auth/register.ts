@@ -4,7 +4,7 @@ import { rolesTable } from "@/db/schemas/rolesSchema";
 import { userRolesTable } from "@/db/schemas/userRolesSchema";
 import { RegisterUserSchema, usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
-import postgresErrorHandler from "@/utils/db/postgresErrorHandler";
+import postgresErrorHandler from "@/utils/db/postgres-error-handler";
 import type { ApiResponse } from "repo";
 import { eq, or } from "drizzle-orm";
 import { zv } from "@/middlewares/zv";
@@ -63,7 +63,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
     // (why am i even compiling if theres one more issue because of this, im refactoring)
     const worker = new Worker(new URL(
         GLOBALS.WORKERCONF.workerRelativePath +
-        "workers/emailWorker" +
+        "workers/email-worker" +
         GLOBALS.WORKERCONF.workerExtension, import.meta.url).href);
     worker.onerror = (e) => {
         console.error(e);
