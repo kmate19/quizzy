@@ -36,9 +36,11 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
         picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
     })));
 
+
+    let quizId: { id: string };
     try {
         await db.transaction(async (tr) => {
-            const [quizId] = await tr.insert(quizzesTable).values({ user_id: userId, ...parsedQuiz }).returning({ id: quizzesTable.id });
+            [quizId] = await tr.insert(quizzesTable).values({ user_id: userId, ...parsedQuiz }).returning({ id: quizzesTable.id });
             parsedCards.forEach(async (card) => {
                 await tr.insert(quizCardsTable).values({ quiz_id: quizId.id, ...card });
             })
@@ -60,6 +62,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
 
     const res = {
         message: "Quiz published",
+        data: quizId!
     } satisfies ApiResponse;
 
     return c.json(res, 201);
