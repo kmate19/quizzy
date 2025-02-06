@@ -7,6 +7,7 @@ import db from '@/db';
 import * as schema from "@/db/schemas/index";
 import GLOBALS from '@/config/globals';
 import { smallBase64Img } from './utils/constants';
+import { randomUUIDv7 } from 'bun';
 
 const client = testClient(app).api.v1;
 
@@ -46,6 +47,50 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
 }
 
 describe('quiz related routes', async () => {
+    describe('get quiz by id', async () => {
+        test('should return quiz with relevant data', async () => {
+            const { cookies } = await registerAndLogin(client)
+            const post = await publisTestQuiz(client, cookies, 0);
+            expect(post.status).toBe(201);
+
+            const { data } = await post.json();
+
+            const quiz = await client.quizzes[':uuid'].$get({ param: { uuid: data.id } }, { headers: { cookie: cookies.join(';') } });
+            expect(quiz.status).toBe(200);
+
+            if (quiz.status !== 200) return;
+            const { data: quizData } = await quiz.json();
+
+            expect(quizData.title).toBe("test quiz0");
+            expect(quizData.description).toBe("test quiz description");
+            expect(quizData.user.username).toBe("mateka");
+            expect(quizData.tags[0].tag.name).toBe("test tag");
+            expect(quizData.languages[0].language.name).toBe("test language");
+            quizData.cards.forEach((card: any) => {
+                expect(card.type).toBe("normal");
+                expect(card.question).toBe("test question");
+                expect(card.answers[0]).toBe("test answer");
+                expect(card.correct_answer_index).toBe(0);
+            })
+        });
+        test('should not return quizzes that are not of published status', async () => {
+            const { cookies } = await registerAndLogin(client)
+
+            const post = await publisTestQuiz(client, cookies, 0, "draft");
+            expect(post.status).toBe(201);
+
+            const { data } = await post.json();
+
+            const quiz = await client.quizzes[':uuid'].$get({ param: { uuid: data.id } }, { headers: { cookie: cookies.join(';') } });
+            expect(quiz.status).toBe(404);
+        });
+        test('should return 404 if quiz is not found', async () => {
+            const { cookies } = await registerAndLogin(client)
+
+            const quiz = await client.quizzes[':uuid'].$get({ param: { uuid: randomUUIDv7() } }, { headers: { cookie: cookies.join(';') } });
+            expect(quiz.status).toBe(404);
+        });
+    });
     describe('get own quizzes', async () => {
         test('should not return other users quizzes', async () => {
             const { cookies } = await registerAndLogin(client);
