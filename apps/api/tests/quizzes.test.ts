@@ -46,6 +46,59 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
 }
 
 describe('quiz related routes', async () => {
+    describe('get own quizzes', async () => {
+        test('should not return other users quizzes', async () => {
+            const { cookies } = await registerAndLogin(client);
+
+            const otherUserCookies = (await registerAndLogin(client, {
+                username: "otheruser",
+                password: "otherpassword",
+                email: "test@example.org"
+            })).cookies;
+
+            const post = await publisTestQuiz(client, cookies, 0);
+            expect(post.status).toBe(201);
+
+            const postOther = await publisTestQuiz(client, otherUserCookies, 11);
+            expect(postOther.status).toBe(201);
+
+            const quizzes = await client.quizzes.own.$get({ query: {} }, { headers: { cookie: cookies.join(';') } });
+            expect(quizzes.status).toBe(200);
+
+            const { data } = await quizzes.json();
+
+            expect(data.length).toBe(1);
+            expect(data[0].title).toBe('test quiz0');
+        });
+        test('should return all own quizzes (even non published ones) with relevant data', async () => {
+            const { cookies } = await registerAndLogin(client)
+
+            const post = await publisTestQuiz(client, cookies, 0);
+            expect(post.status).toBe(201);
+
+            const post1 = await publisTestQuiz(client, cookies, 1, "draft");
+            expect(post1.status).toBe(201);
+
+            const post2 = await publisTestQuiz(client, cookies, 2, "requires_review");
+            expect(post2.status).toBe(201);
+
+            const post3 = await publisTestQuiz(client, cookies, 3, "private");
+            expect(post3.status).toBe(201);
+
+            const quizzes = await client.quizzes.own.$get({ query: {} }, { headers: { cookie: cookies.join(';') } });
+            expect(quizzes.status).toBe(200);
+
+            const { data } = await quizzes.json();
+
+            expect(data.length).toBe(4);
+            data.forEach((quiz: any, idx: number) => {
+                expect(quiz.title).toBe(`test quiz${idx}`);
+                expect(quiz.description).toBe("test quiz description");
+                expect(quiz.tags[0].tag.name).toBe("test tag");
+                expect(quiz.languages[0].language.name).toBe("test language");
+            });
+        });
+    });
     describe('get quizzes', async () => {
         test('should return all quizzes with relevant data', async () => {
             const { cookies } = await registerAndLogin(client)
@@ -57,8 +110,6 @@ describe('quiz related routes', async () => {
 
             const { data } = await quizzes.json();
 
-            console.error(data);
-
             expect(data.length).toBe(1);
             expect(data[0].title).toBe("test quiz0");
             expect(data[0].description).toBe("test quiz description");
@@ -69,8 +120,7 @@ describe('quiz related routes', async () => {
         test('should return with correct limits and offsets', async () => {
             const { cookies } = await registerAndLogin(client)
             for (let i = 0; i < 80; ++i) {
-                const post = await publisTestQuiz(client, cookies, i);
-                expect(post.status).toBe(201);
+                await publisTestQuiz(client, cookies, i);
             }
 
             const quizzes = await client.quizzes.$get({ query: {} }, { headers: { cookie: cookies.join(';') } });

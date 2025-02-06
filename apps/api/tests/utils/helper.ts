@@ -36,7 +36,7 @@ export async function registerAndLogin(
 
     await db.update(usersTable)
         .set({ auth_status: "active" })
-        .where(eq(usersTable.email, "test@example.com"))
+        .where(eq(usersTable.email, user.email))
 
     const loginCreds = { username_or_email: user.email, password: user.password };
 
