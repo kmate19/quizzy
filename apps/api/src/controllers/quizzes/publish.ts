@@ -26,15 +26,41 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
     // TODO: this needs way more error handling
     const { userId } = c.get('accessTokenPayload');
     const { quiz, cards, languages, tags } = c.req.valid('json');
-    const parsedQuiz = {
-        ...quiz,
-        banner: await makeSharpImage(Buffer.from(quiz.banner.split(';base64,')[1], 'base64'))
+
+    let parsedQuiz;
+    try {
+        parsedQuiz = {
+            ...quiz,
+            banner: await makeSharpImage(Buffer.from(quiz.banner.split(';base64,')[1], 'base64'))
+        }
+    } catch (e) {
+        console.error(e);
+        const res = {
+            message: "Failed to publish quiz",
+            error: {
+                message: "Failed to publish quiz",
+                case: "server"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 500);
     }
 
-    const parsedCards = await Promise.all(cards.map(async (card) => ({
-        ...card,
-        picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
-    })));
+    let parsedCards;
+    try {
+        parsedCards = await Promise.all(cards.map(async (card) => ({
+            ...card,
+            picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
+        })));
+    } catch (e) {
+        const res = {
+            message: "Failed to publish quiz",
+            error: {
+                message: "Failed to publish quiz",
+                case: "server"
+            }
+        }
+        return c.json(res, 500);
+    }
 
 
     let quizId: { id: string };
@@ -57,7 +83,14 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
         });
     } catch (e) {
         console.error(e);
-        throw new Error("Failed to publish quiz");
+        const res = {
+            message: "Failed to publish quiz",
+            error: {
+                message: "Failed to publish quiz",
+                case: "server"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 500);
     }
 
     const res = {
