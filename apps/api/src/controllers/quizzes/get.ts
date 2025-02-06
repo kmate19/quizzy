@@ -25,8 +25,16 @@ const getHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('query', z.object(
                     username: true,
                 }
             },
-            tags: true,
-            languages: true,
+            tags: {
+                with: {
+                    tag: true
+                }
+            },
+            languages: {
+                with: {
+                    language: true
+                }
+            },
         }
     })
 
