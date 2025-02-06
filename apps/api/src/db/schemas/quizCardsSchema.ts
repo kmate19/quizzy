@@ -5,7 +5,7 @@ import { bytea } from "./customTypes";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-const quizTypeEnum = pgEnum("quiz_type", ["normal", "twochoice"]);
+export const quizTypeEnum = pgEnum("quiz_type", ["normal", "twochoice"]);
 
 export const quizCardsTable = pgTable("quiz_cards", {
     id: serial().primaryKey(),

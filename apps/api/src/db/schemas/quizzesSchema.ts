@@ -38,7 +38,7 @@ export const insertQuizSchema = createInsertSchema(quizzesTable).omit({
     rating: true,
     plays: true,
 }).extend({
-    banner: z.string().base64(),
+    banner: z.string(),
 });
 
 export const quizzesRelations = relations(quizzesTable, ({ one, many }) => ({
