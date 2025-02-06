@@ -12,6 +12,7 @@ import {
 } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
+import { makeSharpImage } from "@/utils/helpers";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
@@ -27,13 +28,13 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
     const { quiz, cards, languages, tags } = c.req.valid('json');
     const parsedQuiz = {
         ...quiz,
-        banner: Buffer.from(quiz.banner, 'base64'),
+        banner: await makeSharpImage(Buffer.from(quiz.banner.split(';base64,')[1], 'base64'))
     }
 
-    const parsedCards = cards.map((card) => ({
+    const parsedCards = await Promise.all(cards.map(async (card) => ({
         ...card,
-        picture: Buffer.from(card.picture, 'base64'),
-    }));
+        picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
+    })));
 
     try {
         await db.transaction(async (tr) => {

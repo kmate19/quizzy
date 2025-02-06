@@ -2,10 +2,10 @@ import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { usersTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
+import { makeSharpImage } from "@/utils/helpers";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBlob } from "file-type";
 import { ApiResponse } from "repo";
-import sharp from "sharp";
 
 
 // TODO: maybe try writing a zod validator for this
@@ -55,7 +55,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (
         return c.json(res, 400);
     }
 
-    const finalImage = await sharp(pfpBuf).resize(200, 200).jpeg().toBuffer();
+    const finalImage = await makeSharpImage(pfpBuf);
 
     try {
         await db.update(usersTable).set({ profile_picture: finalImage }).where(eq(usersTable.id, userId));
