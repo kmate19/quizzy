@@ -8,7 +8,21 @@ import { ApiResponse } from "repo";
 const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     const { userId } = c.get("accessTokenPayload");
 
-    const quizzes = await db.select().from(quizzesTable).where(eq(quizzesTable.user_id, userId));
+    const quizzes = await db.query.quizzesTable.findMany({
+        where: eq(quizzesTable.user_id, userId),
+        with: {
+            tags: {
+                with: {
+                    tag: true
+                }
+            },
+            languages: {
+                with: {
+                    language: true
+                }
+            },
+        }
+    })
 
     const res = {
         message: "Quiz fetched",
