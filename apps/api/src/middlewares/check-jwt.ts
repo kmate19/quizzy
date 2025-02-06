@@ -32,17 +32,6 @@ const authJwtMiddleware = (role?: string) => {
 
         if (accessTokenPayloadOrError instanceof JwtTokenExpired) {
             refreshAccessToken(c, accessCookie)
-        } else if (accessTokenPayloadOrError instanceof Error) {
-            console.log(accessTokenPayloadOrError);
-            // TODO: gracefully handle this error
-            const res = {
-                message: "internal server error",
-                error: {
-                    message: "internal server error",
-                    case: "server"
-                }
-            } satisfies ApiResponse;
-            return c.json(res, 500);
         }
 
         if (role) {
