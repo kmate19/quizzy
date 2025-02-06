@@ -9,8 +9,7 @@ export const quizLanguagesTable = pgTable("quiz_languages", {
     language_id: integer().notNull().references(() => languagesTable.id),
 }, (table) => {
     return [
-        uniqueIndex().on(table.language_id),
-        uniqueIndex().on(table.quiz_id),
+        uniqueIndex().on(table.quiz_id, table.language_id),
     ];
 });
 
