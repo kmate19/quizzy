@@ -1,15 +1,14 @@
-import { pgTable, serial, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { integer, pgTable, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { quizzesTable } from "./quizzesSchema";
 import { tagsTable } from "./tagsSchema";
 import { relations } from "drizzle-orm";
 
 export const quizTagsTable = pgTable("quiz_tags", {
     quiz_id: uuid().notNull().references(() => quizzesTable.id),
-    tag_id: serial().notNull().references(() => tagsTable.id),
+    tag_id: integer().notNull().references(() => tagsTable.id),
 }, (table) => {
     return [
-        uniqueIndex().on(table.tag_id),
-        uniqueIndex().on(table.quiz_id),
+        uniqueIndex().on(table.quiz_id, table.tag_id),
     ];
 });
 
