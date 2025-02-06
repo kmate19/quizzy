@@ -8,6 +8,8 @@ import { ApiResponse } from "repo";
 const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     const { userId } = c.get("accessTokenPayload");
 
+    // NOTE: i guess we shouldnt send back any primary keys that are serial,
+    // eg, for the languages and tags, do that later (other files too)
     const quizzes = await db.query.quizzesTable.findMany({
         where: eq(quizzesTable.user_id, userId),
         with: {
