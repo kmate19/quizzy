@@ -87,6 +87,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSchema), asy
             token_type: "refresh", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
         })
         .returning({ id: userTokensTable.id });
+    //.onConflictDoUpdate({ target: userTokensTable.token, set: { token: refreshToken } });
 
     const accessTokenPayload: QuizzyJWTPAYLOAD = {
         userId: user.id,
