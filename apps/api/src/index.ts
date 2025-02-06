@@ -6,6 +6,7 @@ import { logger } from "hono/logger";
 import apikey from "./routes/apikey";
 import quizzes from "./routes/quizzes";
 import userprofile from "./routes/userprofile";
+import { ApiResponse } from "repo";
 
 console.log(ENV.NODE_ENV())
 
@@ -18,6 +19,18 @@ export const app = new Hono().basePath("/api/v1")
     .route('/', apikey)
     .route('/', userprofile)
     .route('/', quizzes)
+    .onError((err, c) => {
+        console.error(err);
+        const res = {
+            message: "Something went wrong",
+            error: {
+                message: "Something went wrong",
+                case: "server"
+            }
+        } satisfies ApiResponse;
+
+        return c.json(res, 500);
+    })
 
 const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);
