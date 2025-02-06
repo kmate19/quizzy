@@ -14,6 +14,8 @@ beforeEach(async () => {
     await reset(db, schema);
     for (let i = 0; i < GLOBALS.DB_ROLES.length; i++) {
         await db.insert(schema.rolesTable).values(GLOBALS.DB_ROLES[i]).onConflictDoNothing()
+        await db.insert(schema.tagsTable).values({ name: "test tag" }).onConflictDoNothing()
+        await db.insert(schema.languagesTable).values({ name: "test language", iso_code: "TS", icon: "dklja" }).onConflictDoNothing()
     }
 })
 
@@ -32,7 +34,13 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
                 answers: ["test answer"],
                 correct_answer_index: 0,
                 picture: smallBase64Img
-            }]
+            }],
+            tags: [
+                "test tag"
+            ],
+            languages: [
+                "TS"
+            ]
         }
     }, { headers: { cookie: cookies.join(';') } });
 }
@@ -49,10 +57,14 @@ describe('quiz related routes', async () => {
 
             const { data } = await quizzes.json();
 
+            console.error(data);
+
             expect(data.length).toBe(1);
             expect(data[0].title).toBe("test quiz0");
-            expect(data[0].user.username).toBe("mateka");
             expect(data[0].description).toBe("test quiz description");
+            expect(data[0].user.username).toBe("mateka");
+            expect(data[0].tags[0].tag.name).toBe("test tag");
+            expect(data[0].languages[0].language.name).toBe("test language");
         });
         test('should return with correct limits and offsets', async () => {
             const { cookies } = await registerAndLogin(client)
