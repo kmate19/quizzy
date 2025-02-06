@@ -8,6 +8,7 @@ import * as schema from "@/db/schemas/index";
 import GLOBALS from '@/config/globals';
 import { smallBase64Img } from './utils/constants';
 import { randomUUIDv7 } from 'bun';
+import { eq } from 'drizzle-orm';
 
 const client = testClient(app).api.v1;
 
@@ -47,6 +48,27 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
 }
 
 describe('quiz related routes', async () => {
+    describe('get quiz by user', async () => {
+        test('should return users quizzes (only published) with relevant data', async () => {
+            const { cookies } = await registerAndLogin(client)
+            const post = await publisTestQuiz(client, cookies, 0);
+            expect(post.status).toBe(201);
+
+            const post1 = await publisTestQuiz(client, cookies, 1, "draft");
+            expect(post1.status).toBe(201);
+
+            const [userid] = await db.select({ id: schema.usersTable.id }).from(schema.usersTable).where(eq(schema.usersTable.username, "mateka"));
+
+            const quiz = await client.quizzes.by[':uuid'].$get({ param: { uuid: userid.id } }, { headers: { cookie: cookies.join(';') } });
+            expect(quiz.status).toBe(200);
+
+            if (quiz.status !== 200) return;
+            const { data } = await quiz.json();
+
+            expect(data.length).toBe(1);
+            expect(data[0].title).toBe("test quiz0");
+        });
+    })
     describe('get quiz by id', async () => {
         test('should return quiz with relevant data', async () => {
             const { cookies } = await registerAndLogin(client)
