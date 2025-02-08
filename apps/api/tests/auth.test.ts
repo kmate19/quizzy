@@ -22,6 +22,22 @@ const client = testClient(app).api.v1;
 // TODO: check email somehow
 
 describe("tests for api auth functionality", () => {
+    describe("verify", () => {
+        test("successful verification", async () => {
+            await registerTestUser(client, undefined, true);
+
+            const emailToken = new Bun.CryptoHasher("sha1").update("test@example.com").digest("hex");
+
+            const res = await client.auth.verify[":emailHash"].$get({ param: { emailHash: emailToken } });
+
+            expect(res.status).toBe(200);
+
+            const [userVerifiedStatus] = await db.select({ verifyStatus: schema.usersTable.auth_status })
+                .from(schema.usersTable).where(eq(schema.usersTable.email, "test@example.com"));
+
+            expect(userVerifiedStatus.verifyStatus).toBe("active");
+        });
+    });
     describe("login", () => {
         // TODO: make this more foolproof even if 
         // the user doesnt supply the cookie in the header, currently its 500 error
