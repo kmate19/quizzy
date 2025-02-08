@@ -68,13 +68,23 @@ const authJwtMiddleware = (role?: string) => {
 async function refreshAccessToken(c: Context, accessCookie: string) {
     const { payload } = decode(accessCookie) as { payload: QuizzyJWTPAYLOAD, header: TokenHeader };
 
-    // TODO: Check if the refresh token is still valid
-    const res = await db.select().from(userTokensTable).where(eq(userTokensTable.id, payload.refreshTokenId))
-    if (!res.length) {
+    const [res] = await db.select().from(userTokensTable).where(eq(userTokensTable.id, payload.refreshTokenId))
+    if (!res) {
         const res = {
             message: "refresh token not found",
             error: {
                 message: "refresh token not found",
+                case: "unauthorized"
+            }
+        } satisfies ApiResponse;
+        return c.json(res, 401);
+    }
+
+    if (res.expires_at < new Date()) {
+        const res = {
+            message: "refresh token expired",
+            error: {
+                message: "refresh token expired",
                 case: "unauthorized"
             }
         } satisfies ApiResponse;
