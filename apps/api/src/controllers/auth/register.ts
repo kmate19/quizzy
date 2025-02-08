@@ -40,6 +40,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
     }).catch(e => postgresErrorHandler(e));
 
     if (maybeError) {
+        // TODO: test this somehow (idk what could cause the fauilure here)
         const res = {
             message: 'user not created',
             error: {
