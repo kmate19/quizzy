@@ -14,18 +14,18 @@ import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { makeSharpImage } from "@/utils/helpers";
 import { eq } from "drizzle-orm";
-import { ApiResponse } from "repo";
+import type { ApiResponse } from "repo";
 import { z } from "zod";
 
 const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.object({
     quiz: insertQuizSchema,
     cards: insertQuizCardsSchema.array(),
-    languages: z.string().array().optional(),
+    languageISOCodes: z.string().length(2).array().optional(),
     tags: z.string().array().optional(),
 })), async (c) => {
     // TODO: this needs way more error handling
     const { userId } = c.get('accessTokenPayload');
-    const { quiz, cards, languages, tags } = c.req.valid('json');
+    const { quiz, cards, languageISOCodes, tags } = c.req.valid('json');
 
     let parsedQuiz;
     try {
@@ -34,16 +34,15 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
             banner: await makeSharpImage(Buffer.from(quiz.banner.split(';base64,')[1], 'base64'))
         }
     } catch (e) {
-        // TODO: test this somehow (idk what could cause the fauilure here)
         console.error(e);
         const res = {
-            message: "Failed to publish quiz",
+            message: "Failed to publish quiz (banner)",
             error: {
-                message: "Failed to publish quiz",
-                case: "server"
+                message: "Failed to publish quiz (banner)",
+                case: "bad_request"
             }
         } satisfies ApiResponse;
-        return c.json(res, 500);
+        return c.json(res, 400);
     }
 
     let parsedCards;
@@ -53,15 +52,14 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
             picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
         })));
     } catch (e) {
-        // TODO: test this somehow (idk what could cause the fauilure here)
         const res = {
-            message: "Failed to publish quiz",
+            message: "Failed to publish quiz (cards)",
             error: {
-                message: "Failed to publish quiz",
-                case: "server"
+                message: "Failed to publish quiz (cards)",
+                case: "bad_request"
             }
         }
-        return c.json(res, 500);
+        return c.json(res, 400);
     }
 
 
@@ -69,31 +67,59 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
     try {
         await db.transaction(async (tr) => {
             [quizId] = await tr.insert(quizzesTable).values({ user_id: userId, ...parsedQuiz }).returning({ id: quizzesTable.id });
+
             parsedCards.forEach(async (card) => {
                 await tr.insert(quizCardsTable).values({ quiz_id: quizId.id, ...card });
             })
 
-            languages ? languages.forEach(async (language) => {
-                const [languageId] = await tr.select({ id: languagesTable.id }).from(languagesTable).where(eq(languagesTable.iso_code, language));
-                await tr.insert(quizLanguagesTable).values({ language_id: languageId.id, quiz_id: quizId.id });
-            }) : {};
+            if (languageISOCodes) {
+                for (const isoCode of languageISOCodes) {
+                    const [languageId] = await tr.select({ id: languagesTable.id }).from(languagesTable).where(eq(languagesTable.iso_code, isoCode));
 
-            tags ? tags.forEach(async (tag) => {
-                const [tagId] = await tr.select({ id: tagsTable.id }).from(tagsTable).where(eq(tagsTable.name, tag));
-                await tr.insert(quizTagsTable).values({ tag_id: tagId.id, quiz_id: quizId.id });
-            }) : {};
+                    if (!languageId) {
+                        const err = new Error(`Language ${isoCode} not found`)
+                        err.cause = "language";
+                        throw err;
+                    }
+
+                    await tr.insert(quizLanguagesTable).values({ language_id: languageId.id, quiz_id: quizId.id });
+                }
+            };
+
+            if (tags) {
+                for (const tag of tags) {
+                    const [tagId] = await tr.select({ id: tagsTable.id }).from(tagsTable).where(eq(tagsTable.name, tag));
+
+                    if (!tagId) {
+                        const err = new Error(`Tag ${tag} not found`)
+                        err.cause = "tag";
+                        throw err;
+                    }
+
+                    await tr.insert(quizTagsTable).values({ tag_id: tagId.id, quiz_id: quizId.id });
+                }
+            }
         });
     } catch (e) {
-        // TODO: test this somehow (idk what could cause the fauilure here)
         console.error(e);
+        let errMessage = "Failed to publish quiz";
+        let status: 500 | 400 = 500;
+
+        if (e instanceof Error) {
+            if (e.cause === "language" || e.cause === "tag") {
+                errMessage = e.message;
+                status = 400;
+            }
+        }
+
         const res = {
             message: "Failed to publish quiz",
             error: {
-                message: "Failed to publish quiz",
+                message: errMessage,
                 case: "server"
             }
         } satisfies ApiResponse;
-        return c.json(res, 500);
+        return c.json(res, status);
     }
 
     const res = {
