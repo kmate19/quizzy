@@ -13,8 +13,6 @@ export async function registerTestUser(
     const reg = await client.auth.register.$post({ json: user });
     expect(reg.status).toBe(200);
 
-    // TODO: check actual email somehow
-
     // manually verify email
     if (verifyEmail) {
         await db.update(usersTable)
