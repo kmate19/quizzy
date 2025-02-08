@@ -31,7 +31,7 @@ const authJwtMiddleware = (role?: string) => {
         const accessTokenPayloadOrError = await verify(accessCookie, ENV.ACCESS_JWT_SECRET()).catch(e => e) as QuizzyJWTPAYLOAD;
 
         if (accessTokenPayloadOrError instanceof JwtTokenExpired) {
-            // TODO: test this 
+            // TEST: test this 
             refreshAccessToken(c, accessCookie)
         }
 

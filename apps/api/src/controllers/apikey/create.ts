@@ -9,7 +9,6 @@ import type { ApiResponse } from "repo";
 const createHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zv("json", postApiKeySchema), async (c) => {
     const apiKeyData = c.req.valid("json");
 
-    // PERF: probably should be in a worker
     const key = generateApiKey();
 
     const keys = await db.query.userApiKeys.findMany({ where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId) });

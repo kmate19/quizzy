@@ -8,8 +8,6 @@ import GLOBALS from "@/config/globals";
 import { eq } from "drizzle-orm";
 import { registerTestUser } from "./utils/helper";
 
-// PERF: optimize cause this is goofy
-
 beforeEach(async () => {
     await reset(db, schema);
     for (let i = 0; i < GLOBALS.DB_ROLES.length; i++) {

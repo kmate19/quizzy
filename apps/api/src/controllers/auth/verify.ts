@@ -20,7 +20,7 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(zv("param", z.object({ emailHas
             await tx.delete(userTokensTable).where(eq(userTokensTable.id, userAndToken.user_tokens!.id));
         });
     } catch (e) {
-        // TODO: test this somehow (idk what could cause the fauilure here)
+        // TEST: test this somehow (idk what could cause the fauilure here)
         const res = {
             message: "invalid",
             error: {
