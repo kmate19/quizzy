@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FuzzySharp;
+﻿using FuzzySharp;
 
 namespace localadmin.Services
 {
@@ -12,7 +10,7 @@ namespace localadmin.Services
             Func<T, IEnumerable<string>> propertiesToSearch,
             int threshold = 70)
         {
-            if (string.IsNullOrWhiteSpace(query) || query=="Search")
+            if (string.IsNullOrWhiteSpace(query) || query=="Keresés")
                 return items;
 
             return items.Where(item =>

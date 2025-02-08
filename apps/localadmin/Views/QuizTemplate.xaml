@@ -14,6 +14,9 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border BorderBrush="Black" BorderThickness="2" Background="White" CornerRadius="10" Margin="10" Width="250" Height="300">
+                            <Border.InputBindings>
+                                <MouseBinding Gesture="LeftClick" Command="{Binding ViewQuizCommand}"/>
+                            </Border.InputBindings>
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="View User" Command="{Binding ViewUserCommand}" />
@@ -23,8 +26,9 @@
                         
                             <StackPanel Margin="10">
                                 <Image Source="../icon.ico" Height="100" Stretch="Fill" Margin="0,0,0,10"/>
-                                <TextBlock Text="{Binding MadeBy}" FontSize="14" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding Description}" FontSize="12" TextAlignment="Center" Foreground="Gray" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding MadeBy}" FontSize="18" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding Title}" FontSize="14" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding Description}" FontSize="10" TextAlignment="Center" Foreground="Gray" Margin="0,5,0,0"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

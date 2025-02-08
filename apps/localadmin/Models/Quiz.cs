@@ -1,17 +1,8 @@
 ﻿using localadmin.ViewModels;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Windows;
 using System.Windows.Input;
 using localadmin.Services;
-using System.Windows.Forms;
-using System.Runtime;
-using System.Security.Cryptography.X509Certificates;
+using System.Windows;
 
 namespace localadmin.Models
 {
@@ -23,11 +14,12 @@ namespace localadmin.Models
             RequiresReview,
             Private
         }
-        private readonly NavigationService NavigationService;
+        private NavigationService NavigationService;
 
-        private readonly SharedStateService SharedState;
+        private SharedStateService SharedState;
         public ICommand ViewUserCommand { get; }
         public ICommand ViewReviewCommand { get; }
+        public ICommand ViewQuizCommand { get; }
         public string UUID { get; set; }
         public string UserID { get; set; }
         public string Title { get; set; }
@@ -38,6 +30,7 @@ namespace localadmin.Models
         public byte[] Banner { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public List<QuizCard> QuizCards { get; set; }
 
         public string MadeBy
         {
@@ -46,6 +39,7 @@ namespace localadmin.Models
                 UserViewModel userView = new UserViewModel(NavigationService, SharedState);
                 return userView.Users.Where(x => x.UUID == UserID).First().Username;
             }
+            set { }
         }
 
 
@@ -55,6 +49,7 @@ namespace localadmin.Models
             SharedState = sharedState;
             ViewUserCommand = new RelayCommand(ViewUser);
             ViewReviewCommand = new RelayCommand(ViewReview);
+            ViewQuizCommand = new RelayCommand(ViewQuiz);
         }
         
         private void ViewUser(object parameter)
@@ -72,6 +67,11 @@ namespace localadmin.Models
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(reviewView);
             reviewView.SearchReviews(SharedState.SearchText);
+        }
+        private void ViewQuiz(object paramter)
+        {
+            Window window = new QuizDetailedView(this);
+            window.Show();
         }
     }
 }

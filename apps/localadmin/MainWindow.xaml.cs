@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using localadmin.ViewModels;
 using System.Diagnostics;
 using localadmin.Services;
+using localadmin.Views;
 
 namespace localadmin;
 
@@ -44,6 +38,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public MainWindow()
     {
         InitializeComponent();
+        Hide();
 
         UserViewModel = new UserViewModel(NavigationService, SharedState);
         ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
@@ -81,7 +76,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void Searchbar_gotFocus(object sender, RoutedEventArgs e)
     {
-        if (sender is TextBox textBox && textBox.Text == "Search")
+        if (sender is TextBox textBox && textBox.Text == "Keresés")
         {
             SharedState.SearchText = "";
         }
@@ -109,20 +104,40 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         NavigationService.NavigateTo(UserViewModel);
         QuizViewModel.SearchQuizes(SharedState.SearchText);
-        SharedState.SearchText = "Search";
+        SharedState.SearchText = "Keresés";
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(QuizViewModel);
         QuizViewModel.SearchQuizes(SharedState.SearchText);
-        SharedState.SearchText = "Search";
+        SharedState.SearchText = "Keresés";
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(ReviewViewModel);
         QuizViewModel.SearchQuizes(SharedState.SearchText);
-        SharedState.SearchText = "Search";
+        SharedState.SearchText = "Keresés";
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        Application.Current.Shutdown();
+    }
+
+}
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        MainWindow mainWindow = new MainWindow();
+        mainWindow.Hide();
+
+        APIKeyWindow apiKeyWindow = new APIKeyWindow(mainWindow);
+        apiKeyWindow.Show();
     }
 }

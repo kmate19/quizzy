@@ -1,0 +1,19 @@
+﻿<Window x:Class="localadmin.Views.APIKeyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:localadmin.Views"
+        mc:Ignorable="d"
+        Title="APIKeyWindow" Height="250" Width="400"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <StackPanel Margin="0, 50, 0, 0">
+            <TextBlock Text="Kérlek add meg az API kulcsod: " FontSize="20" FontWeight="Bold" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 0, 0, 20"/>
+            <Border CornerRadius="10" BorderThickness="2" BorderBrush="Black" Background="LightGray" Padding="10" Width="200" Height="40">
+                <TextBox x:Name="TextBox" FontSize="15" Height="25" Width="180" Background="Transparent" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            </Border>
+            <Button Style="{StaticResource GridButtons}" Content="Ellenőrzés" Background="Green" Click="Button_Click"></Button>
+        </StackPanel>
+    </Grid>
+</Window>

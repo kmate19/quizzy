@@ -1,12 +1,8 @@
 ﻿using localadmin.Services;
 using localadmin.ViewModels;
-using System;
-using System.Collections.Generic;
+using localadmin.Views;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Windows;
 using System.Windows.Input;
 
 namespace localadmin.Models
@@ -29,6 +25,7 @@ namespace localadmin.Models
         private readonly SharedStateService sharedState;
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
+        public ICommand DeleteUserCommand { get; }
 
         public string UUID { get; set; }
         public string Username { get; set; }
@@ -46,12 +43,12 @@ namespace localadmin.Models
             this.sharedState = sharedState;
             ViewQuizCommand=new RelayCommand(ViewQuiz);
             ViewReviewCommand = new RelayCommand(ViewReview);
+            DeleteUserCommand = new RelayCommand(DeleteUser);
         }
 
         
         private void ViewQuiz(object parameter)
         {
-            Debug.WriteLine("viewing quizes from: " + Username);
             QuizViewModel quizView = new QuizViewModel(navigationService, sharedState);
             sharedState.SearchText = Username;
             navigationService.NavigateTo(quizView);
@@ -64,6 +61,16 @@ namespace localadmin.Models
             sharedState.SearchText = Username;
             navigationService.NavigateTo(reviewView);
             reviewView.SearchReviews(Username);
+        }
+
+        private void DeleteUser(object parameter)
+        {
+            PopUpModal modal = new PopUpModal("Biztosan törölni szeretnéd ezt a felhasználót?");
+            bool? result = modal.ShowDialog();
+
+            if (result == true) {
+                MessageBox.Show("Felhasznalo sikeresen törölve");
+            }
         }
     }
 }

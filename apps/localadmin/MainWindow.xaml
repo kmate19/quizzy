@@ -11,9 +11,9 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="DataTemplates\UserTemplate.xaml" />
-                <ResourceDictionary Source="DataTemplates\QuizTemplate.xaml"/>
-                <ResourceDictionary Source="DataTemplates\ReviewTemplate.xaml"/>
+                <ResourceDictionary Source="Views\UserTemplate.xaml" />
+                <ResourceDictionary Source="Views\QuizTemplate.xaml"/>
+                <ResourceDictionary Source="Views\ReviewTemplate.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -46,28 +46,28 @@
             <Button x:Name="UsersButton" Style="{StaticResource MenuButton}" Click="UsersButton_Click">
                 <StackPanel Orientation="Horizontal">
                     <fa:IconImage Style="{StaticResource IconStyle}" Icon="User"></fa:IconImage>
-                    <TextBlock Text="Users"/>
+                    <TextBlock Text="Felhasználók"/>
                 </StackPanel>
             </Button>
 
             <Button x:Name="QuizButton" Style="{StaticResource MenuButton}" Click="Quizbutton_Click">
                 <StackPanel Orientation="Horizontal">
                     <fa:IconImage Style="{StaticResource IconStyle}" Icon="CircleQuestion"></fa:IconImage>
-                    <TextBlock Text="Quizzes"/>
+                    <TextBlock Text="Quizek"/>
                 </StackPanel>
             </Button>
 
             <Button x:Name="ReviewsButtons" Style="{StaticResource MenuButton}" Click="ReviewsButtons_Click">
                 <StackPanel Orientation="Horizontal">
                     <fa:IconImage Style="{StaticResource IconStyle}" Icon="star"></fa:IconImage>
-                    <TextBlock Text="Reviews"/>
+                    <TextBlock Text="Értékelések"/>
                 </StackPanel>
             </Button>
 
             <Button Style="{StaticResource MenuButton}" Click="RedirectToMainPage">
                 <StackPanel Orientation="Horizontal">
                     <fa:IconImage Style="{StaticResource IconStyle}" Icon="WindowRestore"></fa:IconImage>
-                    <TextBlock Text="Website"/>
+                    <TextBlock Text="Weboldal"/>
                 </StackPanel>
             </Button>
 
