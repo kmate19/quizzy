@@ -26,9 +26,18 @@ describe("tests for api auth functionality", () => {
         test("successful verification", async () => {
             await registerTestUser(client, undefined, true);
 
-            const emailToken = new Bun.CryptoHasher("sha1").update("test@example.com").digest("hex");
+            const emailToken = await db.query.usersTable.findFirst({
+                columns: {},
+                where: eq(schema.usersTable.email, "test@example.com"),
+                with: {
+                    tokens: {
+                        where: eq(schema.userTokensTable.token_type, "email"),
+                        columns: { token: true }
+                    }
+                }
+            })
 
-            const res = await client.auth.verify[":emailHash"].$get({ param: { emailHash: emailToken } });
+            const res = await client.auth.verify[":emailHash"].$get({ param: { emailHash: emailToken!.tokens[0].token } });
 
             expect(res.status).toBe(200);
 
