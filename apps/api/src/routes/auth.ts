@@ -13,6 +13,7 @@ const auth = new Hono().basePath("/auth")
     .get("/logout", ...logoutHandler)
     .get("/verify/:emailHash", ...verifyHandler)
     .get("/authed", zv('query', z.object({ role: z.string().optional() })), async (c) => {
+        // TODO: test this (also this is a bit of a mess)
         const { role } = c.req.valid('query');
         const middleware = checkJwt(role)
         // @ts-ignore not sending in next

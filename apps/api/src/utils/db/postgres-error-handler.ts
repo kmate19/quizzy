@@ -4,6 +4,7 @@ type PGError = {
     type: "dup";
 };
 
+// TODO: tests and this should be extended and also used in more places
 export default function postgresErrorHandler(error: Error & { code: string }): PGError {
     switch (error.code) {
         case "23505":

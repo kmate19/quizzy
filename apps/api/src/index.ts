@@ -20,6 +20,7 @@ export const app = new Hono().basePath("/api/v1")
     .route('/', userprofile)
     .route('/', quizzes)
     .onError((err, c) => {
+        // TODO: test this somehow (idk what could cause the fauilure here)
         console.error(err);
         const res = {
             message: "Something went wrong",
