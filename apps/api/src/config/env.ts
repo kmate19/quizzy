@@ -5,14 +5,14 @@ function assertEnvProd(env: string | undefined, name: string, defval: string): s
     }
     if (env === undefined) {
         if (defval === "") throw new Error(name + " is not defined in the environment and has no default value!");
-        console.error(`WARN: ${name} is not defined in the environment, using default value: "${defval}" !`);
+        console.error(`W: ${name} is not defined in the environment, using default value: "${defval}" !`);
         env = defval;
     }
     return env;
 }
 
 function verify() {
-    if (Bun.env.NODE_ENV !== "production") console.error("WARN: Running in development mode!");
+    if (Bun.env.NODE_ENV !== "production") console.error("W: Running in development mode!");
     for (const key in ENV) {
         ENV[key as keyof typeof ENV]();
     }

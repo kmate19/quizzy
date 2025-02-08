@@ -23,7 +23,6 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
     languageISOCodes: z.string().length(2).array().optional(),
     tags: z.string().array().optional(),
 })), async (c) => {
-    // TODO: this needs way more error handling
     const { userId } = c.get('accessTokenPayload');
     const { quiz, cards, languageISOCodes, tags } = c.req.valid('json');
 

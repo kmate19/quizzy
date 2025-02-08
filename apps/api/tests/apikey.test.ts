@@ -11,9 +11,6 @@ import { verify } from "hono/jwt";
 import ENV from "@/config/env";
 import { QuizzyJWTPAYLOAD } from "@/types";
 
-// PERF: optimize cause this is goofy
-// TODO: refactor
-
 beforeEach(async () => {
     await reset(db, schema);
     for (let i = 0; i < GLOBALS.DB_ROLES.length; i++) {
@@ -23,8 +20,7 @@ beforeEach(async () => {
 
 const client = testClient(app).api.v1;
 
-// TODO: check email somehow
-
+// TODO: refactor (all tests)
 describe("tests for api key functionality", () => {
     describe("create", () => {
         test("fails if user is not logged in", async () => {
