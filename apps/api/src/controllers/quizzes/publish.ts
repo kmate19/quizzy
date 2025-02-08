@@ -34,6 +34,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
             banner: await makeSharpImage(Buffer.from(quiz.banner.split(';base64,')[1], 'base64'))
         }
     } catch (e) {
+        // TODO: test this somehow (idk what could cause the fauilure here)
         console.error(e);
         const res = {
             message: "Failed to publish quiz",
@@ -52,6 +53,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
             picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
         })));
     } catch (e) {
+        // TODO: test this somehow (idk what could cause the fauilure here)
         const res = {
             message: "Failed to publish quiz",
             error: {
@@ -82,6 +84,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
             }) : {};
         });
     } catch (e) {
+        // TODO: test this somehow (idk what could cause the fauilure here)
         console.error(e);
         const res = {
             message: "Failed to publish quiz",

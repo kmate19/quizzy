@@ -18,6 +18,7 @@ export const zv = <T extends ZodSchema, Target extends keyof ValidationTargets>(
             return c.json(result, 400);
         }
     } else {
+        // TODO: test this somehow (need prod env var)
         if (!result.success) {
             return c.json({ message: "Validation failed" } satisfies ApiResponse, 400);
         }
