@@ -44,7 +44,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
             message: 'user not created',
             error: {
                 message: maybeError.message,
-                case: "auth"
+                case: "server"
             }
         } satisfies ApiResponse;
         return c.json(res, 400);
