@@ -4,10 +4,9 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
-import { type Card } from '@/utils/type'
+import type { quizCardView } from '@/utils/type'
 import { fuzzySearch } from '@/utils/search'
 import { useCounterStore } from '@/stores/counter'
-
 
 const store = useCounterStore()
 const mockMockCards = store.returnMockMockCards()
@@ -32,7 +31,7 @@ const getCardColor = (index: number) => {
   return cardColors.value[index]
 }
 
-const filteredCards = ref<Card[]>([...mockMockCards.value])
+const filteredCards = ref<quizCardView[]>([...mockMockCards.value])
 
 type SavePayload = {
   categories: string[]
@@ -40,7 +39,7 @@ type SavePayload = {
   includeDesc: boolean
 }
 
-const mockCards = ref<Card[]>([])
+const mockCards = ref<quizCardView[]>([])
 mockCards.value = [...mockMockCards.value]
 
 const toggleExpand = () => {
@@ -76,7 +75,9 @@ const filterCards = (categories: string[]) => {
   if (categories.length === 0) {
     filteredCards.value = [...mockMockCards.value]
   } else {
-    filteredCards.value = mockMockCards.value.filter((card) => categories.includes(card.category))
+    filteredCards.value = mockMockCards.value.filter((card) =>
+      card.tags.some((tag) => categories.includes(tag)),
+    )
   }
   updateDisplayedCards()
 }
@@ -89,7 +90,7 @@ const search = (searchText: string) => {
       keys: [
         isNameIncluded.value ? 'name' : undefined,
         isDescIncluded.value ? 'desc' : undefined,
-      ].filter((key): key is keyof Card => key !== undefined),
+      ].filter((key): key is keyof quizCardView => key !== undefined),
       threshold: 0.5,
     })
     mockCards.value = searchResults
@@ -104,73 +105,99 @@ onMounted(() => {
   checkVisibility()
   cardColors.value = mockCards.value.map(() => getRandomColor())
 })
-
-
-
 </script>
 
 <template>
   <MistBackground />
   <div
-    class="max-w-6xl mx-auto m-2 backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden"
+    class="max-w-6xl max-h-[calc(100vh-10px)] mx-auto m-2 backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden px-3 py-1"
   >
     <NavBar />
     <main>
       <div class="relative mx-5 mb-5 mt-5 flex items-center gap-1">
-        <div
-          :class="[
-            'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
-            isExpanded
-              ? 'w-[75%] justify-center cursor-pointer'
-              : 'w-14 cursor-pointer hover:scale-110',
-          ]"
-        >
-          <div class="flex items-center px-4 py-2" @click="toggleExpand">
-            <Search class="h-6 w-6 text-gray" />
-          </div>
-          <input
-            type="text"
-            v-model="searchText"
-            @input="search(searchText)"
-            placeholder="Keresés..."
-            class="search-input w-full bg-transparent outline-none pr-4"
-            :class="{ 'opacity-0': !isExpanded, 'opacity-100 ': isExpanded }"
-            :disabled="!isExpanded"
-          />
+      <div
+        :class="[
+        'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
+        isExpanded
+          ? 'w-[75%] justify-center cursor-pointer'
+          : 'w-14 cursor-pointer hover:scale-110',
+        ]"
+      >
+        <div class="flex items-center px-4 py-2" @click="toggleExpand">
+        <Search class="h-6 w-6 text-gray" />
         </div>
-        <CategoriesBtn @save="handleSave" />
+        <input
+        type="text"
+        v-model="searchText"
+        @input="search(searchText)"
+        placeholder="Keresés..."
+        class="search-input w-full bg-transparent outline-none pr-4"
+        :class="{ 'opacity-0': !isExpanded, 'opacity-100 ': isExpanded }"
+        :disabled="!isExpanded"
+        />
+      </div>
+      <CategoriesBtn @save="handleSave" />
       </div>
       <div
-        class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-scroll custom-scrollbar p-4 sm:p-6 h-[calc(100vh-200px)]"
-      >
-        <template v-if="mockCards.length > 0">
-          <div
-            v-for="(card, index) in mockCards"
-            :key="card.title"
-            class="p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 opacity-0 flex flex-col border-4
-             border-white/30 items-center max-h-fit
-             "
-            :class="[getCardColor(index), { 'fade-in': isVisible }]"
-            ref="cards"
-          >
-            <div class="w-full h-40  rounded-md mb-4 flex items-center justify-center">
-              <img :src="card.image" :alt="card.title" class="rounded mb-2 h-full w-fit" />
+      class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-max overflow-y-scroll custom-scrollbar max-h-[calc(100vh-200px)]"
+        >
+      <template v-if="mockCards.length > 0">
+        <div
+          v-for="(card, index) in mockCards"
+          :key="card.title"
+          class="relative p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all 
+          duration-300 transform hover:-translate-y-2 opacity-0 flex flex-col h-fit
+          overflow-hidden group"
+          :class="[getCardColor(index), { 'fade-in': isVisible }]"
+          ref="cards"
+        >
+          <div class="relative z-10 flex flex-col h-full">
+            <div class="w-full aspect-video mb-4 rounded-lg overflow-hidden bg-black/20">
+              <img
+                :src="card.banner"
+                :alt="card.title"
+                class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
-            <div class="flex items-center justify-center text-center">
-              <h2 class="text-xl font-semibold text-white mb-2">{{ card.title }}</h2>
+
+ 
+            <div class="px-4 py-3 bg-black/30 rounded-lg mb-4 backdrop-blur-sm">
+              <h2 class="text-2xl font-bold text-white text-center">
+                {{ card.title }}
+              </h2>
             </div>
-            <div class="flex items-center justify-center text-center">
-              <h3 class="text-xl font-semibold text-white mb-2">{{ card.category }}</h3>
+
+            
+            <div class="mb-4 flex-shrink-0">
+              <div class="px-4 py-3 bg-black/20 rounded-lg">
+                <div class="flex flex-wrap gap-2 max-h-[80px] overflow-y-auto custom-scrollbar">
+                  <div
+                    v-for="item in card.tags"
+                    :key="item"
+                    class="px-3 py-1 bg-white/20 rounded-full text-white text-sm font-medium transform hover:scale-105
+                     transition-transform duration-200 hover:bg-white/30"
+                  >
+                    {{ item }}
+                  </div>
+                </div>
+              </div>
             </div>
-            <p class="text-white flex flex-wrap justify-center items-center text-center">
-              {{ card.desc }}
-            </p>
+
+           
+            <div
+              class="px-4 py-3 bg-black/20 rounded-lg backdrop-blur-sm overflow-y-auto custom-scrollbar max-h-[200px]"
+            >
+              <p class="text-white/90 text-center leading-relaxed">
+                {{ card.description }}
+              </p>
+            </div>
           </div>
-        </template>
-        <div v-else class="col-span-full flex items-center justify-center h-full">
-          <p class="text-2xl font-semibold text-white">Nincs ilyen találat</p>
         </div>
+      </template>
+      <div v-else class="col-span-full flex items-center justify-center h-full">
+        <p class="text-2xl font-semibold text-white">Nincs ilyen találat</p>
       </div>
+    </div>
     </main>
   </div>
 </template>

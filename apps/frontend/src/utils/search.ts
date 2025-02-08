@@ -1,4 +1,4 @@
-import type { FuzzySearchOptionsForCard, FuzzySearchResult, Card } from './type'
+import type { FuzzySearchOptionsForCard, FuzzySearchResult, quizCardView } from './type'
 
 function levenshteinDistance(s1: string, s2: string): number {
   if (s1.length === 0) return s2.length
@@ -74,9 +74,9 @@ function calculateWordBasedScore(query: string, target: string): number {
 
 export function fuzzySearch(
   query: string,
-  items: Card[],
+  items: quizCardView[],
   options: FuzzySearchOptionsForCard = {},
-): Card[] {
+): quizCardView[] {
   if (!query || !items || items.length === 0) {
     return []
   }
@@ -90,7 +90,7 @@ export function fuzzySearch(
 
   const normalizedQuery = normalizeString(query, caseSensitive, trimWhitespace)
 
-  const results: FuzzySearchResult<Card>[] = []
+  const results: FuzzySearchResult<quizCardView>[] = []
 
   for (const item of items) {
     let itemStrings: string[] = []
