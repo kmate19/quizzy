@@ -40,7 +40,7 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
             tags: [
                 "test tag"
             ],
-            languages: [
+            languageISOCodes: [
                 "TS"
             ]
         }
@@ -48,6 +48,116 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
 }
 
 describe('quiz related routes', async () => {
+    describe('create quiz', async () => {
+        test('should create quiz with relevant data', async () => {
+            const { cookies } = await registerAndLogin(client);
+
+            const post = await publisTestQuiz(client, cookies, 0);
+            expect(post.status).toBe(201);
+        });
+        test('fails if non existing language', async () => {
+            const { cookies } = await registerAndLogin(client);
+
+            const post = await client.quizzes.publish.$post({
+                json: {
+                    quiz: {
+                        title: `test quiz0`,
+                        description: "test quiz description",
+                        status: "draft",
+                        banner: smallBase64Img
+                    },
+                    cards: [{
+                        type: "normal",
+                        question: "test question",
+                        answers: ["test answer"],
+                        correct_answer_index: 0,
+                        picture: smallBase64Img
+                    }],
+                    languageISOCodes: [
+                        "BG"
+                    ],
+                }
+            }, { headers: { cookie: cookies.join(';') } });
+            const json = await post.json();
+            expect(post.status).toBe(400);
+            console.error(json)
+            // @ts-ignore
+            expect(json.error.message).toBe("Language BG not found")
+        });
+        test('fails if non existing tag', async () => {
+            const { cookies } = await registerAndLogin(client);
+            const post = await client.quizzes.publish.$post({
+                json: {
+                    quiz: {
+                        title: `test quiz0`,
+                        description: "test quiz description",
+                        status: "draft",
+                        banner: smallBase64Img
+                    },
+                    cards: [{
+                        type: "normal",
+                        question: "test question",
+                        answers: ["test answer"],
+                        correct_answer_index: 0,
+                        picture: smallBase64Img
+                    }],
+                    tags: [
+                        "doesntexist"
+                    ],
+                }
+            }, { headers: { cookie: cookies.join(';') } });
+
+            expect(post.status).toBe(400);
+            // @ts-ignore
+            expect((await post.json()).error.message).toBe("Tag doesntexist not found")
+        });
+        test('should not create quiz with invalid data', async () => {
+            const { cookies } = await registerAndLogin(client);
+            const postBanner = await client.quizzes.publish.$post({
+                json: {
+                    quiz: {
+                        title: `test quiz0`,
+                        description: "test quiz description",
+                        status: "draft",
+                        banner: "bad banner"
+                    },
+                    cards: [{
+                        type: "normal",
+                        question: "test question",
+                        answers: ["test answer"],
+                        correct_answer_index: 0,
+                        picture: smallBase64Img
+                    }],
+                }
+            }, { headers: { cookie: cookies.join(';') } });
+
+            expect(postBanner.ok).toBe(false);
+            expect(postBanner.status).toBe(400);
+            expect((await postBanner.json()).message).toInclude("banner")
+
+            const postCard = await client.quizzes.publish.$post({
+                json: {
+                    quiz: {
+                        title: `test quiz0`,
+                        description: "test quiz description",
+                        status: "draft",
+                        banner: smallBase64Img
+                    },
+                    cards: [{
+                        type: "normal",
+                        question: "test question",
+                        answers: ["test answer"],
+                        correct_answer_index: 0,
+                        picture: "bad card"
+                    }],
+                }
+            }, { headers: { cookie: cookies.join(';') } });
+
+            expect(postCard.ok).toBe(false);
+            expect(postCard.status).toBe(400);
+            expect((await postCard.json()).message).toInclude("cards")
+        });
+    });
     describe('get quiz by user', async () => {
         test('should return users quizzes (only published) with relevant data', async () => {
             const { cookies } = await registerAndLogin(client)
