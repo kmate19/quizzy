@@ -4,7 +4,7 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { Search } from 'lucide-vue-next'
-import type { quizCardView } from '@/utils/type'
+import type { quizSmallView } from '@/utils/type'
 import { fuzzySearch } from '@/utils/search'
 import { useCounterStore } from '@/stores/counter'
 
@@ -31,7 +31,7 @@ const getCardColor = (index: number) => {
   return cardColors.value[index]
 }
 
-const filteredCards = ref<quizCardView[]>([...mockMockCards.value])
+const filteredCards = ref<quizSmallView[]>([...mockMockCards.value])
 
 type SavePayload = {
   categories: string[]
@@ -39,7 +39,7 @@ type SavePayload = {
   includeDesc: boolean
 }
 
-const mockCards = ref<quizCardView[]>([])
+const mockCards = ref<quizSmallView[]>([])
 mockCards.value = [...mockMockCards.value]
 
 const toggleExpand = () => {
@@ -90,7 +90,7 @@ const search = (searchText: string) => {
       keys: [
         isNameIncluded.value ? 'name' : undefined,
         isDescIncluded.value ? 'desc' : undefined,
-      ].filter((key): key is keyof quizCardView => key !== undefined),
+      ].filter((key): key is keyof quizSmallView => key !== undefined),
       threshold: 0.5,
     })
     mockCards.value = searchResults

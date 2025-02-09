@@ -1,15 +1,95 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { PencilIcon, CircleHelp } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
-//import { clientv1 } from '@/lib/apiClient'
+import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
-import { useCounterStore } from '@/stores/counter'
 
-const store = useCounterStore()
+interface Language {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  iso_code: string;
+  icon: string;
+  support: 'none' | 'official' | 'partial';
+}
+
+
+interface QuizLanguage {
+  quiz_id: string;
+  language_id: number;
+  language: Language;
+}
+
+interface Tag {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface QuizTag {
+  quiz_id: string;
+  tag_id: number;
+  tag: Tag;
+}
+
+interface Quiz {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  description: string;
+  title: string;
+  status: 'published' | 'draft' | 'requires_review' | 'private';
+  rating: number;
+  plays: number;
+  banner: number[];
+  languages: QuizLanguage[]
+  tags: QuizTag[];
+
+
+}
+
+const isLoading = ref(true)
+const userQuizzies = ref<Quiz[]>([])
+
+const getQuizzies = async () => {
+  try {
+    isLoading.value = true
+    const res = await clientv1.quizzes.own.$get()
+    const data = await res.json();
+    [...data.data].forEach((el) => {
+      const temp: Quiz = {
+        id: el.id,
+        created_at: el.created_at,
+        updated_at: el.updated_at,
+        user_id: el.user_id,
+        description: el.description,
+        title: el.title,
+        status: el.status,
+        rating: el.rating,
+        plays: el.plays,
+        banner: el.banner.data,
+        languages: [...el.languages],
+        tags: [...el.tags],
+      }
+      userQuizzies.value.push(temp)
+    })
+  } catch (error) {
+    console.error('error:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  getQuizzies()
+})
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -64,7 +144,6 @@ const user = {
     },
   ],
   number_of_friends: 3,
-  quizzes: store.returnMockMockCards(),
   number_of_quizzes: 4,
 }
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -101,7 +180,7 @@ const openFileDialog = () => {
 }
 
 const OnLogOut = () => {
-  //clientv1.auth.logout.$get()
+  clientv1.auth.logout.$get()
   router.push('/login')
 }
 
@@ -147,10 +226,18 @@ const handlePasswordChange = async () => {
   closePasswordModal()
 }
 
+const arrayBufferToBase64 = (buffer: number[]): string => {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return window.btoa(binary)
+}
+
 const handleQuizView = (uuid:string)=>{
   router.push(`/game_creation/${uuid}`)
 }
-
 </script>
 
 <template>
@@ -241,8 +328,7 @@ const handleQuizView = (uuid:string)=>{
           <div
             v-for="friend in user.friends"
             :key="friend.name"
-            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white
-            hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
+            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
           >
             <img
               :src="friend.pfp"
@@ -264,43 +350,82 @@ const handleQuizView = (uuid:string)=>{
         </div>
       </div>
       <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
-        <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
-          Saját quizzyk
-          <span class="text-sm font-normal text-white/70">
-            {{ user.quizzes.value.length }} összesen
-          </span>
-        </h2>
-        <div class="space-y-4 overflow-y-auto custom-scrollbar p-6" style="max-height: 400px">
-          <div
-            v-for="quiz in user.quizzes.value"
-            :key="quiz.title"
-            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white
-            hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
-            @click="quiz.status=='draft'?handleQuizView(quiz.uuid):''"
-          >
-            <img
-              :src="quiz.image"
-              alt="Quiz thumbnail"
-              class="w-20 h-20 rounded-lg object-cover"
-            />
-            <div class="flex-1 flex flex-col h-full">
-              <div>
-              <h3 class="text-white font-medium text-base">{{ quiz.title }}</h3>
-              <p class="text-sm text-white/70 mb-2">Kategória: {{ quiz.category }}</p>
-                <p class="text-sm">
-                <span class="text-white line-clamp-2">{{ quiz.desc.length > 100 ? quiz.desc.slice(0, 100) + '...' : quiz.desc }}</span>
-                </p>
-              </div>
-                <p class="text-md mt-auto self-end font-bold" :class="{
-                'text-white [text-shadow:_-1px_-1px_0_#000,_1px_-1px_0_#000,_-1px_1px_0_#000,_1px_1px_0_#000]': quiz.status === 'draft',
-                'text-green-400 [text-shadow:_-1px_-1px_0_#000,_1px_-1px_0_#000,_-1px_1px_0_#000,_1px_1px_0_#000]': quiz.status === 'active'
-                }">
-                {{ quiz.status }}
-              </p>
+    <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
+      Quizzes
+      <span class="text-sm font-normal text-white/70">
+        {{ userQuizzies.length }} total
+      </span>
+    </h2>
+    <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
+      <div
+        v-for="quiz in userQuizzies"
+        :key="quiz.id"
+        class="flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500  bg-multi-color-gradient cursor-pointer"
+        @click="quiz.status==='draft'?handleQuizView(quiz.id):null"
+      >
+        <div class="relative w-20 h-20 rounded-lg overflow-hidden">
+          <img
+            v-if="quiz.banner && quiz.banner.length"
+            :src="`data:image/jpeg;base64,${arrayBufferToBase64(quiz.banner)}`"
+            alt="Quiz banner"
+            class="w-full h-full object-cover"
+          />
+          <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center">
+            <span class="text-2xl">🎯</span>
+          </div>
+        </div>
+        
+        <div class="flex-1">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
+            <span 
+              class="px-2 py-1 rounded-full text-xs"
+              :class="{
+                'bg-green-500': quiz.status === 'published',
+                'bg-yellow-500': quiz.status === 'requires_review',
+                'bg-gray-500': quiz.status === 'draft',
+                'bg-blue-500': quiz.status === 'private'
+              }"
+            >
+              {{ quiz.status }}
+            </span>
+          </div>
+          
+          <p class="text-sm text-white/70 mb-2 line-clamp-2">{{ quiz.description }}</p>
+          
+          <div class="flex items-center gap-4 text-sm">
+            <div class="flex items-center">
+              <span class="mr-1">⭐</span>
+              {{ quiz.rating }}
+            </div>
+            <div class="flex items-center">
+              <span class="mr-1">👥</span>
+              {{ quiz.plays }}
+            </div>
+            <div class="flex gap-1">
+              <span
+                v-for="lang in quiz.languages"
+                :key="lang.language_id"
+                class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
+                :title="lang.language.name"
+              >
+                {{ lang.language.iso_code }}
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <span
+                v-for="tag in quiz.tags"
+                :key="tag.tag_id"
+                class="px-2 py-0.5 rounded-full bg-white/10 text-xs"
+              >
+                {{ tag.tag.name }}
+              </span>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
     </div>
   </div>
   >
@@ -317,9 +442,7 @@ const handleQuizView = (uuid:string)=>{
             @click="showPasswordRequirements"
           />
         </div>
-        <XButton
-          @click="closePasswordModal"
-        />
+        <XButton @click="closePasswordModal" />
       </div>
       <form @submit.prevent="handlePasswordChange" class="space-y-4 text-white">
         <div>

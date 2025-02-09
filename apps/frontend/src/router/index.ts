@@ -27,22 +27,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/game_creation',
+      path: '/game_creation/:uuid?',
       name: 'game_creation',
       component: GameCreation,
       meta: {
         requiresAuth: true,
       },
-      children: [
-        {
-          path: ':uuid',
-          name: 'game_creation_with_uuid',
-          component: GameCreation,
-          meta: {
-            requiresAuth: true,
-          },
-        },
-      ],
     },
   ],
 })
