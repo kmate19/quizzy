@@ -32,7 +32,10 @@ const authJwtMiddleware = (role?: string) => {
 
         if (accessTokenPayloadOrError instanceof JwtTokenExpired) {
             // TEST: test this 
-            refreshAccessToken(c, accessCookie)
+            const refreshStatus = await refreshAccessToken(c, accessCookie)
+            if (refreshStatus) return refreshStatus;
+        } else if (accessTokenPayloadOrError instanceof Error) {
+            throw accessTokenPayloadOrError;
         }
 
         if (role) {
@@ -91,7 +94,7 @@ async function refreshAccessToken(c: Context, accessCookie: string) {
         return c.json(res, 401);
     }
 
-    const newAccessTokenPayload = { userId: payload.userId, refreshTokenId: payload.refreshTokenId, exp: Math.floor(Date.now() / 1000) + 60 * 30 };
+    const newAccessTokenPayload = { userId: payload.userId, refreshTokenId: payload.refreshTokenId, exp: Math.floor(Date.now() / 1000) + 60 * 15 };
 
     const accessToken = await sign(newAccessTokenPayload, ENV.ACCESS_JWT_SECRET())
 
