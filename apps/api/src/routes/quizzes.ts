@@ -2,6 +2,7 @@ import getHandlers from "@/controllers/quizzes/get";
 import getByIdHandlers from "@/controllers/quizzes/get-by-id";
 import getByUserIdHandlers from "@/controllers/quizzes/get-by-user-id";
 import getOwnHandlers from "@/controllers/quizzes/get-own";
+import getOwnByIdHandlers from "@/controllers/quizzes/get-own-by-id";
 import publishHandlers from "@/controllers/quizzes/publish";
 import { Hono } from "hono";
 
@@ -15,6 +16,7 @@ const quizzes = new Hono().basePath("/quizzes")
     .get("/", ...getHandlers)
     .get("/own", ...getOwnHandlers)
     .get("/by/:uuid", ...getByUserIdHandlers)
+    .get("/own/:uuid", ...getOwnByIdHandlers)
     .get("/:uuid", ...getByIdHandlers);
 
 export default quizzes;
