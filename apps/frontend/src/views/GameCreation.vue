@@ -3,11 +3,12 @@ import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { useRoute } from 'vue-router'
-import { ref, watch, nextTick, toRaw } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload } from '@/utils/type'
 import { useCounterStore } from '@/stores/counter'
+import { clientv1 } from '@/lib/apiClient'
 
 const store = useCounterStore()
 const route = useRoute()
@@ -17,18 +18,18 @@ const isoCodes = store.returnIsoCards()
 
 const oneQuestion = ref({
   question: '',
-  type: <'2 válaszos' | 'Normál'>('Normál'),
+  type: <'twochoice' | 'normal'>('normal'),
   answers: ['', '', '', ''],
   picture: '/placeholder.svg?height=200&width=300',
   correct_answer_index: 1,
 })
 
-const data = ref<quizUpload>({
+const quiz = ref<quizUpload>({
   title: '',
   description: '',
-  status: '',
+  status: <"draft" | "published" | "requires_review" | "private">('published'),
   banner: '/placeholder.svg?height=200&width=300',
-  languages: [],
+  languageISOCodes: [],
   tags: [],
   cards: [],
 })
@@ -37,7 +38,7 @@ const data = ref<quizUpload>({
 watch(
   () => oneQuestion.value.type,
   (newType) => {
-    if (newType === '2 válaszos') {
+    if (newType === 'twochoice') {
       oneQuestion.value.answers = ['', '']
     } else {
       oneQuestion.value.answers = ['', '', '', '']
@@ -51,19 +52,32 @@ watch(
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const questionImageInput = ref<HTMLInputElement | null>(null)
 
+const getQuiz = (async () => {
+     const uuid = route.params.uuid;
+     console.log(uuid);
+     try {
+         const get = await clientv1.quizzes.by[':uuid'].$get({ param: { uuid: uuid.toString() } });
+         console.log("status: "+get.status);
+         if (get.status === 200) {
+           const res = (await (get.json())).data;
+           console.log("------data------")
+           console.log(res);
+           console.log("------data------")
+         }
+         else{
+          console.log("request failed: ", get.status)
+         }
 
-const hasUuid = () => {
-  const uuid = route?.params?.uuid?.[0]
-  if (uuid) {
-    const mockCard = store.returnMockCardByUuid(uuid)
-    console.log(mockCard)
-    if (mockCard) {
-      data.value = mockCard
-    }
-  }
-}
 
-hasUuid()
+     } catch (error) {
+         console.log("error: ", error);
+   
+     }
+ });
+ 
+getQuiz()
+
+
 
 const handleGameImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
@@ -87,7 +101,7 @@ const handleGameImageUpload = (event: Event) => {
     const reader = new FileReader()
 
     reader.onload = (e) => {
-      data.value.banner = e.target?.result as string
+      quiz.value.banner = e.target?.result as string
     }
 
     reader.readAsDataURL(file)
@@ -95,7 +109,7 @@ const handleGameImageUpload = (event: Event) => {
 }
 
 const clearGameImage = () => {
-  data.value.banner = ''
+  quiz.value.banner = ''
   if (gameImageInput.value) {
     gameImageInput.value = null
   }
@@ -140,7 +154,7 @@ const clearQuestionImage = () => {
 }
 
 const addQuestion = () => {
-  data.value.cards.push(
+  quiz.value.cards.push(
     {
       question: oneQuestion.value.question,
       type: oneQuestion.value.type,
@@ -154,21 +168,21 @@ const addQuestion = () => {
   if (questionImageInput.value) {
     questionImageInput.value!.value = ''
   }
-  oneQuestion.value.answers = oneQuestion.value.type == 'Normál' ? ['', '', '', ''] : ['', '']
+  oneQuestion.value.answers = oneQuestion.value.type == 'normal' ? ['', '', '', ''] : ['', '']
   oneQuestion.value.correct_answer_index = 0
   oneQuestion.value.question = ''
-  oneQuestion.value.type = 'Normál'
+  oneQuestion.value.type = 'normal'
 }
 
 const handleQuestionRemove = (index: number) => {
-  data.value.cards.splice(index, 1)
+  quiz.value.cards.splice(index, 1)
 }
 
 const handleQuestionModify = (index: number) => {
-  const res = data.value.cards[index]
+  const res = quiz.value.cards[index]
   oneQuestion.value = {
     question: res.question,
-    type: res.type as '2 válaszos' | 'Normál',
+    type: res.type as 'twochoice' | 'normal',
     answers: res.answers,
     picture: res.picture,
     correct_answer_index: res.correct_answer_index,
@@ -178,31 +192,59 @@ const handleQuestionModify = (index: number) => {
 
 const handleQuizyUpload = async () => {
   await nextTick()
-  console.log(data.value.banner)
-  console.log(data.value.tags)
-  console.log(data.value.languages)
-  console.log(data.value)
-  console.log(toRaw(data.value))
-  resetInputValues()
+  console.log((quiz.value))
+  const query =  await clientv1.quizzes.publish.$post({
+    json: {
+      quiz: {
+        title: quiz.value.title,
+        description: quiz.value.description,
+        status: quiz.value.status,
+        banner: quiz.value.banner
+      },
+      cards: quiz.value.cards,
+      tags: quiz.value.tags,
+      languageISOCodes: quiz.value.languageISOCodes
+    }
+  })
+  if(query.status===201){
+    toast('Sikeres quiz feltöltés!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'success',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+      resetInputValues()
+  }
+  else{
+    const res = await query.json()
+    toast(res.error?.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+  }
 }
 
 const resetInputValues = () => {
   oneQuestion.value = {
     question: '',
-    type: <'2 válaszos' | 'Normál'>('Normál'),
+    type: <'twochoice' | 'normal'>('normal'),
     answers: ['', '', '', ''],
     picture: '/placeholder.svg?height=200&width=300',
     correct_answer_index: 1,
   }
-  for (const key in data.value) {
-    if (Object.prototype.hasOwnProperty.call(data.value, key)) {
+  for (const key in quiz.value) {
+    if (Object.prototype.hasOwnProperty.call(quiz.value, key)) {
       const typedKey = key as keyof quizUpload;
 
-      if (typeof data.value[typedKey] === 'string') {
-        (data.value[typedKey] as string) = '';
+      if (typeof quiz.value[typedKey] === 'string') {
+        (quiz.value[typedKey] as string) = '';
       }
-      else if (Array.isArray(data.value[typedKey])) {
-        (data.value[typedKey] as []) = [];
+      else if (Array.isArray(quiz.value[typedKey])) {
+        (quiz.value[typedKey] as []) = [];
       }
     }
   }
@@ -210,17 +252,17 @@ const resetInputValues = () => {
 
 
 const isSelectedTag = (tag: string): boolean => {
-  return data.value.tags.includes(tag)
+  return quiz.value.tags.includes(tag)
 }
 
 const isSelectedIso = (code: string): boolean => {
-  return data.value.languages.includes(code)
+  return quiz.value.languageISOCodes.includes(code)
 }
 
 watch(
   () => oneQuestion.value.type,
   (newValue: string) => {
-    if (newValue === 'Normál') {
+    if (newValue === 'normal') {
       oneQuestion.value.answers = ['', '', '', ''];
     } else {
       oneQuestion.value.answers = ['Igaz', 'Hamis'];
@@ -242,7 +284,7 @@ watch(
               @change="handleGameImageUpload" />
             <div
               class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75">
-              <v-img :src="data.banner || '/placeholder.svg?height=200&width=300'" height="200" fit>
+              <v-img :src="quiz.banner || '/placeholder.svg?height=200&width=300'" height="200" fit>
                 <template v-slot:placeholder>
                   <div class="flex flex-col items-center justify-center h-full">
                     <CirclePlus @click="$refs.gameImageInput.click()"
@@ -251,7 +293,7 @@ watch(
                   </div>
                 </template>
               </v-img>
-              <div v-if="data.banner && !data.banner.includes('/placeholder')"
+              <div v-if="quiz.banner && !quiz.banner.includes('/placeholder')"
                 class="absolute top-2 right-2 rounded-full cursor-pointer transition-all duration-500 hover:bg-white hover:text-red-600 w-fit h-fit"
                 @click.stop="clearGameImage">
                 <X class="rounded-full" />
@@ -259,7 +301,7 @@ watch(
             </div>
           </div>
 
-          <v-text-field v-model="data.title" label="Cím" variant="outlined" class="mb-2"
+          <v-text-field v-model="quiz.title" label="Cím" variant="outlined" class="mb-2"
             bg-color="rgba(255, 255, 255, 0.1)" />
           <div class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-25 mb-4 rounded-md border-1 border-white/10 bg-white/20 p-1">
           <label
@@ -270,7 +312,7 @@ watch(
             <input
               type="checkbox"
               :value="t"
-              v-model="data.tags"
+              v-model="quiz.tags"
               class="hidden"
             />
             <div
@@ -294,7 +336,7 @@ watch(
             <input
               type="checkbox"
               :value="i"
-              v-model="data.languages"
+              v-model="quiz.languageISOCodes"
               class="hidden"
             />
             <div
@@ -309,7 +351,7 @@ watch(
             </div>
           </label>
         </div>
-          <v-textarea v-model="data.description" label="Leírás" variant="outlined" class="mb-2 glass-input gameDesc"
+          <v-textarea v-model="quiz.description" label="Leírás" variant="outlined" class="mb-2 glass-input gameDesc"
             bg-color="rgba(255, 255, 255, 0.1)"/>
             <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
             Quiz feltöltése
@@ -345,11 +387,11 @@ watch(
 
           <v-textarea v-model="oneQuestion.question" label="Kérdés" variant="outlined" class="mb-2 glass-input"
             bg-color="rgba(255, 255, 255, 0.1)" />
-          <v-select v-model="oneQuestion.type" :items="['2 válaszos', 'Normál']" label="Kérdés fajtája"
+          <v-select v-model="oneQuestion.type" :items="['twochoice', 'normal']" label="Kérdés fajtája"
             variant="outlined" class="mb-2 glass-input" bg-color="rgba(255, 255, 255, 0.1)" item-color="white" />
 
           <div>
-            <div v-if="oneQuestion.type == 'Normál'" class="grid grid-cols-2 gap-2 mb-2">
+            <div v-if="oneQuestion.type == 'normal'" class="grid grid-cols-2 gap-2 mb-2">
               <v-text-field v-for="(answer, index) in oneQuestion.answers" :key="index"
                 v-model="oneQuestion.answers[index]" :label="`Válasz ${index + 1}`" variant="outlined"
                 class="glass-input" bg-color="rgba(255, 255, 255, 0.1)" />
@@ -360,10 +402,10 @@ watch(
                 bg-color="rgba(255, 255, 255, 0.1)" />
             </div>
             <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"
-              class="glass-input w-full col-span-2" bg-color="rgba(255, 255, 255, 0.1)" type="number" :rules="oneQuestion.type == 'Normál'
+              class="glass-input w-full col-span-2" bg-color="rgba(255, 255, 255, 0.1)" type="number" :rules="oneQuestion.type == 'normal'
                 ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
                 : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
-                " min="1" :max="oneQuestion.type == 'Normál' ? 4 : 2" />
+                " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
           </div>
 
           <v-btn block color="primary" @click="addQuestion"> Kérdés hozzáadása </v-btn>
@@ -376,7 +418,7 @@ watch(
         <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
           <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
           <div class="space-y-4">
-            <div v-for="(c, index) in data.cards" :key="index"
+            <div v-for="(c, index) in quiz.cards" :key="index"
               class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500 cursor-pointer"
               @click="handleQuestionModify(index)">
               <XButton @click.stop="handleQuestionRemove(index)"> </XButton>

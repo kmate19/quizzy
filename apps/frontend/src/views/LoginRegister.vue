@@ -10,7 +10,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 
 const isLoginForm = ref(true)
-const cardHeight = ref(0);
+const cardHeight = ref(0)
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -27,8 +27,8 @@ const showPasswordRequirements = () => {
     type: 'info',
     transition: 'zoom',
     pauseOnHover: false,
-  });
-};
+  })
+}
 
 const flipLogin = () => {
   isLoginForm.value = !isLoginForm.value
@@ -75,7 +75,7 @@ const onRegistration = async () => {
     regErrors.value = null
     const regRes = await clientv1.auth.register.$post({ json: regForm.value })
     if (regRes.status === 400) {
-      const res = await regRes.json() satisfies ApiResponse
+      const res = (await regRes.json()) satisfies ApiResponse
       toast(res.error?.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -83,8 +83,8 @@ const onRegistration = async () => {
         transition: 'zoom',
         pauseOnHover: false,
       } as ToastOptions)
-    }
-    else {
+    } else {
+      //404//401
       toast('Sikeres regisztráció, ellenőrizze email fiókját!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -99,10 +99,11 @@ const onRegistration = async () => {
 }
 
 const onLogin = async () => {
-  const loginRes = await await clientv1.auth.login.$post({ json: loginForm.value })
+  const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
   console.log(loginRes.status)
-
-  if (loginRes.status === 404) {
+  if (loginRes.status === 200) {
+    router.push('/')
+  } else {
     const res = (await loginRes.json()) satisfies ApiResponse
     toast(res.error.message, {
       autoClose: 5000,
@@ -111,19 +112,6 @@ const onLogin = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     } as ToastOptions)
-  }
-  else if (loginRes.status === 401) {
-    const res = await loginRes.json() satisfies ApiResponse
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    } as ToastOptions)
-  }
-  else {
-    router.push('/')
   }
 }
 
@@ -135,28 +123,24 @@ const togglePassword = () => {
 
 const updateCardHeight = () => {
   nextTick(() => {
-    const content = document.querySelector('.form-content') as HTMLDivElement | null;
+    const content = document.querySelector('.form-content') as HTMLDivElement | null
     if (content) {
-      cardHeight.value = content.offsetHeight;
+      cardHeight.value = content.offsetHeight
     }
-  });
-};
+  })
+}
 
 onMounted(() => {
-  updateCardHeight();
-});
-
+  updateCardHeight()
+})
 </script>
 
 <template>
   <MistBackground />
   <div class="wrapper">
     <div
-      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
-       backdrop-blur-md transition-all duration-1000 !hover:bg-red-950
-        flex flex-col
-        justify-evenly relative overflow-hidden text-white"
-      :style="{ height: `${cardHeight+100}px` }"
+      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly relative overflow-hidden text-white"
+      :style="{ height: `${cardHeight + 100}px` }"
     >
       <transition
         name="fade"
@@ -200,10 +184,17 @@ onMounted(() => {
               </button>
             </v-text-field>
             <div class="w-full max-w-md space-y-6">
-              <button type="submit" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
+              <button
+                type="submit"
+                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
+              >
                 Bejelentkezés
               </button>
-              <button type="button" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out" @click="flipLogin">
+              <button
+                type="button"
+                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
+                @click="flipLogin"
+              >
                 Regisztráció
               </button>
             </div>
@@ -213,7 +204,10 @@ onMounted(() => {
           <div class="flex justify-evenly flex-row mb-2">
             <div class="flex items-center">
               <span class="font-weight-black text-3xl">Regisztráció</span>
-              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
+              <CircleHelp
+                class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
+                @click="showPasswordRequirements"
+              />
             </div>
           </div>
           <form @submit.prevent="onRegistration">
@@ -274,10 +268,17 @@ onMounted(() => {
             </v-text-field>
 
             <div class="w-full max-w-md space-y-6">
-              <button type="submit" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
+              <button
+                type="submit"
+                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
+              >
                 Regisztráció
               </button>
-              <button type="button" class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out" @click="flipLogin">
+              <button
+                type="button"
+                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
+                @click="flipLogin"
+              >
                 Bejelentkezés
               </button>
             </div>
@@ -387,7 +388,9 @@ v-text-field {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transition:
+    opacity 0.3s ease-in-out,
+    transform 0.3s ease-in-out;
 }
 
 .fade-enter-to,

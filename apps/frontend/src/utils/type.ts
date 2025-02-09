@@ -1,17 +1,32 @@
 export interface quizUpload {
-  title: string
   description: string
-  status: string
+  title: string
+  status: "draft" | "published" | "requires_review" | "private"
   banner: string
-  languages: string[]
+  languageISOCodes: string[]
   tags: string[]
   cards: {
     question: string
-    type: string
+    type: "normal" | "twochoice"
     answers: string[]
     picture: string
     correct_answer_index: number
   }[]
+}
+
+export interface quizSmallView {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
+  description: string;
+  title: string;
+  status: "draft" | "published" | "requires_review" | "private";
+  rating: number;
+  plays: number;
+  banner: string;
+  languages: string[]; 
+  tags: string[];
 }
 
 export interface quizCardView {
@@ -24,7 +39,7 @@ export interface quizCardView {
   rating: string
   plays: number
   banner: string
-  languages: string[]
+  languageISOCodes: string[]
   tags: string[]
   user_id: string
   cards: {
@@ -40,7 +55,7 @@ export interface FuzzySearchOptionsForCard {
   threshold?: number
   caseSensitive?: boolean
   trimWhitespace?: boolean
-  keys?: keyof quizCardView | (keyof quizCardView)[] | ((item: quizCardView) => string | string[])
+  keys?: ((item: quizSmallView) => string | string[]) | keyof quizSmallView | (keyof quizSmallView)[]
 }
 
 export interface FuzzySearchResult<T> {
