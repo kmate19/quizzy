@@ -37,6 +37,7 @@ namespace localadmin.ViewModels
                     {
                         new QuizCard
                         {
+                            Type = QuizCard.EQuitType.normal,
                             ID = 1, QuizID = 1,
                             Question = "What is the size of an int in C#?",
                             Answers = new List<string> { "4 bytes", "2 bytes", "8 bytes", "Depends on the platform" },
@@ -44,13 +45,15 @@ namespace localadmin.ViewModels
                         },
                         new QuizCard
                         {
+                            Type = QuizCard.EQuitType.twochoise,
                             ID = 2, QuizID = 1,
                             Question = "Which keyword is used to define a class?",
-                            Answers = new List<string> { "class", "struct", "define", "object" },
+                            Answers = new List<string> { "class", "struct" },
                             CorrectAnswerIndex = 0
                         },
                         new QuizCard
                         {
+                            Type = QuizCard.EQuitType.normal,
                             ID = 3, QuizID = 1,
                             Question = "What does 'static' mean in C#?",
                             Answers = new List<string> { "It belongs to the class rather than an instance", "It can be instantiated multiple times", "It is a dynamically allocated variable", "None of the above" },

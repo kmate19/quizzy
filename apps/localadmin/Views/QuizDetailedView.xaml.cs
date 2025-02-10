@@ -1,7 +1,11 @@
 ﻿using System.ComponentModel;
+using System.Net.Quic;
+using System.Security.Permissions;
 using System.Windows;
+using System.Windows.Markup.Localizer;
 using System.Windows.Media;
 using localadmin.Models;
+using localadmin.ViewModels;
 using localadmin.Views;
 
 namespace localadmin
@@ -15,6 +19,8 @@ namespace localadmin
         private int _cardIndex;
         private QuizCard _currentQuizCard;
         private string _stars;
+        private string _status;
+
         private int NumberOfCards => Quiz.QuizCards.Count;
         public int CardIndex
         {
@@ -57,6 +63,16 @@ namespace localadmin
             }
         }
 
+        public string Status
+        {
+            get=> _status;
+            set
+            {
+                _status = value;
+                OnPropertyChanged(nameof(Status));
+            }
+        }
+
 
         public QuizDetailedView(Quiz quiz)
         {
@@ -92,6 +108,17 @@ namespace localadmin
             CurrentQuizCard = Quiz.QuizCards[CardIndex];
             Stars = new string('★', Quiz.Rating) + new string('☆', 5 - Quiz.Rating);
 
+            if(CurrentQuizCard.Type==QuizCard.EQuitType.twochoise)
+            {
+                Answer3.Visibility = Visibility.Collapsed;
+                Answer4.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                Answer3.Visibility = Visibility.Visible;
+                Answer4.Visibility = Visibility.Visible;
+            }
+
             switch (CurrentQuizCard.CorrectAnswerIndex) {
                 case 0:
                     Answer1.Background=Brushes.Green;
@@ -104,6 +131,26 @@ namespace localadmin
                     break;
                 case 3:
                     Answer4.Background=Brushes.Green;
+                    break;
+            }
+
+            switch (Quiz.Status)
+            {
+                case Quiz.EQuizStatus.Published:
+                    Status = "Közzétéve";
+                    QuizStatus.Foreground = Brushes.Green;
+                    break;
+                case Quiz.EQuizStatus.RequiresReview:
+                    Status = "Felülvizsgálatra vár";
+                    QuizStatus.Foreground = Brushes.Orange;
+                    break;
+                case Quiz.EQuizStatus.Draft:
+                    Status= "Vázlat";
+                    QuizStatus.Foreground = Brushes.Gray;
+                    break;
+                case Quiz.EQuizStatus.Private:
+                    Status = "Privát";
+                    QuizStatus.Foreground = Brushes.Red;
                     break;
             }
         }

@@ -29,11 +29,18 @@ namespace localadmin.Views
         {
             if (TextBox.Text == "Fasz")
             {
+                Application.Current.MainWindow = MainWindow;
                 MainWindow.Show();
-                Close();
+                Hide();
             }
             else
                 MessageBox.Show("Helytelen API kulcs. Kérlek próbálkozz újra.");
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            Application.Current.Shutdown();
         }
     }
 }

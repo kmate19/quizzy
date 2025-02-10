@@ -126,7 +126,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         base.OnClosed(e);
         Application.Current.Shutdown();
     }
-
 }
 public partial class App : Application
 {

@@ -10,8 +10,8 @@
     <Grid>
         <TextBlock x:Name="MessageText" Text="" FontSize="25" TextAlignment="Center" VerticalAlignment="Center" Margin="10" TextWrapping="Wrap"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10">
-            <Button Content="Yes" Width="80" Margin="10" Click="Yes_Click" Style="{StaticResource GridButtons}" />
-            <Button Content="No" Width="80" Margin="10" Click="No_Click" Style="{StaticResource GridButtons}" Background="Red"/>
+            <Button Content="Igen" Width="80" Margin="10" Click="Yes_Click" Style="{StaticResource GridButtons}" />
+            <Button Content="Nem" Width="80" Margin="10" Click="No_Click" Style="{StaticResource GridButtons}" Background="Red"/>
         </StackPanel>
     </Grid>
 </Window>

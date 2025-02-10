@@ -31,11 +31,11 @@
             </TextBlock>
             <TextBlock>
                 <Run Text="{Binding Quiz.Plays}"/>
-                <Run Text="-szor/szer játszott" FontWeight="Bold"/>
+                <Run Text="x játszott" FontWeight="Bold"/>
             </TextBlock>
             <TextBlock>
                 <Run Text="Státusz: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.Status}"/>
+                <Run x:Name="QuizStatus" Text="{Binding Status}"/>
             </TextBlock>
             <TextBlock>
                 <Run Text="Készült: " FontWeight="Bold"/>
