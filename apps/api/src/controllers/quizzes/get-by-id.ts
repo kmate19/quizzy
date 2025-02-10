@@ -22,15 +22,28 @@ const getByIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.obj
             },
             cards: true,
             tags: {
+                columns: {},
                 with: {
-                    tag: true
+                    tag: {
+                        columns: {
+                            name: true
+                        }
+                    }
                 }
             },
             languages: {
+                columns: {},
                 with: {
-                    language: true
+                    language: {
+                        columns: {
+                            name: true,
+                            iso_code: true,
+                            support: true,
+                            icon: true
+                        }
+                    }
                 }
-            }
+            },
         }
     });
 

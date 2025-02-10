@@ -14,15 +14,28 @@ const getByUserIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z
         where: and(eq(quizzesTable.status, "published"), eq(quizzesTable.user_id, uuid)),
         with: {
             tags: {
+                columns: {},
                 with: {
-                    tag: true
+                    tag: {
+                        columns: {
+                            name: true
+                        }
+                    }
                 }
             },
             languages: {
+                columns: {},
                 with: {
-                    language: true
+                    language: {
+                        columns: {
+                            name: true,
+                            iso_code: true,
+                            support: true,
+                            icon: true
+                        }
+                    }
                 }
-            }
+            },
         }
     });
 
