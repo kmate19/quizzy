@@ -14,13 +14,26 @@ const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
         where: eq(quizzesTable.user_id, userId),
         with: {
             tags: {
+                columns: {},
                 with: {
-                    tag: true
+                    tag: {
+                        columns: {
+                            name: true
+                        }
+                    }
                 }
             },
             languages: {
+                columns: {},
                 with: {
-                    language: true
+                    language: {
+                        columns: {
+                            name: true,
+                            iso_code: true,
+                            support: true,
+                            icon: true
+                        }
+                    }
                 }
             },
         }
