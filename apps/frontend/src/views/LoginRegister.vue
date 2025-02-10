@@ -74,17 +74,8 @@ const onRegistration = async () => {
   } else {
     regErrors.value = null
     const regRes = await clientv1.auth.register.$post({ json: regForm.value })
-    if (regRes.status === 400) {
-      const res = (await regRes.json()) satisfies ApiResponse
-      toast(res.error?.message, {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-    } else {
-      //404//401
+    console.log(regRes.status)
+    if (regRes.status === 200) {
       toast('Sikeres regisztráció, ellenőrizze email fiókját!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -94,6 +85,15 @@ const onRegistration = async () => {
       } as ToastOptions)
       flipLogin()
       clearRegistration()
+    } else {
+      const res = (await regRes.json()) satisfies ApiResponse
+      toast(res.error?.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
     }
   }
 }
