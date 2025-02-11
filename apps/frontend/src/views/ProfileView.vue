@@ -226,14 +226,14 @@ const handlePasswordChange = async () => {
   closePasswordModal()
 }
 
-const arrayBufferToBase64 = (buffer: number[]): string => {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
+const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i])
+    binary += String.fromCharCode(bytes[i]);
   }
-  return window.btoa(binary)
-}
+  return `data:${mimeType};base64,${window.btoa(binary)}`;
+};
 
 const handleQuizView = (uuid:string)=>{
   router.push(`/game_creation/${uuid}`)
@@ -366,7 +366,7 @@ const handleQuizView = (uuid:string)=>{
         <div class="relative w-20 h-20 rounded-lg overflow-hidden">
           <img
             v-if="quiz.banner && quiz.banner.length"
-            :src="`data:image/jpeg;base64,${arrayBufferToBase64(quiz.banner)}`"
+            :src="arrayBufferToBase64(quiz.banner)"
             alt="Quiz banner"
             class="w-full h-full object-cover"
           />
