@@ -16,7 +16,15 @@ const route = useRoute()
 const tags = store.returnAllTags()
 const isoCodes = store.returnIsoCards()
 
-const oneQuestion = ref({
+interface Question {
+  question: string
+  type: 'twochoice' | 'normal'
+  answers: string[]
+  picture: string
+  correct_answer_index: number
+}
+
+const oneQuestion = ref<Question>({
   question: '',
   type: <'twochoice' | 'normal'>'normal',
   answers: ['', '', '', ''],
@@ -27,11 +35,11 @@ const oneQuestion = ref({
 const quiz = ref<quizUpload>({
   title: '',
   description: '',
-  status: <'draft' | 'published' | 'requires_review' | 'private'>'draft',
-  banner: '/placeholder.svg?height=200&width=300',
+  status: <'draft' | 'published' | 'requires_review' | 'private'>'published',
+  banner: '',
   languageISOCodes: [],
   tags: [],
-  cards: [],
+  cards: <Question[]>[],
 })
 
 watch(
@@ -47,49 +55,76 @@ watch(
   { immediate: true },
 )
 
+const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return `data:${mimeType};base64,${window.btoa(binary)}`
+}
+
+function hexToJpegBase64AssumeCorrect(hexData: string): Promise<string | null> {
+  hexData = hexData.replace(/\\x/g, "").replace(/\n/g, "").replace(/ /g, "").split(":")[0].split('>')[0].trim();
+
+  const bytes = new Uint8Array(hexData.length / 2);
+  for (let i = 0; i < hexData.length; i += 2) {
+    bytes[i / 2] = parseInt(hexData.substring(i, i + 2), 16);
+  }
+  const blob = new Blob([bytes], { type: 'image/jpeg' });
+
+  return new Promise<string | null>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string; 
+      resolve(result);
+    };
+    reader.onerror = () => {
+      reject(reader.error); 
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+//? hexben jon vissza a picture de a benner nem
+
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const questionImageInput = ref<HTMLInputElement | null>(null)
-
-function convertBufferToString(imageData: ImageData): string | null {
-  try {
-    // Convert the number array to a Uint8Array
-    const uint8Array = new Uint8Array(imageData.data);
-
-    // Convert the Uint8Array to a Base64 string
-    let binary = '';
-    const len = uint8Array.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(uint8Array[i]);
-    }
-
-    const base64String = btoa(binary);
-
-    // Create the data URL
-    return `data:image/png;base64,${base64String}`;  // Adjust 'image/png' if you know the actual image type
-  } catch (error) {
-    console.error("Error converting buffer to string:", error);
-    return null; // Or handle the error as needed
-  }
-}
 
 const getQuiz = async () => {
   const uuid = route.params.uuid
   console.log(uuid)
-  if (uuid) {
-    try {
-      const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
-      console.log('status: ' + get.status)
-      if (get.status === 200) {
-        const res = (await get.json()).data
-        console.log('------data------')
-        console.log(res)
-        console.log('------data------')
-      } else {
-        console.log('request failed: ', get.status)
+  try {
+    const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
+    console.log('status: ' + get.status)
+    if (get.status === 200) {
+      const res = (await get.json()).data
+      console.log(res.banner.data)
+      console.log(arrayBufferToBase64(res.banner.data))
+     console.log(res.cards[0].picture)
+      quiz.value = {
+        title: res.title,
+        description: res.description,
+        status: res.status,
+        banner: arrayBufferToBase64(res.banner.data),
+        languageISOCodes: res.languages.map((l) => l.language.iso_code),
+        tags: res.tags.map((t) => t.tag.name),
+        cards: await Promise.all(res.cards.map(async (c) => {
+          const p = await hexToJpegBase64AssumeCorrect(c.picture)//TODO: nem ertem
+          return {
+            question: c.question,
+            type: c.type,
+            answers: c.answers,
+            picture: p,
+            correct_answer_index: c.correct_answer_index,
+          }
+        })),
       }
-    } catch (error) {
-      console.log('error: ', error)
+      console.log(quiz.value)
+    } else {
+      console.log('request failed: ', get.status)
     }
+  } catch (error) {
+    console.log('error: ', error)
   }
 }
 
@@ -205,7 +240,7 @@ const handleQuestionModify = (index: number) => {
 }
 
 const handleQuizyUpload = async () => {
-  await nextTick()
+  await nextTick() //TODO: if quiz exsist then update
   console.log(quiz.value)
   const query = await clientv1.quizzes.publish.$post({
     json: {
@@ -230,8 +265,7 @@ const handleQuizyUpload = async () => {
     } as ToastOptions)
     resetInputValues()
   } else {
-    const res = await query.json()
-    toast(res.message, {
+    toast('Minden mező kötöltése kötelező!', {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -241,25 +275,31 @@ const handleQuizyUpload = async () => {
   }
 }
 
-const resetInputValues = () => {
-  oneQuestion.value = {
-    question: '',
-    type: <'twochoice' | 'normal'>'normal',
-    answers: ['', '', '', ''],
-    picture: '/placeholder.svg?height=200&width=300',
-    correct_answer_index: 1,
-  }
-  for (const key in quiz.value) {
-    if (Object.prototype.hasOwnProperty.call(quiz.value, key)) {
-      const typedKey = key as keyof quizUpload
-
-      if (typeof quiz.value[typedKey] === 'string') {
-        ;(quiz.value[typedKey] as string) = ''
-      } else if (Array.isArray(quiz.value[typedKey])) {
-        ;(quiz.value[typedKey] as []) = []
+const resetObject = <T extends object>(obj: T): T => {
+  const newObj = {} as T
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = obj[key as keyof T]
+      if (typeof value === 'string') {
+        newObj[key as keyof T] = '' as T[keyof T]
+      } else if (typeof value === 'number') {
+        newObj[key as keyof T] = 1 as T[keyof T]
+      } else if (typeof value === 'boolean') {
+        newObj[key as keyof T] = false as T[keyof T]
+      } else if (Array.isArray(value)) {
+        newObj[key as keyof T] = [] as T[keyof T]
+      } else if (typeof value === 'object' && value !== null) {
+        newObj[key as keyof T] = resetObject(value) as T[keyof T]
       }
     }
   }
+
+  return newObj
+}
+
+const resetInputValues = () => {
+  quiz.value = resetObject(quiz.value)
+  oneQuestion.value = resetObject(oneQuestion.value)
 }
 
 const isSelectedTag = (tag: string): boolean => {
@@ -328,46 +368,52 @@ watch(
             v-model="quiz.title"
             label="Cím"
             variant="outlined"
-            class="mb-2"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
-          <div
-            class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-25 mb-4 rounded-md border-1 border-white/10 bg-white/20 p-1"
-          >
-            <label v-for="t in tags" :key="t" class="space-x-2 p-1 rounded max-w-fit">
-              <input type="checkbox" :value="t" v-model="quiz.tags" class="hidden" />
-              <div
-                class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
-                :class="
-                  isSelectedTag(t) ? 'bg-green-500 text-white' : 'bg-gray-700 backdrop-blur-md '
-                "
-              >
-                {{ t }}
-              </div>
-            </label>
-          </div>
-          <div
-            class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-25 mb-4 rounded-md border-1 border-white/10 p-1 bg-white/20"
-          >
-            <label v-for="i in isoCodes" :key="i" class="space-x-2 p-1 rounded max-w-fit">
-              <input type="checkbox" :value="i" v-model="quiz.languageISOCodes" class="hidden" />
-              <div
-                class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
-                :class="
-                  isSelectedIso(i) ? 'bg-green-500 text-white' : 'bg-gray-700  backdrop-blur-md'
-                "
-              >
-                {{ i }}
-              </div>
-            </label>
-          </div>
+          <v-select
+            v-model="quiz.status"
+            :items="['draft', 'published', 'requires_review', 'private']"
+            label="Quiz láthatósága"
+            variant="outlined"
+            bg-color="rgba(255, 255, 255, 0.1)"
+            item-color="white"
+          />
           <v-textarea
             v-model="quiz.description"
             label="Leírás"
             variant="outlined"
-            class="mb-2 glass-input gameDesc"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
+            <div
+              class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-24 mb-4 rounded-md border-1 border-white/30 bg-white/10 p-1"
+            >
+              <label v-for="t in tags" :key="t" class="space-x-2 p-1 rounded max-w-fit">
+                <input type="checkbox" :value="t" v-model="quiz.tags" class="hidden" />
+                <div
+                  class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
+                  :class="
+                    isSelectedTag(t) ? 'bg-green-500 text-white' : 'bg-gray-700 backdrop-blur-md '
+                  "
+                >
+                  {{ t }}
+                </div>
+              </label>
+            </div>
+            <div
+              class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-24 mb-4 rounded-md border-1 border-white/30 p-1 bg-white/10"
+            >
+              <label v-for="i in isoCodes" :key="i" class="space-x-2 p-1 rounded max-w-fit">
+                <input type="checkbox" :value="i" v-model="quiz.languageISOCodes" class="hidden" />
+                <div
+                  class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
+                  :class="
+                    isSelectedIso(i) ? 'bg-green-500 text-white' : 'bg-gray-700  backdrop-blur-md'
+                  "
+                >
+                  {{ i }}
+                </div>
+              </label>
+            </div>
           <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
             Quiz feltöltése
             <CloudUpload />
@@ -417,7 +463,7 @@ watch(
             v-model="oneQuestion.question"
             label="Kérdés"
             variant="outlined"
-            class="mb-2 glass-input"
+            class="glass-input"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
           <v-select
@@ -425,7 +471,7 @@ watch(
             :items="['twochoice', 'normal']"
             label="Kérdés fajtája"
             variant="outlined"
-            class="mb-2 glass-input"
+            class="glass-input"
             bg-color="rgba(255, 255, 255, 0.1)"
             item-color="white"
           />
@@ -438,7 +484,6 @@ watch(
                 v-model="oneQuestion.answers[index]"
                 :label="`Válasz ${index + 1}`"
                 variant="outlined"
-                class="glass-input"
                 bg-color="rgba(255, 255, 255, 0.1)"
               />
             </div>
@@ -447,7 +492,7 @@ watch(
                 v-for="(answer, index) in oneQuestion.answers"
                 :key="index"
                 v-model="oneQuestion.answers[index]"
-                :placeholder="index == 1 ? 'Igaz' : 'Hamis'"
+                :placeholder="index == 1 ? 'Hamis' : 'Igaz'"
                 variant="outlined"
                 bg-color="rgba(255, 255, 255, 0.1)"
               />
@@ -477,7 +522,7 @@ watch(
       <v-col
         cols="12"
         md="4"
-        class="glass-panel text-white max-h-[calc(100vh-100px)] overflow-y-scroll custom-scrollbar"
+        class="glass-panel text-white max-h-[calc(100vh-50px)] overflow-y-scroll custom-scrollbar"
       >
         <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
           <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
@@ -489,7 +534,7 @@ watch(
               @click="handleQuestionModify(index)"
             >
               <XButton @click.stop="handleQuestionRemove(index)"> </XButton>
-              <v-img :src="c.picture" height="100" class="rounded mb-2" fit />
+              <v-img :key="c.picture" :src="c.picture" height="200" fit />
               <p class="text-white/90 mb-2">{{ c.question }}</p>
               <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
                 Típus: {{ c.type }}
