@@ -14,6 +14,7 @@ import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { makeSharpImage } from "@/utils/helpers";
 import { eq } from "drizzle-orm";
+import { fileTypeFromBuffer } from "file-type";
 import type { ApiResponse } from "repo";
 import { z } from "zod";
 
@@ -25,12 +26,43 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
 })), async (c) => {
     const { userId } = c.get('accessTokenPayload');
     const { quiz, cards, languageISOCodes, tags } = c.req.valid('json');
+    // TODO: limit number of quizzes a user can have, and limit the number of
+    // cards a quiz can have
 
     let parsedQuiz;
     try {
+        const rawFileBuf = Buffer.from(quiz.banner.split(';base64,')[1], 'base64');
+        const fileInfoRaw = await fileTypeFromBuffer(rawFileBuf);
+
+        if (!fileInfoRaw || !fileInfoRaw.mime.startsWith('image/')) {
+            const res = {
+                message: "Invalid file type",
+                error: {
+                    message: "invalid_file_type",
+                    case: "bad_request",
+                }
+            } satisfies ApiResponse;
+
+            return c.json(res, 400);
+        };
+
+        if (rawFileBuf.length > 1024 * 1024) {
+            const res = {
+                message: "File too large maximum 1MB",
+                error: {
+                    message: "file_too_large",
+                    case: "bad_request",
+                }
+            }
+
+            return c.json(res, 400);
+        }
+
+        const parsedBanner = await makeSharpImage(rawFileBuf);
+
         parsedQuiz = {
             ...quiz,
-            banner: await makeSharpImage(Buffer.from(quiz.banner.split(';base64,')[1], 'base64'))
+            banner: parsedBanner
         }
     } catch (e) {
         console.error(e);
@@ -44,12 +76,40 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
         return c.json(res, 400);
     }
 
-    let parsedCards;
+    let parsedCards = [];
     try {
-        parsedCards = await Promise.all(cards.map(async (card) => ({
-            ...card,
-            picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
-        })));
+        for (const card of cards) {
+            const rawFileBuf = Buffer.from(card.picture.split(';base64,')[1], 'base64');
+            const fileInfoRaw = await fileTypeFromBuffer(rawFileBuf);
+
+            if (!fileInfoRaw || !fileInfoRaw.mime.startsWith('image/')) {
+                const res = {
+                    message: "Invalid file type",
+                    error: {
+                        message: "invalid_file_type",
+                        case: "bad_request",
+                    }
+                } satisfies ApiResponse;
+
+                return c.json(res, 400);
+            };
+
+            if (rawFileBuf.length > 1024 * 1024) {
+                const res = {
+                    message: "File too large maximum 1MB",
+                    error: {
+                        message: "file_too_large",
+                        case: "bad_request",
+                    }
+                }
+
+                return c.json(res, 400);
+            }
+            parsedCards.push({
+                ...card,
+                picture: await makeSharpImage(Buffer.from(card.picture.split(';base64,')[1], 'base64'))
+            });
+        };
     } catch (e) {
         const res = {
             message: "Failed to publish quiz (cards)",
