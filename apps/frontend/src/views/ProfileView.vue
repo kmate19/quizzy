@@ -98,6 +98,61 @@ const showPasswordRequirements = () => {
   })
 }
 
+const realUser = ref({
+  email: '',
+  username: '',
+  created_at: '',
+  activity_status: '',
+  profile_picture: '',
+})
+
+const userData = async() => {
+  const user = await clientv1.userprofile.$get()
+  const userPfp = await clientv1.userprofile.profilepic.$get()
+  console.log(userPfp)
+  if(userPfp.ok){
+    const res = await userPfp.json()
+    console.log(res)
+    const uint8Array = new Uint8Array(res.data.data)
+    const blob = new Blob([uint8Array], { type: 'image/png' })
+    profileImage.value = URL.createObjectURL(blob)
+  }
+  else{
+    const res = await userPfp.json()
+    toast(res.error.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+  }
+
+  if(user.status===200){
+    const res = await user.json()
+    console.log(res.data)
+    realUser.value = {
+      email: res.data.email,
+      username: res.data.username,
+      created_at: res.data.createdAt,
+      activity_status: res.data.activityStatus,
+    } 
+  }
+  else{
+    const res = await user.json()
+    toast(res.error.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+  }
+
+}
+
+userData()
+
 const user = {
   playedgames: 200,
   games_won: 56,
@@ -159,6 +214,7 @@ const handleFileChange = (event: Event) => {
     }
 
     tempImage.value = file
+    console.log(tempImage.value)
     profileImage.value = URL.createObjectURL(file)
     showSaveButton.value = true
   }
@@ -174,8 +230,35 @@ const OnLogOut = () => {
 }
 
 const saveProfileImage = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  showSaveButton.value = false
+  const pfpUpload = await fetch('/api/v1/userprofile/profilepic',{
+    method: 'post',
+    body: tempImage.value
+  })
+  if(pfpUpload.status===200){
+    const res = await pfpUpload.json()
+    console.log(res)
+    toast('Profilkép sikeresen módosítva!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+    console.log(showSaveButton.value)
+    showSaveButton.value = false
+    console.log(showSaveButton.value)
+  }
+  else{
+    const res = await pfpUpload.json()
+    toast(res.error.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+  }
+  
 }
 
 const showPasswordModal = ref(false)
@@ -207,11 +290,10 @@ const handlePasswordChange = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     } as ToastOptions)
-
     return
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  
   closePasswordModal()
 }
 
@@ -251,8 +333,8 @@ const handleQuizView = (uuid: string) => {
           </button>
         </div>
         <div class="text-white flex flex-col flex-wrap">
-          <h1 class="text-3xl font-bold mb-2">{{ user.username }}</h1>
-          <p class="text-white/80">{{ user.email }}</p>
+          <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
+          <p class="text-white/80">{{ realUser.email}}</p>
           <p v-if="user.role === 'admin'" class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
             {{ user.role }}
           </p>

@@ -169,6 +169,7 @@ const handleQuestionImageUpload = (event: Event) => {
     reader.onload = (e) => {
       console.log(e.target?.result as string)
       oneQuestion.value.picture = e.target?.result as string
+      console.log(e.target?.result)
     }
 
     reader.readAsDataURL(file)
