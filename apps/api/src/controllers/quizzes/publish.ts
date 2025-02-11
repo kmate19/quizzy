@@ -26,8 +26,31 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
 })), async (c) => {
     const { userId } = c.get('accessTokenPayload');
     const { quiz, cards, languageISOCodes, tags } = c.req.valid('json');
-    // TODO: limit number of quizzes a user can have, and limit the number of
-    // cards a quiz can have
+
+    const existingQuizzes = await db.select({ id: quizzesTable.id }).from(quizzesTable).where(eq(quizzesTable.user_id, userId));
+    if (existingQuizzes.length >= 10) {
+        const res = {
+            message: "User has too many quizzes Max 10",
+            error: {
+                message: "user_has_too_many_quizzes",
+                case: "bad_request",
+            }
+        } satisfies ApiResponse;
+
+        return c.json(res, 400);
+    }
+
+    if (cards.length >= 10) {
+        const res = {
+            message: "Quiz has too many cards Max 10",
+            error: {
+                message: "quiz_has_too_many_cards",
+                case: "bad_request",
+            }
+        } satisfies ApiResponse;
+
+        return c.json(res, 400);
+    }
 
     let parsedQuiz;
     try {
