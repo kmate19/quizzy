@@ -22,7 +22,7 @@ beforeEach(async () => {
 })
 
 async function publisTestQuiz(client: any, cookies: string[], idx: number, status: string = "published") {
-    return await client.quizzes.publish.$post({
+    const pub = await client.quizzes.publish.$post({
         json: {
             quiz: {
                 title: `test quiz${idx}`,
@@ -45,6 +45,8 @@ async function publisTestQuiz(client: any, cookies: string[], idx: number, statu
             ]
         }
     }, { headers: { cookie: cookies.join(';') } });
+    expect(pub.status).toBe(201);
+    return pub;
 }
 
 describe('quiz related routes', async () => {
@@ -296,6 +298,9 @@ describe('quiz related routes', async () => {
         });
         test('should return with correct limits and offsets', async () => {
             const { cookies } = await registerAndLogin(client)
+            // TODO: this test currently fails since we adjusted it so a single
+            // user can only have 10 quizzes, this test needs to be changed
+            // to reflect that in the future
             for (let i = 0; i < 80; ++i) {
                 await publisTestQuiz(client, cookies, i);
             }
