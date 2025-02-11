@@ -15,6 +15,7 @@ const getByIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.obj
         with: {
             user: {
                 columns: {
+                    id: true,
                     username: true,
                     profile_picture: true,
                     activity_status: true
