@@ -27,13 +27,12 @@ const handlePath = () => {
   }
 }
 </script>
-
 <template>
   <nav :class="['transition-all duration-300 ease-in-out']">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div
-          class="flex items-center glass-button px-4 py-1 text-3xl text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit"
+          class="flex items-center border-transparent border-2 hover:scale-105 hover:border-white px-4 py-1 text-3xl text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
         >
           Quizzy/{{ handlePath() }}
         </div>
@@ -41,24 +40,25 @@ const handlePath = () => {
           <div class="ml-10 flex items-baseline space-x-4">
             <a
               @click="router.push('/')"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit"
+              class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 border-transparent hover:scale-x-105 hover:border-white cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
               >Kezdőlap</a
             >
             <a
               href="#"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit"
+              class="px-4 py-1 text-lg border-2 border-transparent hover:scale-x-105 hover:border-white text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
               >Közös játék</a
             >
             <a
               @click="router.push('/game_creation')"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit"
+              class="px-4 py-1 text-lg text-white border-2 border-transparent hover:scale-x-105 hover:border-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
               >Játék készítés</a
             >
-            <a
+            <div
               @click="router.push('/profil')"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit"
-              >Profil</a
+              class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit hover:scale-x-105 border-2 border-transparent hover:border-white relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
             >
+              Profil
+            </div>
           </div>
         </div>
         <div class="md:hidden">
@@ -110,7 +110,7 @@ const handlePath = () => {
           </a>
           <a
             @click="router.push('/profil')"
-            class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+            class="text-white hover:bg-gray-700 border block px-3 py-2 rounded-md text-base font-medium"
           >
             Profil
           </a>
@@ -119,36 +119,4 @@ const handlePath = () => {
     </transition>
   </nav>
 </template>
-
-<style scoped>
-.glass-button {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.glass-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
-}
-
-.glass-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.glass-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  pointer-events: none;
-}
-</style>
+<style scoped></style>

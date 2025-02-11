@@ -109,10 +109,10 @@ onMounted(() => {
 
 <template>
   <MistBackground />
+  <NavBar />
   <div
     class="max-w-6xl max-h-[calc(100vh-10px)] mx-auto m-2 backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden px-3 py-1"
   >
-    <NavBar />
     <main>
       <div class="relative mx-5 mb-5 mt-5 flex items-center gap-1">
       <div

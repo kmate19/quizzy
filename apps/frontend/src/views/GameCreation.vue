@@ -64,29 +64,6 @@ const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string =
   return `data:${mimeType};base64,${window.btoa(binary)}`
 }
 
-function hexToJpegBase64AssumeCorrect(hexData: string): Promise<string | null> {
-  hexData = hexData.replace(/\\x/g, "").replace(/\n/g, "").replace(/ /g, "").split(":")[0].split('>')[0].trim();
-
-  const bytes = new Uint8Array(hexData.length / 2);
-  for (let i = 0; i < hexData.length; i += 2) {
-    bytes[i / 2] = parseInt(hexData.substring(i, i + 2), 16);
-  }
-  const blob = new Blob([bytes], { type: 'image/jpeg' });
-
-  return new Promise<string | null>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string; 
-      resolve(result);
-    };
-    reader.onerror = () => {
-      reject(reader.error); 
-    };
-    reader.readAsDataURL(blob);
-  });
-}
-//? hexben jon vissza a picture de a benner nem
-
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const questionImageInput = ref<HTMLInputElement | null>(null)
 
@@ -98,9 +75,9 @@ const getQuiz = async () => {
     console.log('status: ' + get.status)
     if (get.status === 200) {
       const res = (await get.json()).data
-      console.log(res.banner.data)
+      console.log(res)
       console.log(arrayBufferToBase64(res.banner.data))
-     console.log(res.cards[0].picture)
+      console.log('cards[0].picture.data', res.cards[0].picture.data)
       quiz.value = {
         title: res.title,
         description: res.description,
@@ -108,16 +85,17 @@ const getQuiz = async () => {
         banner: arrayBufferToBase64(res.banner.data),
         languageISOCodes: res.languages.map((l) => l.language.iso_code),
         tags: res.tags.map((t) => t.tag.name),
-        cards: await Promise.all(res.cards.map(async (c) => {
-          const p = await hexToJpegBase64AssumeCorrect(c.picture)//TODO: nem ertem
-          return {
-            question: c.question,
-            type: c.type,
-            answers: c.answers,
-            picture: p,
-            correct_answer_index: c.correct_answer_index,
-          }
-        })),
+        cards: await Promise.all(
+          res.cards.map(async (c) => {
+            return {
+              question: c.question,
+              type: c.type,
+              answers: c.answers,
+              picture: arrayBufferToBase64(c.picture.data),
+              correct_answer_index: c.correct_answer_index,
+            }
+          }),
+        ),
       }
       console.log(quiz.value)
     } else {
@@ -205,22 +183,33 @@ const clearQuestionImage = () => {
 }
 
 const addQuestion = () => {
-  quiz.value.cards.push({
-    question: oneQuestion.value.question,
-    type: oneQuestion.value.type,
-    answers: oneQuestion.value.answers,
-    picture: oneQuestion.value.picture,
-    correct_answer_index: oneQuestion.value.correct_answer_index - 1,
-  })
+  if (quiz.value.cards.length < 10) {
+    quiz.value.cards.push({
+      question: oneQuestion.value.question,
+      type: oneQuestion.value.type,
+      answers: oneQuestion.value.answers,
+      picture: oneQuestion.value.picture,
+      correct_answer_index: oneQuestion.value.correct_answer_index - 1,
+    })
 
-  oneQuestion.value.picture = ''
-  if (questionImageInput.value) {
-    questionImageInput.value!.value = ''
+    oneQuestion.value.picture = ''
+    if (questionImageInput.value) {
+      questionImageInput.value!.value = ''
+    }
+    oneQuestion.value.answers = oneQuestion.value.type == 'normal' ? ['', '', '', ''] : ['', '']
+    oneQuestion.value.correct_answer_index = 0
+    oneQuestion.value.question = ''
+    oneQuestion.value.type = 'normal'
   }
-  oneQuestion.value.answers = oneQuestion.value.type == 'normal' ? ['', '', '', ''] : ['', '']
-  oneQuestion.value.correct_answer_index = 0
-  oneQuestion.value.question = ''
-  oneQuestion.value.type = 'normal'
+  else{
+    toast('Maximum 10 kérdést tartalmazhat egy quiz!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'info',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+  }
 }
 
 const handleQuestionRemove = (index: number) => {
@@ -265,7 +254,8 @@ const handleQuizyUpload = async () => {
     } as ToastOptions)
     resetInputValues()
   } else {
-    toast('Minden mező kötöltése kötelező!', {
+    const res = await query.json()
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -384,36 +374,36 @@ watch(
             variant="outlined"
             bg-color="rgba(255, 255, 255, 0.1)"
           />
-            <div
-              class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-24 mb-4 rounded-md border-1 border-white/30 bg-white/10 p-1"
-            >
-              <label v-for="t in tags" :key="t" class="space-x-2 p-1 rounded max-w-fit">
-                <input type="checkbox" :value="t" v-model="quiz.tags" class="hidden" />
-                <div
-                  class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
-                  :class="
-                    isSelectedTag(t) ? 'bg-green-500 text-white' : 'bg-gray-700 backdrop-blur-md '
-                  "
-                >
-                  {{ t }}
-                </div>
-              </label>
-            </div>
-            <div
-              class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-24 mb-4 rounded-md border-1 border-white/30 p-1 bg-white/10"
-            >
-              <label v-for="i in isoCodes" :key="i" class="space-x-2 p-1 rounded max-w-fit">
-                <input type="checkbox" :value="i" v-model="quiz.languageISOCodes" class="hidden" />
-                <div
-                  class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
-                  :class="
-                    isSelectedIso(i) ? 'bg-green-500 text-white' : 'bg-gray-700  backdrop-blur-md'
-                  "
-                >
-                  {{ i }}
-                </div>
-              </label>
-            </div>
+          <div
+            class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-24 mb-4 rounded-md border-1 border-white/30 bg-white/10 p-1"
+          >
+            <label v-for="t in tags" :key="t" class="space-x-2 p-1 rounded max-w-fit">
+              <input type="checkbox" :value="t" v-model="quiz.tags" class="hidden" />
+              <div
+                class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
+                :class="
+                  isSelectedTag(t) ? 'bg-green-500 text-white' : 'bg-gray-700 backdrop-blur-md '
+                "
+              >
+                {{ t }}
+              </div>
+            </label>
+          </div>
+          <div
+            class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-24 mb-4 rounded-md border-1 border-white/30 p-1 bg-white/10"
+          >
+            <label v-for="i in isoCodes" :key="i" class="space-x-2 p-1 rounded max-w-fit">
+              <input type="checkbox" :value="i" v-model="quiz.languageISOCodes" class="hidden" />
+              <div
+                class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
+                :class="
+                  isSelectedIso(i) ? 'bg-green-500 text-white' : 'bg-gray-700  backdrop-blur-md'
+                "
+              >
+                {{ i }}
+              </div>
+            </label>
+          </div>
           <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
             Quiz feltöltése
             <CloudUpload />
