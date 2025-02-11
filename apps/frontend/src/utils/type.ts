@@ -14,6 +14,8 @@ export interface quizUpload {
   }[]
 }
 
+
+
 export interface quizSmallView {
   id: string;
   created_at: Date;
