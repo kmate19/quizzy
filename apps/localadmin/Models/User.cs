@@ -4,6 +4,7 @@ using localadmin.Views;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace localadmin.Models
 {
@@ -21,6 +22,22 @@ namespace localadmin.Models
             Active,
             Blocked
         }
+
+        private static readonly Dictionary<string, string> Translations = new Dictionary<string, string>
+        {
+            { "Away", "Távol" },
+            { "Active", "Aktív" },
+            { "Inactive", "Inaktív" },
+            { "Pending", "Folyamatban" },
+            { "Blocked", "Blokkolva" },
+
+        };
+
+        public string TranslatedActivityStatus => Translate(ActivityStatus.ToString());
+        public string TranslatedAuthStatus => Translate(AuthStatus.ToString());
+
+        private string Translate(string key) => Translations.TryGetValue(key, out var translation) ? translation : key;
+
         private readonly NavigationService navigationService;
         private readonly SharedStateService sharedState;
         public ICommand ViewQuizCommand { get; }

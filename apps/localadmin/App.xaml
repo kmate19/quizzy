@@ -101,12 +101,15 @@
             <Style.Triggers>
                 <DataTrigger Binding="{Binding ActivityStatus}" Value="Active">
                     <Setter Property="Foreground" Value="Green" />
+                    <Setter Property="Text" Value="Aktív"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding ActivityStatus}" Value="Inactive">
                     <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="Text" Value="Inaktív"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding ActivityStatus}" Value="Away">
                     <Setter Property="Foreground" Value="Orange" />
+                    <Setter Property="Text" Value="Távol"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>

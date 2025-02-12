@@ -51,9 +51,9 @@
 
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="Státusz: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding ActivityStatus}" Style="{StaticResource ActivityStatusStyle}" TextWrapping="Wrap" FontSize="20" Margin="0, 0, 0, 10"/>
+                                    <TextBlock Text="{Binding TranslatedActivityStatus}" Style="{StaticResource ActivityStatusStyle}" TextWrapping="Wrap" FontSize="20" Margin="0, 0, 0, 10"/>
                                     <TextBlock Text="Hitelesítési állapot: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding AuthStatus}" Style="{StaticResource AuthStatusStyle}" TextWrapping="Wrap" FontSize="20" />
+                                    <TextBlock Text="{Binding TranslatedAuthStatus}" Style="{StaticResource AuthStatusStyle}" TextWrapping="Wrap" FontSize="20" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="3">

@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.Quiz;
@@ -9,6 +11,14 @@ namespace localadmin.ViewModels
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
+
+        private Dictionary<Quiz.EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
+        {
+            {EQuizStatus.RequiresReview, 1 },
+            {EQuizStatus.Published, 2 },
+            {EQuizStatus.Draft, 3 },
+            {EQuizStatus.Private, 4 }
+        };
 
         public ObservableCollection<Quiz> Quizzes { get; set; }
         public ObservableCollection<Quiz> FiltredQuizzes { get; set; }
@@ -135,7 +145,14 @@ namespace localadmin.ViewModels
                 }
             };
 
-            FiltredQuizzes = new ObservableCollection<Quiz>(Quizzes);
+            FiltredQuizzes = new ObservableCollection<Quiz>(
+                Quizzes.OrderBy(x => QuizOrder[x.Status])
+            );
+
+            for (int i = 0; i<FiltredQuizzes.Count; i++)
+            {
+                Debug.WriteLine(FiltredQuizzes[i].Status);
+            }
         }
 
         public void SearchQuizes(string query)
