@@ -70,9 +70,12 @@ const questionImageInput = ref<HTMLInputElement | null>(null)
 const getQuiz = async () => {
   const uuid = route.params.uuid
   console.log(uuid)
-  try {
-    const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
-    console.log('status: ' + get.status)
+  if(uuid === ""){
+    return
+  }//if no uuid get still runs with correct uuid
+  const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
+  console.log('status: ' + get.status)
+  
     if (get.status === 200) {
       const res = (await get.json()).data
       console.log(res)
@@ -101,9 +104,6 @@ const getQuiz = async () => {
     } else {
       console.log('request failed: ', get.status)
     }
-  } catch (error) {
-    console.log('error: ', error)
-  }
 }
 
 getQuiz()

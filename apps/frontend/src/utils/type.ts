@@ -33,15 +33,19 @@ export interface quizSmallView {
 
 export interface quizCardView {
   status: string
-  id: string
   created_at: Date
   updated_at: Date
   title: string
+  quiz_id: string
   description: string
   rating: string
-  plays: number
+  plays: string
   banner: string
-  languageISOCodes: string[]
+  username: string
+  languageISOCodes: {
+    iso_code: string
+    icon: string
+  }[]
   tags: string[]
   user_id: string
   cards: {

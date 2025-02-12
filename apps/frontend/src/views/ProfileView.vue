@@ -130,13 +130,14 @@ const userData = async() => {
 
   if(user.status===200){
     const res = await user.json()
-    console.log(res.data)
+    console.log("asd",res.data)
     realUser.value = {
-      email: res.data.email,
-      username: res.data.username,
-      created_at: res.data.createdAt,
-      activity_status: res.data.activityStatus,
-    } 
+  email: res.data.email,
+  username: res.data.username,
+  created_at: res.data.createdAt,
+  activity_status: res.data.activityStatus,
+  profile_picture: "", // ide meg kell a data
+};
   }
   else{
     const res = await user.json()
@@ -309,6 +310,11 @@ const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string =
 const handleQuizView = (uuid: string) => {
   router.push(`/game_creation/${uuid}`)
 }
+
+const handleQuizDeatailedView = (uuid: string) => {
+  router.push(`/quiz/${uuid}`)
+}
+
 </script>
 
 <template>
@@ -402,7 +408,7 @@ const handleQuizView = (uuid: string) => {
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
           <div v-for="quiz in userQuizzies" :key="quiz.id"
             class="flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500  bg-multi-color-gradient cursor-pointer"
-            @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : null">
+            @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDeatailedView(quiz.id)">
             <div class="relative w-20 h-20 rounded-lg overflow-hidden">
               <img v-if="quiz.banner && quiz.banner.length" :src="arrayBufferToBase64(quiz.banner)" alt="Quiz banner"
                 class="w-full h-full object-cover" />

@@ -3,8 +3,9 @@ import LoginRegisterView from '@/views/LoginRegister.vue'
 import HomeView from '@/views/HomeView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import GameCreation from '@/views/GameCreation.vue'
-//import { clientv1 } from '@/lib/apiClient'
 import { ref, watch } from 'vue'
+import DetailedView from '@/views/DetailedView.vue'
+//import { clientv1 } from '@/lib/apiClient'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,7 +22,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/profil',
+      path: '/profil/:uuid?',
       name: 'profile',
       component: ProfileView,
       meta: { requiresAuth: true },
@@ -34,6 +35,14 @@ const router = createRouter({
         requiresAuth: true,
       },
     },
+    {
+      path: '/quiz/:uuid',
+      name: 'detailed_view',
+      component: DetailedView,
+      meta: {
+        requiresAuth: true,
+      },
+    }
   ],
 })
 
@@ -49,7 +58,7 @@ router.beforeEach((toRoute, fromRoute, next) => {
     case 'home':
       newTitle = 'Kezdőlap'
       break
-    case 'profile':
+    case 'profil':
       newTitle = 'Profil'
       break
     case 'game_creation':
