@@ -118,7 +118,7 @@ const handleModifyQuiz = (uuid: string) => {
                     <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
                         <h2 class="text-xl font-semibold">{{ data?.title }}</h2>
                     </div>
-
+                    <!--display real profile data-->
                     <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg text-lg ">
                         <div>Készítette:
                             <span @click="data?.user_id && handleViewUser(data.user_id)"
