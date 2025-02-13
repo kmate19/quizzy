@@ -24,9 +24,11 @@ export const friendshipsRelations = relations(friendshipsTable, ({ one }) => ({
     user: one(usersTable, {
         fields: [friendshipsTable.user_id],
         references: [usersTable.id],
+        relationName: "user",
     }),
     friend: one(usersTable, {
         fields: [friendshipsTable.friend_id],
         references: [usersTable.id],
+        relationName: "friend",
     }),
 }));
