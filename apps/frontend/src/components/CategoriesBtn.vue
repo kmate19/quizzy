@@ -15,7 +15,7 @@ const includeName = ref(true)
 const selectedCategories = computed(() => selectedCategoriesData.value)
 
 const extractCategories = () => {
-  const allTagsArrays = [...new Set(store.returnMockMockCards().value.map((card) => card.tags))];
+  const allTagsArrays = [...new Set(store.returnQuizies().value.map((card) => card.tags))];
   const allTags: string[] = [];
 
   for (const tags of allTagsArrays) {

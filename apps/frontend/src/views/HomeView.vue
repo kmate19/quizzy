@@ -1,254 +1,171 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import MistBackground from '@/components/MistBackground.vue'
+import { ref, onMounted, nextTick } from 'vue'
+import { Loader2Icon, Search } from 'lucide-vue-next'
 import NavBar from '@/components/NavBar.vue'
-import CategoriesBtn from '@/components/CategoriesBtn.vue'
-import { Search } from 'lucide-vue-next'
-import type { quizSmallView } from '@/utils/type'
-import { fuzzySearch } from '@/utils/search'
-import { useCounterStore } from '@/stores/counter'
+import CategoriesButton from '@/components/CategoriesBtn.vue'
+import MistBackground from '@/components/MistBackground.vue'
+import QuizCard from '@/components/QuizCard.vue'
+import { type quizSmallView } from '@/utils/type'
+import { clientv1 } from '@/lib/apiClient'
 
-const store = useCounterStore()
-const mockMockCards = store.returnMockMockCards()
-const isVisible = ref(false)
-const cards = ref<HTMLDivElement[]>()
+const quizzes = ref<quizSmallView[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
 const isExpanded = ref(false)
-const searchText = ref('')
-const isNameIncluded = ref(true)
 const isDescIncluded = ref(false)
-const cardColors = ref<string[]>([])
-const bgColors = ['bg-red-800', 'bg-blue-800', 'bg-yellow-600', 'bg-green-800']
+const isNameIncluded = ref(false)
+const categories = ref<string[]>([])
+const searchText = ref('')
+const searchContainer = ref<HTMLElement | null>(null)
 
-const getRandomColor = () => {
-  const color = bgColors[Math.floor(Math.random() * bgColors.length)]
-  return color
-}
-
-const getCardColor = (index: number) => {
-  if (!cardColors.value[index]) {
-    cardColors.value[index] = getRandomColor()
-  }
-  return cardColors.value[index]
-}
-
-const filteredCards = ref<quizSmallView[]>([...mockMockCards.value])
-
-type SavePayload = {
+interface FilterPayload {
   categories: string[]
   includeName: boolean
   includeDesc: boolean
 }
 
-const mockCards = ref<quizSmallView[]>([])
-mockCards.value = [...mockMockCards.value]
+const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return `data:${mimeType};base64,${window.btoa(binary)}`;
+};
 
-const toggleExpand = () => {
+const fetchQuizzes = async () => {
+  try {
+    const response = await clientv1.quizzes.$get({ query: { limit: "50", page: "1" } })
+    if (!response.ok) {
+      throw new Error('Failed to fetch quizzes')
+    }
+    const data = await response.json()
+    data.data.forEach((quiz) => {
+      quizzes.value.push({
+        id: quiz.id,
+        created_at: new Date(quiz.created_at),
+        updated_at: new Date(quiz.updated_at),
+        user_id: quiz.user_id,
+        description: quiz.description,
+        title: quiz.title,
+        rating: quiz.rating,
+        plays: quiz.plays,
+        banner: arrayBufferToBase64(quiz.banner.data),
+        languageISOCodes: quiz.languages.map((lang) => { return { iso_code: lang.language.iso_code, icon: lang.language.icon } }),
+        tags: quiz.tags.map((tag) => { return tag.tag.name }),
+      } as quizSmallView)
+    })
+    console.log('Quizzes:', quizzes.value)
+    loading.value = false
+  } catch {
+    error.value = 'Hiba történt a lekérdezés során, kérlek próbáld újra később.'
+  }
+}
+
+const toggleExpand = async () => {
   isExpanded.value = !isExpanded.value
   if (isExpanded.value) {
-    setTimeout(() => {
-      document.querySelector<HTMLInputElement>('.search-input')?.focus()
-    }, 100)
+    await nextTick()
+    const inputEl = searchContainer.value?.querySelector('input')
+    inputEl?.focus()
   }
 }
 
-const checkVisibility = () => {
-  if (cards.value?.length === 0) return
-  const windowHeight = window.innerHeight
-  cards.value?.forEach((card) => {
-    const cardTop = card.getBoundingClientRect().top
-    if (cardTop < windowHeight - 100) {
-      isVisible.value = true
-    }
-  })
-}
-
-const handleSave = (payload: SavePayload) => {
+const handleSave = (payload: FilterPayload) => {
   console.log('Save Payload:', payload)
-  const categories = payload.categories
+  categories.value = payload.categories
   isNameIncluded.value = payload.includeName
   isDescIncluded.value = payload.includeDesc
-  filterCards(categories)
-  search(searchText.value)
 }
 
-const filterCards = (categories: string[]) => {
-  if (categories.length === 0) {
-    filteredCards.value = [...mockMockCards.value]
-  } else {
-    filteredCards.value = mockMockCards.value.filter((card) =>
-      card.tags.some((tag) => categories.includes(tag)),
-    )
-  }
-  updateDisplayedCards()
+function debounce<Args extends unknown[]>(
+  func: (...args: Args) => void,
+  wait: number
+): (...args: Args) => void {
+  let timeout: ReturnType<typeof setTimeout>;
+  return (...args: Args): void => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func(...args);
+    }, wait);
+  };
 }
 
-const search = (searchText: string) => {
-  if (!searchText) {
-    mockCards.value = [...filteredCards.value]
-  } else {
-    const searchResults = fuzzySearch(searchText, filteredCards.value, {
-      keys: [
-        isNameIncluded.value ? 'name' : undefined,
-        isDescIncluded.value ? 'desc' : undefined,
-      ].filter((key): key is keyof quizSmallView => key !== undefined),
-      threshold: 0.5,
-    })
-    mockCards.value = searchResults
-  }
+function doSearch(query: string) {
+  searchText.value = query;
+  console.log('Search Query:', query);
 }
 
-const updateDisplayedCards = () => {
-  search(searchText.value)
+const search = debounce(doSearch, 250)
+
+function onInput(event: Event) {
+  const input = event.target as HTMLInputElement;
+  search(input.value);
+}
+
+const handleBlur = () => {
+  isExpanded.value = false
 }
 
 onMounted(() => {
-  checkVisibility()
-  cardColors.value = mockCards.value.map(() => getRandomColor())
+  fetchQuizzes()
 })
 </script>
 
 <template>
-  <MistBackground />
-  <NavBar />
-  <div
-    class="max-w-6xl max-h-[calc(100vh-10px)] mx-auto m-2 backdrop-blur-md bg-white/10 rounded-lg shadow-lg overflow-hidden px-3 py-1"
-  >
-    <main>
-      <div class="relative mx-5 mb-5 mt-5 flex items-center gap-1">
-      <div
-        :class="[
-        'flex items-center transition-all duration-300 ease-in-out rounded-full border border-gray-300 bg-white',
-        isExpanded
-          ? 'w-[75%] justify-center cursor-pointer'
-          : 'w-14 cursor-pointer hover:scale-110',
-        ]"
-      >
-        <div class="flex items-center px-4 py-2" @click="toggleExpand">
-        <Search class="h-6 w-6 text-gray" />
-        </div>
-        <input
-        type="text"
-        v-model="searchText"
-        @input="search(searchText)"
-        placeholder="Keresés..."
-        class="search-input w-full bg-transparent outline-none pr-4"
-        :class="{ 'opacity-0': !isExpanded, 'opacity-100 ': isExpanded }"
-        :disabled="!isExpanded"
-        />
-      </div>
-      <CategoriesBtn @save="handleSave" />
-      </div>
-      <div
-      class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-max overflow-y-scroll custom-scrollbar max-h-[calc(100vh-200px)]"
-        >
-      <template v-if="mockCards.length > 0">
-        <div
-          v-for="(card, index) in mockCards"
-          :key="card.title"
-          class="relative p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all 
-          duration-300 transform hover:-translate-y-2 opacity-0 flex flex-col h-fit
-          overflow-hidden group"
-          :class="[getCardColor(index), { 'fade-in': isVisible }]"
-          ref="cards"
-        >
-          <div class="relative z-10 flex flex-col h-full">
-            <div class="w-full aspect-video mb-4 rounded-lg overflow-hidden bg-black/20">
-              <img
-                :src="card.banner"
-                :alt="card.title"
-                class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-              />
+  <div class="home-page">
+    <MistBackground />
+    <NavBar />
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div class="flex items-center space-x-4" id="asd">
+          <div ref="searchContainer" :class="[
+            'relative flex items-center transition-all duration-700 ease-in-out rounded-full border border-gray-300 bg-white/10 text-white cursor-pointer glass-button',
+            isExpanded ? 'w-[calc(100vh-80%)] justify-start' : 'w-14'
+          ]">
+            <div class="flex items-center px-4 py-2 z-10" @click="toggleExpand">
+              <Search class="h-6 w-6" />
             </div>
-
- 
-            <div class="px-4 py-3 bg-black/30 rounded-lg mb-4 backdrop-blur-sm">
-              <h2 class="text-2xl font-bold text-white text-center">
-                {{ card.title }}
-              </h2>
-            </div>
-
-            
-            <div class="mb-4 flex-shrink-0">
-              <div class="px-4 py-3 bg-black/20 rounded-lg">
-                <div class="flex flex-wrap gap-2 max-h-[80px] overflow-y-auto custom-scrollbar">
-                  <div
-                    v-for="item in card.tags"
-                    :key="item"
-                    class="px-3 py-1 bg-white/20 rounded-full text-white text-sm font-medium transform hover:scale-105
-                     transition-transform duration-200 hover:bg-white/30"
-                  >
-                    {{ item }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-           
-            <div
-              class="px-4 py-3 bg-black/20 rounded-lg backdrop-blur-sm overflow-y-auto custom-scrollbar max-h-[200px]"
-            >
-              <p class="text-white/90 text-center leading-relaxed">
-                {{ card.description }}
-              </p>
-            </div>
+            <input type="text" v-model="searchText" @input="onInput" @blur="handleBlur" placeholder="Keresés..." :class="[
+              'bg-transparent outline-none pr-4 transition-all duration-700',
+              isExpanded ? 'w-full opacity-100' : 'w-0 opacity-0 pointer-events-none'
+            ]" />
           </div>
+          <CategoriesButton @save="handleSave" />
         </div>
-      </template>
-      <div v-else class="col-span-full flex items-center justify-center h-full">
-        <p class="text-2xl font-semibold text-white">Nincs ilyen találat</p>
+      </div>
+      <div v-if="loading" class="flex justify-center items-center h-64">
+        <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+      </div>
+      <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
+        {{ error }}
+      </div>
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <QuizCard v-for="quiz in quizzes" :key="quiz.id" :quiz="quiz" />
       </div>
     </div>
-    </main>
   </div>
 </template>
 
+
+
 <style scoped>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.home-page {
+  min-height: 100vh;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+.container {
+  max-width: 1200px;
 }
 
-.search-input {
-  transition: opacity 0.3s ease-in-out;
-}
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease-in-out;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 20px;
-  border: transparent;
+.glass-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 </style>

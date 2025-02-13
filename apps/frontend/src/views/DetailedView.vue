@@ -5,7 +5,7 @@ import router from '@/router'
 import { ref } from 'vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
-import { Play, Settings, Star,Loader } from 'lucide-vue-next'
+import { Play, Settings, Star,Loader2Icon } from 'lucide-vue-next'
 import { type quizCardView } from '@/utils/type'
 import { toast } from 'vue3-toastify'
 
@@ -24,6 +24,7 @@ const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string =
 }
 
 const getQuiz = async () => {
+    console.log("asdsad",uuid)
     const getQuiz = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
     console.log(getQuiz)
     if (getQuiz.ok) {
@@ -95,9 +96,9 @@ const handleModifyQuiz = (uuid: string) => {
 <template>
     <div v-if="isLoading === true" class="min-h-screen flex justify-center items-center">
         <MistBackground />
-        <div class="h-32 w-32">
-            <Loader class="animate-spin" :size="150" :stroke-width="3" color="white"/>
-        </div>
+        <div v-if="isLoading" class="flex justify-center items-center h-64">
+        <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+      </div>
     </div>
     <div v-else>
 
@@ -118,7 +119,6 @@ const handleModifyQuiz = (uuid: string) => {
                     <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
                         <h2 class="text-xl font-semibold">{{ data?.title }}</h2>
                     </div>
-                    <!--display real profile data-->
                     <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg text-lg ">
                         <div>Készítette:
                             <span @click="data?.user_id && handleViewUser(data.user_id)"
@@ -163,8 +163,6 @@ const handleModifyQuiz = (uuid: string) => {
                             class="flex-1 flex justify-center items-center rounded-xl font-bold backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg">
                             <Play :size="40" :stroke-width="2" absoluteStrokeWidth />
                         </button>
-
-                        <!--if viewer is the one who made display this button else none-->
                         <button @click="data?.quiz_id && handleModifyQuiz(data?.quiz_id)"
 
                             class="w-16 h-16 rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 p-3 border border-white/20 transition-all duration-300 shadow-lg flex items-center justify-center">

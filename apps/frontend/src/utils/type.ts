@@ -23,12 +23,14 @@ export interface quizSmallView {
   user_id: string;
   description: string;
   title: string;
-  status: "draft" | "published" | "requires_review" | "private";
   rating: number;
   plays: number;
   banner: string;
-  languages: string[]; 
-  tags: string[];
+  languageISOCodes: {
+    iso_code: string
+    icon: string
+  }[]
+  tags: string[]
 }
 
 export interface quizCardView {
