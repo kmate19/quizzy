@@ -5,12 +5,12 @@ import sendEmail from "@/utils/email/send-email";
 const RETRIES = 3;
 const RETRY_DELAY = 2000;
 self.onmessage = async (e) => {
-    const { email, emailToken } = e.data;
+    const { email, emailToken, type, data } = e.data;
 
     let attempts = 0;
     while (attempts < RETRIES) {
         try {
-            await sendEmail(email, emailToken);
+            await sendEmail(email, emailToken, type, data);
             break;
         } catch (error) {
             attempts++;

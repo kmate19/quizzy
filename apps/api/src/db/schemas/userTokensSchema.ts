@@ -1,20 +1,21 @@
 import { relations } from "drizzle-orm";
-import { text, pgTable, timestamp, uuid, serial, pgEnum, index } from "drizzle-orm/pg-core";
+import { text, pgTable, timestamp, uuid, serial, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 
-export const tokenTypeEnum = pgEnum("token_type", ["email", "refresh"]);
+export const tokenTypeEnum = pgEnum("token_type", ["email", "refresh", "forgot_password"]);
 
 export const userTokensTable = pgTable("user_tokens", {
     id: serial().primaryKey(),
     user_id: uuid().notNull().references(() => usersTable.id),
     token: text().notNull().unique(),
     token_type: tokenTypeEnum().notNull(),
+    data: text(),
     expires_at: timestamp().notNull(),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => {
     return [
-        index().on(table.token),
+        uniqueIndex().on(table.token),
     ];
 });
 

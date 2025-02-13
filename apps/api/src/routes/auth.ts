@@ -6,11 +6,15 @@ import logoutHandler from "@/controllers/auth/logout";
 import checkJwt from "@/middlewares/check-jwt";
 import { z } from "zod";
 import { zv } from "@/middlewares/zv";
+import forgotPasswordHandler from "@/controllers/auth/forgot-password";
+import forgotPassActivateHandler from "@/controllers/auth/forgot-password-activate";
 
 const auth = new Hono().basePath("/auth")
     .post("/register", ...registerHandler)
     .post("/login", ...loginHandler)
     .get("/logout", ...logoutHandler)
+    .post("/forgotpassword", ...forgotPasswordHandler)
+    .get("/forgotpassactivate/:token", ...forgotPassActivateHandler)
     .get("/verify/:emailHash", ...verifyHandler)
     .get("/authed", zv('query', z.object({ role: z.string().optional() })), async (c) => {
         // TEST: test this (also this is a bit of a mess)
