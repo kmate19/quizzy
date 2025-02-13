@@ -10,12 +10,27 @@ import { z } from "zod";
 const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ uuid: z.string().uuid() })), async (c) => {
     const { uuid } = c.req.valid("param");
 
-    const [userData] = await db.select({
-        email: usersTable.email,
-        username: usersTable.username,
-        createdAt: usersTable.created_at,
-        activityStatus: usersTable.activity_status,
-    }).from(usersTable).where(eq(usersTable.id, uuid))
+    const userData = await db.query.usersTable.findFirst({
+        where: eq(usersTable.id, uuid),
+        columns: {
+            username: true,
+            created_at: true,
+            activity_status: true,
+            profile_picture: true,
+        },
+        with: {
+            roles: {
+                columns: {},
+                with: {
+                    role: {
+                        columns: {
+                            name: true,
+                        }
+                    }
+                }
+            }
+        }
+    })
 
     if (!userData) {
         const res = {
