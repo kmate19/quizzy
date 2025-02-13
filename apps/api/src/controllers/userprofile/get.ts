@@ -18,6 +18,16 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
             profile_picture: true,
         },
         with: {
+            stats: {
+                columns: {
+                    plays: true,
+                    first_places: true,
+                    second_places: true,
+                    third_places: true,
+                    wins: true,
+                    losses: true,
+                }
+            },
             friendships: {
                 columns: {
                     created_at: true,
