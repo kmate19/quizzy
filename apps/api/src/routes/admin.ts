@@ -1,10 +1,10 @@
-import check_apikey from "@/middlewares/check-apikey";
+import setAuthStatusHandlers from "@/controllers/admin/set-auth-status";
+import setRoleHandlers from "@/controllers/admin/set-role";
 import { Hono } from "hono/tiny";
 
 
 const admin = new Hono().basePath("/admin")
-    .use(check_apikey)
-    .get('/', async (c) => {
-        return c.json({ message: "admin" })
-    })
+    .post("/set/role", ...setRoleHandlers)
+    .post("/set/authstatus", ...setAuthStatusHandlers)
+
 export default admin
