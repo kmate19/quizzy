@@ -8,69 +8,73 @@ import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 
-
-
-
 interface Language {
-  name: string;
-  iso_code: string;
-  icon: string;
-  support: 'none' | 'official' | 'partial';
+  name: string
+  iso_code: string
+  icon: string
+  support: 'none' | 'official' | 'partial'
 }
 
 interface Tag {
-  name: string;
+  name: string
 }
 
 interface Quiz {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  description: string;
-  title: string;
-  status: 'published' | 'draft' | 'requires_review' | 'private';
-  rating: number;
-  plays: number;
-  banner: number[];
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  description: string
+  title: string
+  status: 'published' | 'draft' | 'requires_review' | 'private'
+  rating: number
+  plays: number
+  banner: number[]
   languages: Language[]
-  tags: Tag[];
+  tags: Tag[]
 }
 
+interface Friend {
+  created_at: string
+  status: 'pending' | 'blocked' | 'accepted'
+  friend: {
+    username: string
+    activity_status: 'active' | 'inactive' | 'away'
+    profile_picture: string
+  }
+}
 const isLoading = ref(true)
 const userQuizzies = ref<Quiz[]>([])
-
-
 
 const getQuizzies = async () => {
   try {
     isLoading.value = true
     const res = await clientv1.quizzes.own.$get()
-    const data = await res.json();
-    [...data.data].forEach((el) => {
-      const temp: Quiz = {
-        id: el.id,
-        created_at: el.created_at,
-        updated_at: el.updated_at,
-        user_id: el.user_id,
-        description: el.description,
-        title: el.title,
-        status: el.status,
-        rating: el.rating,
-        plays: el.plays,
-        banner: el.banner.data,
-        languages: el.languages.map((lang) => ({
-          name: lang.language.name,
-          iso_code: lang.language.iso_code,
-          icon: lang.language.icon,
-          support: lang.language.support
-        })),
-        tags: el.tags.map((tag) => ({
-          name: tag.tag.name,
-        })),
-      }
-      userQuizzies.value.push(temp)
-    })
+    const data = await res.json()
+      ;[...data.data].forEach((el) => {
+        const temp: Quiz = {
+          id: el.id,
+          created_at: el.created_at,
+          updated_at: el.updated_at,
+          user_id: el.user_id,
+          description: el.description,
+          title: el.title,
+          status: el.status,
+          rating: el.rating,
+          plays: el.plays,
+          banner: el.banner.data,
+          languages: el.languages.map((lang) => ({
+            name: lang.language.name,
+            iso_code: lang.language.iso_code,
+            icon: lang.language.icon,
+            support: lang.language.support,
+          })),
+          tags: el.tags.map((tag) => ({
+            name: tag.tag.name,
+          })),
+        }
+        userQuizzies.value.push(temp)
+      })
   } catch (error) {
     console.error('error:', error)
   } finally {
@@ -106,42 +110,47 @@ const realUser = ref({
   created_at: '',
   activity_status: '',
   profile_picture: '',
+  friendships: [] as Friend[],
+  role: '',
+  stat: {
+    plays: 0,
+    first_places: 0,
+    second_places: 0,
+    third_places: 0,
+    wins: 0,
+    losses: 0,
+  },
 })
 
-const userData = async() => {
+const userData = async () => {
   const user = await clientv1.userprofile.$get()
-  const userPfp = await clientv1.userprofile.profilepic.$get()
-  console.log(userPfp)
-  if(userPfp.ok){
-    const res = await userPfp.json()
-    console.log(res)
-    const uint8Array = new Uint8Array(res.data.data)
-    const blob = new Blob([uint8Array], { type: 'image/png' })
-    profileImage.value = URL.createObjectURL(blob)
-  }
-  else{
-    const res = await userPfp.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
-  }
-
-  if(user.status===200){
+  console.log("ASDASD", user.status)
+  if (user.status === 200) {
     const res = await user.json()
-    console.log("asd",res.data)
+    console.log('asd', res.data)
     realUser.value = {
-  email: res.data.email,
-  username: res.data.username,
-  created_at: res.data.createdAt,
-  activity_status: res.data.activityStatus,
-  profile_picture: "", // ide meg kell a data
-};
-  }
-  else{
+      email: res.data.email,
+      username: res.data.username,
+      created_at: new Date(res.data.created_at).toLocaleDateString(),
+      activity_status: res.data.activity_status,
+      profile_picture: res.data.profile_picture
+        ? arrayBufferToBase64(res.data.profile_picture.data)
+        : '',
+      friendships: res.data.friendships.map((friend)=>{
+        return{
+          created_at: friend.created_at,
+          status: friend.status,
+          friend: {
+            username: friend.friend.username,
+            activity_status: friend.friend.activity_status,
+            profile_picture: friend.friend.profile_picture?.data ? arrayBufferToBase64(friend.friend.profile_picture.data) : ''
+          }
+        }
+      }),
+      role: res.data.roles[0].role.name,
+      stat: res.data.stats,
+    }
+  } else {
     const res = await user.json()
     toast(res.error.message, {
       autoClose: 5000,
@@ -151,50 +160,12 @@ const userData = async() => {
       pauseOnHover: false,
     })
   }
-
 }
 
 userData()
 
-const user = {
-  playedgames: 200,
-  games_won: 56,
-  username: 'Bence',
-  email: 'f.bence8100@gmail.com',
-  pfp: '/placeholder.svg?height=128&width=128',
-  role: 'admin',
-  friends: [
-    {
-      name: 'goku',
-      activity_status: 'online',
-      pfp: '/placeholder.svg?height=48&width=48',
-    },
-    {
-      name: 'goku',
-      activity_status: 'online',
-      pfp: '/placeholder.svg?height=48&width=48',
-    },
-    {
-      name: 'goku',
-      activity_status: 'online',
-      pfp: '/placeholder.svg?height=48&width=48',
-    },
-    {
-      name: 'goku',
-      activity_status: 'online',
-      pfp: '/placeholder.svg?height=48&width=48',
-    },
-    {
-      name: 'goku',
-      activity_status: 'online',
-      pfp: '/placeholder.svg?height=48&width=48',
-    },
-  ],
-  number_of_friends: 3,
-  number_of_quizzes: 4,
-}
 const fileInput = ref<HTMLInputElement | null>(null)
-const profileImage = ref<string | null>(user.pfp)
+const profileImage = ref<string | null>(null)
 const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 
@@ -233,11 +204,11 @@ const OnLogOut = () => {
 }
 
 const saveProfileImage = async () => {
-  const pfpUpload = await fetch('/api/v1/userprofile/profilepic',{
+  const pfpUpload = await fetch('/api/v1/userprofile/profilepic', {
     method: 'post',
-    body: tempImage.value
+    body: tempImage.value,
   })
-  if(pfpUpload.status===200){
+  if (pfpUpload.status === 200) {
     const res = await pfpUpload.json()
     console.log(res)
     toast('Profilkép sikeresen módosítva!', {
@@ -250,8 +221,7 @@ const saveProfileImage = async () => {
     console.log(showSaveButton.value)
     showSaveButton.value = false
     console.log(showSaveButton.value)
-  }
-  else{
+  } else {
     const res = await pfpUpload.json()
     toast(res.error.message, {
       autoClose: 5000,
@@ -261,7 +231,6 @@ const saveProfileImage = async () => {
       pauseOnHover: false,
     })
   }
-  
 }
 
 const showPasswordModal = ref(false)
@@ -296,18 +265,17 @@ const handlePasswordChange = async () => {
     return
   }
 
-  
   closePasswordModal()
 }
 
 const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(bytes[i])
   }
-  return `data:${mimeType};base64,${window.btoa(binary)}`;
-};
+  return `data:${mimeType};base64,${window.btoa(binary)}`
+}
 
 const handleQuizView = (uuid: string) => {
   router.push(`/game_creation/${uuid}`)
@@ -316,7 +284,6 @@ const handleQuizView = (uuid: string) => {
 const handleQuizDeatailedView = (uuid: string) => {
   router.push(`/quiz/${uuid}`)
 }
-
 </script>
 
 <template>
@@ -328,7 +295,8 @@ const handleQuizDeatailedView = (uuid: string) => {
     <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
       <div class="flex flex-wrap items-center gap-8">
         <div class="relative">
-          <img :src="profileImage || ''" class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
+          <img :src="realUser.profile_picture || ''"
+            class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
           <div
             class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
             @click="openFileDialog">
@@ -342,24 +310,28 @@ const handleQuizDeatailedView = (uuid: string) => {
         </div>
         <div class="text-white flex flex-col flex-wrap">
           <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
-          <p class="text-white/80">{{ realUser.email}}</p>
-          <p v-if="user.role === 'admin'" class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
-            {{ user.role }}
+          <p class="text-white/80">{{ realUser.email }}</p>
+          <p v-if="realUser.role === 'admin'" class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
+            {{ realUser.role }}
           </p>
         </div>
       </div>
       <div class="flex-1 flex flex-wrap justify-end items-center gap-4">
         <div class="text-center">
-          <div class="text-4xl font-bold text-white mb-2">{{ user.playedgames }}</div>
+          <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.plays }}</div>
           <div class="text-white/70 text-sm">Játszmák</div>
         </div>
         <div class="text-center">
-          <div class="text-4xl font-bold text-white mb-2">{{ user.games_won }}</div>
+          <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.first_places }}</div>
           <div class="text-white/70 text-sm">1. helyezés</div>
         </div>
         <div class="text-center">
           <div class="text-4xl font-bold text-white mb-2">
-            {{ Math.round((user.games_won / user.playedgames) * 100) }}%
+            {{
+              isNaN(Math.round((realUser.stat.first_places / realUser.stat.plays) * 100))
+                ? 0
+                : Math.round((realUser.stat.first_places / realUser.stat.plays) * 100)
+            }}%
           </div>
           <div class="text-white/70 text-sm">Nyerési arány</div>
         </div>
@@ -381,20 +353,20 @@ const handleQuizDeatailedView = (uuid: string) => {
         <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
           Barátok
           <span class="text-sm font-normal text-white/70">
-            {{ user.friends.length }} összesen
+            {{ realUser.friendships.length }} összesen
           </span>
         </h2>
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-          <div v-for="friend in user.friends" :key="friend.name"
+          <div v-for="friend in realUser.friendships" :key="friend.friend.username"
             class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient">
-            <img :src="friend.pfp" alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
+            <img :src="friend.friend.profile_picture" alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
             <div class="flex-1">
-              <h3 class="text-white font-medium text-xl mb-2">{{ friend.name }}</h3>
+              <h3 class="text-white font-medium text-xl mb-2">{{ friend.friend.username }}</h3>
               <p class="text-sm">
                 <span class="inline-block w-2 h-2 rounded-full mr-2"
-                  :class="friend.activity_status === 'online' ? 'bg-green-400' : 'bg-gray-400'">
+                  :class="friend.friend.activity_status === 'active' ? 'bg-green-400' : 'bg-gray-400'">
                 </span>
-                {{ friend.activity_status }}
+                {{ friend.friend.activity_status }}
               </p>
             </div>
           </div>
@@ -404,13 +376,15 @@ const handleQuizDeatailedView = (uuid: string) => {
         <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
           Quizzes
           <span class="text-sm font-normal text-white/70">
-            {{ userQuizzies.length }} total
+            {{ userQuizzies.length }} összesen
           </span>
         </h2>
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
           <div v-for="quiz in userQuizzies" :key="quiz.id"
-            class="flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500  bg-multi-color-gradient cursor-pointer"
-            @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDeatailedView(quiz.id)">
+            class="flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient cursor-pointer"
+            @click="
+              quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDeatailedView(quiz.id)
+              ">
             <div class="relative w-20 h-20 rounded-lg overflow-hidden">
               <img v-if="quiz.banner && quiz.banner.length" :src="arrayBufferToBase64(quiz.banner)" alt="Quiz banner"
                 class="w-full h-full object-cover" />
@@ -426,7 +400,7 @@ const handleQuizDeatailedView = (uuid: string) => {
                   'bg-green-500': quiz.status === 'published',
                   'bg-yellow-500': quiz.status === 'requires_review',
                   'bg-gray-500': quiz.status === 'draft',
-                  'bg-blue-500': quiz.status === 'private'
+                  'bg-blue-500': quiz.status === 'private',
                 }">
                   {{ quiz.status }}
                 </span>
@@ -445,8 +419,7 @@ const handleQuizDeatailedView = (uuid: string) => {
                 </div>
                 <div class="flex gap-1">
                   <span v-for="lang in quiz.languages" :key="lang.name"
-                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
-                    :title="lang.name">
+                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center" :title="lang.name">
                     {{ lang.iso_code }}
                   </span>
                 </div>
