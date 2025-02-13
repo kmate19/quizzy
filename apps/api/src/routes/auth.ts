@@ -8,12 +8,14 @@ import { z } from "zod";
 import { zv } from "@/middlewares/zv";
 import forgotPasswordHandler from "@/controllers/auth/forgot-password";
 import forgotPassActivateHandler from "@/controllers/auth/forgot-password-activate";
+import changePasswordHandler from "@/controllers/auth/change-password";
 
 const auth = new Hono().basePath("/auth")
     .post("/register", ...registerHandler)
     .post("/login", ...loginHandler)
     .get("/logout", ...logoutHandler)
     .post("/forgotpassword", ...forgotPasswordHandler)
+    .post("/changepassword", ...changePasswordHandler)
     .get("/forgotpassactivate/:token", ...forgotPassActivateHandler)
     .get("/verify/:emailHash", ...verifyHandler)
     .get("/authed", zv('query', z.object({ role: z.string().optional() })), async (c) => {
