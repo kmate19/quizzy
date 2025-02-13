@@ -10,13 +10,13 @@ const transporter = createTransport({
     }
 })
 
-export default async function sendEmail(userEmail: string, emailToken: string) {
+export default async function sendEmail(userEmail: string, token: string, type: "forgot_password" | "verify", data?: string) {
     console.log("Sending email to: ", userEmail);
     const mailOpts = {
         from: `"Quizzy" <${ENV.EMAIL_USER()}>`,
         to: userEmail,
         subject: "Test Email",
-        html: createEmailTemplate(ENV.DOMAIN(), emailToken)
+        html: createEmailTemplate(ENV.DOMAIN(), token, type, data)
     }
 
     const sendMailWithTimeout = new Promise((resolve, reject) => {

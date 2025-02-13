@@ -9,6 +9,7 @@ import type { ApiResponse } from "repo";
 import { eq, or } from "drizzle-orm";
 import { zv } from "@/middlewares/zv";
 import { userStatsTable } from "@/db/schemas";
+import { randomBytes } from "node:crypto";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema), async (c) => {
     const registerUserData = c.req.valid('json')
@@ -54,7 +55,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
     }
 
     // TODO: make cron job to delete expired tokens
-    const emailToken = new Bun.CryptoHasher("sha1").update(registerUserData.email + Date.now()).digest("hex");
+    const emailToken = new Bun.CryptoHasher("sha1").update(registerUserData.email + Date.now() + randomBytes(15)).digest("hex");
 
     await db.insert(userTokensTable).values({ user_id: insertResult!.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
 
@@ -71,7 +72,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
     worker.onerror = (e) => {
         console.error(e);
     };
-    worker.postMessage({ email: registerUserData.email, emailToken });
+    worker.postMessage({ email: registerUserData.email, emailToken, type: "verify" });
 
     const res = {
         message: 'user created'
