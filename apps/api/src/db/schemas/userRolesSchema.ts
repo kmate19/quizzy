@@ -22,6 +22,7 @@ export const userRolesRelations = relations(userRolesTable, ({ one }) => ({
     user: one(usersTable, {
         fields: [userRolesTable.user_id],
         references: [usersTable.id],
+        relationName: "roleUser",
     }),
     role: one(rolesTable, {
         fields: [userRolesTable.role_id],

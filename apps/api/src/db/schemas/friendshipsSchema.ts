@@ -1,5 +1,5 @@
-import { relations } from "drizzle-orm";
-import { index, pgEnum, pgTable, serial, timestamp, uuid } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import { uniqueIndex, index, pgEnum, pgTable, serial, timestamp, uuid, check } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 
 export const friendshipStatusEnum = pgEnum("friendship_status", ["pending", "accepted", "blocked"]);
@@ -15,20 +15,22 @@ export const friendshipsTable = pgTable("friendships", {
     return [
         index().on(table.user_id),
         index().on(table.friend_id),
+        uniqueIndex().on(table.user_id, table.friend_id),
+        check('can_not_friend_self', sql`${table.user_id} <> ${table.friend_id}`),
     ];
 });
 
 export type Friendship = typeof friendshipsTable.$inferInsert;
 
 export const friendshipsRelations = relations(friendshipsTable, ({ one }) => ({
-    user: one(usersTable, {
+    requester: one(usersTable, {
         fields: [friendshipsTable.user_id],
         references: [usersTable.id],
-        relationName: "user",
+        relationName: "friendship_requester",
     }),
-    friend: one(usersTable, {
+    addressee: one(usersTable, {
         fields: [friendshipsTable.friend_id],
         references: [usersTable.id],
-        relationName: "friend",
+        relationName: "friendship_addressee",
     }),
 }));

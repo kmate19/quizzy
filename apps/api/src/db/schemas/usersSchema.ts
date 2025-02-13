@@ -37,7 +37,12 @@ export const RegisterUserSchema = createInsertSchema(usersTable).pick({ email: t
 export const LoginUserSchema = createSelectSchema(usersTable).pick({ password: true }).extend({ username_or_email: z.string() });
 
 export const usersRelations = relations(usersTable, ({ one, many }) => ({
-    friendships: many(friendshipsTable),
+    sentFriendships: many(friendshipsTable, {
+        relationName: "friendship_requester",
+    }),
+    recievedFriendships: many(friendshipsTable, {
+        relationName: "friendship_addressee",
+    }),
     tokens: many(userTokensTable),
     roles: many(userRolesTable),
     reviews: many(reviewsTable),

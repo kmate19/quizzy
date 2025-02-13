@@ -28,14 +28,31 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                     losses: true,
                 }
             },
-            friendships: {
+            sentFriendships: {
                 columns: {
                     created_at: true,
                     status: true,
                 },
                 with: {
-                    friend: {
+                    addressee: {
                         columns: {
+                            id: true,
+                            username: true,
+                            activity_status: true,
+                            profile_picture: true,
+                        }
+                    }
+                }
+            },
+            recievedFriendships: {
+                columns: {
+                    created_at: true,
+                    status: true,
+                },
+                with: {
+                    requester: {
+                        columns: {
+                            id: true,
                             username: true,
                             activity_status: true,
                             profile_picture: true,
