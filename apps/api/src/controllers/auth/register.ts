@@ -8,6 +8,7 @@ import postgresErrorHandler from "@/utils/db/postgres-error-handler";
 import type { ApiResponse } from "repo";
 import { eq, or } from "drizzle-orm";
 import { zv } from "@/middlewares/zv";
+import { userStatsTable } from "@/db/schemas";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema), async (c) => {
     const registerUserData = c.req.valid('json')
@@ -32,6 +33,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
     let insertResult;
     const maybeError = await db.transaction(async (tx) => {
         [insertResult] = await tx.insert(usersTable).values(registerUserData).returning({ id: usersTable.id });
+        await tx.insert(userStatsTable).values({ user_id: insertResult.id });
         const [roleId] = await tx.select({ id: rolesTable.id }).from(rolesTable).where(eq(rolesTable.name, "default"))
         await tx.insert(userRolesTable).values({
             user_id: insertResult.id,
