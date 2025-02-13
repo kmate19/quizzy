@@ -15,13 +15,12 @@ export const userStatsTable = pgTable("user_stats", {
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => {
     return [
-        index().on(table.user_id),
-    ];
+        index().on(table.user_id),];
 });
 
 export type UserStats = typeof userStatsTable.$inferInsert;
 
-export const userTokensRelations = relations(userStatsTable, ({ one }) => ({
+export const userStatsRelations = relations(userStatsTable, ({ one }) => ({
     user: one(usersTable, {
         fields: [userStatsTable.user_id],
         references: [usersTable.id],

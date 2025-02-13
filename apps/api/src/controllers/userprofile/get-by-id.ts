@@ -19,6 +19,16 @@ const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param',
             profile_picture: true,
         },
         with: {
+            stats: {
+                columns: {
+                    plays: true,
+                    first_places: true,
+                    second_places: true,
+                    third_places: true,
+                    wins: true,
+                    losses: true,
+                }
+            },
             roles: {
                 columns: {},
                 with: {

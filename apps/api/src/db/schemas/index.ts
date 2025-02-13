@@ -16,4 +16,5 @@ export * from './userApiKeysSchema';
 export * from './userResourcesSchema';
 export * from './userRolesSchema';
 export * from './userTokensSchema';
+export * from './userStatsSchema';
 export * from './usersSchema';
