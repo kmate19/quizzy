@@ -8,6 +8,7 @@ import { z } from "zod";
 import { reviewsTable } from "./reviewsSchema";
 import { userApiKeys } from "./userApiKeysSchema";
 import { bytea } from "./customTypes";
+import { userStatsTable } from "./userStatsSchema";
 
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "away"]);
 export const authStatusEnum = pgEnum("auth_status", ["pending", "active", "blocked"]);
@@ -35,10 +36,14 @@ export type User = typeof usersTable.$inferInsert;
 export const RegisterUserSchema = createInsertSchema(usersTable).pick({ email: true, password: true, username: true }).extend({ email: z.string().email() });
 export const LoginUserSchema = createSelectSchema(usersTable).pick({ password: true }).extend({ username_or_email: z.string() });
 
-export const usersRelations = relations(usersTable, ({ many }) => ({
+export const usersRelations = relations(usersTable, ({ one, many }) => ({
     friendships: many(friendshipsTable),
     tokens: many(userTokensTable),
     roles: many(userRolesTable),
     reviews: many(reviewsTable),
     api_keys: many(userApiKeys),
+    stats: one(userStatsTable, {
+        fields: [usersTable.id],
+        references: [userStatsTable.user_id],
+    }),
 }));
