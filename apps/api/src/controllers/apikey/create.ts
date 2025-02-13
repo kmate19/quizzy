@@ -13,6 +13,10 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(
         const apiKeyData = c.req.valid("json");
 
         const key = generateApiKey();
+        const parsedApiKeyData = {
+            ...apiKeyData,
+            expires_at: new Date(apiKeyData.expires_at),
+        };
 
         const keys = await db.query.userApiKeys.findMany({
             where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId),
@@ -35,7 +39,7 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(
             .where(eq(userApiKeys.user_id, c.get("accessTokenPayload").userId));
 
         await db.insert(userApiKeys).values({
-            ...apiKeyData,
+            ...parsedApiKeyData,
             id_by_user: id_by_user.maxId,
             key,
             user_id: c.get("accessTokenPayload").userId,
