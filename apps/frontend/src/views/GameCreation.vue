@@ -72,7 +72,7 @@ const getQuiz = async () => {
   console.log(uuid)
   if(uuid === ""){
     return
-  }//if no uuid get still runs with correct uuid
+  }
   const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
   console.log('status: ' + get.status)
   
@@ -115,15 +115,15 @@ const handleGameImageUpload = (event: Event) => {
 
     const size = file.size / (1024 * 1024)
 
-    if (size > 2) {
+    if (size > 1) {
       gameImageInput.value = null
-      toast('A fájl mérete túl nagy!\n(Max: 2 MB)', {
+      toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
         transition: 'zoom',
         pauseOnHover: false,
-      })
+      } as ToastOptions)
       return
     }
 
@@ -320,7 +320,6 @@ watch(
     <v-row
       class="mx-auto max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
     >
-      <!--"Cover"-->
       <v-col cols="12" md="4" class="glass-panel">
         <div class="p-6 rounded-lg backdrop-blur-lg text-white first">
           <div class="mb-2">
