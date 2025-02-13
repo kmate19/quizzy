@@ -8,12 +8,43 @@ import { ApiResponse } from "repo";
 const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     const { userId } = c.get("accessTokenPayload");
 
-    const [userData] = await db.select({
-        email: usersTable.email,
-        username: usersTable.username,
-        createdAt: usersTable.created_at,
-        activityStatus: usersTable.activity_status,
-    }).from(usersTable).where(eq(usersTable.id, userId))
+    const userData = await db.query.usersTable.findFirst({
+        where: eq(usersTable.id, userId),
+        columns: {
+            email: true,
+            username: true,
+            created_at: true,
+            activity_status: true,
+            profile_picture: true,
+        },
+        with: {
+            friendships: {
+                columns: {
+                    created_at: true,
+                    status: true,
+                },
+                with: {
+                    friend: {
+                        columns: {
+                            username: true,
+                            activity_status: true,
+                            profile_picture: true,
+                        }
+                    }
+                }
+            },
+            roles: {
+                columns: {},
+                with: {
+                    role: {
+                        columns: {
+                            name: true,
+                        }
+                    }
+                }
+            }
+        }
+    })
 
     if (!userData) {
         const res = {
