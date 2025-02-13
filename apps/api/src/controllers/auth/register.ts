@@ -55,7 +55,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', RegisterUserSchema
     }
 
     // TODO: make cron job to delete expired tokens
-    const emailToken = new Bun.CryptoHasher("sha1").update(registerUserData.email + Date.now() + randomBytes(15)).digest("hex");
+    const emailToken = new Bun.CryptoHasher("sha256").update(registerUserData.email + Date.now() + randomBytes(15)).digest("hex");
 
     await db.insert(userTokensTable).values({ user_id: insertResult!.id, token: emailToken, token_type: "email", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
 

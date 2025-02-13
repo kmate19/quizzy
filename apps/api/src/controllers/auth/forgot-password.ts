@@ -28,7 +28,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSch
     }
 
     // send email with reset password link
-    const emailToken = new Bun.CryptoHasher("sha1").update(loginUserData.username_or_email + Date.now() + randomBytes(15)).digest("hex");
+    const emailToken = new Bun.CryptoHasher("sha256").update(loginUserData.username_or_email + Date.now() + randomBytes(15)).digest("hex");
 
     const exist = await db.select().from(userTokensTable).where(and(eq(userTokensTable.user_id, user.id), eq(userTokensTable.token_type, "forgot_password")));
 
