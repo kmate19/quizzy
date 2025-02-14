@@ -32,26 +32,24 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSchema), asy
 
     if (!user) {
         const res = {
-            message: 'user not found',
+            message: 'Invalid credentials try again!',
             error: {
-                message: 'user not found',
-                case: "not_found",
-                field: "username_or_email"
+                message: 'invalid_creds',
+                case: "bad_request",
             }
         } satisfies ApiResponse;
-        return c.json(res, 404);
+        return c.json(res, 400);
     }
 
     if (!await Bun.password.verify(loginUserData.password, user.password)) {
         const res = {
-            message: 'invalid password',
+            message: 'Invalid credentials try again!',
             error: {
-                message: 'invalid password',
-                case: "auth",
-                field: "password"
+                message: 'invalid_creds',
+                case: "bad_request",
             }
         } satisfies ApiResponse;
-        return c.json(res, 401);
+        return c.json(res, 400);
     }
 
     switch (user.auth_status) {

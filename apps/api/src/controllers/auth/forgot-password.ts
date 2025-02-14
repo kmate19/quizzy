@@ -16,15 +16,11 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSch
     ));
 
     if (!user) {
+        // do this to prevent user enumeration
         const res = {
-            message: 'user not found',
-            error: {
-                message: 'user not found',
-                case: "not_found",
-                field: "username_or_email"
-            }
+            message: 'If the email exists, a reset password link has been sent to the email',
         } satisfies ApiResponse;
-        return c.json(res, 404);
+        return c.json(res, 200);
     }
 
     // send email with reset password link
@@ -50,10 +46,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSch
     worker.postMessage({ email: user.email, emailToken, type: "forgot_password", data: randomPassword });
 
     const res = {
-        message: 'email sent',
-        data: {
-            message: 'email sent'
-        }
+        message: 'If the email exists, a reset password link has been sent to the email',
     } satisfies ApiResponse;
 
     return c.json(res, 200);
