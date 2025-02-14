@@ -354,6 +354,12 @@ watch(
 <template>
   <MistBackground />
   <NavBar />
+  <Transition
+      appear
+      enter-active-class="transition ease-in-out duration-1000"
+      enter-from-class="opacity-0 translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+    >
   <v-container fluid class="max-h-[80%] flex justify-center items-center">
     <v-row
       class="mx-auto max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
@@ -583,6 +589,7 @@ watch(
       </v-col>
     </v-row>
   </v-container>
+</Transition>
 </template>
 
 <style scoped>

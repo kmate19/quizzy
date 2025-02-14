@@ -31,6 +31,12 @@ watch(
 </script>
 
 <template>
+  <Transition
+      appear
+      enter-active-class="transition ease-in-out duration-1000"
+      enter-from-class="opacity-0 translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+    >
     <div class="quiz-card bg-opacity-10 backdrop-blur-md rounded-lg overflow-hidden shadow-lg  duration-300 hover:transform hover:scale-105
     border-2 border-transparent  hover:border-white transition-all h-fit cursor-pointer"
     @click="router.push(`/quiz/${ quiz.id }`)"
@@ -65,5 +71,6 @@ watch(
         </div>
       </div>
     </div>
+  </Transition>
   </template>
   
