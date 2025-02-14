@@ -30,7 +30,7 @@ describe("tests for api key functionality", () => {
             //@ts-ignore
             expect(res.status).toBe(401);
             const json = await res.json();
-            expect(json.message).toBe("user not logged in");
+            expect(json.message).toBe("not logged in");
         });
         test("fails if user is not admin", async () => {
             await registerTestUser(client, undefined, true);

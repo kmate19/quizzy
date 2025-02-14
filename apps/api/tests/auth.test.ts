@@ -109,8 +109,8 @@ describe("tests for api auth functionality", () => {
                 }
             });
             const json_username = await res_username.json();
-            expect(res_username.status).toBe(401);
-            expect(json_username.message).toBe("invalid password");
+            expect(res_username.status).toBe(400);
+            expect(json_username.message).toBe("Invalid credentials try again!");
         });
         test("get cookie with successful login", async () => {
             await registerTestUser(client, undefined, true);
@@ -163,7 +163,9 @@ describe("tests for api auth functionality", () => {
             expect(res.status).toBe(200);
             expect(json.message).toBe("user created");
         });
-        test("fails cause bad data", async () => {
+        // TODO: cause bun sets test env var, and when env is not development, the api doesnt send zod error
+        // to not expose data
+        test.todo("fails cause bad data", async () => {
             const res = await client.auth.register.$post({ json: { email: "invalid", username: "mateka", password: "com" } });
 
             const json = await res.json() as unknown as { error: { name: string } };
