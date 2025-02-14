@@ -4,7 +4,7 @@ import { usersTable } from "./usersSchema";
 
 export const userStatsTable = pgTable("user_stats", {
     id: serial().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     plays: integer().notNull().default(0),
     first_places: integer().notNull().default(0),
     second_places: integer().notNull().default(0),

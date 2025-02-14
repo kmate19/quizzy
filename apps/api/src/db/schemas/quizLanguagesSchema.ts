@@ -5,8 +5,8 @@ import { relations } from "drizzle-orm";
 
 
 export const quizLanguagesTable = pgTable("quiz_languages", {
-    quiz_id: uuid().notNull().references(() => quizzesTable.id),
-    language_id: integer().notNull().references(() => languagesTable.id),
+    quiz_id: uuid().notNull().references(() => quizzesTable.id, { onDelete: 'cascade' }),
+    language_id: integer().notNull().references(() => languagesTable.id, { onDelete: 'cascade' }),
 }, (table) => {
     return [
         uniqueIndex().on(table.quiz_id, table.language_id),

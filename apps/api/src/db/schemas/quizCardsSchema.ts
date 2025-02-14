@@ -9,7 +9,7 @@ export const quizTypeEnum = pgEnum("quiz_type", ["normal", "twochoice"]);
 
 export const quizCardsTable = pgTable("quiz_cards", {
     id: serial().primaryKey(),
-    quiz_id: uuid().notNull().references(() => quizzesTable.id),
+    quiz_id: uuid().notNull().references(() => quizzesTable.id, { onDelete: 'cascade' }),
     type: quizTypeEnum().notNull(),
     question: varchar({ length: 255 }).notNull(),
     answers: varchar({ length: 255 }).array().notNull(),

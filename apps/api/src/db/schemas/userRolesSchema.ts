@@ -5,8 +5,8 @@ import { rolesTable } from "./rolesSchema";
 
 export const userRolesTable = pgTable("user_roles", {
     id: serial().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id),
-    role_id: integer().notNull().references(() => rolesTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    role_id: integer().notNull().references(() => rolesTable.id, { onDelete: 'cascade' }),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => {

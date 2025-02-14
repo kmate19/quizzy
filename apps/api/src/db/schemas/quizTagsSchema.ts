@@ -4,8 +4,8 @@ import { tagsTable } from "./tagsSchema";
 import { relations } from "drizzle-orm";
 
 export const quizTagsTable = pgTable("quiz_tags", {
-    quiz_id: uuid().notNull().references(() => quizzesTable.id),
-    tag_id: integer().notNull().references(() => tagsTable.id),
+    quiz_id: uuid().notNull().references(() => quizzesTable.id, { onDelete: 'cascade' }),
+    tag_id: integer().notNull().references(() => tagsTable.id, { onDelete: 'cascade' }),
 }, (table) => {
     return [
         uniqueIndex().on(table.quiz_id, table.tag_id),

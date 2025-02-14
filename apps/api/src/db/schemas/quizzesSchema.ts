@@ -13,7 +13,7 @@ export const quizStatusEnum = pgEnum("quiz_status", ["draft", "published", "requ
 
 export const quizzesTable = pgTable("quizzes", {
     id: uuid().defaultRandom().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     title: varchar({ length: 24 }).notNull().unique(),
     description: varchar({ length: 255 }).notNull(),
     status: quizStatusEnum().notNull(),

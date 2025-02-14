@@ -6,8 +6,8 @@ import { relations } from "drizzle-orm";
 
 export const reviewsTable = pgTable("reviews", {
     id: uuid().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id),
-    quiz_id: uuid().notNull().references(() => quizzesTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    quiz_id: uuid().notNull().references(() => quizzesTable.id, { onDelete: 'cascade' }),
     rating: real().notNull(),
     likes: integer().notNull().default(0),
     dislikes: integer().notNull().default(0),

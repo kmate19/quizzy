@@ -6,8 +6,8 @@ export const friendshipStatusEnum = pgEnum("friendship_status", ["pending", "acc
 
 export const friendshipsTable = pgTable("friendships", {
     id: serial().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id),
-    friend_id: uuid().notNull().references(() => usersTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    friend_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     status: friendshipStatusEnum().notNull().default("pending"),
     created_at: timestamp().notNull().defaultNow(),
     updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),

@@ -9,7 +9,7 @@ export const userApiKeys = pgTable("user_api_keys", {
     id: serial().primaryKey(),
     // increment each time a user creates a new key under their own uuid
     id_by_user: integer().notNull(),
-    user_id: uuid().notNull().references(() => usersTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     // hashed bcrypt
     key: varchar({ length: 255 }).notNull().unique(),
     description: varchar({ length: 255 }),

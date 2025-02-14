@@ -6,7 +6,7 @@ export const tokenTypeEnum = pgEnum("token_type", ["email", "refresh", "forgot_p
 
 export const userTokensTable = pgTable("user_tokens", {
     id: serial().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id),
+    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
     token: text().notNull().unique(),
     token_type: tokenTypeEnum().notNull(),
     data: text(),
