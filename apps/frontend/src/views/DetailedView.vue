@@ -25,11 +25,11 @@ const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string =
 
 const getQuiz = async () => {
   console.log('asdsad', uuid)
-  const getQuiz = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
+  const getQuiz = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
   console.log(getQuiz)
   if (getQuiz.ok) {
     const res = await getQuiz.json()
-    const getUser = await clientv1.userprofile[':uuid'].$get({ param: { uuid: res.data.user_id } })
+    const getUser = await clientv1.userprofile[':userId'].$get({ param: { userId: res.data.user_id } })
     let user = ''
     if (getUser.ok) {
       const userRes = await getUser.json()

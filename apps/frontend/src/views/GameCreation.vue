@@ -74,7 +74,7 @@ const getQuiz = async () => {
   if (uuid === '') {
     return
   }
-  const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
+  const get = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
   console.log('status: ' + get.status)
 
   if (get.status === 200) {
