@@ -20,7 +20,7 @@ import { z } from "zod";
 
 const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.object({
     quiz: insertQuizSchema,
-    cards: insertQuizCardsSchema.array(),
+    cards: insertQuizCardsSchema.array().min(1).max(10),
     languageISOCodes: z.string().length(2).array().optional(),
     tags: z.string().array().optional(),
 })), async (c) => {
