@@ -6,7 +6,7 @@ import GameCreation from '@/views/GameCreation.vue'
 import { ref, watch } from 'vue'
 import DetailedView from '@/views/DetailedView.vue'
 import { clientv1 } from '@/lib/apiClient'
-//import { clientv1 } from '@/lib/apiClient'
+import ForgotPassword from '@/views/ForgotPassword.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +15,11 @@ const router = createRouter({
       path: '/login',
       name: 'loginRegister',
       component: LoginRegisterView,
+    },
+    {
+      path: '/forgotPw',
+      name: 'forgotPw',
+      component: ForgotPassword,
     },
     {
       path: '/',
@@ -57,7 +62,6 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
 
   try {
     const auth = await clientv1.auth.authed.$get({ query: {} })
-    console.log('Auth status:', auth.status)
     const isAuthenticated = auth.status === 200
 
     if (isLoginPath) {
@@ -67,16 +71,15 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
         return next()//geos to login
       }
     }
-
     if (requiresAuth) {
       if (!isAuthenticated) {
         return next('/login')//not authed and goes to route which requires auth
       }
     }
   } catch (error) {
-    console.error('Error during authentication check:', error)
+    console.error('Error during auth check:', error)
     if (requiresAuth && !isLoginPath) {
-      console.log('Error during authentication check and route requires auth, redirecting to login')
+      console.log('Error during login and auth check')
       return next('/login')
     }
   }
