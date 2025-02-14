@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { PencilIcon, CircleHelp } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp, Loader2Icon } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
@@ -34,15 +34,34 @@ interface Quiz {
   tags: Tag[]
 }
 
-interface Friend {
+interface sentFriendship {
   created_at: string
   status: 'pending' | 'blocked' | 'accepted'
-  friend: {
+  addressee: {
+    id: string
     username: string
     activity_status: 'active' | 'inactive' | 'away'
-    profile_picture: string
+    profile_picture: {
+      type: 'Buffer'
+      data: number[]
+    } | null
   }
 }
+
+interface recievedFriendships {
+  created_at: string
+  status: 'pending' | 'blocked' | 'accepted'
+  requester: {
+    id: string
+    username: string
+    activity_status: 'active' | 'inactive' | 'away'
+    profile_picture: {
+      type: 'Buffer'
+      data: number[]
+    } | null
+  }
+}
+
 const isLoading = ref(true)
 const userQuizzies = ref<Quiz[]>([])
 
@@ -51,40 +70,36 @@ const getQuizzies = async () => {
     isLoading.value = true
     const res = await clientv1.quizzes.own.$get()
     const data = await res.json()
-      ;[...data.data].forEach((el) => {
-        const temp: Quiz = {
-          id: el.id,
-          created_at: el.created_at,
-          updated_at: el.updated_at,
-          user_id: el.user_id,
-          description: el.description,
-          title: el.title,
-          status: el.status,
-          rating: el.rating,
-          plays: el.plays,
-          banner: el.banner.data,
-          languages: el.languages.map((lang) => ({
-            name: lang.language.name,
-            iso_code: lang.language.iso_code,
-            icon: lang.language.icon,
-            support: lang.language.support,
-          })),
-          tags: el.tags.map((tag) => ({
-            name: tag.tag.name,
-          })),
-        }
-        userQuizzies.value.push(temp)
-      })
+    ;[...data.data].forEach((el) => {
+      const temp: Quiz = {
+        id: el.id,
+        created_at: el.created_at,
+        updated_at: el.updated_at,
+        user_id: el.user_id,
+        description: el.description,
+        title: el.title,
+        status: el.status,
+        rating: el.rating,
+        plays: el.plays,
+        banner: el.banner.data,
+        languages: el.languages.map((lang) => ({
+          name: lang.language.name,
+          iso_code: lang.language.iso_code,
+          icon: lang.language.icon,
+          support: lang.language.support,
+        })),
+        tags: el.tags.map((tag) => ({
+          name: tag.tag.name,
+        })),
+      }
+      userQuizzies.value.push(temp)
+    })
   } catch (error) {
     console.error('error:', error)
   } finally {
     isLoading.value = false
   }
 }
-
-onMounted(() => {
-  getQuizzies()
-})
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -110,7 +125,9 @@ const realUser = ref({
   created_at: '',
   activity_status: '',
   profile_picture: '',
-  friendships: [] as Friend[],
+  sentFriendships: [] as sentFriendship[],
+  recievedFriendships: [] as recievedFriendships[],
+  friends: [] as sentFriendship[],
   role: '',
   stat: {
     plays: 0,
@@ -124,9 +141,10 @@ const realUser = ref({
 
 const userData = async () => {
   const user = await clientv1.userprofile.$get()
-  console.log("ASDASD", user.status)
+  console.log('ASDASD', user.status)
   if (user.status === 200) {
     const res = await user.json()
+    console.log("stats",res.data.stats)
     console.log('asd', res.data)
     realUser.value = {
       email: res.data.email,
@@ -136,20 +154,24 @@ const userData = async () => {
       profile_picture: res.data.profile_picture
         ? arrayBufferToBase64(res.data.profile_picture.data)
         : '',
-      friendships: res.data.friendships.map((friend)=>{
-        return{
-          created_at: friend.created_at,
-          status: friend.status,
-          friend: {
-            username: friend.friend.username,
-            activity_status: friend.friend.activity_status,
-            profile_picture: friend.friend.profile_picture?.data ? arrayBufferToBase64(friend.friend.profile_picture.data) : ''
-          }
-        }
-      }),
+      sentFriendships: res.data.sentFriendships,
+      recievedFriendships: res.data.recievedFriendships,
       role: res.data.roles[0].role.name,
       stat: res.data.stats,
+      friends: res.data.recievedFriendships
+        .filter((item) => item.status === 'accepted')
+        .map((item) => ({
+          created_at: item.created_at,
+          status: item.status,
+          addressee: {
+            id: item.requester.id,
+            username: item.requester.username,
+            activity_status: item.requester.activity_status,
+            profile_picture: item.requester.profile_picture,
+          },
+        })),
     }
+
   } else {
     const res = await user.json()
     toast(res.error.message, {
@@ -161,8 +183,6 @@ const userData = async () => {
     })
   }
 }
-
-userData()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const profileImage = ref<string | null>(null)
@@ -284,10 +304,21 @@ const handleQuizView = (uuid: string) => {
 const handleQuizDeatailedView = (uuid: string) => {
   router.push(`/quiz/${uuid}`)
 }
+
+onMounted(() => {
+  getQuizzies()
+  userData()
+})
 </script>
 
 <template>
-  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+  <div v-if="isLoading === true" class="min-h-screen flex justify-center items-center">
+    <MistBackground />
+    <div v-if="isLoading" class="flex justify-center items-center h-64">
+      <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+    </div>
+  </div>
+  <div v-else class="fixed inset-0 pointer-events-none overflow-hidden">
     <MistBackground />
   </div>
   <div class="relative max-w-7xl mx-auto">
@@ -295,23 +326,38 @@ const handleQuizDeatailedView = (uuid: string) => {
     <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
       <div class="flex flex-wrap items-center gap-8">
         <div class="relative">
-          <img :src="realUser.profile_picture || ''"
-            class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
+          <img
+            :src="realUser.profile_picture || ''"
+            class="w-32 h-32 rounded-full object-cover border-4 border-white/30"
+          />
           <div
             class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
-            @click="openFileDialog">
+            @click="openFileDialog"
+          >
             <PencilIcon class="w-5 h-5 text-white" />
           </div>
-          <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
-          <button v-if="showSaveButton" @click="saveProfileImage"
-            class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors">
+          <input
+            type="file"
+            ref="fileInput"
+            class="hidden"
+            accept="image/*"
+            @change="handleFileChange"
+          />
+          <button
+            v-if="showSaveButton"
+            @click="saveProfileImage"
+            class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors"
+          >
             Mentés
           </button>
         </div>
         <div class="text-white flex flex-col flex-wrap">
           <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
           <p class="text-white/80">{{ realUser.email }}</p>
-          <p v-if="realUser.role === 'admin'" class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
+          <p
+            v-if="realUser.role === 'admin'"
+            class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm"
+          >
             {{ realUser.role }}
           </p>
         </div>
@@ -319,7 +365,7 @@ const handleQuizDeatailedView = (uuid: string) => {
       <div class="flex-1 flex flex-wrap justify-end items-center gap-4">
         <div class="text-center">
           <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.plays }}</div>
-          <div class="text-white/70 text-sm">Játszmák</div>
+          <div class="text-white/70 text-sm">Összes játék</div>
         </div>
         <div class="text-center">
           <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.first_places }}</div>
@@ -336,13 +382,16 @@ const handleQuizDeatailedView = (uuid: string) => {
           <div class="text-white/70 text-sm">Nyerési arány</div>
         </div>
         <div class="flex gap-4">
-          <button @click="openPasswordModal"
-            class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900">
+          <button
+            @click="openPasswordModal"
+            class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900"
+          >
             Jelszó módosítás
           </button>
           <button
             class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-red-900"
-            @click="OnLogOut">
+            @click="OnLogOut"
+          >
             Kijelentkezés
           </button>
         </div>
@@ -353,20 +402,35 @@ const handleQuizDeatailedView = (uuid: string) => {
         <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
           Barátok
           <span class="text-sm font-normal text-white/70">
-            {{ realUser.friendships.length }} összesen
+            {{ realUser.friends.length }} összesen
           </span>
         </h2>
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-          <div v-for="friend in realUser.friendships" :key="friend.friend.username"
-            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient">
-            <img :src="friend.friend.profile_picture" alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
+          <div
+            v-for="friend in realUser.friends"
+            :key="friend.addressee.id"
+            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
+          >
+            <img
+              :src="
+                friend.addressee.profile_picture?.data
+                  ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                  : ''
+              "
+              alt="Friend profile"
+              class="w-20 h-20 rounded-full object-cover"
+            />
             <div class="flex-1">
-              <h3 class="text-white font-medium text-xl mb-2">{{ friend.friend.username }}</h3>
+              <h3 class="text-white font-medium text-xl mb-2">{{ friend.addressee.username }}</h3>
               <p class="text-sm">
-                <span class="inline-block w-2 h-2 rounded-full mr-2"
-                  :class="friend.friend.activity_status === 'active' ? 'bg-green-400' : 'bg-gray-400'">
+                <span
+                  class="inline-block w-2 h-2 rounded-full mr-2"
+                  :class="
+                    friend.addressee.activity_status === 'active' ? 'bg-green-400' : 'bg-gray-400'
+                  "
+                >
                 </span>
-                {{ friend.friend.activity_status }}
+                {{ friend.addressee.activity_status }}
               </p>
             </div>
           </div>
@@ -380,14 +444,21 @@ const handleQuizDeatailedView = (uuid: string) => {
           </span>
         </h2>
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-          <div v-for="quiz in userQuizzies" :key="quiz.id"
+          <div
+            v-for="quiz in userQuizzies"
+            :key="quiz.id"
             class="flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient cursor-pointer"
             @click="
               quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDeatailedView(quiz.id)
-              ">
+            "
+          >
             <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-              <img v-if="quiz.banner && quiz.banner.length" :src="arrayBufferToBase64(quiz.banner)" alt="Quiz banner"
-                class="w-full h-full object-cover" />
+              <img
+                v-if="quiz.banner && quiz.banner.length"
+                :src="arrayBufferToBase64(quiz.banner)"
+                alt="Quiz banner"
+                class="w-full h-full object-cover"
+              />
               <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center">
                 <span class="text-2xl">🎯</span>
               </div>
@@ -396,12 +467,15 @@ const handleQuizDeatailedView = (uuid: string) => {
             <div class="flex-1">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                <span class="px-2 py-1 rounded-full text-xs" :class="{
-                  'bg-green-500': quiz.status === 'published',
-                  'bg-yellow-500': quiz.status === 'requires_review',
-                  'bg-gray-500': quiz.status === 'draft',
-                  'bg-blue-500': quiz.status === 'private',
-                }">
+                <span
+                  class="px-2 py-1 rounded-full text-xs"
+                  :class="{
+                    'bg-green-500': quiz.status === 'published',
+                    'bg-yellow-500': quiz.status === 'requires_review',
+                    'bg-gray-500': quiz.status === 'draft',
+                    'bg-blue-500': quiz.status === 'private',
+                  }"
+                >
                   {{ quiz.status }}
                 </span>
               </div>
@@ -418,13 +492,21 @@ const handleQuizDeatailedView = (uuid: string) => {
                   {{ quiz.plays }}
                 </div>
                 <div class="flex gap-1">
-                  <span v-for="lang in quiz.languages" :key="lang.name"
-                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center" :title="lang.name">
+                  <span
+                    v-for="lang in quiz.languages"
+                    :key="lang.name"
+                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
+                    :title="lang.name"
+                  >
                     {{ lang.iso_code }}
                   </span>
                 </div>
                 <div class="flex flex-wrap gap-1">
-                  <span v-for="tag in quiz.tags" :key="tag.name" class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
+                  <span
+                    v-for="tag in quiz.tags"
+                    :key="tag.name"
+                    class="px-2 py-0.5 rounded-full bg-white/10 text-xs"
+                  >
                     {{ tag.name }}
                   </span>
                 </div>
@@ -436,31 +518,53 @@ const handleQuizDeatailedView = (uuid: string) => {
     </div>
   </div>
   >
-  <div v-if="showPasswordModal"
-    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div
+    v-if="showPasswordModal"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+  >
     <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
       <div class="flex justify-between items-center mb-6">
         <div class="flex justify-evenly flex-row">
           <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
-          <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
+          <CircleHelp
+            class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
+            @click="showPasswordRequirements"
+          />
         </div>
         <XButton @click="closePasswordModal" />
       </div>
       <form @submit.prevent="handlePasswordChange" class="space-y-4 text-white">
         <div>
-          <v-text-field type="text" variant="outlined" density="comfortable" label="Jelenlegi jelszó"
-            v-model="passwordForm.current" />
+          <v-text-field
+            type="text"
+            variant="outlined"
+            density="comfortable"
+            label="Jelenlegi jelszó"
+            v-model="passwordForm.current"
+          />
         </div>
         <div>
-          <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó"
-            v-model="passwordForm.new" />
+          <v-text-field
+            type="text"
+            variant="outlined"
+            density="comfortable"
+            label="Új jelszó"
+            v-model="passwordForm.new"
+          />
         </div>
         <div>
-          <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó megerősítése"
-            v-model="passwordForm.confirm" />
+          <v-text-field
+            type="text"
+            variant="outlined"
+            density="comfortable"
+            label="Új jelszó megerősítése"
+            v-model="passwordForm.confirm"
+          />
         </div>
-        <button type="submit"
-          class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+        <button
+          type="submit"
+          class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
+        >
           Jelszó módosítása
         </button>
       </form>
@@ -470,12 +574,14 @@ const handleQuizDeatailedView = (uuid: string) => {
 
 <style>
 .bg-multi-color-gradient {
-  background: linear-gradient(90deg,
-      rgba(255, 0, 0, 0.5),
-      rgba(0, 255, 0, 0.5),
-      rgba(0, 0, 255, 0.5),
-      rgba(238, 238, 85, 0.5),
-      rgba(255, 0, 0, 0.5));
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.5),
+    rgba(0, 255, 0, 0.5),
+    rgba(0, 0, 255, 0.5),
+    rgba(238, 238, 85, 0.5),
+    rgba(255, 0, 0, 0.5)
+  );
   background-size: 400% 100%;
   animation: gradient 20s linear infinite;
 }
