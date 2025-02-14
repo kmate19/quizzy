@@ -50,6 +50,8 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSch
     } satisfies ApiResponse;
 
     return c.json(res, 200);
+
+    
 })
 
 export default forgotPasswordHandler;

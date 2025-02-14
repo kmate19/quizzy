@@ -4,8 +4,7 @@ import { useRoute } from 'vue-router'
 import router from '@/router'
 import { ref } from 'vue'
 import NavBar from '@/components/NavBar.vue'
-import MistBackground from '@/components/MistBackground.vue'
-import { Play, Settings, Star, Loader2Icon } from 'lucide-vue-next'
+import { Play, Star, Loader2Icon } from 'lucide-vue-next'
 import { type quizCardView } from '@/utils/type'
 import { toast } from 'vue3-toastify'
 
@@ -25,7 +24,7 @@ const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string =
 
 const getQuiz = async () => {
   console.log('asdsad', uuid)
-  const getQuiz = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
+  const getQuiz = await clientv1.quizzes[':quizId'].$get({param:{quizId:uuid.toString()}})
   console.log(getQuiz)
   if (getQuiz.ok) {
     const res = await getQuiz.json()
@@ -64,6 +63,8 @@ const getQuiz = async () => {
     console.log(data.value)
     isLoading.value = false
     expandedQuestions.value = new Array(res.data.cards.length).fill(false)
+
+    //get
   } else {
     const res = await getQuiz.json()
     toast(res.error.message, {
@@ -86,21 +87,15 @@ const toggleQuestion = (index: number) => {
 const handleViewUser = (uuid: string) => {
   router.push(`/profil/${uuid}`)
 }
-const handleModifyQuiz = (uuid: string) => {
-  console.log('asdasdsa')
-  router.push(`/game_creation/${uuid}`)
-}
 </script>
 
 <template>
   <div v-if="isLoading === true" class="min-h-screen flex justify-center items-center">
-    <MistBackground />
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
     </div>
   </div>
   <div v-else>
-    <MistBackground />
     <NavBar />
     <div class="min-h-screen text-white p-4 md:p-6">
       <div class="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
@@ -117,7 +112,8 @@ const handleModifyQuiz = (uuid: string) => {
           </div>
 
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <h2 class="text-xl font-semibold">{{ data?.title }}</h2>
+            <h2 class="text-xl font-semibold">{{ data?.title }}<br></h2>
+            <span>{{ data?.description }}</span>
           </div>
           <div
             class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg text-lg"
@@ -162,8 +158,7 @@ const handleModifyQuiz = (uuid: string) => {
             </div>
             <div class="mb-2">{{ data?.plays }}x játszották</div>
             <div class="mb-2 flex gap-1">
-              Értékelés: {{ data?.rating }}
-              <Star :size="20" :stroke-width="2" absoluteStrokeWidth color="yellow" />
+              Értékelés: {{ data?.rating }}⭐
             </div>
             <div></div>
           </div>
@@ -174,12 +169,7 @@ const handleModifyQuiz = (uuid: string) => {
             >
               <Play :size="40" :stroke-width="2" absoluteStrokeWidth />
             </button>
-            <button
-              @click="data?.quiz_id && handleModifyQuiz(data?.quiz_id)"
-              class="w-16 h-16 rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 p-3 border border-white/20 transition-all duration-300 shadow-lg flex items-center justify-center"
-            >
-              <Settings :size="48" :stroke-width="2" absoluteStrokeWidth />
-            </button>
+           
           </div>
         </div>
 
