@@ -17,8 +17,7 @@ const forgotPassActivateHandler = GLOBALS.CONTROLLER_FACTORY(zv("param", z.objec
                 .leftJoin(userTokensTable, eq(userTokensTable.user_id, usersTable.id))
                 .where(eq(userTokensTable.token, token));
             await tx.delete(userTokensTable).where(eq(userTokensTable.id, userAndToken.user_tokens!.id));
-            const hashedTempPass = await Bun.password.hash(userAndToken.user_tokens!.data!);
-            await tx.update(usersTable).set({ password: hashedTempPass }).where(eq(usersTable.id, userAndToken.users.id));
+            await tx.update(usersTable).set({ password: userAndToken.user_tokens!.data! }).where(eq(usersTable.id, userAndToken.users.id));
         });
     } catch (e) {
         console.log(e);

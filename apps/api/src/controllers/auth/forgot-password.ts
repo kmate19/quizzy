@@ -34,7 +34,10 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSch
 
     const randomPassword = randomBytes(16).toString('hex').slice(0, 16);
 
-    await db.insert(userTokensTable).values({ user_id: user.id, token: emailToken, data: randomPassword, token_type: "forgot_password", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
+    const hashhedRandomPassword = await Bun.password.hash(randomPassword);
+
+    // TODO: hash password inside token data too
+    await db.insert(userTokensTable).values({ user_id: user.id, token: emailToken, data: hashhedRandomPassword, token_type: "forgot_password", expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24) });
 
     const worker = new Worker(new URL(
         GLOBALS.WORKERCONF.workerRelativePath +
