@@ -31,12 +31,12 @@ watch(
 </script>
 
 <template>
-    <div class="quiz-card bg-opacity-10 backdrop-blur-md rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:transform hover:scale-105"
+    <div class="quiz-card bg-opacity-10 backdrop-blur-md rounded-lg overflow-hidden shadow-lg  duration-300 hover:transform hover:scale-105
+    border-2 border-transparent  hover:border-white transition-all h-fit cursor-pointer"
     @click="router.push(`/quiz/${ quiz.id }`)"
     >
     <v-img
     :src="quiz.banner || '/placeholder.svg?height=200&width=300'"
-    :aspect-ratio="aspectRatio"
     fit="contain"
   ></v-img>
       <div class="p-4">
