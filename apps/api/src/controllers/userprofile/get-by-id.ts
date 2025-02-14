@@ -7,11 +7,11 @@ import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ uuid: z.string().uuid() })), async (c) => {
-    const { uuid } = c.req.valid("param");
+const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ userId: z.string().uuid() })), async (c) => {
+    const { userId } = c.req.valid("param");
 
     const userData = await db.query.usersTable.findFirst({
-        where: eq(usersTable.id, uuid),
+        where: eq(usersTable.id, userId),
         columns: {
             username: true,
             created_at: true,

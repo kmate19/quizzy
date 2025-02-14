@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import getHandlers from "@/controllers/quizzes/get";
 import getByIdHandlers from "@/controllers/quizzes/get-by-id";
 import getByUserIdHandlers from "@/controllers/quizzes/get-by-user-id";
@@ -6,7 +7,6 @@ import getOwnByIdHandlers from "@/controllers/quizzes/get-own-by-id";
 import publishHandlers from "@/controllers/quizzes/publish";
 import editHandlers from "@/controllers/quizzes/edit";
 import deleteHandlers from "@/controllers/quizzes/delete";
-import { Hono } from "hono";
 
 const quizzes = new Hono().basePath("/quizzes")
     // TODO: this should be a strict route in the real world where we validate
@@ -14,13 +14,13 @@ const quizzes = new Hono().basePath("/quizzes")
     // drafts where we do less validation, as drafts are only exposed to their
     // creators
     .post("/publish", ...publishHandlers)
-    .patch("/edit/:quizId", ...editHandlers)
-    .delete("/delete/:quizId", ...deleteHandlers)
     // gets max 50, default 20, minimum 10 limit quizzes at once
     .get("/", ...getHandlers)
     .get("/own", ...getOwnHandlers)
-    .get("/by/:uuid", ...getByUserIdHandlers)
-    .get("/own/:uuid", ...getOwnByIdHandlers)
-    .get("/:uuid", ...getByIdHandlers);
+    .get("/by/:userId", ...getByUserIdHandlers)
+    .get("/own/:quizId", ...getOwnByIdHandlers)
+    .patch("/edit/:quizId", ...editHandlers)
+    .delete("/delete/:quizId", ...deleteHandlers)
+    .get("/:quizId", ...getByIdHandlers);
 
 export default quizzes;

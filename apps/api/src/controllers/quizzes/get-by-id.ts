@@ -7,11 +7,11 @@ import { and, eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const getByIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ uuid: z.string().uuid() })), async (c) => {
-    const { uuid } = c.req.valid('param')
+const getByIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ quizId: z.string().uuid() })), async (c) => {
+    const { quizId } = c.req.valid('param')
 
     const quiz = await db.query.quizzesTable.findFirst({
-        where: and(eq(quizzesTable.status, "published"), eq(quizzesTable.id, uuid)),
+        where: and(eq(quizzesTable.status, "published"), eq(quizzesTable.id, quizId)),
         with: {
             user: {
                 columns: {

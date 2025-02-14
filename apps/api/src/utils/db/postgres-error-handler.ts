@@ -1,8 +1,4 @@
-type PGError = {
-    message: string;
-    columnName: string;
-    type: "dup";
-};
+import { PGError } from "@/types";
 
 // TEST: tests and this should be extended and also used in more places
 export default function postgresErrorHandler(error: Error & { code: string }): PGError {

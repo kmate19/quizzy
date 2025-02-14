@@ -1,11 +1,11 @@
 import { Hono } from "hono";
+import { z } from "zod";
+import { zv } from "@/middlewares/zv";
 import verifyHandler from "@/controllers/auth/verify";
 import registerHandler from "@/controllers/auth/register";
 import loginHandler from "@/controllers/auth/login";
 import logoutHandler from "@/controllers/auth/logout";
 import checkJwt from "@/middlewares/check-jwt";
-import { z } from "zod";
-import { zv } from "@/middlewares/zv";
 import forgotPasswordHandler from "@/controllers/auth/forgot-password";
 import forgotPassActivateHandler from "@/controllers/auth/forgot-password-activate";
 import changePasswordHandler from "@/controllers/auth/change-password";
@@ -22,9 +22,11 @@ const auth = new Hono().basePath("/auth")
         // TEST: test this (also this is a bit of a mess)
         const { role } = c.req.valid('query');
         const middleware = checkJwt(role)
+
         // @ts-ignore not sending in next
         const res = await middleware(c)
-        if (!res) return c.json({ message: "user is authed" });
+
+        if (!res) return c.json({ message: "user is authed" }, 200);
         else return res;
     })
 

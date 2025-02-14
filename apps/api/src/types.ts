@@ -5,3 +5,9 @@ export type QuizzyJWTPAYLOAD = {
     refreshTokenId: number,
     exp: number;
 } & JWTPayload;
+
+export type PGError = {
+    message: string;
+    columnName: string;
+    type: "dup";
+};

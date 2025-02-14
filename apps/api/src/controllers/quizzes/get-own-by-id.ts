@@ -7,12 +7,12 @@ import { and, eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const getOwnByIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ uuid: z.string().uuid() })), async (c) => {
-    const { uuid } = c.req.valid('param')
+const getOwnByIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ quizId: z.string().uuid() })), async (c) => {
+    const { quizId } = c.req.valid('param')
     const { userId } = c.get("accessTokenPayload");
 
     const quiz = await db.query.quizzesTable.findFirst({
-        where: and(eq(quizzesTable.user_id, userId), eq(quizzesTable.id, uuid)),
+        where: and(eq(quizzesTable.user_id, userId), eq(quizzesTable.id, quizId)),
         with: {
             cards: true,
             tags: {

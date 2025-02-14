@@ -14,17 +14,17 @@ import { JwtTokenExpired } from "hono/utils/jwt/types";
 import type { ApiResponse } from "repo";
 
 const authJwtMiddleware = (role?: string) => {
-    return createMiddleware<{ Variables: { accessTokenPayload: QuizzyJWTPAYLOAD } }>(async (c, next) => {
+    return createMiddleware<{ Variables: { accessTokenPayload: QuizzyJWTPAYLOAD } }>(async (c, next?) => {
         const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)
 
         if (!accessCookie) {
             const res = {
-                message: "user not logged in",
+                message: "not logged in",
                 error: {
-                    message: "user not logged in",
+                    message: "not logged in",
                     case: "unauthorized"
                 }
-            } as ApiResponse;
+            } satisfies ApiResponse;
             return c.json(res, 401);
         }
 
