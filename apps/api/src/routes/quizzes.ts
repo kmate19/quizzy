@@ -4,6 +4,7 @@ import getByUserIdHandlers from "@/controllers/quizzes/get-by-user-id";
 import getOwnHandlers from "@/controllers/quizzes/get-own";
 import getOwnByIdHandlers from "@/controllers/quizzes/get-own-by-id";
 import publishHandlers from "@/controllers/quizzes/publish";
+import editHandlers from "@/controllers/quizzes/edit";
 import { Hono } from "hono";
 
 const quizzes = new Hono().basePath("/quizzes")
@@ -12,6 +13,7 @@ const quizzes = new Hono().basePath("/quizzes")
     // drafts where we do less validation, as drafts are only exposed to their
     // creators
     .post("/publish", ...publishHandlers)
+    .patch("/edit/:quizId", ...editHandlers)
     // gets max 50, default 20, minimum 10 limit quizzes at once
     .get("/", ...getHandlers)
     .get("/own", ...getOwnHandlers)
