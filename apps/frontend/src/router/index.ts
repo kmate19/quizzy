@@ -5,6 +5,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import GameCreation from '@/views/GameCreation.vue'
 import { ref, watch } from 'vue'
 import DetailedView from '@/views/DetailedView.vue'
+import { clientv1 } from '@/lib/apiClient'
 //import { clientv1 } from '@/lib/apiClient'
 
 const router = createRouter({
@@ -48,8 +49,19 @@ const router = createRouter({
 
 const title = ref('Quizzy')
 
-router.beforeEach((toRoute, fromRoute, next) => {
+router.beforeEach(async(toRoute, fromRoute, next) => {
   let newTitle = 'Quizzy'
+
+  const requiresAuth = toRoute.meta.requiresAuth
+
+  if (requiresAuth) {
+      const auth = await clientv1.auth.authed.$get({ query: {} });
+      console.log('Auth status:', auth.status);
+
+      if (auth.status !== 200) {
+        return next('/login');
+      }
+  }
 
   switch (toRoute.name?.toString()) {
     case 'loginRegister':
