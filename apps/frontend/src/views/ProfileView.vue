@@ -7,6 +7,22 @@ import MistBackground from '@/components/MistBackground.vue'
 import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
+import * as zod from 'zod'
+
+const newPasswordSchema = zod.object({
+  password: zod.string()
+    .min(1, { message: 'A mező kitöltése kötelező' })
+    .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
+    .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
+    .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
+    .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert az új jelszónak' })
+    .regex(/\d/, { message: 'Tartalmaznia kell számot az új jelszónak' }),
+});
+
+type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
+
+const regErrors = ref<zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
+
 
 interface Language {
   name: string
@@ -70,30 +86,30 @@ const getQuizzies = async () => {
     isLoading.value = true
     const res = await clientv1.quizzes.own.$get()
     const data = await res.json()
-    ;[...data.data].forEach((el) => {
-      const temp: Quiz = {
-        id: el.id,
-        created_at: el.created_at,
-        updated_at: el.updated_at,
-        user_id: el.user_id,
-        description: el.description,
-        title: el.title,
-        status: el.status,
-        rating: el.rating,
-        plays: el.plays,
-        banner: el.banner.data,
-        languages: el.languages.map((lang) => ({
-          name: lang.language.name,
-          iso_code: lang.language.iso_code,
-          icon: lang.language.icon,
-          support: lang.language.support,
-        })),
-        tags: el.tags.map((tag) => ({
-          name: tag.tag.name,
-        })),
-      }
-      userQuizzies.value.push(temp)
-    })
+      ;[...data.data].forEach((el) => {
+        const temp: Quiz = {
+          id: el.id,
+          created_at: el.created_at,
+          updated_at: el.updated_at,
+          user_id: el.user_id,
+          description: el.description,
+          title: el.title,
+          status: el.status,
+          rating: el.rating,
+          plays: el.plays,
+          banner: el.banner.data,
+          languages: el.languages.map((lang) => ({
+            name: lang.language.name,
+            iso_code: lang.language.iso_code,
+            icon: lang.language.icon,
+            support: lang.language.support,
+          })),
+          tags: el.tags.map((tag) => ({
+            name: tag.tag.name,
+          })),
+        }
+        userQuizzies.value.push(temp)
+      })
   } catch (error) {
     console.error('error:', error)
   } finally {
@@ -144,7 +160,7 @@ const userData = async () => {
   console.log('ASDASD', user.status)
   if (user.status === 200) {
     const res = await user.json()
-    console.log("stats",res.data.stats)
+    console.log("stats", res.data.stats)
     console.log('asd', res.data)
     realUser.value = {
       email: res.data.email,
@@ -185,9 +201,13 @@ const userData = async () => {
 }
 
 const fileInput = ref<HTMLInputElement | null>(null)
-const profileImage = ref<string | null>(null)
 const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
+const userPw = ref({
+  current_password: "",
+  new_password: "",
+  confirm_password: ""
+})
 
 const handleFileChange = (event: Event) => {
   const inputElement = event.target as HTMLInputElement
@@ -196,8 +216,8 @@ const handleFileChange = (event: Event) => {
   if (file) {
     const size = file.size / (1024 * 1024)
 
-    if (size > 2) {
-      toast('A fájl mérete túl nagy!\n(Max: 2 MB)', {
+    if (size > 1) {
+      toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -208,8 +228,7 @@ const handleFileChange = (event: Event) => {
     }
 
     tempImage.value = file
-    console.log(tempImage.value)
-    profileImage.value = URL.createObjectURL(file)
+    realUser.value.profile_picture = URL.createObjectURL(file)
     showSaveButton.value = true
   }
 }
@@ -250,31 +269,39 @@ const saveProfileImage = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     })
+    realUser.value.profile_picture = tempImage.value ? URL.createObjectURL(tempImage.value) : ''
   }
 }
 
 const showPasswordModal = ref(false)
-const passwordForm = ref({
-  current: '',
-  new: '',
-  confirm: '',
-})
 
 const openPasswordModal = () => {
   showPasswordModal.value = true
 }
 
-const closePasswordModal = () => {
+const closePasswordModal = async () => {
   showPasswordModal.value = false
-  passwordForm.value = {
-    current: '',
-    new: '',
-    confirm: '',
+  userPw.value = {
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
   }
 }
 
 const handlePasswordChange = async () => {
-  if (passwordForm.value.new !== passwordForm.value.confirm) {
+  const result = newPasswordSchema.safeParse({ password: userPw.value.new_password });
+  if (!result.success) {
+    regErrors.value = result.error.format();
+    toast(Object.values(regErrors.value.password?._errors || [])[0] || 'Érvénytelen jelszó formátum!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+    return;
+  }
+  if (userPw.value.confirm_password !== userPw.value.new_password) {
     toast('A jelszavak nem egyeznek', {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
@@ -283,12 +310,37 @@ const handlePasswordChange = async () => {
       pauseOnHover: false,
     } as ToastOptions)
     return
+  } else {
+    const reset = await clientv1.auth.changepassword.$post({ json: { password: userPw.value.new_password } })
+    if (reset.status === 200) {
+      toast("Jelszó sikeresen megváltoztatva!",
+        {
+          autoClose: 5000,
+          position: toast.POSITION.TOP_CENTER,
+          type: 'success',
+          transition: 'zoom',
+          pauseOnHover: false,
+        } as ToastOptions)
+        await clientv1.auth.logout.$get()
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        router.push('/login')
+    }
+    else{
+      const res = await reset.json()
+      toast(res.message,
+        {
+          autoClose: 5000,
+          position: toast.POSITION.TOP_CENTER,
+          type: 'error',
+          transition: 'zoom',
+          pauseOnHover: false,
+        } as ToastOptions)
+    }
   }
 
-  closePasswordModal()
 }
 
-const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
+const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/avif'): string => {
   const bytes = new Uint8Array(buffer)
   let binary = ''
   for (let i = 0; i < bytes.byteLength; i++) {
@@ -326,38 +378,23 @@ onMounted(() => {
     <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
       <div class="flex flex-wrap items-center gap-8">
         <div class="relative">
-          <img
-            :src="realUser.profile_picture || ''"
-            class="w-32 h-32 rounded-full object-cover border-4 border-white/30"
-          />
+          <img :src="realUser.profile_picture || ''"
+            class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
           <div
             class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
-            @click="openFileDialog"
-          >
+            @click="openFileDialog">
             <PencilIcon class="w-5 h-5 text-white" />
           </div>
-          <input
-            type="file"
-            ref="fileInput"
-            class="hidden"
-            accept="image/*"
-            @change="handleFileChange"
-          />
-          <button
-            v-if="showSaveButton"
-            @click="saveProfileImage"
-            class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors"
-          >
+          <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
+          <button v-if="showSaveButton" @click="saveProfileImage"
+            class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors">
             Mentés
           </button>
         </div>
         <div class="text-white flex flex-col flex-wrap">
           <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
           <p class="text-white/80">{{ realUser.email }}</p>
-          <p
-            v-if="realUser.role === 'admin'"
-            class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm"
-          >
+          <p v-if="realUser.role === 'admin'" class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
             {{ realUser.role }}
           </p>
         </div>
@@ -382,16 +419,13 @@ onMounted(() => {
           <div class="text-white/70 text-sm">Nyerési arány</div>
         </div>
         <div class="flex gap-4">
-          <button
-            @click="openPasswordModal"
-            class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900"
-          >
+          <button @click="openPasswordModal"
+            class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900">
             Jelszó módosítás
           </button>
           <button
             class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-red-900"
-            @click="OnLogOut"
-          >
+            @click="OnLogOut">
             Kijelentkezés
           </button>
         </div>
@@ -406,29 +440,17 @@ onMounted(() => {
           </span>
         </h2>
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-          <div
-            v-for="friend in realUser.friends"
-            :key="friend.addressee.id"
-            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient"
-          >
-            <img
-              :src="
-                friend.addressee.profile_picture?.data
-                  ? arrayBufferToBase64(friend.addressee.profile_picture.data)
-                  : ''
-              "
-              alt="Friend profile"
-              class="w-20 h-20 rounded-full object-cover"
-            />
+          <div v-for="friend in realUser.friends" :key="friend.addressee.id"
+            class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient">
+            <img :src="friend.addressee.profile_picture?.data
+                ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                : ''
+              " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
             <div class="flex-1">
               <h3 class="text-white font-medium text-xl mb-2">{{ friend.addressee.username }}</h3>
               <p class="text-sm">
-                <span
-                  class="inline-block w-2 h-2 rounded-full mr-2"
-                  :class="
-                    friend.addressee.activity_status === 'active' ? 'bg-green-400' : 'bg-gray-400'
-                  "
-                >
+                <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active' ? 'bg-green-400' : 'bg-gray-400'
+                  ">
                 </span>
                 {{ friend.addressee.activity_status }}
               </p>
@@ -444,21 +466,14 @@ onMounted(() => {
           </span>
         </h2>
         <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-          <div
-            v-for="quiz in userQuizzies"
-            :key="quiz.id"
+          <div v-for="quiz in userQuizzies" :key="quiz.id"
             class="flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient cursor-pointer"
             @click="
               quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDeatailedView(quiz.id)
-            "
-          >
+              ">
             <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-              <img
-                v-if="quiz.banner && quiz.banner.length"
-                :src="arrayBufferToBase64(quiz.banner)"
-                alt="Quiz banner"
-                class="w-full h-full object-cover"
-              />
+              <img v-if="quiz.banner && quiz.banner.length" :src="arrayBufferToBase64(quiz.banner)" alt="Quiz banner"
+                class="w-full h-full object-cover" />
               <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center">
                 <span class="text-2xl">🎯</span>
               </div>
@@ -467,15 +482,12 @@ onMounted(() => {
             <div class="flex-1">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                <span
-                  class="px-2 py-1 rounded-full text-xs"
-                  :class="{
-                    'bg-green-500': quiz.status === 'published',
-                    'bg-yellow-500': quiz.status === 'requires_review',
-                    'bg-gray-500': quiz.status === 'draft',
-                    'bg-blue-500': quiz.status === 'private',
-                  }"
-                >
+                <span class="px-2 py-1 rounded-full text-xs" :class="{
+                  'bg-green-500': quiz.status === 'published',
+                  'bg-yellow-500': quiz.status === 'requires_review',
+                  'bg-gray-500': quiz.status === 'draft',
+                  'bg-blue-500': quiz.status === 'private',
+                }">
                   {{ quiz.status }}
                 </span>
               </div>
@@ -492,21 +504,13 @@ onMounted(() => {
                   {{ quiz.plays }}
                 </div>
                 <div class="flex gap-1">
-                  <span
-                    v-for="lang in quiz.languages"
-                    :key="lang.name"
-                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
-                    :title="lang.name"
-                  >
+                  <span v-for="lang in quiz.languages" :key="lang.name"
+                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center" :title="lang.name">
                     {{ lang.iso_code }}
                   </span>
                 </div>
                 <div class="flex flex-wrap gap-1">
-                  <span
-                    v-for="tag in quiz.tags"
-                    :key="tag.name"
-                    class="px-2 py-0.5 rounded-full bg-white/10 text-xs"
-                  >
+                  <span v-for="tag in quiz.tags" :key="tag.name" class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
                     {{ tag.name }}
                   </span>
                 </div>
@@ -518,53 +522,31 @@ onMounted(() => {
     </div>
   </div>
   >
-  <div
-    v-if="showPasswordModal"
-    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-  >
+  <div v-if="showPasswordModal"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
       <div class="flex justify-between items-center mb-6">
         <div class="flex justify-evenly flex-row">
           <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
-          <CircleHelp
-            class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
-            @click="showPasswordRequirements"
-          />
+          <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
         </div>
         <XButton @click="closePasswordModal" />
       </div>
       <form @submit.prevent="handlePasswordChange" class="space-y-4 text-white">
         <div>
-          <v-text-field
-            type="text"
-            variant="outlined"
-            density="comfortable"
-            label="Jelenlegi jelszó"
-            v-model="passwordForm.current"
-          />
+          <v-text-field type="text" variant="outlined" density="comfortable" label="Jelenlegi jelszó"
+            v-model="userPw.current_password" />
         </div>
         <div>
-          <v-text-field
-            type="text"
-            variant="outlined"
-            density="comfortable"
-            label="Új jelszó"
-            v-model="passwordForm.new"
-          />
+          <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó"
+            v-model="userPw.new_password" />
         </div>
         <div>
-          <v-text-field
-            type="text"
-            variant="outlined"
-            density="comfortable"
-            label="Új jelszó megerősítése"
-            v-model="passwordForm.confirm"
-          />
+          <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó megerősítése"
+            v-model="userPw.confirm_password" />
         </div>
-        <button
-          type="submit"
-          class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
-        >
+        <button type="submit"
+          class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
           Jelszó módosítása
         </button>
       </form>
@@ -574,14 +556,12 @@ onMounted(() => {
 
 <style>
 .bg-multi-color-gradient {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.5),
-    rgba(0, 255, 0, 0.5),
-    rgba(0, 0, 255, 0.5),
-    rgba(238, 238, 85, 0.5),
-    rgba(255, 0, 0, 0.5)
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 0, 0, 0.5),
+      rgba(0, 255, 0, 0.5),
+      rgba(0, 0, 255, 0.5),
+      rgba(238, 238, 85, 0.5),
+      rgba(255, 0, 0, 0.5));
   background-size: 400% 100%;
   animation: gradient 20s linear infinite;
 }
