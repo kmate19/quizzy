@@ -15,7 +15,7 @@ export default async function sendEmail(userEmail: string, token: string, type: 
     const mailOpts = {
         from: `"Quizzy" <${ENV.EMAIL_USER()}>`,
         to: userEmail,
-        subject: "Test Email",
+        subject: "Quizzy",
         html: createEmailTemplate(ENV.DOMAIN(), token, type, data)
     }
 
