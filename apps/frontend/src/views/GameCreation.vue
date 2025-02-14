@@ -4,7 +4,7 @@ import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { useRoute } from 'vue-router'
 import { ref, watch, nextTick } from 'vue'
-import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
+import { CloudUpload, CirclePlus, X, Edit } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload } from '@/utils/type'
 import { useCounterStore } from '@/stores/counter'
@@ -13,6 +13,7 @@ import { clientv1 } from '@/lib/apiClient'
 const store = useCounterStore()
 const route = useRoute()
 
+const isEdit = ref(false)
 const tags = store.returnAllTags()
 const isoCodes = store.returnIsoCards()
 
@@ -70,40 +71,41 @@ const questionImageInput = ref<HTMLInputElement | null>(null)
 const getQuiz = async () => {
   const uuid = route.params.uuid
   console.log(uuid)
-  if(uuid === ""){
+  if (uuid === '') {
     return
   }
   const get = await clientv1.quizzes.own[':uuid'].$get({ param: { uuid: uuid.toString() } })
   console.log('status: ' + get.status)
-  
-    if (get.status === 200) {
-      const res = (await get.json()).data
-      console.log(res)
-      console.log(arrayBufferToBase64(res.banner.data))
-      console.log('cards[0].picture.data', res.cards[0].picture.data)
-      quiz.value = {
-        title: res.title,
-        description: res.description,
-        status: res.status,
-        banner: arrayBufferToBase64(res.banner.data),
-        languageISOCodes: res.languages.map((l) => l.language.iso_code),
-        tags: res.tags.map((t) => t.tag.name),
-        cards: await Promise.all(
-          res.cards.map(async (c) => {
-            return {
-              question: c.question,
-              type: c.type,
-              answers: c.answers,
-              picture: arrayBufferToBase64(c.picture.data),
-              correct_answer_index: c.correct_answer_index,
-            }
-          }),
-        ),
-      }
-      console.log(quiz.value)
-    } else {
-      console.log('request failed: ', get.status)
+
+  if (get.status === 200) {
+    isEdit.value = true
+    const res = (await get.json()).data
+    console.log(res)
+    console.log(arrayBufferToBase64(res.banner.data))
+    console.log('cards[0].picture.data', res.cards[0].picture.data)
+    quiz.value = {
+      title: res.title,
+      description: res.description,
+      status: res.status,
+      banner: arrayBufferToBase64(res.banner.data),
+      languageISOCodes: res.languages.map((l) => l.language.iso_code),
+      tags: res.tags.map((t) => t.tag.name),
+      cards: await Promise.all(
+        res.cards.map(async (c) => {
+          return {
+            question: c.question,
+            type: c.type,
+            answers: c.answers,
+            picture: arrayBufferToBase64(c.picture.data),
+            correct_answer_index: c.correct_answer_index,
+          }
+        }),
+      ),
     }
+    console.log(quiz.value)
+  } else {
+    console.log('request failed: ', get.status)
+  }
 }
 
 getQuiz()
@@ -201,8 +203,7 @@ const addQuestion = () => {
     oneQuestion.value.correct_answer_index = 0
     oneQuestion.value.question = ''
     oneQuestion.value.type = 'normal'
-  }
-  else{
+  } else {
     toast('Maximum 10 kérdést tartalmazhat egy quiz!', {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
@@ -232,7 +233,10 @@ const handleQuestionModify = (index: number) => {
 const handleQuizyUpload = async () => {
   await nextTick() //TODO: if quiz exsist then update
   console.log(quiz.value)
-  const query = await clientv1.quizzes.publish.$post({
+  if (isEdit.value) {
+    console.log('edit', isEdit.value)
+  const edit = await clientv1.quizzes.edit[':quizId'].$patch({
+    param: { quizId: route.params.uuid.toString() },
     json: {
       quiz: {
         title: quiz.value.title,
@@ -245,24 +249,58 @@ const handleQuizyUpload = async () => {
       languageISOCodes: quiz.value.languageISOCodes,
     },
   })
-  if (query.status === 201) {
-    toast('Sikeres quiz feltöltés!', {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'success',
-      transition: 'zoom',
-      pauseOnHover: false,
-    } as ToastOptions)
-    resetInputValues()
+  if (edit.status === 200) {
+      toast('Quiz sikeresen módosítva!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'success',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+      resetInputValues()
+    } else {
+      const res = await edit.json()
+      toast(res.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+    }
   } else {
-    const res = await query.json()
-    toast(res.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    } as ToastOptions)
+    const query = await clientv1.quizzes.publish.$post({
+      json: {
+        quiz: {
+          title: quiz.value.title,
+          description: quiz.value.description,
+          status: quiz.value.status,
+          banner: quiz.value.banner,
+        },
+        cards: quiz.value.cards,
+        tags: quiz.value.tags,
+        languageISOCodes: quiz.value.languageISOCodes,
+      },
+    })
+    if (query.status === 201) {
+      toast('Sikeres quiz feltöltés!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'success',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+      resetInputValues()
+    } else {
+      const res = await query.json()
+      toast(res.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+    }
   }
 }
 
