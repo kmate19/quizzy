@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import router from '@/router'
 import { ref } from 'vue'
 import NavBar from '@/components/NavBar.vue'
-import { Play, Star, Loader2Icon } from 'lucide-vue-next'
+import { Play, Loader2Icon } from 'lucide-vue-next'
 import { type quizCardView } from '@/utils/type'
 import { toast } from 'vue3-toastify'
 

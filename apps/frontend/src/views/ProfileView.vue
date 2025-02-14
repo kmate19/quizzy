@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { PencilIcon, CircleHelp, Loader2Icon, Settings } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2 } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
@@ -200,6 +200,8 @@ const userData = async () => {
 }
 
 const fileInput = ref<HTMLInputElement | null>(null)
+const selectedUuid = ref<string>('')
+const isDeleteModal = ref(false)
 const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const userPw = ref({
@@ -357,7 +359,32 @@ const handleQuizDeatailedView = (uuid: string) => {
   router.push(`/quiz/${uuid}`)
 }
 
-
+const handleDelete = async (uuid: string) => {
+  const del = await clientv1.quizzes.delete[':quizId'].$delete({ param: { quizId: uuid } })
+  if (del.status === 200) {
+    toast("Quiz sikeresen törölve", {
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+    isDeleteModal.value = false
+    userQuizzies.value = []
+    getQuizzies()
+  }
+  else
+  {
+    const res = await del.json()
+    toast(res.message,{
+        autoClose: 3500,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+  }
+}
 
 onMounted(() => {
   getQuizzies()
@@ -448,11 +475,11 @@ onMounted(() => {
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="friend in realUser.friends" :key="friend.addressee.id"
-                class="quizzy flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient">
+              <div v-for="friend in realUser.friends" :key="friend.addressee.id" class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
+              border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
                 <img :src="friend.addressee.profile_picture?.data
-                    ? arrayBufferToBase64(friend.addressee.profile_picture.data)
-                    : ''
+                  ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                  : ''
                   " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
                 <div class="flex-1">
                   <h3 class="text-white font-medium text-xl mb-2">
@@ -460,8 +487,8 @@ onMounted(() => {
                   </h3>
                   <p class="text-sm">
                     <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active'
-                        ? 'bg-green-400'
-                        : 'bg-gray-400'
+                      ? 'bg-green-400'
+                      : 'bg-gray-400'
                       ">
                     </span>
                     {{ friend.addressee.activity_status }}
@@ -478,10 +505,8 @@ onMounted(() => {
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="quiz in userQuizzies" :key="quiz.id"
-                class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
-                border-2 border-transparent shadow-lg transition-all duration-500 bg-multi-color-gradient cursor-pointer"
-                @click="
+              <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
+                border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10" @click="
                   quiz.status === 'draft'
                     ? handleQuizView(quiz.id)
                     : handleQuizDeatailedView(quiz.id)
@@ -496,9 +521,14 @@ onMounted(() => {
                 <div class="flex-1">
                   <div class="flex items-center justify-between mb-2">
                     <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                    <span v-if="quiz.status !== 'draft'" class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700/30 w-10 h-10 justify-center items-center border-2 border-transparent
-                    hover:border-blue-700 transition-all duration-300 ">
-                      <Settings @click.stop="handleQuizView(quiz.id)"/>
+                    <span v-if="quiz.status !== 'draft'" class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent
+                    hover:border-white transition-all duration-300 ">
+                      <Settings @click.stop="handleQuizView(quiz.id)" />
+                    </span>
+                    <span class="absolute bottom-2 right-2 flex rounded-full text-xs
+                     bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent
+                    hover:border-white transition-all duration-300">
+                      <Trash2 @click.stop="(isDeleteModal = !isDeleteModal, selectedUuid = quiz.id)" />
                     </span>
                   </div>
                   <span class="px-2 py-1 rounded-full text-xs" :class="{
@@ -571,32 +601,32 @@ onMounted(() => {
           </form>
         </div>
       </div>
+      <div v-if="isDeleteModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-evenly flex-row">
+              <h3 class="text-2xl font-bold text-white">Biztosan szeretnéd törölni a quizt?</h3>
+            </div>
+            <XButton @click="isDeleteModal = !isDeleteModal" />
+          </div>
+          <form @submit.prevent="handleDelete(selectedUuid)" class="space-y-4 text-white">
+            <button type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+              Igen
+            </button>
+            <button type="button" @click="isDeleteModal = !isDeleteModal" 
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+              Nem
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   </Transition>
 </template>
 
 <style>
-.bg-multi-color-gradient {
-  background: linear-gradient(90deg,
-      rgba(255, 0, 0, 0.5),
-      rgba(0, 255, 0, 0.5),
-      rgba(0, 0, 255, 0.5),
-      rgba(238, 238, 85, 0.5),
-      rgba(255, 0, 0, 0.5));
-  background-size: 400% 100%;
-  animation: gradient 20s linear infinite;
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  100% {
-    background-position: 400% 50%;
-  }
-}
-
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
