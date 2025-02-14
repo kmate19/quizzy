@@ -43,24 +43,42 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
       },
-    }
+    },
   ],
 })
 
 const title = ref('Quizzy')
 
-router.beforeEach(async(toRoute, fromRoute, next) => {
+router.beforeEach(async (toRoute, fromRoute, next) => {
   let newTitle = 'Quizzy'
 
   const requiresAuth = toRoute.meta.requiresAuth
+  const isLoginPath = toRoute.path === '/login'
 
-  if (requiresAuth) {
-      const auth = await clientv1.auth.authed.$get({ query: {} });
-      console.log('Auth status:', auth.status);
+  try {
+    const auth = await clientv1.auth.authed.$get({ query: {} })
+    console.log('Auth status:', auth.status)
+    const isAuthenticated = auth.status === 200
 
-      if (auth.status !== 200) {
-        return next('/login');
+    if (isLoginPath) {
+      if (isAuthenticated) {
+        return next('/')//authed
+      } else {
+        return next()//geos to login
       }
+    }
+
+    if (requiresAuth) {
+      if (!isAuthenticated) {
+        return next('/login')//not authed and goes to route which requires auth
+      }
+    }
+  } catch (error) {
+    console.error('Error during authentication check:', error)
+    if (requiresAuth && !isLoginPath) {
+      console.log('Error during authentication check and route requires auth, redirecting to login')
+      return next('/login')
+    }
   }
 
   switch (toRoute.name?.toString()) {
