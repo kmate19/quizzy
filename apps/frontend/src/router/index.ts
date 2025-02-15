@@ -91,7 +91,7 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
     case 'home':
       newTitle = 'Kezdőlap'
       break
-    case 'profil':
+    case 'profile':
       newTitle = 'Profil'
       break
     case 'game_creation':
