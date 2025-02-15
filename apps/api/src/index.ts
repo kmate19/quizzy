@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import apikey from "./routes/apikey";
 import quizzes from "./routes/quizzes";
+import meta from "./routes/meta";
 import userprofile from "./routes/userprofile";
 import { ApiResponse } from "repo";
 
@@ -17,6 +18,7 @@ export const app = new Hono().basePath("/api/v1")
     .route('/', apikey)
     .route('/', userprofile)
     .route('/', quizzes)
+    .route('/', meta)
     .onError((err, c) => {
         // TEST: test this somehow (idk what could cause the fauilure here)
         console.error(err);
