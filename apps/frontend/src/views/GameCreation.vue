@@ -4,7 +4,7 @@ import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { useRoute } from 'vue-router'
 import { ref, watch, nextTick } from 'vue'
-import { CloudUpload, CirclePlus, X } from 'lucide-vue-next'
+import { CloudUpload, CirclePlus } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload } from '@/utils/type'
 import { useCounterStore } from '@/stores/counter'
@@ -390,10 +390,11 @@ watch(
               </v-img>
               <div
                 v-if="quiz.banner && !quiz.banner.includes('/placeholder')"
-                class="absolute top-2 right-2 rounded-full cursor-pointer transition-all duration-500 hover:bg-white hover:text-red-600 w-fit h-fit"
+                class="absolute top-2 right-2 rounded-full cursor-pointer transition-all 
+                duration-500  w-fit h-fit"
                 @click.stop="clearGameImage"
               >
-                <X class="rounded-full" />
+                <XButton/>
               </div>
             </div>
           </div>
@@ -485,10 +486,10 @@ watch(
               </v-img>
               <div
                 v-if="oneQuestion.picture && !oneQuestion.picture.includes('/placeholder')"
-                class="absolute top-2 right-2 p-1 rounded-full bg-black/50 cursor-pointer"
+                class="absolute top-2 right-2 p-1 rounded-full cursor-pointer"
                 @click.stop="clearQuestionImage"
               >
-                <X class="hover:text-red-600 hover:bg-white rounded-full" />
+                <XButton/>
               </div>
             </div>
           </div>
