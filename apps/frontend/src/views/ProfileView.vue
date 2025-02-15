@@ -373,16 +373,15 @@ const handleDelete = async (uuid: string) => {
     userQuizzies.value = []
     getQuizzies()
   }
-  else
-  {
+  else {
     const res = await del.json()
-    toast(res.message,{
-        autoClose: 3500,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      })
+    toast(res.message, {
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
   }
 }
 
@@ -610,13 +609,14 @@ onMounted(() => {
             </div>
             <XButton @click="isDeleteModal = !isDeleteModal" />
           </div>
-          <form @submit.prevent="handleDelete(selectedUuid)" class="space-y-4 text-white">
-            <button type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+          <form @submit.prevent="handleDelete(selectedUuid)" class="flex text-white gap-2">
+            <button type="submit" class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900  
+             ">
               Igen
             </button>
-            <button type="button" @click="isDeleteModal = !isDeleteModal" 
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+            <button type="button" @click="isDeleteModal = !isDeleteModal" class="glass-button px-4 py-1  text-lg text-white
+               font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900
+             ">
               Nem
             </button>
           </form>
@@ -663,14 +663,14 @@ button {
 .glass-button {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
+  border: 2px solid transparent;
 }
 
 .glass-button:hover {
   background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  border: 2px solid white;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
 }
