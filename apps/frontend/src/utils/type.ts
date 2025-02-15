@@ -1,36 +1,25 @@
 export interface quizUpload {
   description: string
   title: string
-  status: "draft" | "published" | "requires_review" | "private"
+  status: 'draft' | 'published' | 'requires_review' | 'private'
   banner: string
   languageISOCodes: string[]
   tags: string[]
   cards: {
     question: string
-    type: "normal" | "twochoice"
+    type: 'normal' | 'twochoice'
     answers: string[]
     picture: string
     correct_answer_index: number
   }[]
 }
 
-
-
-export interface quizSmallView {
-  id: string;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
-  description: string;
-  title: string;
-  rating: number;
-  plays: number;
-  banner: string;
-  languageISOCodes: {
-    iso_code: string
-    icon: string
-  }[]
-  tags: string[]
+export interface Question {
+  question: string
+  type: 'twochoice' | 'normal'
+  answers: string[]
+  picture: string
+  correct_answer_index: number
 }
 
 export interface quizCardView {
@@ -51,22 +40,64 @@ export interface quizCardView {
   tags: string[]
   user_id: string
   cards: {
-    question: string,
+    question: string
     type: string
-    answers: string[],
-    picture: string,
-    correct_answer_index: number,
+    answers: string[]
+    picture: string
+    correct_answer_index: number
   }[]
 }
 
-export interface FuzzySearchOptionsForCard {
-  threshold?: number
-  caseSensitive?: boolean
-  trimWhitespace?: boolean
-  keys?: ((item: quizSmallView) => string | string[]) | keyof quizSmallView | (keyof quizSmallView)[]
+interface Tag {
+  name: string
 }
 
-export interface FuzzySearchResult<T> {
-  item: T
-  score: number
+interface Language {
+  name: string
+  iso_code: string
+  icon: string
+  support: 'none' | 'official' | 'partial'
+}
+
+export interface Quiz {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  description: string
+  title: string
+  status?: 'published' | 'draft' | 'requires_review' | 'private'
+  rating: number
+  plays: number
+  banner: string
+  languages: Language[]
+  tags: Tag[]
+}
+
+export interface sentFriendship {
+  created_at: string
+  status: 'pending' | 'blocked' | 'accepted'
+  addressee: {
+    id: string
+    username: string
+    activity_status: 'active' | 'inactive' | 'away'
+    profile_picture: {
+      type: 'Buffer'
+      data: number[]
+    } | null
+  }
+}
+
+export interface recievedFriendships {
+  created_at: string
+  status: 'pending' | 'blocked' | 'accepted'
+  requester: {
+    id: string
+    username: string
+    activity_status: 'active' | 'inactive' | 'away'
+    profile_picture: {
+      type: 'Buffer'
+      data: number[]
+    } | null
+  }
 }

@@ -7,20 +7,12 @@ import NavBar from '@/components/NavBar.vue'
 import { Play, Loader2Icon } from 'lucide-vue-next'
 import { type quizCardView } from '@/utils/type'
 import { toast } from 'vue3-toastify'
+import { arrayBufferToBase64 } from '@/utils/helpers'
 
 const route = useRoute()
 const uuid = route.params.uuid
 const data = ref<quizCardView>()
 const isLoading = ref(true)
-
-const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return `data:${mimeType};base64,${window.btoa(binary)}`
-}
 
 const getQuiz = async () => {
   console.log('asdsad', uuid)
@@ -63,8 +55,7 @@ const getQuiz = async () => {
     console.log(data.value)
     isLoading.value = false
     expandedQuestions.value = new Array(res.data.cards.length).fill(false)
-
-    //get
+    
   } else {
     const res = await getQuiz.json()
     toast(res.error.message, {

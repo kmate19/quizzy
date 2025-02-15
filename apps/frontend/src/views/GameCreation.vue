@@ -6,9 +6,10 @@ import { useRoute } from 'vue-router'
 import { ref, watch, nextTick } from 'vue'
 import { CloudUpload, CirclePlus } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
-import type { quizUpload } from '@/utils/type'
+import type { quizUpload, Question } from '@/utils/type'
 import { useCounterStore } from '@/stores/counter'
 import { clientv1 } from '@/lib/apiClient'
+import { arrayBufferToBase64 } from '@/utils/helpers'
 
 const store = useCounterStore()
 const route = useRoute()
@@ -18,13 +19,7 @@ const isEdit = ref(false)
 const tags = store.returnAllTags()
 const isoCodes = store.returnIsoCards()
 
-interface Question {
-  question: string
-  type: 'twochoice' | 'normal'
-  answers: string[]
-  picture: string
-  correct_answer_index: number
-}
+
 
 const oneQuestion = ref<Question>({
   question: '',
@@ -57,14 +52,7 @@ watch(
   { immediate: true },
 )
 
-const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return `data:${mimeType};base64,${window.btoa(binary)}`
-}
+
 
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const questionImageInput = ref<HTMLInputElement | null>(null)

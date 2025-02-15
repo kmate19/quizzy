@@ -8,6 +8,8 @@ import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import * as zod from 'zod'
+import { arrayBufferToBase64 } from '@/utils/helpers'
+import type { Quiz, sentFriendship, recievedFriendships } from '@/utils/type'
 
 const newPasswordSchema = zod.object({
   password: zod
@@ -24,59 +26,8 @@ type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
 
 const regErrors = ref<zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
 
-interface Language {
-  name: string
-  iso_code: string
-  icon: string
-  support: 'none' | 'official' | 'partial'
-}
 
-interface Tag {
-  name: string
-}
 
-interface Quiz {
-  id: string
-  created_at: string
-  updated_at: string
-  user_id: string
-  description: string
-  title: string
-  status: 'published' | 'draft' | 'requires_review' | 'private'
-  rating: number
-  plays: number
-  banner: number[]
-  languages: Language[]
-  tags: Tag[]
-}
-
-interface sentFriendship {
-  created_at: string
-  status: 'pending' | 'blocked' | 'accepted'
-  addressee: {
-    id: string
-    username: string
-    activity_status: 'active' | 'inactive' | 'away'
-    profile_picture: {
-      type: 'Buffer'
-      data: number[]
-    } | null
-  }
-}
-
-interface recievedFriendships {
-  created_at: string
-  status: 'pending' | 'blocked' | 'accepted'
-  requester: {
-    id: string
-    username: string
-    activity_status: 'active' | 'inactive' | 'away'
-    profile_picture: {
-      type: 'Buffer'
-      data: number[]
-    } | null
-  }
-}
 
 const isLoading = ref(true)
 const userQuizzies = ref<Quiz[]>([])
@@ -85,8 +36,8 @@ const getQuizzies = async () => {
   try {
     isLoading.value = true
     const res = await clientv1.quizzes.own.$get()
-    const data = await res.json()
-      ;[...data.data].forEach((el) => {
+    const data = await res.json();
+    [...data.data].forEach((el) => {
         const temp: Quiz = {
           id: el.id,
           created_at: el.created_at,
@@ -97,7 +48,7 @@ const getQuizzies = async () => {
           status: el.status,
           rating: el.rating,
           plays: el.plays,
-          banner: el.banner.data,
+          banner: arrayBufferToBase64(el.banner.data),
           languages: el.languages.map((lang) => ({
             name: lang.language.name,
             iso_code: lang.language.iso_code,
@@ -319,7 +270,7 @@ const handlePasswordChange = async () => {
     return
   } else {
     isLoadingPw.value = true
-    console.log(userPw.value)//cannot change
+    console.log(userPw.value)//cannot change pw
     const reset = await clientv1.auth.changepassword.$post({
       json: { oldPassword: userPw.value.current_password, password: userPw.value.new_password },
     })
@@ -347,15 +298,6 @@ const handlePasswordChange = async () => {
     isLoadingPw.value = false 
   }
 
-}
-
-const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/avif'): string => {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return `data:${mimeType};base64,${window.btoa(binary)}`
 }
 
 const handleQuizView = (uuid: string) => {
@@ -518,7 +460,7 @@ onMounted(() => {
                     : handleQuizDeatailedView(quiz.id)
                   ">
                 <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <img v-if="quiz.banner && quiz.banner.length" :src="arrayBufferToBase64(quiz.banner)"
+                  <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner"
                     alt="Quiz banner" class="w-full h-full object-cover" />
                   <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center">
                   </div>
