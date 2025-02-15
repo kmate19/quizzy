@@ -14,6 +14,8 @@ export const tagsTable = pgTable("tags", {
     ];
 });
 
+export type Tag = typeof tagsTable.$inferInsert
+
 export const insertTagSchema = createInsertSchema(tagsTable).omit({
     id: true,
     created_at: true,
