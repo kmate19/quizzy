@@ -113,18 +113,10 @@ describe("tests for middleware", () => {
             expect(json).toHaveProperty('error');
             expect(json?.error?.message).toBe("refresh token expired");
         });
-        // TODO:
-        test.todo("edge case access token exists in cookies and still not expired but doesnt exist elsewhere anymore (nor the user)", async () => {
-            const { cookies } = await registerAndLogin(client);
+        // NOTE: this is actually normal behaviour with jwt's as the access token is still valid, and in this small window
+        // until the access token expires, the user can still access the api, but after that, the user will be logged out
+        // if we really want to avoid this, transition to using sessions
 
-            await reset(db, schema);
-
-            const res = await client.auth.authed.$get({ query: {} }, { headers: { cookie: cookies.join(';') } });
-
-            const json = await res.json() as ApiResponse;
-            expect(res.status).toBe(401);
-            expect(json).toHaveProperty('error');
-            expect(json?.error?.message).toBe("stale cookie");
-        });
+        //test("edge case access token exists in cookies and still not expired but doesnt exist elsewhere anymore (nor the user)"
     });
 });
