@@ -33,8 +33,14 @@ if (ENV.NODE_ENV() === 'production') {
     }
 }
 
-for (let i = 0; i < GLOBALS.DB_ROLES.length; i++) {
-    await db.insert(schema.rolesTable).values(GLOBALS.DB_ROLES[i]).onConflictDoNothing()
+for (const role of GLOBALS.DB_ROLES) {
+    await db.insert(schema.rolesTable).values(role).onConflictDoNothing()
+}
+for (const lang of GLOBALS.DB_LANGUAGES) {
+    await db.insert(schema.languagesTable).values(lang).onConflictDoNothing()
+}
+for (const tag of GLOBALS.DB_TAGS) {
+    await db.insert(schema.tagsTable).values(tag).onConflictDoNothing()
 }
 
 
