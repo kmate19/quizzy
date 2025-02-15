@@ -20,15 +20,15 @@ const searchText = ref('')
 const searchContainer = ref<HTMLElement | null>(null)
 
 const currentPage = ref(1)
-const limit = ref(50)
-const totalPages = ref(1)
+const limit = ref(10) // minimum 10
+const totalPages = ref(20)
+const showFullPages = ref(false)
 
 interface FilterPayload {
   categories: string[]
   includeName: boolean
   includeDesc: boolean
 }
-
 
 const fetchQuizzes = async () => {
   loading.value = true
@@ -65,7 +65,7 @@ const fetchQuizzes = async () => {
   if (data.total && data.limit) {
     totalPages.value = Math.ceil(data.total / data.limit)
   } else {
-    totalPages.value = 1
+    totalPages.value = 100
   }
   loading.value = false
 }
@@ -136,7 +136,35 @@ const goToPage = (page: number) => {
   }
 }
 
-const pageNumbers = computed(() => {
+
+const displayedPages = computed<(number | 'ellipsis')[]>(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+
+  const pageSet = new Set<number>()
+  pageSet.add(1)
+  pageSet.add(total)
+
+  if (current !== 1 && current !== total) {
+    pageSet.add(current)
+  }
+
+  const pagesArr = Array.from(pageSet).sort((a, b) => a - b)
+
+  const result: (number | 'ellipsis')[] = []
+  for (let i = 0; i < pagesArr.length; i++) {
+    result.push(pagesArr[i])
+  }
+  result.splice(result.length - 1, 0, 'ellipsis')
+  return result
+})
+
+
+const totalPagesArray = computed(() => {
   return Array.from({ length: totalPages.value }, (_, i) => i + 1)
 })
 
@@ -167,6 +195,8 @@ onMounted(() => {
           <CategoriesButton @save="handleSave" />
         </div>
       </div>
+
+
       <div v-if="loading" class="flex justify-center items-center h-64">
         <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       </div>
@@ -179,21 +209,47 @@ onMounted(() => {
         </div>
       </div>
       <div v-if="!loading && !error" class="mt-8">
-        <div class="text-center mb-4 text-white">
-          Page {{ currentPage }} of {{ totalPages }}
-        </div>
         <div class="flex flex-wrap justify-center items-center space-x-2 text-white">
           <button @click="prevPage" :disabled="currentPage === 1"
             class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-red-700">
             Előző
           </button>
           <div class="flex space-x-1">
-            <button v-for="page in pageNumbers" :key="page" @click="goToPage(page)" :class="[
-              'glass-button px-4 py-2 rounded-2xl transition-all duration-300',
-              page === currentPage ? 'bg-white/20 text-white' : 'bg-transparent text-white hover:bg-white/20'
-            ]">
-              {{ page }}
-            </button>
+            <template v-for="item in displayedPages" :key="item">
+              <button v-if="item !== 'ellipsis'" @click="goToPage(item as number)" :class="[
+                'glass-button px-4 py-2 rounded-2xl transition-all duration-300',
+                item === currentPage ? 'bg-white/20 text-white' : 'bg-transparent text-black hover:bg-white'
+              ]">
+                {{ item }}
+              </button>
+              <div v-else class="relative inline-block">
+                <button class="glass-button px-4 py-2 rounded-2xl transition-all duration-300 cursor-pointer"
+                  @click="showFullPages = !showFullPages">
+                  &hellip;
+                </button>
+                <Transition appear 
+                  enter-active-class="transition ease-in-out duration-500"
+                  enter-from-class="opacity-0 translate-y-4" 
+                  enter-to-class="opacity-100 translate-y-0"
+                  leave-active-class="transition ease-in-out duration-500"
+                  leave-from-class="opacity-100 translate-y-0"
+                  leave-to-class="opacity-0 translate-y-4">
+                  <div v-if="showFullPages" @mouseleave="showFullPages = false" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3
+                max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar
+                         w-48 p-4 bg-white/10 shadow-lg rounded-lg z-10
+                         after:content-[''] after:absolute after:top-full after:left-1/2
+                         after:-translate-x-1/2 after:border-8 after:border-transparent
+                         after:border-t-white backdrop-blur-2xl">
+                    <div class="grid grid-cols-5 gap-2">
+                      <button v-for="page in totalPagesArray" :key="page" @click="goToPage(page); showFullPages = false"
+                        class="px-2 py-1 rounded transition-all duration-300 hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
+                        {{ page }}
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+            </template>
           </div>
           <button @click="nextPage" :disabled="currentPage === totalPages"
             class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700">
@@ -246,5 +302,30 @@ onMounted(() => {
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+  scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 </style>
