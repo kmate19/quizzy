@@ -175,8 +175,8 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <NavBar />
     <MistBackground/>
+    <NavBar />
     <div class="container mx-auto px-4 py-8 max-h-[calc(100vh-20vh)]">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="flex items-center space-x-4" id="asd">
