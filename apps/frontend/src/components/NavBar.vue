@@ -7,54 +7,79 @@ import XButton from './XButton.vue'
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
 const route = useRoute()
+
 const isMobileMenuOpen = ref(false)
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
+
 router.afterEach(() => {
   isMobileMenuOpen.value = false
 })
 
+
 const handlePath = () => {
-  const path =
-    route.fullPath.split('/')[1].charAt(0).toUpperCase() + route.fullPath.split('/')[1].slice(1)
-  switch (path) {
-    case '':
-      return 'Kezdőlap'
+  const pathSegments = route.fullPath.split('/')
+  const mainSegment = pathSegments[1] ?? ''
+  if (!mainSegment) return 'Kezdőlap'
+
+
+  const capitalized = mainSegment.charAt(0).toUpperCase() + mainSegment.slice(1)
+  switch (capitalized) {
     case 'Game_creation':
       return 'Játék készítés'
     default:
-      return path
+      return capitalized
   }
 }
 </script>
+
 <template>
-  <nav :class="['transition-all duration-300 ease-in-out']">
+  <nav class="transition-all duration-300 ease-in-out relative bg-transparent">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <div
-          class="flex items-center border-transparent border-2 hover:scale-105 hover:border-white px-4 py-1 text-3xl text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
-          Quizzy/{{ handlePath() }}
+        <div class="flex items-center border-transparent border-2 hover:scale-105 hover:border-white
+           px-4 py-1 text-3xl text-white font-semibold rounded-lg transition-all duration-300 ease-in-out
+           w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm 
+           before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10
+           before:pointer-events-none before:absolute before:inset-0">
+          Quizzy / {{ handlePath() }}
         </div>
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
-            <a @click="router.push('/')"
-              class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 border-transparent hover:scale-x-105 hover:border-white cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">Kezdőlap</a>
-            <a @click="isCodeModal = !isCodeModal"
-              class="px-4 py-1 text-lg border-2 border-transparent hover:scale-x-105 hover:border-white text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">Közös
-              játék</a>
-            <a @click="router.push('/game_creation')"
-              class="px-4 py-1 text-lg text-white border-2 border-transparent hover:scale-x-105 hover:border-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">Játék
-              készítés</a>
-            <div @click="router.push('/profil')"
-              class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit hover:scale-x-105 border-2 border-transparent hover:border-white relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
+            <a @click="router.push('/')" class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out 
+              border-2 border-transparent hover:scale-x-105 hover:border-white cursor-pointer w-fit relative bg-white/10 
+              backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit 
+              before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0
+              flex justify-center items-center">
+              Kezdőlap
+            </a>
+            <a @click="isCodeModal = !isCodeModal" class="px-4 py-1 text-lg border-2 border-transparent hover:scale-x-105 hover:border-white
+               text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative
+               bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit
+               before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0
+               flex justify-center items-center">
+              Közös játék
+            </a>
+            <a @click="router.push('/game_creation')" class="px-4 py-1 text-lg text-white border-2 border-transparent hover:scale-x-105
+               hover:border-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit
+               relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-['']
+               before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none
+               before:absolute before:inset-0 flex justify-center items-center">
+              Játék készítés
+            </a>
+            <div @click="router.push('/profil')" class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300
+               ease-in-out cursor-pointer w-fit hover:scale-x-105 border-2 border-transparent hover:border-white 
+               relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit
+               before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0
+               flex justify-center items-center">
               Profil
             </div>
           </div>
         </div>
-        <div class="md:hidden">
+        <div class="block md:hidden">
           <button @click="toggleMobileMenu" class="text-white hover:bg-white/50 p-2 rounded-md">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -69,28 +94,30 @@ const handlePath = () => {
       enter-from-class="transform -translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
       leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-full opacity-0">
-      <div v-if="isMobileMenuOpen" class="md:hidden">
+      <div v-if="isMobileMenuOpen"
+        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a @click="router.push('/')"
-            class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
             Kezdőlap
           </a>
-          <a class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium">
+          <a @click="isCodeModal = !isCodeModal"
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
             Közös játék
           </a>
           <a @click="router.push('/game_creation')"
-            class="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
             Játék készítés
           </a>
           <a @click="router.push('/profil')"
-            class="text-white hover:bg-gray-700 border block px-3 py-2 rounded-md text-base font-medium">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
             Profil
           </a>
         </div>
       </div>
     </transition>
   </nav>
-  <div v-if="isCodeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div v-if="isCodeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
     <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
       <div class="flex justify-between items-center mb-6">
         <div class="flex-1">
@@ -101,7 +128,7 @@ const handlePath = () => {
       <form @submit.prevent class="flex flex-col gap-4">
         <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
           class="w-full text-white"></v-text-field>
-        <button type="submit" class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all duration-300 ease-in-out 
+        <button type="submit" class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all duration-300 ease-in-out
             cursor-pointer w-full !bg-green-900">
           Csatlakozás
         </button>
@@ -109,6 +136,7 @@ const handlePath = () => {
     </div>
   </div>
 </template>
+
 <style scoped>
 .glass-button {
   background: rgba(255, 255, 255, 0.1);

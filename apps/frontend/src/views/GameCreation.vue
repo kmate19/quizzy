@@ -52,8 +52,6 @@ watch(
   { immediate: true },
 )
 
-
-
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const questionImageInput = ref<HTMLInputElement | null>(null)
 

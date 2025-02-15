@@ -175,9 +175,9 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <MistBackground />
     <NavBar />
-    <div class="container mx-auto px-4 py-8">
+    <MistBackground/>
+    <div class="container mx-auto px-4 py-8 max-h-[calc(100vh-20vh)]">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
@@ -195,8 +195,6 @@ onMounted(() => {
           <CategoriesButton @save="handleSave" />
         </div>
       </div>
-
-
       <div v-if="loading" class="flex justify-center items-center h-64">
         <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       </div>
@@ -211,7 +209,7 @@ onMounted(() => {
       <div v-if="!loading && !error" class="mt-8">
         <div class="flex flex-wrap justify-center items-center space-x-2 text-white">
           <button @click="prevPage" :disabled="currentPage === 1"
-            class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-red-700">
+            class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-red-700 w-56 h-12">
             Előző
           </button>
           <div class="flex space-x-1">
@@ -252,7 +250,7 @@ onMounted(() => {
             </template>
           </div>
           <button @click="nextPage" :disabled="currentPage === totalPages"
-            class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700">
+            class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
             Következő
           </button>
         </div>
