@@ -296,12 +296,9 @@ describe('quiz related routes', async () => {
             expect(data[0].tags[0].tag.name).toBe("test tag");
             expect(data[0].languages[0].language.name).toBe("test language");
         });
-        // TODO: this test currently fails since we adjusted it so a single
-        // user can only have 10 quizzes, this test needs to be changed
-        // to reflect that in the future
-        test.todo('should return with correct limits and offsets', async () => {
+        test('should return with correct limits and offsets', async () => {
             const { cookies } = await registerAndLogin(client)
-            for (let i = 0; i < 80; ++i) {
+            for (let i = 0; i < 10; ++i) {
                 await publisTestQuiz(client, cookies, i);
             }
 
@@ -313,11 +310,11 @@ describe('quiz related routes', async () => {
             const data50 = (await quizzes50.json()).data;
 
             expect(quizzes.status).toBe(200);
-            expect(data.length).toBe(20);
+            expect(data.length).toBe(10);
             expect(quizzes50.status).toBe(200);
-            expect(data50.length).toBe(50);
+            expect(data50.length).toBe(10);
             expect(quizzes501.status).toBe(200);
-            expect((await quizzes501.json()).data.length).toBe(30);
+            expect((await quizzes501.json()).data.length).toBe(0);
 
         });
         test('should not return quizzes that are not of published status', async () => {

@@ -7,6 +7,7 @@ import * as schema from "@/db/schemas/index";
 import GLOBALS from "@/config/globals";
 import { eq } from "drizzle-orm";
 import { registerTestUser } from "./utils/helper";
+import { ApiResponse } from "repo";
 
 beforeEach(async () => {
     await reset(db, schema);
@@ -163,15 +164,13 @@ describe("tests for api auth functionality", () => {
             expect(res.status).toBe(200);
             expect(json.message).toBe("user created");
         });
-        // TODO: cause bun sets test env var, and when env is not development, the api doesnt send zod error
-        // to not expose data
-        test.todo("fails cause bad data", async () => {
+        test("fails cause bad data", async () => {
             const res = await client.auth.register.$post({ json: { email: "invalid", username: "mateka", password: "com" } });
 
-            const json = await res.json() as unknown as { error: { name: string } };
+            const json = await res.json() as unknown as ApiResponse;
             console.error("json", json);
             expect(res.status).toBe(400);
-            expect(json.error.name).toBe("ZodError");
+            expect(json.message).toBe("Validation failed");
         });
         test("fails cause duplicate username/email error", async () => {
             await registerTestUser(client, undefined, false);
