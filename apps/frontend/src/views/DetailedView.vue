@@ -8,6 +8,7 @@ import { Play, Loader2Icon } from 'lucide-vue-next'
 import { type quizCardView } from '@/utils/type'
 import { toast } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
+import MistBackground from '@/components/MistBackground.vue'
 
 const route = useRoute()
 const uuid = route.params.uuid
@@ -81,6 +82,7 @@ const handleViewUser = (uuid: string) => {
 </script>
 
 <template>
+  <MistBackground/>
   <div v-if="isLoading === true" class="min-h-screen flex justify-center items-center">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
