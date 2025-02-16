@@ -212,7 +212,7 @@ onMounted(() => {
           </button>
           <div class="flex space-x-1">
             <template v-for="item in displayedPages" :key="item">
-              <button v-if="item !== 'ellipsis'" @click="goToPage(item as number)" :class="[
+              <button v-if="item !== 'ellipsis'" @click="(goToPage(item as number),showFullPages = false)" :class="[
                 'glass-button px-4 py-2 rounded-2xl transition-all duration-300',
                 item === currentPage ? 'bg-white/20 text-white' : 'bg-transparent text-black hover:bg-white'
               ]">
