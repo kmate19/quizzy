@@ -48,15 +48,15 @@ export interface quizCardView {
   }[]
 }
 
-interface Tag {
+export interface Tag {
   name: string
 }
 
-interface Language {
-  name: string
+export interface Language {
+  name?: string
   iso_code: string
   icon: string
-  support: 'none' | 'official' | 'partial'
+  support?: 'none' | 'official' | 'partial'
 }
 
 export interface Quiz {
