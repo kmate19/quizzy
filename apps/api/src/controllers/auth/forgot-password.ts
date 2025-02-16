@@ -54,7 +54,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(zv('json', LoginUserSch
 
     return c.json(res, 200);
 
-    
+
 })
 
 export default forgotPasswordHandler;

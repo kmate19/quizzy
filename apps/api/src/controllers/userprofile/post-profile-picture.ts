@@ -62,15 +62,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (
     }
     catch (e) {
         console.error('ERROR: Uploading pfp to db:', e);
-        const res = {
-            message: "Error uploading profile picture",
-            error: {
-                message: "error_uploading_profile_picture",
-                case: "server",
-            }
-        } satisfies ApiResponse;
-
-        return c.json(res, 500);
+        throw e;
     }
 
 

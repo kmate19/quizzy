@@ -247,6 +247,8 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.object(
             }
         }
 
+        if (status === 500) throw e;
+
         const res = {
             message: "Failed to publish quiz",
             error: {
