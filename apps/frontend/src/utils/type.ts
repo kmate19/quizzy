@@ -101,3 +101,25 @@ export interface recievedFriendships {
     } | null
   }
 }
+
+export interface stats {
+    plays: number,
+    first_places: number,
+    second_places: number,
+    third_places: number,
+    wins: number,
+    losses: number,
+}
+
+export interface userProfile{
+  email: string
+  username: string
+  created_at: string
+  activity_status: string
+  profile_picture: string
+  sentFriendships: sentFriendship[]        // Adjust these types if you have more specific types
+  recievedFriendships: recievedFriendships[]
+  friends: sentFriendship[]
+  role: string
+  stats: stats  
+}

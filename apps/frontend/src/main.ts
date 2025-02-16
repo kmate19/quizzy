@@ -3,6 +3,8 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
+import { VueQueryPlugin } from '@tanstack/vue-query'
+import { queryClient } from './lib/queryClient'
 
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
@@ -15,13 +17,14 @@ import router from './router'
 
 const app = createApp(App)
 
-
 const vuetify = createVuetify({
   components,
   directives,
 })
+
 app.use(createPinia())
 app.use(router)
+app.use(VueQueryPlugin, { queryClient })
 app.use(vuetify)
 app.use(Vue3Toastify, {
     autoClose: 5000,

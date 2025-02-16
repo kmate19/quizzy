@@ -9,7 +9,8 @@ import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import * as zod from 'zod'
 import { arrayBufferToBase64 } from '@/utils/helpers'
-import type { Quiz, sentFriendship, recievedFriendships } from '@/utils/type'
+import type { Quiz, sentFriendship, recievedFriendships, userProfile } from '@/utils/type'
+import { queryClient } from '@/lib/queryClient'
 
 const newPasswordSchema = zod.object({
   password: zod
@@ -35,32 +36,41 @@ const userQuizzies = ref<Quiz[]>([])
 const getQuizzies = async () => {
   try {
     isLoading.value = true
+    
+    const cachedQuizzes = queryClient.getQueryData<Quiz[]>(['userQuizzies'])
+    if (cachedQuizzes) {
+      userQuizzies.value = cachedQuizzes
+      return
+    }
+
     const res = await clientv1.quizzes.own.$get()
-    const data = await res.json();
-    [...data.data].forEach((el) => {
-        const temp: Quiz = {
-          id: el.id,
-          created_at: el.created_at,
-          updated_at: el.updated_at,
-          user_id: el.user_id,
-          description: el.description,
-          title: el.title,
-          status: el.status,
-          rating: el.rating,
-          plays: el.plays,
-          banner: arrayBufferToBase64(el.banner.data),
-          languages: el.languages.map((lang) => ({
-            name: lang.language.name,
-            iso_code: lang.language.iso_code,
-            icon: lang.language.icon,
-            support: lang.language.support,
-          })),
-          tags: el.tags.map((tag) => ({
-            name: tag.tag.name,
-          })),
-        }
-        userQuizzies.value.push(temp)
-      })
+    const data = await res.json()
+
+    const quizzes: Quiz[] = data.data.map((el) => ({
+      id: el.id,
+      created_at: el.created_at,
+      updated_at: el.updated_at,
+      user_id: el.user_id,
+      description: el.description,
+      title: el.title,
+      status: el.status,
+      rating: el.rating,
+      plays: el.plays,
+      banner: arrayBufferToBase64(el.banner.data),
+      languages: el.languages.map((lang) => ({
+        name: lang.language.name,
+        iso_code: lang.language.iso_code,
+        icon: lang.language.icon,
+        support: lang.language.support,
+      })),
+      tags: el.tags.map((tag) => ({
+        name: tag.tag.name,
+      })),
+    }))
+
+    // Cache the fetched quizzes so next time it won't re-fetch
+    queryClient.setQueryData(['userQuizzies'], quizzes)
+    userQuizzies.value = quizzes
   } catch (error) {
     console.error('error:', error)
   } finally {
@@ -88,7 +98,7 @@ const showPasswordRequirements = () => {
   })
 }
 
-const realUser = ref({
+const realUser = ref<userProfile>({
   email: '',
   username: '',
   created_at: '',
@@ -98,7 +108,7 @@ const realUser = ref({
   recievedFriendships: [] as recievedFriendships[],
   friends: [] as sentFriendship[],
   role: '',
-  stat: {
+  stats: {
     plays: 0,
     first_places: 0,
     second_places: 0,
@@ -109,46 +119,55 @@ const realUser = ref({
 })
 
 const userData = async () => {
-  const user = await clientv1.userprofile.$get()
-  console.log('ASDASD', user.status)
-  if (user.status === 200) {
-    const res = await user.json()
-    console.log('stats', res.data.stats)
-    console.log('asd', res.data)
-    realUser.value = {
-      email: res.data.email,
-      username: res.data.username,
-      created_at: new Date(res.data.created_at).toLocaleDateString(),
-      activity_status: res.data.activity_status,
-      profile_picture: res.data.profile_picture
-        ? arrayBufferToBase64(res.data.profile_picture.data)
-        : '',
-      sentFriendships: res.data.sentFriendships,
-      recievedFriendships: res.data.recievedFriendships,
-      role: res.data.roles[0].role.name,
-      stat: res.data.stats,
-      friends: res.data.recievedFriendships
-        .filter((item) => item.status === 'accepted')
-        .map((item) => ({
-          created_at: item.created_at,
-          status: item.status,
-          addressee: {
-            id: item.requester.id,
-            username: item.requester.username,
-            activity_status: item.requester.activity_status,
-            profile_picture: item.requester.profile_picture,
-          },
-        })),
+  const cachedProfile = queryClient.getQueryData<userProfile>(['userProfile'])
+  if (cachedProfile) {
+    realUser.value = cachedProfile
+    return
+  }
+  try {
+    const user = await clientv1.userprofile.$get()
+
+    if (user.status === 200) {
+      const res = await user.json()
+      const userObj = {
+        email: res.data.email,
+        username: res.data.username,
+        created_at: new Date(res.data.created_at).toLocaleDateString(),
+        activity_status: res.data.activity_status,
+        profile_picture: res.data.profile_picture
+          ? arrayBufferToBase64(res.data.profile_picture.data)
+          : '',
+        sentFriendships: res.data.sentFriendships,
+        recievedFriendships: res.data.recievedFriendships,
+        role: res.data.roles?.[0]?.role?.name ?? '',
+        stats: res.data.stats,
+        friends: res.data.recievedFriendships
+          .filter((item) => item.status === 'accepted')
+          .map((item) => ({
+            created_at: item.created_at,
+            status: item.status,
+            addressee: {
+              id: item.requester.id,
+              username: item.requester.username,
+              activity_status: item.requester.activity_status,
+              profile_picture: item.requester.profile_picture,
+            },
+          })),
+      }
+      queryClient.setQueryData(['userProfile'], userObj)
+      realUser.value = userObj
+    } else {
+      const res = await user.json()
+      toast(res.error.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
     }
-  } else {
-    const res = await user.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
+  } catch (error) {
+    console.error('Error fetching user data:', error)
   }
 }
 
@@ -193,6 +212,7 @@ const openFileDialog = () => {
 
 const OnLogOut = async () => {
   await clientv1.auth.logout.$get()
+  queryClient.clear()
   router.push('/login')
 }
 
@@ -384,19 +404,19 @@ onMounted(() => {
           </div>
           <div class="flex-1 flex flex-wrap justify-end items-center gap-4">
             <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.plays }}</div>
+              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stats.plays }}</div>
               <div class="text-white/70 text-sm">Összes játék</div>
             </div>
             <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.first_places }}</div>
+              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stats.first_places }}</div>
               <div class="text-white/70 text-sm">1. helyezés</div>
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold text-white mb-2">
                 {{
-                  isNaN(Math.round((realUser.stat.first_places / realUser.stat.plays) * 100))
+                  isNaN(Math.round((realUser.stats.first_places / realUser.stats.plays) * 100))
                     ? 0
-                    : Math.round((realUser.stat.first_places / realUser.stat.plays) * 100)
+                    : Math.round((realUser.stats.first_places / realUser.stats.plays) * 100)
                 }}%
               </div>
               <div class="text-white/70 text-sm">Nyerési arány</div>
