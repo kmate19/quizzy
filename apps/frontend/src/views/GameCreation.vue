@@ -10,6 +10,7 @@ import type { quizUpload, Question } from '@/utils/type'
 import { useCounterStore } from '@/stores/counter'
 import { clientv1 } from '@/lib/apiClient'
 import { arrayBufferToBase64 } from '@/utils/helpers'
+import { queryClient } from '@/lib/queryClient'
 
 const store = useCounterStore()
 const route = useRoute()
@@ -237,6 +238,7 @@ const handleQuizyUpload = async () => {
       },
     })
     if (edit.status === 200) {
+      queryClient.removeQueries({ queryKey: ['userQuizzies'] })
       toast('Quiz sikeresen módosítva!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -270,6 +272,7 @@ const handleQuizyUpload = async () => {
       },
     })
     if (query.status === 201) {
+      queryClient.removeQueries({ queryKey: ['userQuizzies'] })
       toast('Sikeres quiz feltöltés!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,

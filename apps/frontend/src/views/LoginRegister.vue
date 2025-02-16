@@ -10,7 +10,6 @@ import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 
-// Initialize the TanStack Query Client
 const queryClient = useQueryClient()
 
 const isLoginForm = ref(true)
@@ -139,8 +138,7 @@ const updateCardHeight = () => {
 
 onMounted(() => {
   updateCardHeight()
-
-  // Rehydrate auth data from localStorage if it exists
+  
   const storedUser = localStorage.getItem('authUser')
   if (storedUser) {
     const userData = JSON.parse(storedUser)

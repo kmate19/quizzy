@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2 } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, Copy, Key } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
@@ -27,16 +27,17 @@ type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
 
 const regErrors = ref<zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
 
-
-
-
 const isLoading = ref(true)
+const isLoadingKey = ref(false)
 const userQuizzies = ref<Quiz[]>([])
+const isApiModal = ref(false)
+const description = ref('')
+const expiration = ref('')
+const key = ref()
 
 const getQuizzies = async () => {
   try {
     isLoading.value = true
-    
     const cachedQuizzes = queryClient.getQueryData<Quiz[]>(['userQuizzies'])
     if (cachedQuizzes) {
       userQuizzies.value = cachedQuizzes
@@ -68,7 +69,6 @@ const getQuizzies = async () => {
       })),
     }))
 
-    // Cache the fetched quizzes so next time it won't re-fetch
     queryClient.setQueryData(['userQuizzies'], quizzes)
     userQuizzies.value = quizzes
   } catch (error) {
@@ -263,7 +263,6 @@ const closePasswordModal = async () => {
 }
 
 const handlePasswordChange = async () => {
-
   const result = newPasswordSchema.safeParse({ password: userPw.value.new_password })
   if (!result.success) {
     regErrors.value = result.error.format()
@@ -290,7 +289,7 @@ const handlePasswordChange = async () => {
     return
   } else {
     isLoadingPw.value = true
-    console.log(userPw.value)//cannot change pw
+    console.log(userPw.value)
     const reset = await clientv1.auth.changepassword.$post({
       json: { oldPassword: userPw.value.current_password, password: userPw.value.new_password },
     })
@@ -315,9 +314,8 @@ const handlePasswordChange = async () => {
         pauseOnHover: false,
       } as ToastOptions)
     }
-    isLoadingPw.value = false 
+    isLoadingPw.value = false
   }
-
 }
 
 const handleQuizView = (uuid: string) => {
@@ -331,7 +329,7 @@ const handleQuizDeatailedView = (uuid: string) => {
 const handleDelete = async (uuid: string) => {
   const del = await clientv1.quizzes.delete[':quizId'].$delete({ param: { quizId: uuid } })
   if (del.status === 200) {
-    toast("Quiz sikeresen törölve", {
+    toast('Quiz sikeresen törölve', {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'success',
@@ -341,8 +339,7 @@ const handleDelete = async (uuid: string) => {
     isDeleteModal.value = false
     userQuizzies.value = []
     getQuizzies()
-  }
-  else {
+  } else {
     const res = await del.json()
     toast(res.message, {
       autoClose: 3500,
@@ -352,6 +349,50 @@ const handleDelete = async (uuid: string) => {
       pauseOnHover: false,
     })
   }
+}
+
+const getApiKey = async () => {
+  console.log('moki1', new Date(expiration.value).toISOString())
+  console.log('moki2', expiration.value)
+  console.log('moki3', description)
+
+  isLoadingKey.value = true
+  const post = await clientv1.apikey.create.$post({
+    json: { description: description.value, expires_at: new Date(expiration.value).toISOString() },
+  }) //ISO 8601
+  if (post.status === 200) {
+    const res = await post.json()
+    key.value = res.data
+    console.log(res.data)
+
+    toast('Sikeres API kulcs generálás', {
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+  } else {
+    const res = await post.json()
+    toast(res.error.message, {
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+  }
+  isLoadingKey.value = false
+}
+const copyText = () => {
+  navigator.clipboard.writeText(key.value)
+  toast('API kulcs másolva a vágólapra!', {
+    autoClose: 3500,
+    position: toast.POSITION.TOP_CENTER,
+    type: 'success',
+    transition: 'zoom',
+    pauseOnHover: false,
+  } as ToastOptions)
 }
 
 onMounted(() => {
@@ -370,8 +411,7 @@ onMounted(() => {
           <Loader2Icon class="w-12 h-12 text-white animate-spin" />
         </div>
       </div>
-      <div v-else class="fixed inset-0 pointer-events-none overflow-hidden">
-      </div>
+      <div v-else class="fixed inset-0 pointer-events-none overflow-hidden"></div>
       <div class="relative max-w-7xl mx-auto">
         <NavBar />
         <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
@@ -393,13 +433,16 @@ onMounted(() => {
             <div class="text-white flex flex-col flex-wrap">
               <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
               <p class="text-white/80">{{ realUser.email }}</p>
-              <p v-if="realUser.role === 'admin'"
-                class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
-                {{ realUser.role }}
-              </p>
-              <p v-else class="mt-2 px-3 py-1 bg-red-500/30 rounded-full inline-block text-sm">
-                {{ realUser.role }}
-              </p>
+              <div class="flex flex-col gap-2">
+                <p v-if="realUser.role === 'admin'"
+                  class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
+                  {{ realUser.role }}
+                </p>
+                <button @click="isApiModal = true"
+                  class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-blue-900">
+                  API Kulcs igénylése
+                </button>
+              </div>
             </div>
           </div>
           <div class="flex-1 flex flex-wrap justify-end items-center gap-4">
@@ -408,7 +451,9 @@ onMounted(() => {
               <div class="text-white/70 text-sm">Összes játék</div>
             </div>
             <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stats.first_places }}</div>
+              <div class="text-4xl font-bold text-white mb-2">
+                {{ realUser.stats.first_places }}
+              </div>
               <div class="text-white/70 text-sm">1. helyezés</div>
             </div>
             <div class="text-center">
@@ -443,11 +488,11 @@ onMounted(() => {
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="friend in realUser.friends" :key="friend.addressee.id" class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
-              border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
+              <div v-for="friend in realUser.friends" :key="friend.addressee.id"
+                class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
                 <img :src="friend.addressee.profile_picture?.data
-                  ? arrayBufferToBase64(friend.addressee.profile_picture.data)
-                  : ''
+                    ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                    : ''
                   " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
                 <div class="flex-1">
                   <h3 class="text-white font-medium text-xl mb-2">
@@ -455,8 +500,8 @@ onMounted(() => {
                   </h3>
                   <p class="text-sm">
                     <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active'
-                      ? 'bg-green-400'
-                      : 'bg-gray-400'
+                        ? 'bg-green-400'
+                        : 'bg-gray-400'
                       ">
                     </span>
                     {{ friend.addressee.activity_status }}
@@ -473,30 +518,29 @@ onMounted(() => {
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
-                border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10" @click="
+              <div v-for="quiz in userQuizzies" :key="quiz.id"
+                class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10"
+                @click="
                   quiz.status === 'draft'
                     ? handleQuizView(quiz.id)
                     : handleQuizDeatailedView(quiz.id)
                   ">
                 <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner"
-                    alt="Quiz banner" class="w-full h-full object-cover" />
-                  <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center">
-                  </div>
+                  <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner" alt="Quiz banner"
+                    class="w-full h-full object-cover" />
+                  <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
                 </div>
 
                 <div class="flex-1">
                   <div class="flex items-center justify-between mb-2">
                     <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                    <span v-if="quiz.status !== 'draft'" class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent
-                    hover:border-white transition-all duration-300 ">
+                    <span v-if="quiz.status !== 'draft'"
+                      class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300">
                       <Settings @click.stop="handleQuizView(quiz.id)" />
                     </span>
-                    <span class="absolute bottom-2 right-2 flex rounded-full text-xs
-                     bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent
-                    hover:border-white transition-all duration-300">
-                      <Trash2 @click.stop="(isDeleteModal = !isDeleteModal, selectedUuid = quiz.id)" />
+                    <span
+                      class="absolute bottom-2 right-2 flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300">
+                      <Trash2 @click.stop="((isDeleteModal = !isDeleteModal), (selectedUuid = quiz.id))" />
                     </span>
                   </div>
                   <span class="px-2 py-1 rounded-full text-xs" :class="{
@@ -579,10 +623,9 @@ onMounted(() => {
             <XButton @click="isDeleteModal = !isDeleteModal" />
           </div>
           <form @submit.prevent="handleDelete(selectedUuid)" class="flex text-white gap-2">
-            <button type="submit" class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out 
-            cursor-pointer w-full !bg-green-900  
-             ">
-             <span v-if="isLoading" class="inline-block animate-spin mr-2">
+            <button type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+              <span v-if="isLoading" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
                     fill="none" />
@@ -590,14 +633,50 @@ onMounted(() => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </span>
-             <span v-else>
-               Igen
-              </span>
+              <span v-else> Igen </span>
             </button>
-            <button type="button" @click="isDeleteModal = !isDeleteModal" class="glass-button px-4 py-1  text-lg text-white
-               font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900
-             ">
+            <button type="button" @click="isDeleteModal = !isDeleteModal"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
               Nem
+            </button>
+          </form>
+        </div>
+      </div>
+      <div v-if="isApiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-evenly flex-row">
+              <h3 class="text-2xl font-bold text-white">Api kulcs igénylése</h3>
+            </div>
+            <XButton @click="isApiModal = false" />
+          </div>
+          <form @submit.prevent="getApiKey" class="flex flex-col text-white gap-1">
+            <v-text-field type="text" variant="outlined" density="comfortable" label="Leírás" v-model="description" />
+            <v-text-field label="Lejárati idő" type="datetime-local" v-model="expiration" class="text-white" />
+            <div v-if="key && realUser.role === 'admin'" class="flex flex-row gap-2 justify-center items-center w-full">
+              <div
+                class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent
+                 hover:border-white text-white break-all shadow-lg transition-all duration-300 hover:bg-white/20 flex gap-2 items-center">
+                {{ key }}
+              </div>
+              <span>
+                <Copy
+                  class="w-7 h-7 transition-all duration-300 backdrop-blur-md text-white
+                   hover:border-white bg-white/10 border-2 border-transparent cursor-pointer rounded-sm flex justify-center items-center"
+                  @click="copyText" />
+              </span>
+            </div>
+            <button type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900 mt-5">
+              <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </span>
+              <span v-else> Generálás </span>
             </button>
           </form>
         </div>
