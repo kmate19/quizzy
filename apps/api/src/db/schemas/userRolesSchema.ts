@@ -1,20 +1,35 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, serial, uuid, index, integer } from "drizzle-orm/pg-core";
+import {
+    pgTable,
+    timestamp,
+    serial,
+    uuid,
+    index,
+    integer,
+} from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 import { rolesTable } from "./rolesSchema";
 
-export const userRolesTable = pgTable("user_roles", {
-    id: serial().primaryKey(),
-    user_id: uuid().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
-    role_id: integer().notNull().references(() => rolesTable.id, { onDelete: 'cascade' }),
-    created_at: timestamp().notNull().defaultNow(),
-    updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
-}, (table) => {
-    return [
-        index().on(table.user_id),
-        index().on(table.role_id),
-    ];
-});
+export const userRolesTable = pgTable(
+    "user_roles",
+    {
+        id: serial().primaryKey(),
+        user_id: uuid()
+            .notNull()
+            .references(() => usersTable.id, { onDelete: "cascade" }),
+        role_id: integer()
+            .notNull()
+            .references(() => rolesTable.id, { onDelete: "cascade" }),
+        created_at: timestamp().notNull().defaultNow(),
+        updated_at: timestamp()
+            .notNull()
+            .defaultNow()
+            .$onUpdate(() => new Date()),
+    },
+    (table) => {
+        return [index().on(table.user_id), index().on(table.role_id)];
+    }
+);
 
 export type UserRole = typeof userRolesTable.$inferInsert;
 

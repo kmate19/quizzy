@@ -6,30 +6,38 @@ const transporter = createTransport({
     service: "gmail",
     auth: {
         user: ENV.EMAIL_USER(),
-        pass: ENV.EMAIL_PASS()
-    }
-})
+        pass: ENV.EMAIL_PASS(),
+    },
+});
 
-export default async function sendEmail(userEmail: string, token: string, type: "forgot_password" | "verify", data?: string) {
+export default async function sendEmail(
+    userEmail: string,
+    token: string,
+    type: "forgot_password" | "verify",
+    data?: string
+) {
     console.log("Sending email to: ", userEmail);
     const mailOpts = {
         from: `"Quizzy" <${ENV.EMAIL_USER()}>`,
         to: userEmail,
         subject: "Quizzy",
-        html: createEmailTemplate(ENV.DOMAIN(), token, type, data)
-    }
+        html: createEmailTemplate(ENV.DOMAIN(), token, type, data),
+    };
 
     const sendMailWithTimeout = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => { reject(new Error("Email sending timed out")) }, 10000);
+        const timeout = setTimeout(() => {
+            reject(new Error("Email sending timed out"));
+        }, 10000);
 
-        transporter.sendMail(mailOpts)
+        transporter
+            .sendMail(mailOpts)
             .then((info) => {
                 clearTimeout(timeout);
                 resolve(info);
             })
             .catch((error) => {
                 clearTimeout(timeout);
-                reject(error)
+                reject(error);
             });
     });
 

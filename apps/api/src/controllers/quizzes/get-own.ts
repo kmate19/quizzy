@@ -18,10 +18,10 @@ const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                 with: {
                     tag: {
                         columns: {
-                            name: true
-                        }
-                    }
-                }
+                            name: true,
+                        },
+                    },
+                },
             },
             languages: {
                 columns: {},
@@ -31,17 +31,17 @@ const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                             name: true,
                             iso_code: true,
                             support: true,
-                            icon: true
-                        }
-                    }
-                }
+                            icon: true,
+                        },
+                    },
+                },
             },
-        }
-    })
+        },
+    });
 
     const res = {
         message: "Quiz fetched",
-        data: quizzes
+        data: quizzes,
     } satisfies ApiResponse;
 
     return c.json(res, 200);

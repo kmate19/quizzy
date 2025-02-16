@@ -26,7 +26,7 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                     third_places: true,
                     wins: true,
                     losses: true,
-                }
+                },
             },
             sentFriendships: {
                 columns: {
@@ -40,9 +40,9 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                             username: true,
                             activity_status: true,
                             profile_picture: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             },
             recievedFriendships: {
                 columns: {
@@ -56,9 +56,9 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                             username: true,
                             activity_status: true,
                             profile_picture: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             },
             roles: {
                 columns: {},
@@ -66,12 +66,12 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                     role: {
                         columns: {
                             name: true,
-                        }
-                    }
-                }
-            }
-        }
-    })
+                        },
+                    },
+                },
+            },
+        },
+    });
 
     if (!userData) {
         const res = {
@@ -79,7 +79,7 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
             error: {
                 message: "User not found",
                 case: "not_found",
-            }
+            },
         } satisfies ApiResponse;
         return c.json(res, 404);
     }
@@ -90,6 +90,6 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     } satisfies ApiResponse;
 
     return c.json(res, 200);
-})
+});
 
 export default getBaseDataHandler;

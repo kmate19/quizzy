@@ -11,28 +11,34 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
         columns: {
             user_id: false,
             id: false,
-            updated_at: false
+            updated_at: false,
         },
-    })
+    });
 
     if (keys.length === 0) {
         const res = {
             message: "No API keys found",
             error: {
                 message: "No API keys found",
-                case: "not_found"
-            }
+                case: "not_found",
+            },
         } satisfies ApiResponse;
         return c.json(res, 404);
     }
 
     // hide the full keys
-    keys.map(key => key.key = key.key.substring(0, 3) + "..." + key.key.substring(key.key.length - 3, key.key.length));
+    keys.map(
+        (key) =>
+            (key.key =
+                key.key.substring(0, 3) +
+                "..." +
+                key.key.substring(key.key.length - 3, key.key.length))
+    );
     const res = {
         message: "API keys found",
-        data: keys
+        data: keys,
     } satisfies ApiResponse;
     return c.json(res, 200);
-})
+});
 
 export default listHandler;
