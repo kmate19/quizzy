@@ -1,8 +1,8 @@
 import { ZodSchema } from "zod";
 import type { ValidationTargets } from "hono";
-import { zValidator } from "@hono/zod-validator";
 import ENV from "@/config/env";
 import { ApiResponse } from "repo";
+import { validator } from "hono-openapi/zod";
 
 
 /**
@@ -12,7 +12,7 @@ import { ApiResponse } from "repo";
 export const zv = <T extends ZodSchema, Target extends keyof ValidationTargets>(
     target: Target,
     schema: T
-) => zValidator(target, schema, (result, c) => {
+) => validator(target, schema, (result, c) => {
     if (ENV.NODE_ENV() === "development") {
         if (!result.success) {
             return c.json(result, 400);

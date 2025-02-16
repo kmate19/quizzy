@@ -10,6 +10,8 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
         where: eq(userApiKeys.user_id, c.get("accessTokenPayload").userId),
         columns: {
             user_id: false,
+            id: false,
+            updated_at: false
         },
     })
 
