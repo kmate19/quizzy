@@ -19,8 +19,5 @@
     "packageManager": "pnpm@9.13.2",
     "engines": {
         "node": ">=18"
-    },
-    "dependencies": {
-        "vue3-toastify": "^0.2.8"
     }
 }
