@@ -21,7 +21,11 @@
         "drizzle:push": "drizzle-kit push",
         "drizzle:generate": "drizzle-kit generate",
         "drizzle:migrate": "drizzle-kit migrate",
-        "drizzle:studio": "drizzle-kit studio"
+        "drizzle:studio": "drizzle-kit studio",
+        "lint": "pnpx eslint",
+        "lint:fix": "pnpx eslint --fix",
+        "format:check": "pnpx prettier --check .",
+        "format": "pnpx prettier --write ."
     },
     "dependencies": {
         "@hono/zod-validator": "^0.4.3",
