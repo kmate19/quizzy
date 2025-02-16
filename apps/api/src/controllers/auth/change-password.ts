@@ -14,7 +14,7 @@ const changePasswordHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', 
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
     try {
-        await Bun.password.verify(user.password, oldPassword);
+        await Bun.password.verify(oldPassword, user.password);
     } catch (e) {
         const res = {
             message: 'Invalid old password',
