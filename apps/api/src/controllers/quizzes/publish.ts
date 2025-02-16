@@ -194,6 +194,8 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('json', z.obje
             }
         }
 
+        if (status === 500) throw e;
+
         const res = {
             message: "Failed to publish quiz",
             error: {

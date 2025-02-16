@@ -33,7 +33,7 @@ export const app = new Hono()
             },
         } satisfies ApiResponse;
 
-        return c.json(res, 500);
+        return c.json(res, 422);
     });
 
 if (ENV.NODE_ENV() === "development") {

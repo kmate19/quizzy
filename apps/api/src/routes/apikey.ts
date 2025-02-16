@@ -6,60 +6,116 @@ import { describeRoute } from "hono-openapi";
 import { z } from "zod";
 import { resolver } from "hono-openapi/zod";
 
-console.error(...createHandler)
+const createApiKeyDesc = describeRoute({
+    description: "Create a new API key (admin only)",
+    responses: {
+        200: {
+            description: "Success - API key created",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            message: z.literal("API key created, you will only see the full key once, so save it"),
+                            data: z.string()
+                        })
+                    )
+                }
+            },
+        },
+        403: {
+            description: "Forbidden - maximum number of API keys reached",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            message: z.literal("You have reached the maximum number of API keys"),
+                            error: z.object({
+                                message: z.literal("You have reached the maximum number of API keys"),
+                                case: z.literal("forbidden")
+                            })
+                        })
+                    )
+                }
+            },
+        }
+    }
+});
+
+const listApiKeysDesc = describeRoute({
+    description: "List all API keys for the authenticated admin user",
+    responses: {
+        200: {
+            description: "Success - API keys retrieved",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            message: z.literal("API keys found"),
+                            data: z.array(z.object({
+                                key: z.string(), // Partial key (masked)
+                                created_at: z.string(),
+                            }))
+                        })
+                    )
+                }
+            },
+        },
+        404: {
+            description: "Not Found - No API keys available",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            message: z.literal("No API keys found"),
+                            error: z.object({
+                                message: z.literal("No API keys found"),
+                                case: z.literal("not_found")
+                            })
+                        })
+                    )
+                }
+            },
+        }
+    }
+});
+
+const deleteApiKeyDesc = describeRoute({
+    description: "Delete an API key for the authenticated admin user",
+    responses: {
+        200: {
+            description: "Success - API key deleted",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            message: z.literal("API key deleted")
+                        })
+                    )
+                }
+            },
+        },
+        404: {
+            description: "Not Found - API key not found",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            message: z.literal("API key not found"),
+                            error: z.object({
+                                message: z.literal("API key not found"),
+                                case: z.literal("not_found")
+                            })
+                        })
+                    )
+                }
+            },
+        }
+    }
+});
 
 const apikey = new Hono().basePath("/apikey")
-    .post("/create",
-        describeRoute({
-            description: "Create an API key",
-            responses: {
-                200: {
-                    description: "Success - apikey created",
-                    content: {
-                        "application/json": {
-                            schema: resolver(z.object({ message: z.string(), data: z.string() })),
-                        },
-                    },
-                },
-            }
-        }), ...createHandler)
-
-    .get("/list",
-        describeRoute({
-            description: "List own API keys",
-            responses: {
-                200: {
-                    description: "Success - list of apikeys (trunctated)",
-                    content: {
-                        "application/json": {
-                            schema: resolver(z.object({
-                                message: z.string(), data: z.object({
-                                    description: z.string().nullable(),
-                                    key: z.string(),
-                                    created_at: z.string(),
-                                    id_by_user: z.number(),
-                                    expires_at: z.string().datetime(),
-                                }).array()
-                            })),
-                        },
-                    },
-                },
-            }
-        }), ...listHandler)
-
-    .delete("/delete/:id",
-        describeRoute({
-            description: "Delete an apikey",
-            responses: {
-                200: {
-                    description: "Success - apikey deleted",
-                    content: {
-                        "application/json": {
-                            schema: resolver(z.object({ message: z.string() })),
-                        },
-                    },
-                },
-            }
-        }), ...deleteHandler)
+    .post("/create", createApiKeyDesc, ...createHandler)
+    .get("/list", listApiKeysDesc, ...listHandler)
+    .delete("/delete/:id", deleteApiKeyDesc, ...deleteHandler)
 
 export default apikey;
