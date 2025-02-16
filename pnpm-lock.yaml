@@ -47,7 +47,7 @@ importers:
         version: 4.7.1
       hono-openapi:
         specifier: ^0.4.4
-        version: 0.4.4(@hono/zod-validator@0.4.3(hono@4.7.1)(zod@3.24.2))(hono@4.7.1)(zod@3.24.2)
+        version: 0.4.4(@hono/zod-validator@0.4.3(hono@4.7.1)(zod@3.24.2))(hono@4.7.1)(zod-openapi@4.2.3(zod@3.24.2))(zod@3.24.2)
       nodemailer:
         specifier: ^6.10.0
         version: 6.10.0
@@ -60,6 +60,9 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.24.2
+      zod-openapi:
+        specifier: ^4.2.3
+        version: 4.2.3(zod@3.24.2)
     devDependencies:
       '@types/bun':
         specifier: ^1.2.2
@@ -3419,6 +3422,12 @@ packages:
   zhead@2.2.4:
     resolution: {integrity: sha512-8F0OI5dpWIA5IGG5NHUg9staDwz/ZPxZtvGVf01j7vHqSyZ0raHY+78atOVxRqb73AotX22uV1pXt3gYSstGag==}
 
+  zod-openapi@4.2.3:
+    resolution: {integrity: sha512-i0SqpcdXfsvVWTIY1Jl3Tk421s9fBIkpXvaA86zDas+8FjfZjm+GX6ot6SPB2SyuHwUNTN02gE5uIVlYXlyrDQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.21.4
+
   zod@3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
@@ -5226,13 +5235,14 @@ snapshots:
 
   he@1.2.0: {}
 
-  hono-openapi@0.4.4(@hono/zod-validator@0.4.3(hono@4.7.1)(zod@3.24.2))(hono@4.7.1)(zod@3.24.2):
+  hono-openapi@0.4.4(@hono/zod-validator@0.4.3(hono@4.7.1)(zod@3.24.2))(hono@4.7.1)(zod-openapi@4.2.3(zod@3.24.2))(zod@3.24.2):
     dependencies:
       json-schema-walker: 2.0.0
     optionalDependencies:
       '@hono/zod-validator': 0.4.3(hono@4.7.1)(zod@3.24.2)
       hono: 4.7.1
       zod: 3.24.2
+      zod-openapi: 4.2.3(zod@3.24.2)
 
   hono@4.7.1: {}
 
@@ -6301,5 +6311,9 @@ snapshots:
   yoctocolors@2.1.1: {}
 
   zhead@2.2.4: {}
+
+  zod-openapi@4.2.3(zod@3.24.2):
+    dependencies:
+      zod: 3.24.2
 
   zod@3.24.2: {}
