@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, Copy } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
@@ -9,124 +9,16 @@ import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import * as zod from 'zod'
 import { arrayBufferToBase64 } from '@/utils/helpers'
-import type { Quiz, sentFriendship, recievedFriendships, userProfile } from '@/utils/type'
+import type { Quiz  } from '@/utils/type'
 import { queryClient } from '@/lib/queryClient'
+import { useQuery } from '@tanstack/vue-query'
 
-const newPasswordSchema = zod.object({
-  password: zod
-    .string()
-    .min(1, { message: 'A mező kitöltése kötelező' })
-    .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
-    .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
-    .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
-    .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert az új jelszónak' })
-    .regex(/\d/, { message: 'Tartalmaznia kell számot az új jelszónak' }),
-})
 
-type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
 
-const regErrors = ref<zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
-
-const isLoading = ref(true)
-const isLoadingKey = ref(false)
-const userQuizzies = ref<Quiz[]>([])
-const isApiModal = ref(false)
-const description = ref('')
-const expiration = ref('')
-const key = ref()
-
-const getQuizzies = async () => {
-  try {
-    isLoading.value = true
-    const cachedQuizzes = queryClient.getQueryData<Quiz[]>(['userQuizzies'])
-    if (cachedQuizzes) {
-      userQuizzies.value = cachedQuizzes
-      return
-    }
-
-    const res = await clientv1.quizzes.own.$get()
-    const data = await res.json()
-
-    const quizzes: Quiz[] = data.data.map((el) => ({
-      id: el.id,
-      created_at: el.created_at,
-      updated_at: el.updated_at,
-      user_id: el.user_id,
-      description: el.description,
-      title: el.title,
-      status: el.status,
-      rating: el.rating,
-      plays: el.plays,
-      banner: arrayBufferToBase64(el.banner.data),
-      languages: el.languages.map((lang) => ({
-        name: lang.language.name,
-        iso_code: lang.language.iso_code,
-        icon: lang.language.icon,
-        support: lang.language.support,
-      })),
-      tags: el.tags.map((tag) => ({
-        name: tag.tag.name,
-      })),
-    }))
-
-    queryClient.setQueryData(['userQuizzies'], quizzes)
-    userQuizzies.value = quizzes
-  } catch (error) {
-    console.error('error:', error)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const isLoadingPw = ref(false)
-
-const passwordRequirements = [
-  '• Minimum 8 karakter',
-  '• Legalább egy nagybetű',
-  '• Legalább egy kisbetű',
-  '• Legalább egy szám',
-  '• Jelszavak egyezése',
-]
-
-const showPasswordRequirements = () => {
-  toast(passwordRequirements.join('\n'), {
-    autoClose: 5000,
-    position: toast.POSITION.TOP_CENTER,
-    type: 'info',
-    transition: 'zoom',
-    pauseOnHover: false,
-  })
-}
-
-const realUser = ref<userProfile>({
-  email: '',
-  username: '',
-  created_at: '',
-  activity_status: '',
-  profile_picture: '',
-  sentFriendships: [] as sentFriendship[],
-  recievedFriendships: [] as recievedFriendships[],
-  friends: [] as sentFriendship[],
-  role: '',
-  stats: {
-    plays: 0,
-    first_places: 0,
-    second_places: 0,
-    third_places: 0,
-    wins: 0,
-    losses: 0,
-  },
-})
 
 const userData = async () => {
-  const cachedProfile = queryClient.getQueryData<userProfile>(['userProfile'])
-  if (cachedProfile) {
-    realUser.value = cachedProfile
-    return
-  }
   try {
     const user = await clientv1.userprofile.$get()
-
     if (user.status === 200) {
       const res = await user.json()
       console.log(res.data.roles[0].role.name)
@@ -155,9 +47,8 @@ const userData = async () => {
             },
           })),
       }
-      queryClient.setQueryData(['userProfile'], userObj)
-      realUser.value = userObj
-      console.log(realUser.value)
+      
+      return userObj
     } else {
       const res = await user.json()
       toast(res.error.message, {
@@ -171,6 +62,108 @@ const userData = async () => {
   } catch (error) {
     console.error('Error fetching user data:', error)
   }
+}
+
+const realUser = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: userData,
+    staleTime: 60*15*1000,
+    refetchInterval: 60*15*1000,
+    refetchOnMount: true
+  }).data
+
+const localPfp = ref('')
+
+watch(realUser, (newUser) => {
+  if (newUser?.profile_picture) {
+    localPfp.value = newUser.profile_picture
+  }
+}, { immediate: true })
+
+
+const newPasswordSchema = zod.object({
+  password: zod
+    .string()
+    .min(1, { message: 'A mező kitöltése kötelező' })
+    .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
+    .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
+    .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
+    .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert az új jelszónak' })
+    .regex(/\d/, { message: 'Tartalmaznia kell számot az új jelszónak' }),
+})
+
+type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
+
+const regErrors = ref<zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
+
+const isLoading = ref(true)
+const isLoadingKey = ref(false)
+const isApiModal = ref(false)
+const description = ref('')
+const expiration = ref('')
+const key = ref()
+
+const getQuizzies = async () => {
+  try {
+    isLoading.value = true
+
+    const res = await clientv1.quizzes.own.$get()
+    const data = await res.json()
+
+    const quizzes: Quiz[] = data.data.map((el) => ({
+      id: el.id,
+      created_at: el.created_at,
+      updated_at: el.updated_at,
+      user_id: el.user_id,
+      description: el.description,
+      title: el.title,
+      status: el.status,
+      rating: el.rating,
+      plays: el.plays,
+      banner: arrayBufferToBase64(el.banner.data),
+      languages: el.languages.map((lang) => ({
+        name: lang.language.name,
+        iso_code: lang.language.iso_code,
+        icon: lang.language.icon,
+        support: lang.language.support,
+      })),
+      tags: el.tags.map((tag) => ({
+        name: tag.tag.name,
+      })),
+    }))
+    return quizzes
+  } catch (error) {
+    console.error('error:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const userQuizzies = useQuery({
+    queryKey: ['userQuizzies'],
+    queryFn: getQuizzies,
+    staleTime: 60*15*1000,
+    refetchInterval: 60*15*1000,
+  }).data
+
+const isLoadingPw = ref(false)
+
+const passwordRequirements = [
+  '• Minimum 8 karakter',
+  '• Legalább egy nagybetű',
+  '• Legalább egy kisbetű',
+  '• Legalább egy szám',
+  '• Jelszavak egyezése',
+]
+
+const showPasswordRequirements = () => {
+  toast(passwordRequirements.join('\n'), {
+    autoClose: 5000,
+    position: toast.POSITION.TOP_CENTER,
+    type: 'info',
+    transition: 'zoom',
+    pauseOnHover: false,
+  })
 }
 
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -203,7 +196,9 @@ const handleFileChange = (event: Event) => {
     }
 
     tempImage.value = file
-    realUser.value.profile_picture = URL.createObjectURL(file)
+    localPfp.value = URL.createObjectURL(file)
+    console.log(localPfp.value)
+    queryClient.refetchQueries({queryKey: ['userProfile']})
     showSaveButton.value = true
   }
 }
@@ -245,11 +240,7 @@ const saveProfileImage = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     })
-    /*queryClient.setQueryData<userProfile>(['userProfile'], (oldData) => ({
-      ...(oldData as userProfile),
-      profilePicture: realUser.value.profile_picture,
-    }));*///e nelkul is megy rendesen xd
-    realUser.value.profile_picture = tempImage.value ? URL.createObjectURL(tempImage.value) : '' 
+    localPfp.value = tempImage.value ? URL.createObjectURL(tempImage.value) : '' 
   }
 }
 
@@ -403,7 +394,6 @@ const copyText = () => {
 
 onMounted(() => {
   getQuizzies()
-  userData()
 })
 </script>
 
@@ -423,7 +413,7 @@ onMounted(() => {
         <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
           <div class="flex flex-wrap items-center gap-8">
             <div class="relative">
-              <img :src="realUser.profile_picture || ''"
+              <img :src="localPfp"
                 class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
               <div
                 class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
@@ -437,12 +427,12 @@ onMounted(() => {
               </button>
             </div>
             <div class="text-white flex flex-col flex-wrap">
-              <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
-              <p class="text-white/80">{{ realUser.email }}</p>
-              <div class="flex flex-col gap-2" v-show="realUser.role === 'admin'">
+              <h1 class="text-3xl font-bold mb-2">{{ realUser?.username }}</h1>
+              <p class="text-white/80">{{ realUser?.email }}</p>
+              <div class="flex flex-col gap-2" v-show="realUser?.role === 'admin'">
                 <p
                   class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
-                  {{ realUser.role }}
+                  {{ realUser?.role }}
                 </p>
                 <button @click="isApiModal = true"
                   class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-blue-900">
@@ -453,21 +443,21 @@ onMounted(() => {
           </div>
           <div class="flex-1 flex flex-wrap justify-end items-center gap-4">
             <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stats.plays }}</div>
+              <div class="text-4xl font-bold text-white mb-2">{{ realUser?.stats.plays }}</div>
               <div class="text-white/70 text-sm">Összes játék</div>
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold text-white mb-2">
-                {{ realUser.stats.first_places }}
+                {{ realUser?.stats.first_places }}
               </div>
               <div class="text-white/70 text-sm">1. helyezés</div>
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold text-white mb-2">
                 {{
-                  isNaN(Math.round((realUser.stats.first_places / realUser.stats.plays) * 100))
+                  isNaN(Math.round((realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100))
                     ? 0
-                    : Math.round((realUser.stats.first_places / realUser.stats.plays) * 100)
+                    : Math.round((realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100)
                 }}%
               </div>
               <div class="text-white/70 text-sm">Nyerési arány</div>
@@ -490,11 +480,11 @@ onMounted(() => {
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
               Barátok
               <span class="text-sm font-normal text-white/70">
-                {{ realUser.friends.length }} összesen
+                {{ realUser?.friends.length }} összesen
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="friend in realUser.friends" :key="friend.addressee.id"
+              <div v-for="friend in realUser?.friends" :key="friend.addressee.id"
                 class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
                 <img :src="friend.addressee.profile_picture?.data
                     ? arrayBufferToBase64(friend.addressee.profile_picture.data)
@@ -520,7 +510,7 @@ onMounted(() => {
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
               Quizzes
               <span class="text-sm font-normal text-white/70">
-                {{ userQuizzies.length }} összesen
+                {{ userQuizzies?.length }} összesen
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
@@ -659,7 +649,7 @@ onMounted(() => {
           <form @submit.prevent="getApiKey" class="flex flex-col text-white gap-1">
             <v-text-field type="text" variant="outlined" density="comfortable" label="Leírás" v-model="description" />
             <v-text-field label="Lejárati idő" type="datetime-local" v-model="expiration" class="text-white" />
-            <div v-if="key && realUser.role === 'admin'" class="flex flex-row gap-2 justify-center items-center w-full">
+            <div v-if="key && realUser?.role === 'admin'" class="flex flex-row gap-2 justify-center items-center w-full">
               <div
                 class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent
                  hover:border-white text-white break-all shadow-lg transition-all duration-300 hover:bg-white/20 flex gap-2 items-center">

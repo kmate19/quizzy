@@ -252,7 +252,6 @@ const handleQuizyUpload = async () => {
       },
     })
     if (edit.status === 200) {
-      queryClient.removeQueries({ queryKey: ['userQuizzies'] })
       toast('Quiz sikeresen módosítva!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -261,6 +260,7 @@ const handleQuizyUpload = async () => {
         pauseOnHover: false,
       } as ToastOptions)
       resetInputValues()
+      queryClient.invalidateQueries({queryKey: ['userQuizzies'], refetchType: 'none'})
     } else {
       const res = await edit.json()
       toast(res.message, {
@@ -286,7 +286,6 @@ const handleQuizyUpload = async () => {
       },
     })
     if (query.status === 201) {
-      queryClient.removeQueries({ queryKey: ['userQuizzies'] })
       toast('Sikeres quiz feltöltés!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -295,6 +294,7 @@ const handleQuizyUpload = async () => {
         pauseOnHover: false,
       } as ToastOptions)
       resetInputValues()
+      queryClient.invalidateQueries({queryKey: ['userQuizzies'], refetchType: 'none'})
     } else {
       const res = await query.json()
       toast(res.message, {
