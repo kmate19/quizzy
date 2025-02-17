@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, Copy } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
@@ -10,15 +10,20 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
 import { queryClient } from '@/lib/queryClient'
 import { useQuery } from '@tanstack/vue-query'
+import { type ApiKey } from '@/utils/type'
 import {
   userData,
   getOwnQuizzies,
   handleDelete,
   getApiKey,
   handlePasswordChange,
+  deleteApiKey,
+  listApiKeys
 } from '@/utils/functions/profileFunctions'
 
 const localPfp = ref('')
+const localApiKeys = ref<ApiKey[]>([])
+const isLoadingDelete = ref(false)
 const isLoadingKey = ref(false)
 const isApiModal = ref(false)
 const description = ref('')
@@ -30,6 +35,13 @@ const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const showPasswordModal = ref(false)
 const apiKey = ref('')
+
+const minDateTime = computed(() => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+});
+
 const userPw = ref({
   current_password: '',
   new_password: '',
@@ -37,7 +49,7 @@ const userPw = ref({
 })
 
 const { data: realUser, isLoading: isLoadingPage
- } = useQuery({
+} = useQuery({
   queryKey: ['userProfile'],
   queryFn: userData,
   staleTime: 60 * 15 * 1000,
@@ -45,7 +57,7 @@ const { data: realUser, isLoading: isLoadingPage
   refetchOnMount: true,
 });
 
-const { data: userQuizzies, isLoading } = useQuery({
+const { data: userQuizzies, isLoading: isLoadingQuizzies } = useQuery({
   queryKey: ['userQuizzies'],
   queryFn: getOwnQuizzies,
   staleTime: 60 * 15 * 1000,
@@ -63,12 +75,32 @@ watch(
   { immediate: true },
 )
 
+const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
+  queryKey: ['apiKeys'],
+  queryFn: listApiKeys,
+  staleTime: 60 * 15 * 1000,
+  refetchInterval: 60 * 15 * 1000,
+  refetchOnMount: true,
+})
+
+watch(apiKeys, (newApiKeys) => {
+  if (newApiKeys) {
+    localApiKeys.value = newApiKeys as ApiKey[]
+    console.log('API Keys updated:', newApiKeys)
+  }
+})
+
 const genApiKey = async () => {
+  isLoadingKey.value = true
   apiKey.value = (await getApiKey(expiration.value, description.value)) as string
+  description.value = ''
+  expiration.value = ''
+  apiKey.value = ''
+  isLoadingKey.value = false
 }
 
-const copyText = () => {
-  navigator.clipboard.writeText(apiKey.value)
+const copyText = (copyValue: string) => {
+  navigator.clipboard.writeText(copyValue)
   toast('API kulcs másolva a vágólapra!', {
     autoClose: 3500,
     position: toast.POSITION.TOP_CENTER,
@@ -155,7 +187,7 @@ const saveProfileImage = async () => {
       pauseOnHover: false,
     })
     showSaveButton.value = false
-    queryClient.refetchQueries({queryKey: ['userProfile']})
+    queryClient.refetchQueries({ queryKey: ['userProfile'] })
   } else {
     const res = await pfpUpload.json()
     toast(res.error.message, {
@@ -177,6 +209,13 @@ const handleQuizDeatailedView = (uuid: string) => {
   router.push(`/quiz/${uuid}`)
 }
 
+const onDelete = (uuid: string) => {
+  isLoadingDelete.value = true
+  handleDelete(uuid)
+  isLoadingDelete.value = false
+  isDeleteModal.value = false
+}
+
 const OnLogOut = async () => {
   await clientv1.auth.logout.$get()
   queryClient.clear()
@@ -187,46 +226,28 @@ const OnLogOut = async () => {
 
 <template>
   <MistBackground />
-  <Transition
-    appear
-    enter-active-class="transition ease-in-out duration-1000"
-    enter-from-class="opacity-0 translate-y-4"
-    enter-to-class="opacity-100 translate-y-0"
-  >
+  <Transition appear enter-active-class="transition ease-in-out duration-1000"
+    enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
-      <div v-if="isLoadingPage === true" class="min-h-screen flex justify-center items-center">
-        <div class="flex justify-center items-center h-64">
-          <Loader2Icon class="w-12 h-12 text-white animate-spin" />
-        </div>
-      </div>
-      <div v-else class="fixed inset-0 pointer-events-none overflow-hidden"></div>
       <div class="relative max-w-7xl mx-auto">
         <NavBar />
         <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
-          <div class="flex flex-wrap items-center gap-8">
+          <div v-if="isLoadingPage === true" class="min-h-screen flex justify-center items-center">
+            <div class="flex justify-center items-center h-64">
+              <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+            </div>
+          </div>
+          <div v-else class="flex flex-wrap items-center gap-8">
             <div class="relative">
-              <img
-                :src="localPfp"
-                class="w-32 h-32 rounded-full object-cover border-4 border-white/30"
-              />
+              <img :src="localPfp" class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
               <div
                 class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
-                @click="openFileDialog"
-              >
+                @click="openFileDialog">
                 <PencilIcon class="w-5 h-5 text-white" />
               </div>
-              <input
-                type="file"
-                ref="fileInput"
-                class="hidden"
-                accept="image/*"
-                @change="handleFileChange"
-              />
-              <button
-                v-if="showSaveButton"
-                @click="saveProfileImage"
-                class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors"
-              >
+              <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
+              <button v-if="showSaveButton" @click="saveProfileImage"
+                class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors">
                 Mentés
               </button>
             </div>
@@ -234,15 +255,11 @@ const OnLogOut = async () => {
               <h1 class="text-3xl font-bold mb-2">{{ realUser?.username }}</h1>
               <p class="text-white/80">{{ realUser?.email }}</p>
               <div class="flex flex-col gap-2" v-show="realUser?.role === 'admin'">
-                <p
-                  class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center"
-                >
+                <p class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
                   {{ realUser?.role }}
                 </p>
-                <button
-                  @click="isApiModal = true"
-                  class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-blue-900"
-                >
+                <button @click="isApiModal = true"
+                  class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-blue-900">
                   API Kulcs igénylése
                 </button>
               </div>
@@ -272,16 +289,13 @@ const OnLogOut = async () => {
               <div class="text-white/70 text-sm">Nyerési arány</div>
             </div>
             <div class="flex gap-4">
-              <button
-                @click="openPasswordModal"
-                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900"
-              >
+              <button @click="openPasswordModal"
+                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900">
                 Jelszó módosítás
               </button>
               <button
                 class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-red-900"
-                @click="OnLogOut"
-              >
+                @click="OnLogOut">
                 Kijelentkezés
               </button>
             </div>
@@ -296,33 +310,21 @@ const OnLogOut = async () => {
               </span>
             </h2>
             <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div
-                v-for="friend in realUser?.friends"
-                :key="friend.addressee.id"
-                class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10"
-              >
-                <img
-                  :src="
-                    friend.addressee.profile_picture?.data
-                      ? arrayBufferToBase64(friend.addressee.profile_picture.data)
-                      : ''
-                  "
-                  alt="Friend profile"
-                  class="w-20 h-20 rounded-full object-cover"
-                />
+              <div v-for="friend in realUser?.friends" :key="friend.addressee.id"
+                class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
+                <img :src="friend.addressee.profile_picture?.data
+                  ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                  : ''
+                  " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
                 <div class="flex-1">
                   <h3 class="text-white font-medium text-xl mb-2">
                     {{ friend.addressee.username }}
                   </h3>
                   <p class="text-sm">
-                    <span
-                      class="inline-block w-2 h-2 rounded-full mr-2"
-                      :class="
-                        friend.addressee.activity_status === 'active'
-                          ? 'bg-green-400'
-                          : 'bg-gray-400'
-                      "
-                    >
+                    <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active'
+                      ? 'bg-green-400'
+                      : 'bg-gray-400'
+                      ">
                     </span>
                     {{ friend.addressee.activity_status }}
                   </p>
@@ -331,94 +333,76 @@ const OnLogOut = async () => {
             </div>
           </div>
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
-              Quizzes
-              <span class="text-sm font-normal text-white/70">
-                {{ userQuizzies?.length }} összesen
-              </span>
-            </h2>
-            <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div
-                v-for="quiz in userQuizzies"
-                :key="quiz.id"
-                class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10"
-                @click="
-                  quiz.status === 'draft'
-                    ? handleQuizView(quiz.id)
-                    : handleQuizDeatailedView(quiz.id)
-                "
-              >
-                <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <img
-                    v-if="quiz.banner && quiz.banner.length"
-                    :src="quiz.banner"
-                    alt="Quiz banner"
-                    class="w-full h-full object-cover"
-                  />
-                  <div
-                    v-else
-                    class="w-full h-full bg-gray-600 flex items-center justify-center"
-                  ></div>
-                </div>
-
-                <div class="flex-1">
-                  <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                    <span
-                      v-if="quiz.status !== 'draft'"
-                      class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300"
-                    >
-                      <Settings @click.stop="handleQuizView(quiz.id)" />
-                    </span>
-                    <span
-                      class="absolute bottom-2 right-2 flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300"
-                    >
-                      <Trash2
-                        @click.stop="((isDeleteModal = !isDeleteModal), (selectedUuid = quiz.id))"
-                      />
-                    </span>
+            <div v-if="isLoadingQuizzies === true" class="min-h-screen flex justify-center items-center self-center">
+              <div class="flex justify-center items-center h-64">
+                <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+              </div>
+            </div>
+            <div v-else>
+              <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
+                Quizzes
+                <span class="text-sm font-normal text-white/70">
+                  {{ userQuizzies?.length }} összesen
+                </span>
+              </h2>
+              <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
+                <div v-for="quiz in userQuizzies" :key="quiz.id"
+                  class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10"
+                  @click="
+                    quiz.status === 'draft'
+                      ? handleQuizView(quiz.id)
+                      : handleQuizDeatailedView(quiz.id)
+                    ">
+                  <div class="relative w-20 h-20 rounded-lg overflow-hidden">
+                    <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner" alt="Quiz banner"
+                      class="w-full h-full object-cover" />
+                    <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
                   </div>
-                  <span
-                    class="px-2 py-1 rounded-full text-xs"
-                    :class="{
+
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
+                      <span v-if="quiz.status !== 'draft'" @click.stop="handleQuizView(quiz.id)"
+                        class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300">
+                        <Settings />
+                      </span>
+                      <span @click.stop="((isDeleteModal = !isDeleteModal), (selectedUuid = quiz.id))"
+                        class="absolute bottom-2 right-2 flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300">
+                        <Trash2 />
+                      </span>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-xs" :class="{
                       'bg-green-500': quiz.status === 'published',
                       'bg-yellow-500': quiz.status === 'requires_review',
                       'bg-gray-500': quiz.status === 'draft',
                       'bg-blue-500': quiz.status === 'private',
-                    }"
-                  >
-                    {{ quiz.status }}
-                  </span>
+                    }">
+                      {{ quiz.status }}
+                    </span>
 
-                  <p class="text-sm text-white/70 mb-2 line-clamp-2">{{ quiz.description }}</p>
+                    <p class="text-sm text-white/70 mb-2 line-clamp-2">{{ quiz.description }}</p>
 
-                  <div class="flex items-center gap-4 text-sm">
-                    <div class="flex items-center">
-                      <span class="mr-1">⭐</span>
-                      {{ quiz.rating }}
-                    </div>
-                    <div class="flex items-center">
-                      <span class="mr-1">👥</span>
-                      {{ quiz.plays }}
-                    </div>
-                    <div class="flex gap-1">
-                      <span
-                        v-for="lang in quiz.languages"
-                        :key="lang.name"
-                        class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
-                        :title="lang.name"
-                      >
-                        {{ lang.iso_code }}
-                      </span>
-                    </div>
-                    <div class="flex flex-wrap gap-1">
-                      <span
-                        v-for="tag in quiz.tags"
-                        :key="tag.name"
-                        class="px-2 py-0.5 rounded-full bg-white/10 text-xs"
-                      >
-                        {{ tag.name }}
-                      </span>
+                    <div class="flex items-center gap-4 text-sm">
+                      <div class="flex items-center">
+                        <span class="mr-1">⭐</span>
+                        {{ quiz.rating }}
+                      </div>
+                      <div class="flex items-center">
+                        <span class="mr-1">👥</span>
+                        {{ quiz.plays }}
+                      </div>
+                      <div class="flex gap-1">
+                        <span v-for="lang in quiz.languages" :key="lang.name"
+                          class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center" :title="lang.name">
+                          {{ lang.iso_code }}
+                        </span>
+                      </div>
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="tag in quiz.tags" :key="tag.name"
+                          class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
+                          {{ tag.name }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -428,71 +412,44 @@ const OnLogOut = async () => {
         </div>
       </div>
       >
-      <div
-        v-if="showPasswordModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-      >
+      <div v-if="showPasswordModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
               <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
-              <CircleHelp
-                class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
-                @click="showPasswordRequirements"
-              />
+              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
             </div>
             <XButton @click="closePasswordModal" />
           </div>
-          <form
-            @submit.prevent="
-              handlePasswordChange(
-                userPw.new_password,
-                userPw.confirm_password,
-                userPw.current_password,
-              )
-            "
-            class="space-y-4 text-white"
-          >
+          <form @submit.prevent="
+            handlePasswordChange(
+              userPw.new_password,
+              userPw.confirm_password,
+              userPw.current_password,
+            )
+            " class="space-y-4 text-white">
             <div>
-              <v-text-field
-                type="text"
-                variant="outlined"
-                density="comfortable"
-                label="Jelenlegi jelszó"
-                v-model="userPw.current_password"
-              />
+              <v-text-field type="text" variant="outlined" density="comfortable" label="Jelenlegi jelszó"
+                v-model="userPw.current_password" />
             </div>
             <div>
-              <v-text-field
-                type="text"
-                variant="outlined"
-                density="comfortable"
-                label="Új jelszó"
-                v-model="userPw.new_password"
-              />
+              <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó"
+                v-model="userPw.new_password" />
             </div>
             <div>
-              <v-text-field
-                type="text"
-                variant="outlined"
-                density="comfortable"
-                label="Új jelszó megerősítése"
-                v-model="userPw.confirm_password"
-              />
+              <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó megerősítése"
+                v-model="userPw.confirm_password" />
             </div>
-            <button
-              type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
-            >
+            <button type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
               Jelszó módosítása
             </button>
           </form>
         </div>
       </div>
-      <div
-        v-if="isDeleteModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-      >
+      <div v-if="isDeleteModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
@@ -500,107 +457,92 @@ const OnLogOut = async () => {
             </div>
             <XButton @click="isDeleteModal = !isDeleteModal" />
           </div>
-          <form @submit.prevent="handleDelete(selectedUuid)" class="flex text-white gap-2">
-            <button
-              type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
-            >
-              <span v-if="isLoading" class="inline-block animate-spin mr-2">
+          <form @submit.prevent="onDelete(selectedUuid)" class="flex text-white gap-2">
+            <button type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+              <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    fill="none"
-                  />
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </span>
               <span v-else> Igen </span>
             </button>
-            <button
-              type="button"
-              @click="isDeleteModal = !isDeleteModal"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900"
-            >
+            <button type="button" @click="isDeleteModal = !isDeleteModal"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
               Nem
             </button>
           </form>
         </div>
       </div>
-      <div
-        v-if="isApiModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-      >
-        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+      <div v-if="isApiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div v-if="isLoadingApiKeys === true" class="min-h-screen flex justify-center items-center">
+          <div class="flex justify-center items-center h-64">
+            <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+          </div>
+        </div>
+        <div v-else class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
               <h3 class="text-2xl font-bold text-white">Api kulcs igénylése</h3>
             </div>
-            <XButton @click="isApiModal = false" />
+            <XButton @click="isApiModal = false" class="cursor-pointer text-white" />
           </div>
-          <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-1">
-            <v-text-field
-              type="text"
-              variant="outlined"
-              density="comfortable"
-              label="Leírás"
-              v-model="description"
-            />
-            <v-text-field
-              label="Lejárati idő"
-              type="datetime-local"
-              v-model="expiration"
-              class="text-white"
-            />
-            <div
-              v-if="apiKey && realUser?.role === 'admin'"
-              class="flex flex-row gap-2 justify-center items-center w-full"
-            >
+          <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-4">
+            <input type="text" v-model="description" placeholder="Leírás" class="bg-white/10 p-2 rounded-md" />
+            <input type="datetime-local" v-model="expiration" :min="minDateTime" class="bg-white/10 p-2 rounded-md" />
+            <div v-if="apiKey" class="flex flex-row gap-2 justify-center items-center w-full">
               <div
-                class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent hover:border-white text-white break-all shadow-lg transition-all duration-300 hover:bg-white/20 flex gap-2 items-center"
-              >
+                class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent hover:border-white text-white break-all shadow-lg transition-all duration-300 hover:bg-white/20 flex gap-2 items-center">
                 {{ apiKey }}
               </div>
               <span>
-                <Copy
-                  class="w-7 h-7 transition-all duration-300 backdrop-blur-md text-white hover:border-white bg-white/10 border-2 border-transparent cursor-pointer rounded-sm flex justify-center items-center"
-                  @click="copyText"
-                />
+                <Copy @click="copyText(apiKey)"
+                  class="w-7 h-7 transition-all duration-300 backdrop-blur-md text-white hover:border-white bg-white/10 border-2 border-transparent cursor-pointer rounded-sm flex justify-center items-center" />
               </span>
             </div>
-            <button
-              type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900 mt-5"
-            >
+            <button type="submit"
+              class="glass-button px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
               <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    fill="none"
-                  />
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </span>
-              <span v-else> Generálás </span>
+              <span v-else>Generálás</span>
             </button>
           </form>
+
+          <div class="mt-8">
+            <h4 class="text-xl font-semibold text-white mb-4">API Kulcsaid: {{ apiKeys?.length }}</h4>
+            <div class="space-y-2 h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar p-2">
+              <li v-for="key in apiKeys" :key="key.id"
+                class="flex justify-between items-center bg-white/10 p-3 rounded-md">
+                <div>
+                  <p class="text-white font-medium">Leírás: {{ key.description }}</p>
+                  <div class="flex items-center">
+                    <p class="text-white text-sm">Kulcs:
+                      <span class="text-white cursor-pointer relative after:absolute
+                         after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white
+                          hover:after:w-full after:transition-all after:duration-300" @click="copyText(key.key)">
+                        másolás
+                      </span>
+                    </p>
+                  </div>
+                  <p class="text-white/70 text-sm">Lejár: {{ key.expires_at }}</p>
+                </div>
+                <span class="flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent
+                         hover:border-white transition-all duration-300 text-white cursor-pointer"
+                  @click="deleteApiKey(key.id.toString())">
+                  <Trash2 />
+                </span>
+              </li>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -123,3 +123,10 @@ export interface userProfile{
   role: string
   stats: stats  
 }
+
+export interface ApiKey{
+  id: number;
+  expires_at: string;
+  description: string | null;
+  key: string;
+}

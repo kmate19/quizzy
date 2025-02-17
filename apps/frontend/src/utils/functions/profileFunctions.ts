@@ -110,30 +110,98 @@ export const handleDelete = async (uuid: string) => {
   }
 }
 
-export const getApiKey = async (expiration: string, description: string) => {
-  const now = Date.now()
-  if (now > new Date(expiration).getTime()) {
-    toast("Érvényesség helytelenül van beállítva!", {
-        autoClose: 3500,
+const newPasswordSchema = zod.object({
+  password: zod
+    .string()
+    .min(1, { message: 'A mező kitöltése kötelező' })
+    .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
+    .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
+    .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
+    .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert az új jelszónak' })
+    .regex(/\d/, { message: 'Tartalmaznia kell számot az új jelszónak' }),
+})
+
+type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
+
+export const handlePasswordChange = async (
+  userPw: string,
+  userPwConfirmation: string,
+  userCurrentPw: string,
+) => {
+  let regErrors = <zod.ZodFormattedError<NewPasswordSchemaType> | null>null
+  const result = newPasswordSchema.safeParse({ password: userPw })
+  if (!result.success) {
+    regErrors = result.error.format()
+    toast(Object.values(regErrors.password?._errors || [])[0] || 'Érvénytelen jelszó formátum!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+    return
+  }
+  if (userPwConfirmation !== userPw) {
+    toast('A jelszavak nem egyeznek', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+    return
+  } else {
+    const reset = await clientv1.auth.changepassword.$post({
+      json: { oldPassword: userCurrentPw, password: userPw },
+    })
+    if (reset.status === 200) {
+      toast('Jelszó sikeresen megváltoztatva!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'success',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      await clientv1.auth.logout.$get()
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      router.push('/login')
+    } else {
+      const res = await reset.json()
+      toast(res.message, {
+        autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
         transition: 'zoom',
         pauseOnHover: false,
+      })
+    }
+  }
+}
+
+export const getApiKey = async (expiration: string, description: string) => {
+  if (new Date(expiration).getTime() <= Date.now()) {
+    toast('Az érvényesség nem lehet korábbi a jelenlegi időnél!', {
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
     })
     return
   }
   const post = await clientv1.apikey.create.$post({
     json: { description: description, expires_at: new Date(expiration).toISOString() },
-  }) 
+  })
   if (post.status === 200) {
     const res = await post.json()
-    toast('Sikeres API kulcs generálás', {
+    toast('Sikeres API kulcs generálás!', {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'success',
       transition: 'zoom',
       pauseOnHover: false,
     })
+    queryClient.refetchQueries({queryKey: ['apiKeys']})
     return res.data
   } else {
     const res = await post.json()
@@ -147,70 +215,45 @@ export const getApiKey = async (expiration: string, description: string) => {
   }
 }
 
-
-const newPasswordSchema = zod.object({
-    password: zod
-      .string()
-      .min(1, { message: 'A mező kitöltése kötelező' })
-      .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
-      .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
-      .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
-      .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert az új jelszónak' })
-      .regex(/\d/, { message: 'Tartalmaznia kell számot az új jelszónak' }),
-  })
-  
-  type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
-
-export const handlePasswordChange = async (userPw: string, userPwConfirmation: string, userCurrentPw: string) => {
-    let regErrors = <zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
-    const result = newPasswordSchema.safeParse({ password: userPw })
-    if (!result.success) {
-      regErrors = result.error.format()
-      toast(
-        Object.values(regErrors.password?._errors || [])[0] || 'Érvénytelen jelszó formátum!',
-        {
-          autoClose: 5000,
-          position: toast.POSITION.TOP_CENTER,
-          type: 'error',
-          transition: 'zoom',
-          pauseOnHover: false,
-        },
-      )
-      return
-    }
-    if (userPwConfirmation !== userPw) {
-      toast('A jelszavak nem egyeznek', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      })
-      return
-    } else {
-      const reset = await clientv1.auth.changepassword.$post({
-        json: { oldPassword: userCurrentPw, password: userPw },
-      })
-      if (reset.status === 200) {
-        toast('Jelszó sikeresen megváltoztatva!', {
-          autoClose: 5000,
-          position: toast.POSITION.TOP_CENTER,
-          type: 'success',
-          transition: 'zoom',
-          pauseOnHover: false,
-        })
-        await clientv1.auth.logout.$get()
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        router.push('/login')
-      } else {
-        const res = await reset.json()
-        toast(res.message, {
-          autoClose: 5000,
-          position: toast.POSITION.TOP_CENTER,
-          type: 'error',
-          transition: 'zoom',
-          pauseOnHover: false,
-        })
-      }
-    }
+export const deleteApiKey = async (uuid: string) => {
+  console.log(uuid)
+  const del = await clientv1.apikey.delete[':id'].$delete({ param: { id: uuid } })
+  if (del.status === 200) {
+    toast('API kulcs sikeresen törölve', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+    queryClient.refetchQueries({ queryKey: ['apiKeys'] })
+  } else {
+    const res = await del.json()
+    console.log(res)
+    toast(res.error.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
   }
+}
+
+export const listApiKeys = async () => {
+  const get = await clientv1.apikey.list.$get()
+  if (get.status === 200) {
+    const res = await get.json()
+    console.log(res.data)
+    return res.data.sort((a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime())
+  } else {
+    const res = await get.json()
+    toast(res.error.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+  }
+}
