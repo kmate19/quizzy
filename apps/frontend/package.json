@@ -21,6 +21,7 @@
         "@repo/api": "workspace:*",
         "@repo/websocket": "workspace:*",
         "@tanstack/vue-query": "^5.66.0",
+        "@tanstack/vue-query-devtools": "^5.66.3",
         "hono": "^4.7.1",
         "lucide-vue-next": "^0.475.0",
         "pinia": "^3.0.1",

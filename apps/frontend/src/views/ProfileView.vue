@@ -129,6 +129,7 @@ const userData = async () => {
 
     if (user.status === 200) {
       const res = await user.json()
+      console.log(res.data.roles[0].role.name)
       const userObj = {
         email: res.data.email,
         username: res.data.username,
@@ -139,7 +140,7 @@ const userData = async () => {
           : '',
         sentFriendships: res.data.sentFriendships,
         recievedFriendships: res.data.recievedFriendships,
-        role: res.data.roles?.[0]?.role?.name ?? '',
+        role: res.data.roles[0].role.name,
         stats: res.data.stats,
         friends: res.data.recievedFriendships
           .filter((item) => item.status === 'accepted')
@@ -156,6 +157,7 @@ const userData = async () => {
       }
       queryClient.setQueryData(['userProfile'], userObj)
       realUser.value = userObj
+      console.log(realUser.value)
     } else {
       const res = await user.json()
       toast(res.error.message, {
@@ -243,7 +245,11 @@ const saveProfileImage = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     })
-    realUser.value.profile_picture = tempImage.value ? URL.createObjectURL(tempImage.value) : ''
+    /*queryClient.setQueryData<userProfile>(['userProfile'], (oldData) => ({
+      ...(oldData as userProfile),
+      profilePicture: realUser.value.profile_picture,
+    }));*///e nelkul is megy rendesen xd
+    realUser.value.profile_picture = tempImage.value ? URL.createObjectURL(tempImage.value) : '' 
   }
 }
 
@@ -433,8 +439,8 @@ onMounted(() => {
             <div class="text-white flex flex-col flex-wrap">
               <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
               <p class="text-white/80">{{ realUser.email }}</p>
-              <div class="flex flex-col gap-2">
-                <p v-if="realUser.role === 'admin'"
+              <div class="flex flex-col gap-2" v-show="realUser.role === 'admin'">
+                <p
                   class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
                   {{ realUser.role }}
                 </p>
