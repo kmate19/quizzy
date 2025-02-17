@@ -47,7 +47,7 @@ const handlePath = () => {
            before:pointer-events-none before:absolute before:inset-0">
           Quizzy / {{ handlePath() }}
         </div>
-        <div class="hidden md:block">
+        <div class="hidden md:block desktop-navbar">
           <div class="ml-10 flex items-baseline space-x-4">
             <a @click="router.push('/')" class="px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out 
               border-2 border-transparent hover:scale-x-105 hover:border-white cursor-pointer w-fit relative bg-white/10 
@@ -79,7 +79,7 @@ const handlePath = () => {
             </div>
           </div>
         </div>
-        <div class="block md:hidden">
+        <div class="block md:hidden mobile-navbar">
           <button @click="toggleMobileMenu" class="text-white hover:bg-white/50 p-2 rounded-md">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -95,7 +95,7 @@ const handlePath = () => {
       leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-full opacity-0">
       <div v-if="isMobileMenuOpen"
-        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md">
+        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a @click="router.push('/')"
             class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
@@ -168,5 +168,23 @@ const handlePath = () => {
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
+}
+
+@media (min-width: 851px) {
+  .desktop-navbar {
+    display: block;
+  }
+  .mobile-navbar {
+    display: none;
+  }
+}
+
+@media (max-width: 850px) {
+  .desktop-navbar {
+    display: none;
+  }
+  .mobile-navbar {
+    display: block;
+  }
 }
 </style>

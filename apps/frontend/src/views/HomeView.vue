@@ -8,7 +8,6 @@ import QuizCard from '@/components/QuizCard.vue'
 import { type Quiz } from '@/utils/type'
 import { clientv1 } from '@/lib/apiClient'
 import { arrayBufferToBase64 } from '@/utils/helpers'
-import { queryClient } from '@/lib/queryClient'
 
 const quizzes = ref<Quiz[]>([])
 const loading = ref(true)
@@ -30,9 +29,6 @@ interface FilterPayload {
   includeName: boolean
   includeDesc: boolean
 }
-
-
-queryClient.invalidateQueries({queryKey: ['userProfile'], refetchType: 'none'},)
 
 const fetchQuizzes = async () => {
   loading.value = true

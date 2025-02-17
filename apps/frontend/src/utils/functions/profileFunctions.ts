@@ -7,6 +7,7 @@ import * as zod from 'zod'
 import router from '@/router'
 
 export const userData = async () => {
+  //await new Promise(resolve => setTimeout(resolve, 2000))
   try {
     const user = await clientv1.userprofile.$get()
     if (user.status === 200) {
@@ -55,6 +56,7 @@ export const userData = async () => {
 }
 
 export const getOwnQuizzies = async () => {
+  //await new Promise(resolve => setTimeout(resolve, 2000))
   try {
     const res = await clientv1.quizzes.own.$get()
     const data = await res.json()
@@ -215,9 +217,8 @@ export const getApiKey = async (expiration: string, description: string) => {
   }
 }
 
-export const deleteApiKey = async (uuid: string) => {
-  console.log(uuid)
-  const del = await clientv1.apikey.delete[':id'].$delete({ param: { id: uuid } })
+export const deleteApiKey = async (uuid: number) => {
+  const del = await clientv1.apikey.delete[':id'].$delete({ param: { id: uuid.toString() } })
   if (del.status === 200) {
     toast('API kulcs sikeresen törölve', {
       autoClose: 5000,
