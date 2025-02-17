@@ -2,25 +2,27 @@
 import MistBackground from '@/components/MistBackground.vue'
 import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
-import { useRoute } from 'vue-router'
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { CloudUpload, CirclePlus } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload, Question, Tag, Language } from '@/utils/type'
-import { clientv1 } from '@/lib/apiClient'
-import { arrayBufferToBase64 } from '@/utils/helpers'
-import { queryClient } from '@/lib/queryClient'
+import { useRoute } from 'vue-router'
+import { getQuiz, handleQuizyUpload } from '@/utils/functions/editorFunctions'
+
+
+const qTypes = ['twochoice', 'normal']
+const items = ['draft', 'published', 'requires_review', 'private']
+const allTags = <Tag[]>[] 
+const allLanguages = <Language[]>[] 
+
 const route = useRoute()
 
-const allTags = <Tag[]>[]
-const allLanguages = <Language[]>[]
 const isLoading = ref(false)
 const isEdit = ref(false)
 const isQType = ref(false)
-const qTypes = ['twochoice', 'normal']
-const items = ['draft', 'published', 'requires_review', 'private']
-
 const isOpen = ref(false)
+const gameImageInput = ref<HTMLInputElement | null>(null)
+const questionImageInput = ref<HTMLInputElement | null>(null)
 
 const oneQuestion = ref<Question>({
   question: '',
@@ -40,21 +42,6 @@ const quiz = ref<quizUpload>({
   cards: <Question[]>[],
 })
 
-function toggleDropdown() {
-  isOpen.value = !isOpen.value
-}
-
-function selectItem(item: string) {
-  quiz.value.status = item as 'draft' | 'published' | 'requires_review' | 'private'
-  isOpen.value = false
-  console.log(quiz.value.status)
-}
-
-function selectType(item: string) {
-  oneQuestion.value.type = item as 'twochoice' | 'normal'
-  isQType.value = false
-  console.log( oneQuestion.value.type)
-}
 
 watch(
   () => oneQuestion.value.type,
@@ -69,47 +56,44 @@ watch(
   { immediate: true },
 )
 
-const gameImageInput = ref<HTMLInputElement | null>(null)
-const questionImageInput = ref<HTMLInputElement | null>(null)
-
-const getQuiz = async () => {
-  const uuid = route.params.uuid
-  console.log(uuid)
-  if (uuid === '') {
-    return
-  }
-  const get = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
-  console.log('status: ' + get.status)
-
-  if (get.status === 200) {
-    isEdit.value = true
-    const res = (await get.json()).data
-    console.log(res)
-    console.log(arrayBufferToBase64(res.banner.data))
-    console.log('cards[0].picture.data', res.cards[0].picture.data)
-    quiz.value = {
-      title: res.title,
-      description: res.description,
-      status: res.status,
-      banner: arrayBufferToBase64(res.banner.data),
-      languageISOCodes: res.languages.map((l) => l.language.iso_code),
-      tags: res.tags.map((t) => t.tag.name),
-      cards: await Promise.all(
-        res.cards.map(async (c) => {
-          return {
-            question: c.question,
-            type: c.type,
-            answers: c.answers,
-            picture: arrayBufferToBase64(c.picture.data),
-            correct_answer_index: c.correct_answer_index,
-          }
-        }),
-      ),
+watch(
+  () => oneQuestion.value.type,
+  (newValue: string) => {
+    if (newValue === 'normal') {
+      oneQuestion.value.answers = ['', '', '', '']
+    } else {
+      oneQuestion.value.answers = ['Igaz', 'Hamis']
     }
-    console.log(quiz.value)
-  } else {
-    console.log('request failed: ', get.status)
+  },
+)
+
+
+onMounted(async () => {
+  isLoading.value = true
+  const uuid = route.params.uuid.toString()
+  const result = await getQuiz(uuid)
+  if (result && !Array.isArray(result) && typeof result === 'object') {
+    console.log(result)
+    quiz.value = result.data
+    isEdit.value = result.success
   }
+  isLoading.value = false
+})
+
+function toggleDropdown() {
+  isOpen.value = !isOpen.value
+}
+
+function selectItem(item: string) {
+  quiz.value.status = item as 'draft' | 'published' | 'requires_review' | 'private'
+  isOpen.value = false
+  console.log(quiz.value.status)
+}
+
+function selectType(item: string) {
+  oneQuestion.value.type = item as 'twochoice' | 'normal'
+  isQType.value = false
+  console.log(oneQuestion.value.type)
 }
 
 const handleGameImageUpload = (event: Event) => {
@@ -232,83 +216,6 @@ const handleQuestionModify = (index: number) => {
   handleQuestionRemove(index)
 }
 
-const handleQuizyUpload = async () => {
-  await nextTick()
-  console.log(quiz.value)
-  isLoading.value = true
-  if (isEdit.value) {
-    const edit = await clientv1.quizzes.edit[':quizId'].$patch({
-      param: { quizId: route.params.uuid.toString() },
-      json: {
-        quiz: {
-          title: quiz.value.title,
-          description: quiz.value.description,
-          status: quiz.value.status,
-          banner: quiz.value.banner,
-        },
-        cards: quiz.value.cards,
-        tags: quiz.value.tags,
-        languageISOCodes: quiz.value.languageISOCodes,
-      },
-    })
-    if (edit.status === 200) {
-      toast('Quiz sikeresen módosítva!', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'success',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-      resetInputValues()
-      queryClient.invalidateQueries({queryKey: ['userQuizzies'], refetchType: 'none'})
-    } else {
-      const res = await edit.json()
-      toast(res.message, {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-    }
-  } else {
-    const query = await clientv1.quizzes.publish.$post({
-      json: {
-        quiz: {
-          title: quiz.value.title,
-          description: quiz.value.description,
-          status: quiz.value.status,
-          banner: quiz.value.banner,
-        },
-        cards: quiz.value.cards,
-        tags: quiz.value.tags,
-        languageISOCodes: quiz.value.languageISOCodes,
-      },
-    })
-    if (query.status === 201) {
-      toast('Sikeres quiz feltöltés!', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'success',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-      resetInputValues()
-      queryClient.invalidateQueries({queryKey: ['userQuizzies'], refetchType: 'none'})
-    } else {
-      const res = await query.json()
-      toast(res.message, {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-    }
-  }
-  isLoading.value = false
-}
-
 const resetObject = <T extends object>(obj: T): T => {
   const newObj = {} as T
   for (const key in obj) {
@@ -335,6 +242,16 @@ const resetInputValues = () => {
   oneQuestion.value = resetObject(oneQuestion.value)
 }
 
+const uploadOrUpdate = async () => {
+  isLoading.value = true
+  const uuid = route.params.uuid.toString()
+  const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
+  if (res === true) {
+    resetInputValues()
+  }
+  isLoading.value = false
+}
+
 const isSelectedTag = (tag: string): boolean => {
   return quiz.value.tags.includes(tag)
 }
@@ -342,19 +259,6 @@ const isSelectedTag = (tag: string): boolean => {
 const isSelectedIso = (code: string): boolean => {
   return quiz.value.languageISOCodes.includes(code)
 }
-
-watch(
-  () => oneQuestion.value.type,
-  (newValue: string) => {
-    if (newValue === 'normal') {
-      oneQuestion.value.answers = ['', '', '', '']
-    } else {
-      oneQuestion.value.answers = ['Igaz', 'Hamis']
-    }
-  },
-)
-
-getQuiz()
 </script>
 
 <template>
@@ -404,11 +308,11 @@ getQuiz()
                 <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
                   enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
-                  <div v-if="isOpen" class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all
-                    duration-300">
+                  <div v-if="isOpen"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
                     <div class="py-1">
-                      <div v-for="item in items" :key="item" @click="selectItem(item)" class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all
-                    duration-300 bg-">
+                      <div v-for="item in items" :key="item" @click="selectItem(item)"
+                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
                         {{ item }}
                       </div>
                     </div>
@@ -426,8 +330,8 @@ getQuiz()
                 <div
                   class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
                   :class="isSelectedTag(t.name)
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-700 backdrop-blur-md '
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-700 backdrop-blur-md '
                     ">
                   {{ t.name }}
                 </div>
@@ -440,14 +344,14 @@ getQuiz()
                 <div
                   class="flex-1 px-3 py-1 rounded-full text-white hover:border-white border-2 border-transparent transition-all duration-100 cursor-pointer"
                   :class="isSelectedIso(i.iso_code)
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-700  backdrop-blur-md'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-700  backdrop-blur-md'
                     ">
                   {{ i.iso_code }}
                 </div>
               </label>
             </div>
-            <v-btn block color="success" class="mt-2" @click="handleQuizyUpload">
+            <v-btn block color="success" class="mt-2" @click="uploadOrUpdate">
               <span v-if="isLoading" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
@@ -486,7 +390,7 @@ getQuiz()
                 </div>
               </div>
             </div>
-            
+
             <div class="flex flex-col mb-2">
               <label for="questionStatus" class="mb-1 text-white font-medium text-xl">
                 Kérdés fajtája
@@ -496,19 +400,19 @@ getQuiz()
                   class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
                   <span>{{ oneQuestion.type }}</span>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-200"
-                    :class="{ 'rotate-180': isQType }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
+                    :class="{ 'rotate-180': isQType }" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
                   enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
-                  <div v-if="isQType" class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all
-                    duration-300">
+                  <div v-if="isQType"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
                     <div class="py-1">
-                      <div v-for="type in qTypes" :key="type" @click="selectType(type)" class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all
-                    duration-300 bg-">
+                      <div v-for="type in qTypes" :key="type" @click="selectType(type)"
+                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
                         {{ type }}
                       </div>
                     </div>
@@ -533,8 +437,8 @@ getQuiz()
               </div>
               <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"
                 class="glass-input w-full col-span-2" bg-color="!rgba(0, 0, 0, 0)" type="number" :rules="oneQuestion.type == 'normal'
-                  ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
-                  : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
+                    ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
+                    : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
                   " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
 
