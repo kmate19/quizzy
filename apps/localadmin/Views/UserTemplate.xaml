@@ -28,7 +28,7 @@
 
                                     <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0, 0, 20, 0">
                                         <TextBlock Text="Jogosultság:" Foreground="#33B6EF" FontSize="20" />
-                                        <TextBlock Text="{Binding Roles}" FontSize="20"/>
+                                        <TextBlock Text="{Binding UserRoles}" FontSize="20"/>
                                     </StackPanel>
                                 </Grid>
                             </Expander.Header>
@@ -62,8 +62,8 @@
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="4" Margin="20, 0, 40, 10">
-                                    <Button Content="Módosítás" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
-                                    <Button Content="Törlés" Background="Red" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6" Command="{Binding DeleteUserCommand}"/>
+                                    <Button Content="Módosítás" Command="{Binding EditUserCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
+                                    <!-- <Button Content="Törlés" Background="Red" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6" Command="{Binding DeleteUserCommand}"/> -->
                                 </StackPanel>
                             </Grid>
                         

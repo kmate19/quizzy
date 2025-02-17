@@ -5,12 +5,18 @@
     <Compile Update="Views\APIKeyWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\EditUserWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\PopUpModal.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\APIKeyWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\EditUserWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\PopUpModal.xaml">
