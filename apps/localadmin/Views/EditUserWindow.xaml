@@ -58,8 +58,8 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="ok" Margin="0" Style="{StaticResource GridButtons}"></Button>
-            <Button Grid.Column="1" Content="no" Margin="0" Style="{StaticResource GridButtons}" Background="Red"></Button>
+            <Button Grid.Column="0" Content="Módosítás" Margin="0" Style="{StaticResource GridButtons}" Click="Modify"></Button>
+            <Button Grid.Column="1" Content="Mégse" Margin="0" Style="{StaticResource GridButtons}" Background="Red" Click="Cancel"></Button>
         </Grid>
     </Grid>
 </Window>

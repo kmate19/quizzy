@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.RightsManagement;
 using System.Windows;
 using localadmin.Models;
+using static localadmin.Models.User;
 
 namespace localadmin.Views
 {
@@ -15,13 +18,14 @@ namespace localadmin.Views
         public List<SelectableItem<string>> AllRoles { get; }
         public List<SelectableItem<string>> AllStatuses { get; }
         public string Username { get; set; }
+        public User User { get; set; }
 
         public EditUserWindow(User user)
         {
             InitializeComponent();
+            User = user;
             Username = user.Username;
 
-            // Mark roles the user already has as selected
             AllRoles = Roles.AllRoles
                 .Select(r => new SelectableItem<string>
                 {
@@ -30,7 +34,6 @@ namespace localadmin.Views
                 })
                 .ToList();
 
-            // Mark statuses the user already has as selected
             AllStatuses = Enum.GetNames(typeof(User.EAuthStatus))
                 .Select(status => new SelectableItem<string>
                 {
@@ -40,6 +43,27 @@ namespace localadmin.Views
                 .ToList();
 
             DataContext = this;
+        }
+        private void Cancel(object sender, RoutedEventArgs e)
+        {
+            Hide();
+        }
+
+        private void Modify(object sender, RoutedEventArgs e)
+        {
+            if (AllStatuses.Count(x => x.IsSelected) > 1)
+                MessageBox.Show("Csak 1 státusza lehet!");
+            else
+            {
+                var selectedStatus = AllStatuses.FirstOrDefault(x => x.IsSelected)?.Value;
+
+                Debug.WriteLine(selectedStatus);
+                if (!string.IsNullOrEmpty(selectedStatus) && Enum.TryParse(selectedStatus, out EAuthStatus parsedStatus))
+                    User.AuthStatus = parsedStatus;
+
+                MessageBox.Show("Felhasználó módosítva");
+                Hide();
+            }
         }
     }
 }
