@@ -8,36 +8,24 @@ import { and, eq } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 import { z } from "zod";
 
-const deleteHandler = GLOBALS.CONTROLLER_FACTORY(
-    checkJwt("admin"),
-    zv("param", z.object({ id: numericString })),
-    async (c) => {
-        const [deleted] = await db
-            .delete(userApiKeys)
-            .where(
-                and(
-                    eq(userApiKeys.user_id, c.get("accessTokenPayload").userId),
-                    eq(userApiKeys.id_by_user, c.req.valid("param").id)
-                )
-            )
-            .returning();
+const deleteHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), zv("param", z.object({ id: numericString })), async (c) => {
+    const [deleted] = await db.delete(userApiKeys).where(and(eq(userApiKeys.user_id, c.get("accessTokenPayload").userId), eq(userApiKeys.id_by_user, c.req.valid("param").id))).returning();
 
-        if (!deleted) {
-            const res = {
-                message: "API key not found",
-                error: {
-                    message: "API key not found",
-                    case: "not_found",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 404);
-        }
-
+    if (!deleted) {
         const res = {
-            message: "API key deleted",
+            message: "API key not found",
+            error: {
+                message: "API key not found",
+                case: "not_found"
+            }
         } satisfies ApiResponse;
-        return c.json(res, 200);
+        return c.json(res, 404);
     }
-);
+
+    const res = {
+        message: "API key deleted"
+    } satisfies ApiResponse;
+    return c.json(res, 200);
+});
 
 export default deleteHandler;

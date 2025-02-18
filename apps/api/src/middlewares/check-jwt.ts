@@ -14,33 +14,26 @@ import { JwtTokenExpired } from "hono/utils/jwt/types";
 import type { ApiResponse } from "repo";
 
 const authJwtMiddleware = (role?: string) => {
-    return createMiddleware<{
-        Variables: { accessTokenPayload: QuizzyJWTPAYLOAD };
-    }>(async (c, next?) => {
-        const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
+    return createMiddleware<{ Variables: { accessTokenPayload: QuizzyJWTPAYLOAD } }>(async (c, next?) => {
+        const accessCookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)
 
         if (!accessCookie) {
             const res = {
                 message: "not logged in",
                 error: {
                     message: "not logged in",
-                    case: "unauthorized",
-                },
+                    case: "unauthorized"
+                }
             } satisfies ApiResponse;
             return c.json(res, 401);
         }
 
-        const accessTokenPayloadOrError = (await verify(
-            accessCookie,
-            ENV.ACCESS_JWT_SECRET()
-        ).catch((e) => e)) as QuizzyJWTPAYLOAD;
+        const accessTokenPayloadOrError = await verify(accessCookie, ENV.ACCESS_JWT_SECRET()).catch(e => e) as QuizzyJWTPAYLOAD;
 
         if (accessTokenPayloadOrError instanceof JwtTokenExpired) {
-            // TEST: test this
-            const refreshStatus = await refreshAccessToken(c, accessCookie);
-            if (refreshStatus) {
-                return refreshStatus;
-            }
+            // TEST: test this 
+            const refreshStatus = await refreshAccessToken(c, accessCookie)
+            if (refreshStatus) return refreshStatus;
         } else if (accessTokenPayloadOrError instanceof Error) {
             throw accessTokenPayloadOrError;
         }
@@ -51,49 +44,41 @@ const authJwtMiddleware = (role?: string) => {
                 with: {
                     roles: {
                         with: {
-                            role: true,
-                        },
-                    },
-                },
+                            role: true
+                        }
+                    }
+                }
             });
 
-            if (!userAndRoles.roles.some((r) => r.role.name === role)) {
+            if (!userAndRoles.roles.some(r => r.role.name === role)) {
                 const res = {
                     message: "user does not have the required role",
                     error: {
                         message: "user does not have the required role",
-                        case: "forbidden",
-                    },
+                        case: "forbidden"
+                    }
                 } satisfies ApiResponse;
                 return c.json(res, 403);
             }
         }
 
         c.set("accessTokenPayload", accessTokenPayloadOrError);
-        if (!next) {
-            return;
-        }
+        if (!next) return;
         await next();
-    });
+    })
 };
 
 async function refreshAccessToken(c: Context, accessCookie: string) {
-    const { payload } = decode(accessCookie) as {
-        payload: QuizzyJWTPAYLOAD;
-        header: TokenHeader;
-    };
+    const { payload } = decode(accessCookie) as { payload: QuizzyJWTPAYLOAD, header: TokenHeader };
 
-    const [res] = await db
-        .select()
-        .from(userTokensTable)
-        .where(eq(userTokensTable.id, payload.refreshTokenId));
+    const [res] = await db.select().from(userTokensTable).where(eq(userTokensTable.id, payload.refreshTokenId))
     if (!res) {
         const res = {
             message: "refresh token not found",
             error: {
                 message: "refresh token not found",
-                case: "unauthorized",
-            },
+                case: "unauthorized"
+            }
         } satisfies ApiResponse;
         return c.json(res, 401);
     }
@@ -103,22 +88,15 @@ async function refreshAccessToken(c: Context, accessCookie: string) {
             message: "refresh token expired",
             error: {
                 message: "refresh token expired",
-                case: "unauthorized",
-            },
+                case: "unauthorized"
+            }
         } satisfies ApiResponse;
         return c.json(res, 401);
     }
 
-    const newAccessTokenPayload = {
-        userId: payload.userId,
-        refreshTokenId: payload.refreshTokenId,
-        exp: Math.floor(Date.now() / 1000) + 60 * 15,
-    };
+    const newAccessTokenPayload = { userId: payload.userId, refreshTokenId: payload.refreshTokenId, exp: Math.floor(Date.now() / 1000) + 60 * 15 };
 
-    const accessToken = await sign(
-        newAccessTokenPayload,
-        ENV.ACCESS_JWT_SECRET()
-    );
+    const accessToken = await sign(newAccessTokenPayload, ENV.ACCESS_JWT_SECRET())
 
     setCookie(c, GLOBALS.ACCESS_COOKIE_NAME, accessToken, GLOBALS.COOKIE_OPTS);
 }

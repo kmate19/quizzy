@@ -7,51 +7,44 @@ import { and, eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const getByUserIdHandlers = GLOBALS.CONTROLLER_FACTORY(
-    checkJwt(),
-    zv("param", z.object({ userId: z.string().uuid() })),
-    async (c) => {
-        const { userId } = c.req.valid("param");
+const getByUserIdHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv('param', z.object({ userId: z.string().uuid() })), async (c) => {
+    const { userId } = c.req.valid('param')
 
-        const quizzes = await db.query.quizzesTable.findMany({
-            where: and(
-                eq(quizzesTable.status, "published"),
-                eq(quizzesTable.user_id, userId)
-            ),
-            with: {
-                tags: {
-                    columns: {},
-                    with: {
-                        tag: {
-                            columns: {
-                                name: true,
-                            },
-                        },
-                    },
-                },
-                languages: {
-                    columns: {},
-                    with: {
-                        language: {
-                            columns: {
-                                name: true,
-                                iso_code: true,
-                                support: true,
-                                icon: true,
-                            },
-                        },
-                    },
-                },
+    const quizzes = await db.query.quizzesTable.findMany({
+        where: and(eq(quizzesTable.status, "published"), eq(quizzesTable.user_id, userId)),
+        with: {
+            tags: {
+                columns: {},
+                with: {
+                    tag: {
+                        columns: {
+                            name: true
+                        }
+                    }
+                }
             },
-        });
+            languages: {
+                columns: {},
+                with: {
+                    language: {
+                        columns: {
+                            name: true,
+                            iso_code: true,
+                            support: true,
+                            icon: true
+                        }
+                    }
+                }
+            },
+        }
+    });
 
-        const res = {
-            message: "Quiz fetched",
-            data: quizzes,
-        } satisfies ApiResponse;
+    const res = {
+        message: "Quiz fetched",
+        data: quizzes
+    } satisfies ApiResponse;
 
-        return c.json(res, 200);
-    }
-);
+    return c.json(res, 200);
+});
 
 export default getByUserIdHandlers;

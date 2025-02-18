@@ -1,4 +1,4 @@
-declare let self: Worker;
+declare var self: Worker;
 
 import sendEmail from "@/utils/email/send-email";
 
@@ -24,4 +24,4 @@ self.onmessage = async (e) => {
         }
     }
     process.exit(0);
-};
+}

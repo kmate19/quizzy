@@ -7,32 +7,21 @@ import { and, eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const deleteHandlers = GLOBALS.CONTROLLER_FACTORY(
-    checkJwt(),
-    zv("param", z.object({ quizId: z.string().uuid() })),
-    async (c) => {
-        const { quizId } = c.req.valid("param");
-        const { userId } = c.get("accessTokenPayload");
+const deleteHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), zv("param", z.object({ quizId: z.string().uuid() })), async (c) => {
+    const { quizId } = c.req.valid('param');
+    const { userId } = c.get('accessTokenPayload');
 
-        try {
-            await db
-                .delete(quizzesTable)
-                .where(
-                    and(
-                        eq(quizzesTable.id, quizId),
-                        eq(quizzesTable.user_id, userId)
-                    )
-                );
-        } catch (e) {
-            console.error(e);
-            return c.json({ message: "Deletion failed" }, 404);
-        }
-
-        const res = {
-            message: "Quiz deleted successfully",
-        } satisfies ApiResponse;
-        return c.json(res, 200);
+    try {
+        await db.delete(quizzesTable).where(and(eq(quizzesTable.id, quizId), eq(quizzesTable.user_id, userId)));
+    } catch (e) {
+        console.error(e);
+        return c.json({ message: "Deletion failed" }, 404);
     }
-);
+
+    const res = {
+        message: 'Quiz deleted successfully'
+    } satisfies ApiResponse
+    return c.json(res, 200)
+});
 
 export default deleteHandlers;

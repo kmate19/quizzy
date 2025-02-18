@@ -7,22 +7,16 @@ import getOwnByIdHandlers from "@/controllers/quizzes/get-own-by-id";
 import publishHandlers from "@/controllers/quizzes/publish";
 import editHandlers from "@/controllers/quizzes/edit";
 import deleteHandlers from "@/controllers/quizzes/delete";
-import {
-    getOwnQuizzesDesc,
-    getQuizzesDesc,
-    publishQuizDesc,
-} from "@/openapi/quizzes-openapi";
 
-const quizzes = new Hono()
-    .basePath("/quizzes")
+const quizzes = new Hono().basePath("/quizzes")
     // TODO: this should be a strict route in the real world where we validate
     // more rigorously, instead there should be a separate route for uploading
     // drafts where we do less validation, as drafts are only exposed to their
     // creators
-    .post("/publish", publishQuizDesc, ...publishHandlers)
+    .post("/publish", ...publishHandlers)
     // gets max 50, default 20, minimum 10 limit quizzes at once
-    .get("/", getQuizzesDesc, ...getHandlers)
-    .get("/own", getOwnQuizzesDesc, ...getOwnHandlers)
+    .get("/", ...getHandlers)
+    .get("/own", ...getOwnHandlers)
     .get("/by/:userId", ...getByUserIdHandlers)
     .get("/own/:quizId", ...getOwnByIdHandlers)
     .patch("/edit/:quizId", ...editHandlers)

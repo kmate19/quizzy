@@ -21,26 +21,19 @@
         "drizzle:push": "drizzle-kit push",
         "drizzle:generate": "drizzle-kit generate",
         "drizzle:migrate": "drizzle-kit migrate",
-        "drizzle:studio": "drizzle-kit studio",
-        "lint": "pnpx eslint",
-        "lint:fix": "pnpx eslint --fix",
-        "format:check": "pnpx prettier --check .",
-        "format": "pnpx prettier --write ."
+        "drizzle:studio": "drizzle-kit studio"
     },
     "dependencies": {
         "@hono/zod-validator": "^0.4.3",
-        "@scalar/hono-api-reference": "^0.5.173",
         "drizzle-orm": "^0.39.3",
         "drizzle-seed": "^0.3.1",
         "drizzle-zod": "^0.7.0",
         "file-type": "^20.1.0",
         "hono": "^4.7.1",
-        "hono-openapi": "^0.4.4",
         "nodemailer": "^6.10.0",
         "pg": "^8.13.3",
         "sharp": "^0.33.5",
-        "zod": "^3.24.2",
-        "zod-openapi": "^4.2.3"
+        "zod": "^3.24.2"
     },
     "devDependencies": {
         "@types/bun": "^1.2.2",

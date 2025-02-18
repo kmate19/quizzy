@@ -1,45 +1,27 @@
 import { relations } from "drizzle-orm";
-import {
-    uniqueIndex,
-    pgTable,
-    serial,
-    timestamp,
-    varchar,
-    pgEnum,
-} from "drizzle-orm/pg-core";
+import { uniqueIndex, pgTable, serial, timestamp, varchar, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { quizLanguagesTable } from "./quizLanguagesSchema";
 
-export const languageSupportEnum = pgEnum("language_support", [
-    "official",
-    "partial",
-    "none",
-]);
+export const languageSupportEnum = pgEnum("language_support", ["official", "partial", "none"]);
 
-export const languagesTable = pgTable(
-    "languages",
-    {
-        id: serial().primaryKey(),
-        name: varchar({ length: 24 }).notNull().unique(),
-        iso_code: varchar({ length: 2 }).notNull().unique(),
-        icon: varchar({ length: 24 }).notNull().unique(),
-        support: languageSupportEnum().notNull().default("none"),
-        created_at: timestamp().notNull().defaultNow(),
-        updated_at: timestamp()
-            .notNull()
-            .defaultNow()
-            .$onUpdate(() => new Date()),
-    },
-    (table) => {
-        return [
-            uniqueIndex().on(table.name),
-            uniqueIndex().on(table.iso_code),
-            uniqueIndex().on(table.icon),
-        ];
-    }
-);
+export const languagesTable = pgTable("languages", {
+    id: serial().primaryKey(),
+    name: varchar({ length: 24 }).notNull().unique(),
+    iso_code: varchar({ length: 2 }).notNull().unique(),
+    icon: varchar({ length: 24 }).notNull().unique(),
+    support: languageSupportEnum().notNull().default("none"),
+    created_at: timestamp().notNull().defaultNow(),
+    updated_at: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+    return [
+        uniqueIndex().on(table.name),
+        uniqueIndex().on(table.iso_code),
+        uniqueIndex().on(table.icon),
+    ];
+});
 
-export type Language = typeof languagesTable.$inferInsert;
+export type Language = typeof languagesTable.$inferInsert
 
 export const insertLanguageSchema = createInsertSchema(languagesTable).omit({
     id: true,
@@ -51,5 +33,5 @@ export const insertLanguageSchema = createInsertSchema(languagesTable).omit({
 });
 
 export const languagesRelations = relations(languagesTable, ({ many }) => ({
-    quizzes: many(quizLanguagesTable),
+    quizzes: many(quizLanguagesTable)
 }));

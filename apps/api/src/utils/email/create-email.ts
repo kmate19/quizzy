@@ -1,9 +1,4 @@
-export default function createEmailTemplate(
-    domain: string,
-    token: string,
-    type: "forgot_password" | "verify",
-    data?: string
-) {
+export default function createEmailTemplate(domain: string, token: string, type: "forgot_password" | "verify", data?: string) {
     if (type === "verify") {
         return `
             <center>
