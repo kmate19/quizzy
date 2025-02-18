@@ -37,6 +37,7 @@ export const app = new Hono()
     });
 
 if (ENV.NODE_ENV() === "development") {
+    // TODO: finish all the openapi stuff
     app.get(
         "/openapi",
         openAPISpecs(app, {
