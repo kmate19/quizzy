@@ -43,7 +43,10 @@ const changePasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             .update(usersTable)
             .set({ password: newPassword })
             .where(eq(usersTable.id, userId));
-
+    
+    try {
+        await Bun.password.verify(oldPassword, user.password);
+    } catch (e) {
         const res = {
             message: "password changed",
         } satisfies ApiResponse;
