@@ -26,6 +26,9 @@ const check_apikey = createMiddleware<{
 
     c.set("userIdForApiKey", dbApikey.user_id);
 
+    if (!next) {
+        return;
+    }
     await next();
 });
 

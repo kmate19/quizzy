@@ -1,10 +1,10 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { languagesTable } from "@/db/schemas";
-import checkJwt from "@/middlewares/check-jwt";
+import { apikey_or_jwt } from "@/middlewares/check-composite";
 
 const getLanguagesHandlers = GLOBALS.CONTROLLER_FACTORY(
-    checkJwt(),
+    apikey_or_jwt(),
     async (c) => {
         const langs = await db
             .select({

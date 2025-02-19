@@ -1,14 +1,14 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { usersTable } from "@/db/schemas";
-import checkJwt from "@/middlewares/check-jwt";
+import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
 const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(
-    checkJwt(),
+    apikey_or_jwt(),
     zv("param", z.object({ userId: z.string().uuid() })),
     async (c) => {
         const { userId } = c.req.valid("param");
