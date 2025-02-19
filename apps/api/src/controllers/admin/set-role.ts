@@ -7,27 +7,35 @@ import { eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
-const setRoleHandlers = GLOBALS.CONTROLLER_FACTORY(check_apikey, zv('json', z.object({ userId: z.string(), roleName: z.string() })), async (c) => {
-    const { roleName, userId } = c.req.valid('json')
+const setRoleHandlers = GLOBALS.CONTROLLER_FACTORY(
+    check_apikey,
+    zv("json", z.object({ userId: z.string(), roleName: z.string() })),
+    async (c) => {
+        const { roleName, userId } = c.req.valid("json");
 
-    try {
-        await db.transaction(async (trx) => {
-            const [roleid] = await trx.select({ id: rolesTable.id }).from(rolesTable).where(eq(rolesTable.name, roleName))
-            await trx.insert(userRolesTable)
-                .values({ user_id: userId, role_id: roleid.id })
-        })
-    } catch (e) {
-        const res = {
-            message: "Error setting role",
-            error: {
-                message: e instanceof Error ? e.message : "Unknown error",
-                case: "conflict"
-            }
-        } satisfies ApiResponse
-        return c.json(res, 400)
+        try {
+            await db.transaction(async (trx) => {
+                const [roleid] = await trx
+                    .select({ id: rolesTable.id })
+                    .from(rolesTable)
+                    .where(eq(rolesTable.name, roleName));
+                await trx
+                    .insert(userRolesTable)
+                    .values({ user_id: userId, role_id: roleid.id });
+            });
+        } catch (e) {
+            const res = {
+                message: "Error setting role",
+                error: {
+                    message: e instanceof Error ? e.message : "Unknown error",
+                    case: "conflict",
+                },
+            } satisfies ApiResponse;
+            return c.json(res, 400);
+        }
+
+        return c.json({ message: "Role updated" });
     }
+);
 
-    return c.json({ message: "Role updated" })
-})
-
-export default setRoleHandlers
+export default setRoleHandlers;
