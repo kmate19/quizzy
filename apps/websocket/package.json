@@ -16,7 +16,11 @@
         "dev": "bun run --hot ./src/index.ts",
         "test": "bun test",
         "tsc:hc": "tsc -p tsconfig.build.json",
-        "prepare": "pnpm tsc:hc"
+        "prepare": "pnpm tsc:hc",
+        "lint": "pnpx eslint",
+        "lint:fix": "pnpx eslint --fix",
+        "format:check": "pnpx prettier --check .",
+        "format": "pnpx prettier --write ."
     },
     "dependencies": {
         "@hono/zod-validator": "^0.4.3",

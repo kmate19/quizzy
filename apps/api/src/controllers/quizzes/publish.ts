@@ -195,12 +195,10 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
                             throw err;
                         }
 
-                        await tr
-                            .insert(quizLanguagesTable)
-                            .values({
-                                language_id: languageId.id,
-                                quiz_id: quizId.id,
-                            });
+                        await tr.insert(quizLanguagesTable).values({
+                            language_id: languageId.id,
+                            quiz_id: quizId.id,
+                        });
                     }
                 }
 
