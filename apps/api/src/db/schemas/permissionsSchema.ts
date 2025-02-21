@@ -3,10 +3,10 @@ import {
     text,
     pgTable,
     timestamp,
-    serial,
     varchar,
     pgEnum,
     uniqueIndex,
+    integer,
 } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesSchema";
 
@@ -21,7 +21,7 @@ export const resourceTypeEnum = pgEnum("resource_type", [
 export const permissionsTable = pgTable(
     "permissions",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         name: varchar({ length: 255 }).notNull().unique(),
         description: text().notNull(),
         resource_type: resourceTypeEnum().notNull(),

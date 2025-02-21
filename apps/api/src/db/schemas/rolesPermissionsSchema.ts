@@ -1,18 +1,12 @@
 import { relations } from "drizzle-orm";
-import {
-    pgTable,
-    timestamp,
-    serial,
-    index,
-    integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, timestamp, index, integer } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesSchema";
 import { permissionsTable } from "./permissionsSchema";
 
 export const rolesPermissionsTable = pgTable(
     "roles_permissions",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         role_id: integer()
             .notNull()
             .references(() => rolesTable.id),

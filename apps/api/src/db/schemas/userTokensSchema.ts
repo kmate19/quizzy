@@ -4,9 +4,9 @@ import {
     pgTable,
     timestamp,
     uuid,
-    serial,
     pgEnum,
     uniqueIndex,
+    integer,
 } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 
@@ -19,7 +19,7 @@ export const tokenTypeEnum = pgEnum("token_type", [
 export const userTokensTable = pgTable(
     "user_tokens",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         user_id: uuid()
             .notNull()
             .references(() => usersTable.id, { onDelete: "cascade" }),

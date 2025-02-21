@@ -1,12 +1,5 @@
 import { relations } from "drizzle-orm";
-import {
-    pgTable,
-    timestamp,
-    serial,
-    uuid,
-    index,
-    integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, index, integer } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesSchema";
 import { resourceTypeEnum } from "./permissionsSchema";
 import { usersTable } from "./usersSchema";
@@ -24,7 +17,7 @@ export const permBitMapping = {
 export const resourceAccessControlTable = pgTable(
     "resource_access_control",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         role_id: integer().references(() => rolesTable.id),
         user_id: uuid().references(() => usersTable.id),
         resource_type: resourceTypeEnum().notNull(),

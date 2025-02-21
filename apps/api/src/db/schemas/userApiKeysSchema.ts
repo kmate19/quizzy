@@ -3,7 +3,6 @@ import {
     pgTable,
     timestamp,
     uuid,
-    serial,
     index,
     varchar,
     integer,
@@ -16,7 +15,7 @@ import { z } from "zod";
 export const userApiKeys = pgTable(
     "user_api_keys",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         // increment each time a user creates a new key under their own uuid
         id_by_user: integer().notNull(),
         user_id: uuid()
