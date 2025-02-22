@@ -181,16 +181,6 @@ export const handlePasswordChange = async (
 }
 
 export const getApiKey = async (expiration: string, description: string) => {
-  if (new Date(expiration).getTime() <= Date.now()) {
-    toast('Az érvényesség nem lehet korábbi a jelenlegi időnél!', {
-      autoClose: 3500,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
-    return
-  }
   const post = await clientv1.apikey.create.$post({
     json: { description: description, expires_at: new Date(expiration).toISOString() },
   })

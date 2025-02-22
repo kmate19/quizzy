@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, Copy } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2 } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
@@ -83,13 +83,29 @@ const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
 })
 
 const genApiKey = async () => {
-  isLoadingKey.value = true
-  apiKey.value = (await getApiKey(expiration.value, description.value)) as string
-  description.value = ''
-  expiration.value = ''
-  apiKey.value = ''
-  isLoadingKey.value = false
-}
+  isLoadingKey.value = true;
+  try {
+    if (expiration.value.trim() === "" || description.value.trim() === "") {
+      toast("Mezők kitöltése kötelező!",{
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+      isLoadingKey.value = false;
+      return;
+    }
+    const generatedApiKey = await getApiKey(expiration.value, description.value) as string;
+    apiKey.value = generatedApiKey;
+  } catch (error) {
+    console.error("Error generating API key:", error);
+  } finally {
+    isLoadingKey.value = false;
+    description.value = '';
+    expiration.value = '';
+  }
+};
 
 const onDeleteApiKey = async (id: number) => {
   await deleteApiKey(id)
@@ -213,8 +229,6 @@ const onDelete = (uuid: string) => {
   isDeleteModal.value = false
 }
 
-
-
 const OnLogOut = async () => {
   await clientv1.auth.logout.$get()
   queryClient.clear()
@@ -224,8 +238,12 @@ const OnLogOut = async () => {
 
 <template>
   <MistBackground />
-  <Transition appear enter-active-class="transition ease-in-out duration-1000"
-    enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
+  <Transition
+    appear
+    enter-active-class="transition ease-in-out duration-1000"
+    enter-from-class="opacity-0 translate-y-4"
+    enter-to-class="opacity-100 translate-y-0"
+  >
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
         <NavBar />
@@ -235,58 +253,88 @@ const OnLogOut = async () => {
               <Loader2Icon class="w-12 h-12 text-white animate-spin" />
             </div>
           </div>
-          <div v-else
-            class="flex flex-col md:flex-row md:flex-wrap md:justify-center w-full items-center gap-6 md:gap-8 p-4">
+          <div
+            v-else
+            class="flex flex-col md:flex-row md:flex-wrap md:justify-center w-full items-center gap-6 md:gap-8 p-4"
+          >
             <div class="relative mx-auto md:mx-0">
-              <v-img :src="localPfp"
-                class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30" fit>
+              <v-img
+                :src="localPfp"
+                class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30"
+                fit
+              >
               </v-img>
               <div
                 class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
-                @click="openFileDialog">
+                @click="openFileDialog"
+              >
                 <PencilIcon class="w-5 h-5 text-white" />
               </div>
-              <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
-              <button v-if="showSaveButton" @click="saveProfileImage"
-                class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors">
+              <input
+                type="file"
+                ref="fileInput"
+                class="hidden"
+                accept="image/*"
+                @change="handleFileChange"
+              />
+              <button
+                v-if="showSaveButton"
+                @click="saveProfileImage"
+                class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors"
+              >
                 Mentés
               </button>
             </div>
 
-            <div class="flex flex-col items-center md:items-start text-center md:text-left text-white">
+            <div
+              class="flex flex-col items-center md:items-start text-center md:text-left text-white"
+            >
               <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{{ realUser?.username }}</h1>
               <p class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
 
               <div class="flex flex-col gap-2 mt-2" v-show="realUser?.role === 'admin'">
-                <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
+                <p
+                  class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center"
+                >
                   {{ realUser?.role }}
                 </p>
-                <button @click="isApiModal = true" class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900
-                   hover:border-white border-2 border-transparent">
+                <button
+                  @click="isApiModal = true"
+                  class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900 hover:border-white border-2 border-transparent"
+                >
                   API Kulcs igénylése
                 </button>
               </div>
             </div>
 
-            <div class="flex-1 flex flex-col md:flex-row justify-center md:justify-end items-center gap-6">
-
+            <div
+              class="flex-1 flex flex-col md:flex-row justify-center md:justify-end items-center gap-6"
+            >
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
                 <div>
-                  <div class="text-3xl md:text-4xl font-bold text-white">{{ realUser?.stats.plays }}</div>
+                  <div class="text-3xl md:text-4xl font-bold text-white">
+                    {{ realUser?.stats.plays }}
+                  </div>
                   <div class="text-white/70 text-xs md:text-sm">Összes játék</div>
                 </div>
                 <div>
-                  <div class="text-3xl md:text-4xl font-bold text-white">{{ realUser?.stats.first_places }}</div>
+                  <div class="text-3xl md:text-4xl font-bold text-white">
+                    {{ realUser?.stats.first_places }}
+                  </div>
                   <div class="text-white/70 text-xs md:text-sm">1. helyezés</div>
                 </div>
                 <div>
                   <div class="text-3xl md:text-4xl font-bold text-white">
                     {{
                       isNaN(
-                        Math.round((realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100)
+                        Math.round(
+                          (realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100,
+                        ),
                       )
                         ? 0
-                        : Math.round((realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100)
+                        : Math.round(
+                            (realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100,
+                          )
                     }}%
                   </div>
                   <div class="text-white/70 text-xs md:text-sm">Nyerési arány</div>
@@ -294,12 +342,16 @@ const OnLogOut = async () => {
               </div>
 
               <div class="flex flex-col sm:flex-row gap-3">
-                <button @click="openPasswordModal" class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-green-900
-                   hover:border-white border-2 border-transparent">
+                <button
+                  @click="openPasswordModal"
+                  class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-green-900 hover:border-white border-2 border-transparent"
+                >
                   Jelszó módosítás
                 </button>
-                <button class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-red-900
-                  hover:border-white border-2 border-transparent" @click="OnLogOut">
+                <button
+                  class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-red-900 hover:border-white border-2 border-transparent"
+                  @click="OnLogOut"
+                >
                   Kijelentkezés
                 </button>
               </div>
@@ -308,7 +360,10 @@ const OnLogOut = async () => {
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
-            <div v-if="isLoadingPage === true" class="h-[456px] flex justify-center items-center self-center">
+            <div
+              v-if="isLoadingPage === true"
+              class="h-[456px] flex justify-center items-center self-center"
+            >
               <div class="flex justify-center items-center h-64">
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
               </div>
@@ -320,22 +375,37 @@ const OnLogOut = async () => {
                   {{ realUser?.friends.length }} összesen
                 </span>
               </h2>
-              <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]" style="max-height: 400px">
-                <div v-for="friend in realUser?.friends" :key="friend.addressee.id"
-                  class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
-                  <img :src="friend.addressee.profile_picture?.data
-                    ? arrayBufferToBase64(friend.addressee.profile_picture.data)
-                    : ''
-                    " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
+              <div
+                class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]"
+                style="max-height: 400px"
+              >
+                <div
+                  v-for="friend in realUser?.friends"
+                  :key="friend.addressee.id"
+                  class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10"
+                >
+                  <img
+                    :src="
+                      friend.addressee.profile_picture?.data
+                        ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                        : ''
+                    "
+                    alt="Friend profile"
+                    class="w-20 h-20 rounded-full object-cover"
+                  />
                   <div class="flex-1">
                     <h3 class="text-white font-medium text-xl mb-2">
                       {{ friend.addressee.username }}
                     </h3>
                     <p class="text-sm">
-                      <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active'
-                        ? 'bg-green-400'
-                        : 'bg-gray-400'
-                        ">
+                      <span
+                        class="inline-block w-2 h-2 rounded-full mr-2"
+                        :class="
+                          friend.addressee.activity_status === 'active'
+                            ? 'bg-green-400'
+                            : 'bg-gray-400'
+                        "
+                      >
                       </span>
                       {{ friend.addressee.activity_status }}
                     </p>
@@ -345,7 +415,10 @@ const OnLogOut = async () => {
             </div>
           </div>
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
-            <div v-if="isLoadingQuizzies === true" class="h-[456px] flex justify-center items-center self-center">
+            <div
+              v-if="isLoadingQuizzies === true"
+              class="h-[456px] flex justify-center items-center self-center"
+            >
               <div class="flex justify-center items-center h-64">
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
               </div>
@@ -358,37 +431,55 @@ const OnLogOut = async () => {
                 </span>
               </h2>
               <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
-                <div v-for="quiz in userQuizzies" :key="quiz.id"
+                <div
+                  v-for="quiz in userQuizzies"
+                  :key="quiz.id"
                   class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10"
                   @click="
                     quiz.status === 'draft'
                       ? handleQuizView(quiz.id)
                       : handleQuizDeatailedView(quiz.id)
-                    ">
+                  "
+                >
                   <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-                    <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner" alt="Quiz banner"
-                      class="w-full h-full object-cover" />
-                    <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
+                    <img
+                      v-if="quiz.banner && quiz.banner.length"
+                      :src="quiz.banner"
+                      alt="Quiz banner"
+                      class="w-full h-full object-cover"
+                    />
+                    <div
+                      v-else
+                      class="w-full h-full bg-gray-600 flex items-center justify-center"
+                    ></div>
                   </div>
 
                   <div class="flex-1">
                     <div class="flex items-center justify-between mb-2">
                       <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                      <span v-if="quiz.status !== 'draft'" @click.stop="handleQuizView(quiz.id)"
-                        class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300">
+                      <span
+                        v-if="quiz.status !== 'draft'"
+                        @click.stop="handleQuizView(quiz.id)"
+                        class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300"
+                      >
                         <Settings />
                       </span>
-                      <span @click.stop="((isDeleteModal = !isDeleteModal), (selectedUuid = quiz.id))"
-                        class="absolute bottom-2 right-2 flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300">
+                      <span
+                        @click.stop="((isDeleteModal = !isDeleteModal), (selectedUuid = quiz.id))"
+                        class="absolute bottom-2 right-2 flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300"
+                      >
                         <Trash2 />
                       </span>
                     </div>
-                    <span class="px-2 py-1 rounded-full text-xs" :class="{
-                      'bg-green-500': quiz.status === 'published',
-                      'bg-yellow-500': quiz.status === 'requires_review',
-                      'bg-gray-500': quiz.status === 'draft',
-                      'bg-blue-500': quiz.status === 'private',
-                    }">
+                    <span
+                      class="px-2 py-1 rounded-full text-xs"
+                      :class="{
+                        'bg-green-500': quiz.status === 'published',
+                        'bg-yellow-500': quiz.status === 'requires_review',
+                        'bg-gray-500': quiz.status === 'draft',
+                        'bg-blue-500': quiz.status === 'private',
+                      }"
+                    >
                       {{ quiz.status }}
                     </span>
 
@@ -404,14 +495,21 @@ const OnLogOut = async () => {
                         {{ quiz.plays }}
                       </div>
                       <div class="flex gap-1">
-                        <span v-for="lang in quiz.languages" :key="lang.name"
-                          class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center" :title="lang.name">
+                        <span
+                          v-for="lang in quiz.languages"
+                          :key="lang.name"
+                          class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
+                          :title="lang.name"
+                        >
                           {{ lang.iso_code }}
                         </span>
                       </div>
                       <div class="flex flex-wrap gap-1">
-                        <span v-for="tag in quiz.tags" :key="tag.name"
-                          class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
+                        <span
+                          v-for="tag in quiz.tags"
+                          :key="tag.name"
+                          class="px-2 py-0.5 rounded-full bg-white/10 text-xs"
+                        >
                           {{ tag.name }}
                         </span>
                       </div>
@@ -424,44 +522,71 @@ const OnLogOut = async () => {
         </div>
       </div>
       >
-      <div v-if="showPasswordModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div
+        v-if="showPasswordModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      >
         <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
               <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
-              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
+              <CircleHelp
+                class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
+                @click="showPasswordRequirements"
+              />
             </div>
             <XButton @click="closePasswordModal" />
           </div>
-          <form @submit.prevent="
-            handlePasswordChange(
-              userPw.new_password,
-              userPw.confirm_password,
-              userPw.current_password,
-            )
-            " class="space-y-4 text-white">
+          <form
+            @submit.prevent="
+              handlePasswordChange(
+                userPw.new_password,
+                userPw.confirm_password,
+                userPw.current_password,
+              )
+            "
+            class="space-y-4 text-white"
+          >
             <div>
-              <v-text-field type="text" variant="outlined" density="comfortable" label="Jelenlegi jelszó"
-                v-model="userPw.current_password" />
+              <v-text-field
+                type="text"
+                variant="outlined"
+                density="comfortable"
+                label="Jelenlegi jelszó"
+                v-model="userPw.current_password"
+              />
             </div>
             <div>
-              <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó"
-                v-model="userPw.new_password" />
+              <v-text-field
+                type="text"
+                variant="outlined"
+                density="comfortable"
+                label="Új jelszó"
+                v-model="userPw.new_password"
+              />
             </div>
             <div>
-              <v-text-field type="text" variant="outlined" density="comfortable" label="Új jelszó megerősítése"
-                v-model="userPw.confirm_password" />
+              <v-text-field
+                type="text"
+                variant="outlined"
+                density="comfortable"
+                label="Új jelszó megerősítése"
+                v-model="userPw.confirm_password"
+              />
             </div>
-            <button type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+            <button
+              type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
+            >
               Jelszó módosítása
             </button>
           </form>
         </div>
       </div>
-      <div v-if="isDeleteModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div
+        v-if="isDeleteModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      >
         <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
@@ -470,27 +595,44 @@ const OnLogOut = async () => {
             <XButton @click="isDeleteModal = !isDeleteModal" />
           </div>
           <form @submit.prevent="onDelete(selectedUuid)" class="flex text-white gap-2">
-            <button type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+            <button
+              type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
+            >
               <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                    fill="none" />
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    fill="none"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
               </span>
               <span v-else> Igen </span>
             </button>
-            <button type="button" @click="isDeleteModal = !isDeleteModal"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+            <button
+              type="button"
+              @click="isDeleteModal = !isDeleteModal"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900"
+            >
               Nem
             </button>
           </form>
         </div>
       </div>
-      <div v-if="isDeleteApiKey"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div
+        v-if="isDeleteApiKey"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      >
         <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
@@ -501,26 +643,44 @@ const OnLogOut = async () => {
             <XButton @click="isDeleteApiKey = !isDeleteApiKey" />
           </div>
           <form @submit.prevent="onDeleteApiKey(keyId)" class="flex text-white gap-2">
-            <button type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+            <button
+              type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
+            >
               <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                    fill="none" />
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    fill="none"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
               </span>
               <span v-else> Igen </span>
             </button>
-            <button type="button" @click="isDeleteApiKey = !isDeleteApiKey"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+            <button
+              type="button"
+              @click="isDeleteApiKey = !isDeleteApiKey"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900"
+            >
               Nem
             </button>
           </form>
         </div>
       </div>
-      <div v-if="isApiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div
+        v-if="isApiModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      >
         <div v-if="isLoadingApiKeys === true" class="min-h-screen flex justify-center items-center">
           <div class="flex justify-center items-center h-64">
             <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -534,26 +694,48 @@ const OnLogOut = async () => {
             <XButton @click="isApiModal = false" class="cursor-pointer text-white" />
           </div>
           <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-4">
-            <input type="text" v-model="description" placeholder="Leírás" class="bg-white/10 p-2 rounded-md" />
-            <input type="datetime-local" v-model="expiration" :min="minDateTime" class="bg-white/10 p-2 rounded-md" />
+            <input
+              type="text"
+              v-model="description"
+              placeholder="Leírás"
+              class="bg-white/10 p-2 rounded-md"
+            />
+            <input
+              type="datetime-local"
+              v-model="expiration"
+              :min="minDateTime"
+              class="bg-white/10 p-2 rounded-md"
+            />
             <div v-if="apiKey" class="flex flex-row gap-2 justify-center items-center w-full">
               <div
-                class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent hover:border-white text-white break-all shadow-lg transition-all duration-300 hover:bg-white/20 flex gap-2 items-center">
-                {{ apiKey }}
+                class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent
+                 hover:border-white text-white break-all shadow-lg transition-all duration-300
+                  hover:bg-white/20 flex gap-2 items-center cursor-pointer"
+                @click="copyText(apiKey)"
+                >
+                Generált kulcs másolása
               </div>
-              <span>
-                <Copy @click="copyText(apiKey)"
-                  class="w-7 h-7 transition-all duration-300 backdrop-blur-md text-white hover:border-white bg-white/10 border-2 border-transparent cursor-pointer rounded-sm flex justify-center items-center" />
-              </span>
             </div>
-            <button type="submit"
-              class="glass-button px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+            <button
+              type="submit"
+              class="glass-button px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
+            >
               <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                    fill="none" />
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    fill="none"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
               </span>
               <span v-else>Generálás</span>
@@ -565,8 +747,11 @@ const OnLogOut = async () => {
               API Kulcsaid: {{ apiKeys?.length }}
             </h4>
             <div class="space-y-2 h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar p-2">
-              <li v-for="key in apiKeys" :key="key.id"
-                class="flex justify-between items-center bg-white/10 p-3 rounded-md">
+              <li
+                v-for="key in apiKeys"
+                :key="key.id"
+                class="flex justify-between items-center bg-white/10 p-3 rounded-md"
+              >
                 <div>
                   <p class="text-white font-medium">Leírás: {{ key.description }}</p>
                   <div class="flex items-center">
@@ -574,7 +759,8 @@ const OnLogOut = async () => {
                       Kulcs:
                       <span
                         class="text-white cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white hover:after:w-full after:transition-all after:duration-300"
-                        @click="copyText(key.key)">
+                        @click="copyText(key.key)"
+                      >
                         másolás
                       </span>
                     </p>
@@ -583,7 +769,8 @@ const OnLogOut = async () => {
                 </div>
                 <span
                   class="flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300 text-white cursor-pointer"
-                  @click="((isDeleteApiKey = true), (keyId = key.id_by_user), (isApiModal = false))">
+                  @click="((isDeleteApiKey = true), (keyId = key.id_by_user), (isApiModal = false))"
+                >
                   <Trash2 />
                 </span>
               </li>
