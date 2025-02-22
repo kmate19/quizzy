@@ -22,14 +22,13 @@ const isTagDropdownOpen = ref(false)
 const tagSearchQuery = ref('')
 const selectedTags = ref<Tag[]>([])
 
-
 const { data: allTags } = useQuery({
   queryKey: ['tags'],
   queryFn: getTags,
   staleTime: Infinity,
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
-});
+})
 
 const filteredTags = computed(() => {
   if (!allTags?.value) {
@@ -39,12 +38,12 @@ const filteredTags = computed(() => {
   if (!tagSearchQuery.value) {
     return allTags.value
   }
-  return allTags.value.filter(tag =>
-    tag.name.toLowerCase().includes(tagSearchQuery.value.toLowerCase())
+  return allTags.value.filter((tag) =>
+    tag.name.toLowerCase().includes(tagSearchQuery.value.toLowerCase()),
   )
 })
 
-const toggleTagDropdown = () => {
+const toggleTagDropdown = async () => {
   isTagDropdownOpen.value = !isTagDropdownOpen.value
 }
 
@@ -80,14 +79,14 @@ const filteredLanguages = computed(() => {
   if (!languageSearchQuery.value) {
     return allLanguages.value
   }
-  return allLanguages.value.filter(lang =>
-  lang.name.toLowerCase().includes(languageSearchQuery.value.toLowerCase())
+  return allLanguages.value.filter((lang) =>
+    lang.name.toLowerCase().includes(languageSearchQuery.value.toLowerCase()),
   )
 })
 
 const toggleLanguageDropdown = () => {
   isLanguageDropdownOpen.value = !isLanguageDropdownOpen.value
-  //focus the searchquery
+    ; (document.querySelector('#languageSearchInput') as HTMLInputElement)?.focus()
 }
 
 const isSelectedLanguage = (lang: Language) => {
@@ -96,7 +95,9 @@ const isSelectedLanguage = (lang: Language) => {
 
 const toggleLanguageSelection = (lang: Language) => {
   if (isSelectedLanguage(lang)) {
-    selectedLanguages.value = selectedLanguages.value.filter((selectedLanguage) => selectedLanguage.name !== lang.name)
+    selectedLanguages.value = selectedLanguages.value.filter(
+      (selectedLanguage) => selectedLanguage.name !== lang.name,
+    )
   } else {
     selectedLanguages.value.push(lang)
   }
@@ -400,14 +401,15 @@ const uploadOrUpdate = async () => {
               </div>
             </div>
             <div class="flex flex-col mb-2">
-              <label for="quizTags" class="mb-1 text-white font-medium text-xl">
-                Kategóriák
-              </label>
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleTagDropdown"
                   class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
                   <span>
-                    {{selectedTags.length > 0 ? selectedTags.map(tag => tag.name).join(', ') : 'Válassz kategóriákat'}}
+                    {{
+                      selectedTags.length > 0
+                        ? selectedTags.map((tag) => tag.name).join(', ')
+                        : 'Válassz kategóriákat'
+                    }}
                   </span>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300"
                     :class="{ 'rotate-180': isTagDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -419,25 +421,29 @@ const uploadOrUpdate = async () => {
                   enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
                   <div v-if="isTagDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300
-                    h-72 overflow-y-scroll custom-scrollbar">
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md 
+                    shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit
+                     overflow-y-scroll custom-scrollbar">
                     <div class="py-1">
-                      <input v-model="tagSearchQuery" type="text" placeholder="Keresés..."
+                      <input v-model="tagSearchQuery" type="text" placeholder="Keresés..." id="tagSearchInput"
                         class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1" />
 
                       <template v-if="allTags && allTags.length > 0">
-                        <div v-for="tag in filteredTags" :key="tag.name"
-                          class="px-3 py-1">
+                        <div v-for="tag in filteredTags" :key="tag.name" class="px-3 py-1">
                           <input type="checkbox" :id="tag.name" :value="tag" :checked="isSelected(tag)"
                             @change="toggleTagSelection(tag)" class="opacity-0 absolute" />
-                          <label :for="tag.name" class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg
-                          flex justify-center items-center hover:scale-105"
-                            :class="isSelected(tag) ? 'text-green-400 hover:border-green-400' : 'text-white hover:border-white'">
+                          <label :for="tag.name"
+                            class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
+                            :class="isSelected(tag)
+                                ? 'text-green-400 hover:border-green-400'
+                                : 'text-white hover:border-white'
+                              ">
                             {{ tag.name }}
                           </label>
                         </div>
                       </template>
-                      <div v-if="filteredTags.length === 0" class="px-4 py-2 text-white flex justify-center items-center">
+                      <div v-if="filteredTags.length === 0"
+                        class="px-4 py-2 text-white flex justify-center items-center">
                         Nincs találat.
                       </div>
                     </div>
@@ -446,14 +452,15 @@ const uploadOrUpdate = async () => {
               </div>
             </div>
             <div class="flex flex-col mb-2">
-              <label for="quizTags" class="mb-1 text-white font-medium text-xl">
-                Nyelvek
-              </label>
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleLanguageDropdown"
                   class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
                   <span>
-                    {{selectedLanguages.length > 0 ? selectedLanguages.map(lang => lang.name).join(', ') : 'Válassz nyelveket'}}
+                    {{
+                      selectedLanguages.length > 0
+                        ? selectedLanguages.map((lang) => lang.name).join(', ')
+                        : 'Válassz nyelveket'
+                    }}
                   </span>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300"
                     :class="{ 'rotate-180': isLanguageDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -465,25 +472,28 @@ const uploadOrUpdate = async () => {
                   enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
                   <div v-if="isLanguageDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300
-                    max-h-72 h-fit overflow-y-scroll custom-scrollbar">
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg
+                     bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar">
                     <div class="py-1">
-                      <input v-model="languageSearchQuery" type="text" placeholder="Keresés..."
+                      <input v-model="languageSearchQuery" type="text" placeholder="Keresés..." id="languageSearchInput"
                         class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1" />
 
                       <template v-if="allLanguages && allLanguages.length > 0">
-                        <div v-for="lang in filteredLanguages" :key="lang.name"
-                          class="px-3 py-1">
+                        <div v-for="lang in filteredLanguages" :key="lang.name" class="px-3 py-1">
                           <input type="checkbox" :id="lang.name" :value="lang" :checked="isSelectedLanguage(lang)"
                             @change="toggleLanguageSelection(lang)" class="opacity-0 absolute" />
-                          <label :for="lang.name" class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg
-                          flex justify-center items-center hover:scale-105"
-                            :class="isSelectedLanguage(lang) ? 'text-green-400 hover:border-green-400' : 'text-white hover:border-white'">
+                          <label :for="lang.name"
+                            class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
+                            :class="isSelectedLanguage(lang)
+                                ? 'text-green-400 hover:border-green-400'
+                                : 'text-white hover:border-white'
+                              ">
                             {{ lang.name }} | {{ lang.support }} | {{ lang.icon }}
                           </label>
                         </div>
                       </template>
-                      <div v-if="filteredLanguages.length === 0" class="px-4 py-2 text-white flex justify-center items-center">
+                      <div v-if="filteredLanguages.length === 0"
+                        class="px-4 py-2 text-white flex justify-center items-center">
                         Nincs találat.
                       </div>
                     </div>
@@ -580,8 +590,8 @@ const uploadOrUpdate = async () => {
               </div>
               <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"
                 class="glass-input w-full col-span-2" bg-color="!rgba(0, 0, 0, 0)" type="number" :rules="oneQuestion.type == 'normal'
-                  ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
-                  : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
+                    ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
+                    : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
                   " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
 
