@@ -23,30 +23,19 @@ namespace localadmin.Models
             Blocked
         }
 
-        private static readonly Dictionary<string, string> Translations = new Dictionary<string, string>
+        private static readonly Dictionary<EActivityStatus, string> ActivityStatusTranslations = new Dictionary<EActivityStatus, string>
         {
-            { "Away", "Távol" },
-            { "Active", "Aktív" },
-            { "Inactive", "Inaktív" },
-            { "Pending", "Folyamatban" },
-            { "Blocked", "Blokkolva" },
-
+            { EActivityStatus.Active, "Aktív" },
+            { EActivityStatus.Inactive, "Inaktív" },
+            { EActivityStatus.Away, "Távol" }
         };
 
-        private string Translate(string key) => Translations.TryGetValue(key, out var translation) ? translation : key;
-        private static readonly Dictionary<EActivityStatus, string> ActivityStatusTranslations = new Dictionary<EActivityStatus, string>
-    {
-        { EActivityStatus.Active, "Aktív" },
-        { EActivityStatus.Inactive, "Inaktív" },
-        { EActivityStatus.Away, "Távol" }
-    };
-
         private static readonly Dictionary<EAuthStatus, string> AuthStatusTranslations = new Dictionary<EAuthStatus, string>
-    {
-        { EAuthStatus.Pending, "Folyamatban" },
-        { EAuthStatus.Active, "Aktív" },
-        { EAuthStatus.Blocked, "Blokkolva" }
-    };
+        {
+            { EAuthStatus.Pending, "Folyamatban" },
+            { EAuthStatus.Active, "Aktív" },
+            { EAuthStatus.Blocked, "Blokkolva" }
+        };
 
         public string TranslatedActivityStatus => ActivityStatusTranslations.TryGetValue(ActivityStatus, out var translation) ? translation : ActivityStatus.ToString();
         public string TranslatedAuthStatus => AuthStatusTranslations.TryGetValue(AuthStatus, out var translation) ? translation : AuthStatus.ToString();

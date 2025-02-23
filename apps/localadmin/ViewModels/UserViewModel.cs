@@ -17,6 +17,13 @@ namespace localadmin.ViewModels
             NavigationService = Navigation;
             SharedState = State;
 
+            GetUses();
+
+
+
+
+
+
             Users = new ObservableCollection<User>
             {
                 new User(NavigationService, SharedState)
@@ -89,6 +96,12 @@ namespace localadmin.ViewModels
 
             FilteredUsers = new ObservableCollection<User>(Users);
         }
+
+        private async void GetUses()
+        {
+            Users = await ApiUsersService.GetUsersAsync();
+        }
+
         public void SearchUsers(string query)
         {
             var results = SearchService.FuzzySearch(Users, query, user => [user.Username, user.Email]);

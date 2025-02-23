@@ -38,7 +38,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public MainWindow()
     {
         InitializeComponent();
-        //Hide();
+        Hide();
 
         UserViewModel = new UserViewModel(NavigationService, SharedState);
         ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
@@ -127,7 +127,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Application.Current.Shutdown();
     }
 }
-/*
+
 public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
@@ -140,4 +140,4 @@ public partial class App : Application
         APIKeyWindow apiKeyWindow = new APIKeyWindow(mainWindow);
         apiKeyWindow.Show();
     }
-}*/
+}
