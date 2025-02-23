@@ -8,6 +8,7 @@ import DetailedView from '@/views/DetailedView.vue'
 import { clientv1 } from '@/lib/apiClient'
 import ForgotPassword from '@/views/ForgotPassword.vue'
 import { queryClient } from '@/lib/queryClient'
+import QuizPractice from '@/views/QuizPractice.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,14 @@ const router = createRouter({
       path: '/quiz/:uuid',
       name: 'detailed_view',
       component: DetailedView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/quiz/practice/:uuid',
+      name: 'quiz_practice',
+      component: QuizPractice,
       meta: {
         requiresAuth: true,
       },
@@ -103,6 +112,12 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
       break
     case 'game_creation':
       newTitle = 'Játék készítés'
+      break
+    case 'detailed_view':
+      newTitle = 'Megtekintés'
+      break
+    case 'quiz_practice':
+      newTitle = 'Gyakorlás'
       break
   }
 

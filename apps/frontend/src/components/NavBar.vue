@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { ref } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import XButton from './XButton.vue'
 
@@ -14,26 +14,56 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
-
 router.afterEach(() => {
   isMobileMenuOpen.value = false
 })
 
+const componentName = ref('');
 
-const handlePath = () => {
-  const pathSegments = route.fullPath.split('/')
-  const mainSegment = pathSegments[1] ?? ''
-  if (!mainSegment) return 'Kezdőlap'
+const handlePath = (routeName : string) => {
+  if (!routeName) return 'Kezdőlap';
 
-
-  const capitalized = mainSegment.charAt(0).toUpperCase() + mainSegment.slice(1)
-  switch (capitalized) {
-    case 'Game_creation':
-      return 'Játék készítés'
+  switch (routeName) {
+    case 'home':
+      return 'Kezdőlap';
+    case 'game_creation':
+      return 'Játék készítés';
+    case 'quiz_practice':
+      return 'Gyakorlás';
+    case 'detailed_view':
+      return 'Megtekintés';
+    case 'profile':
+      return 'Profil';
     default:
-      return capitalized
+      if (typeof routeName === 'string') {
+        const words = routeName.split('_');
+        const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+        return capitalizedWords.join(' ');
+      } else {
+        return 'Ismeretlen oldal';
+      }
   }
-}
+};
+
+const updateComponentName = () => {
+  if (route && route.name) {
+    componentName.value = handlePath(route.name.toString());
+  } else {
+    componentName.value = 'Kezdőlap'; 
+  }
+};
+
+watch(() => route.name, () => {
+  updateComponentName();
+});
+
+onMounted(() => {
+  nextTick(() => {
+    updateComponentName();
+  });
+
+})
+
 </script>
 
 <template>
@@ -45,7 +75,7 @@ const handlePath = () => {
            w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm 
            before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10
            before:pointer-events-none before:absolute before:inset-0">
-          Quizzy / {{ handlePath() }}
+          Quizzy / {{ componentName }}
         </div>
         <div class="hidden md:block desktop-navbar">
           <div class="ml-10 flex items-baseline space-x-4">
@@ -174,6 +204,7 @@ const handlePath = () => {
   .desktop-navbar {
     display: block;
   }
+
   .mobile-navbar {
     display: none;
   }
@@ -183,6 +214,7 @@ const handlePath = () => {
   .desktop-navbar {
     display: none;
   }
+
   .mobile-navbar {
     display: block;
   }

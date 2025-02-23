@@ -10,6 +10,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
 import { queryClient } from '@/lib/queryClient'
 import { useQuery } from '@tanstack/vue-query'
+import { useRoute } from 'vue-router'
 import {
   userData,
   getOwnQuizzies,
@@ -35,6 +36,8 @@ const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const showPasswordModal = ref(false)
 const apiKey = ref('')
+const route = useRoute()
+const userId = route.params.uuid.toString()
 
 const minDateTime = computed(() => {
   const now = new Date()
@@ -50,7 +53,7 @@ const userPw = ref({
 
 const { data: realUser, isLoading: isLoadingPage } = useQuery({
   queryKey: ['userProfile'],
-  queryFn: userData,
+  queryFn: () => userData(userId),
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
   refetchOnMount: true,

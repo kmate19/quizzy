@@ -6,52 +6,49 @@ import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
 
-export const userData = async () => {
+export const userData = async (id: string) => {
   //await new Promise(resolve => setTimeout(resolve, 2000))
-  try {
-    const user = await clientv1.userprofile.$get()
-    if (user.status === 200) {
-      const res = await user.json()
-      console.log(res.data.roles[0].role.name)
-      const userObj = {
-        email: res.data.email,
-        username: res.data.username,
-        created_at: new Date(res.data.created_at).toLocaleDateString(),
-        activity_status: res.data.activity_status,
-        profile_picture: res.data.profile_picture
-          ? arrayBufferToBase64(res.data.profile_picture.data)
-          : '',
-        sentFriendships: res.data.sentFriendships,
-        recievedFriendships: res.data.recievedFriendships,
-        role: res.data.roles[0].role.name,
-        stats: res.data.stats,
-        friends: res.data.recievedFriendships
-          .filter((item) => item.status === 'accepted')
-          .map((item) => ({
-            created_at: item.created_at,
-            status: item.status,
-            addressee: {
-              id: item.requester.id,
-              username: item.requester.username,
-              activity_status: item.requester.activity_status,
-              profile_picture: item.requester.profile_picture,
-            },
-          })),
-      }
-
-      return userObj
-    } else {
-      const res = await user.json()
-      toast(res.error.message, {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      })
+ //const temp = userId === "" ? await clientv1.userprofile.$get() : await clientv1.userprofile[':userId'].$get({param: {userId: id}})
+  const user = await clientv1.userprofile.$get()
+  if (user.status === 200) {
+    const res = await user.json()
+    console.log(res.data.roles[0].role.name)
+    const userObj = {
+      email: res.data.email,
+      username: res.data.username,
+      created_at: new Date(res.data.created_at).toLocaleDateString(),
+      activity_status: res.data.activity_status,
+      profile_picture: res.data.profile_picture
+        ? arrayBufferToBase64(res.data.profile_picture.data)
+        : '',
+      sentFriendships: res.data.sentFriendships,
+      recievedFriendships: res.data.recievedFriendships,
+      role: res.data.roles[0].role.name,
+      stats: res.data.stats,
+      friends: res.data.recievedFriendships
+        .filter((item) => item.status === 'accepted')
+        .map((item) => ({
+          created_at: item.created_at,
+          status: item.status,
+          addressee: {
+            id: item.requester.id,
+            username: item.requester.username,
+            activity_status: item.requester.activity_status,
+            profile_picture: item.requester.profile_picture,
+          },
+        })),
     }
-  } catch (error) {
-    console.error('Error fetching user data:', error)
+
+    return userObj
+  } else {
+    const res = await user.json()
+    toast(res.error.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
   }
 }
 
@@ -193,7 +190,7 @@ export const getApiKey = async (expiration: string, description: string) => {
       transition: 'zoom',
       pauseOnHover: false,
     })
-    queryClient.refetchQueries({queryKey: ['apiKeys']})
+    queryClient.refetchQueries({ queryKey: ['apiKeys'] })
     return res.data
   } else {
     const res = await post.json()
@@ -236,7 +233,9 @@ export const listApiKeys = async () => {
   if (get.status === 200) {
     const res = await get.json()
     console.log(res.data)
-    return res.data.sort((a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime())
+    return res.data.sort(
+      (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
+    )
   } else {
     const res = await get.json()
     toast(res.error.message, {
