@@ -1,0 +1,65 @@
+﻿<Window x:Class="localadmin.Views.EditUserWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:localadmin.Views"
+        mc:Ignorable="d"
+        Title="Felhasználó módosítása" 
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Height="300" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" HorizontalAlignment="Center">
+            <Run Text="{Binding Username}" FontWeight="Bold" FontSize="20"/>
+            <Run Text=" módosítása" FontWeight="Bold" FontSize="20"/>
+        </TextBlock>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Felhasználó jogosultsága:" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <GroupBox Grid.Column="0" Grid.Row="0" Width="150" Height="150" Margin="0, 15, 0, 0">
+                <ListBox ItemsSource="{Binding AllRoles}" >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding Value}" 
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+
+            <TextBlock Grid.Column="1" Grid.Row="1" Text="Felhasználó státusza" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <GroupBox Grid.Column="1" Grid.Row="1" Width="150" Height="150" Margin="0, 15, 0, 0">
+                <ListBox ItemsSource="{Binding AllStatuses}" >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding Value}" 
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </GroupBox>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Módosítás" Margin="0" Style="{StaticResource GridButtons}" Click="Modify"></Button>
+            <Button Grid.Column="1" Content="Mégse" Margin="0" Style="{StaticResource GridButtons}" Background="Red" Click="Cancel"></Button>
+        </Grid>
+    </Grid>
+</Window>

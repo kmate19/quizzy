@@ -1,85 +1,143 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.ComponentModel;
+using localadmin.ViewModels;
+using System.Diagnostics;
+using localadmin.Services;
+using localadmin.Views;
 
 namespace localadmin;
 
-    public partial class MainWindow : Window
+public partial class MainWindow : Window, INotifyPropertyChanged
+{
+    public NavigationService NavigationService { get; } = new NavigationService();
+    public SharedStateService SharedState { get; } = SharedStateService.Instance;
+    public UserViewModel UserViewModel { get; }
+    public ReviewViewModel ReviewViewModel { get; }
+    public QuizViewModel QuizViewModel { get; }
+
+    private object _currentView = null!;
+
+    public object CurrentView
     {
-        public ObservableCollection<User> Users { get; set; }
-        public MainWindow()
+        get => _currentView;
+        set
         {
-            InitializeComponent();
-
-            Users = new ObservableCollection<User>
-            {
-                new User()
-                {
-                    Name = "Alice Smith",
-                    Email = "alice@example.com",
-                    Role = "Administrator"
-                },
-                new User()
-                {
-                    Name = "Bob Johnson",
-                    Email = "bob@example.com",
-                    Role = "Editor"
-                },
-                new User()
-                {
-                    Name = "Charlie Brown",
-                    Email = "charlie@example.com",
-                    Role = "Viewer"
-                },
-                new User()
-                {
-                    Name = "Diana Prince",
-                    Email = "diana@example.com",
-                    Role = "Editor"
-                },
-                new User()
-                {
-                    Name = "Edward Elric",
-                    Email = "edward@example.com",
-                    Role = "Viewer"
-                }
-            };
-
-
-            DataContext = this;
-        }
-
-        private void RedirectToMainPage(object sender, RoutedEventArgs e)
-        {   /*
-            string url = "https://www.google.com";
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
-            */
-
-            string url = "https://www.google.com";
-            WebBrowser wb = new WebBrowser();
-            wb.Navigate(new Uri(url));
+            _currentView = value;
+            OnPropertyChanged(nameof(CurrentView));
         }
     }
 
-    public class User
-    {
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Role { get; set; }
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-        public User()
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        //Hide();
+
+        UserViewModel = new UserViewModel(NavigationService, SharedState);
+        ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
+        QuizViewModel = new QuizViewModel(NavigationService, SharedState);
+
+        NavigationService.ViewModelChanged += OnViewModelChanged;
+
+        CurrentView = UserViewModel;
+
+        DataContext = this;
+    }
+
+    private void OnViewModelChanged(object newViewModel)
+    {
+        CurrentView = newViewModel;
+        switch (CurrentView)
         {
+            case UserViewModel userViewModel:
+                userViewModel.SearchUsers(SharedState.SearchText);
+                break;
+            case ReviewViewModel reviewViewModel:
+                reviewViewModel.SearchReviews(SharedState.SearchText);
+                break;
+            case QuizViewModel quizViewModel:
+                quizViewModel.SearchQuizes(SharedState.SearchText);
+                break;
         }
     }
+
+    private void RedirectToMainPage(object sender, RoutedEventArgs e)
+    {
+        string url = "https://www.google.com";
+        Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+    }
+
+    private void Searchbar_gotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox textBox && textBox.Text == "Keresés")
+        {
+            SharedState.SearchText = "";
+        }
+    }
+
+    private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is not TextBox textBox) return;
+
+        switch (CurrentView)
+        {
+            case UserViewModel userViewModel:
+                userViewModel.SearchUsers(SharedState.SearchText);
+                break;
+            case ReviewViewModel reviewViewModel:
+                reviewViewModel.SearchReviews(SharedState.SearchText);
+                break;
+            case QuizViewModel quizViewModel:
+                quizViewModel.SearchQuizes(SharedState.SearchText);
+                break;
+        }
+    }
+
+    private void UsersButton_Click(object sender, RoutedEventArgs e)
+    {
+        NavigationService.NavigateTo(UserViewModel);
+        QuizViewModel.SearchQuizes(SharedState.SearchText);
+        SharedState.SearchText = "Keresés";
+    }
+
+    private void Quizbutton_Click(object sender, RoutedEventArgs e)
+    {
+        NavigationService.NavigateTo(QuizViewModel);
+        QuizViewModel.SearchQuizes(SharedState.SearchText);
+        SharedState.SearchText = "Keresés";
+    }
+
+    private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
+    {
+        NavigationService.NavigateTo(ReviewViewModel);
+        QuizViewModel.SearchQuizes(SharedState.SearchText);
+        SharedState.SearchText = "Keresés";
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        Application.Current.Shutdown();
+    }
+}
+/*
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        MainWindow mainWindow = new MainWindow();
+        mainWindow.Hide();
+
+        APIKeyWindow apiKeyWindow = new APIKeyWindow(mainWindow);
+        apiKeyWindow.Show();
+    }
+}*/
