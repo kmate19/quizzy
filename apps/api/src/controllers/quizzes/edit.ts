@@ -249,6 +249,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
                         )
                     );
 
+                // TODO: this is not diffed
                 if (newCards) {
                     await tr
                         .delete(quizCardsTable)
@@ -261,6 +262,10 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
                 }
 
                 if (newLanguageISOCodes) {
+                    await tr
+                        .delete(quizLanguagesTable)
+                        .where(eq(quizLanguagesTable.quiz_id, quizId));
+
                     for (const isoCode of newLanguageISOCodes) {
                         const [languageId] = await tr
                             .select({ id: languagesTable.id })
@@ -275,17 +280,17 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
                             throw err;
                         }
 
-                        await tr
-                            .insert(quizLanguagesTable)
-                            .values({
-                                language_id: languageId.id,
-                                quiz_id: quizId,
-                            })
-                            .onConflictDoNothing();
+                        await tr.insert(quizLanguagesTable).values({
+                            language_id: languageId.id,
+                            quiz_id: quizId,
+                        });
                     }
                 }
 
                 if (newTags) {
+                    await tr
+                        .delete(quizTagsTable)
+                        .where(eq(quizTagsTable.quiz_id, quizId));
                     for (const tag of newTags) {
                         const [tagId] = await tr
                             .select({ id: tagsTable.id })

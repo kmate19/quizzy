@@ -24,8 +24,16 @@ beforeEach(async () => {
             .values({ name: "test tag" })
             .onConflictDoNothing();
         await db
+            .insert(schema.tagsTable)
+            .values({ name: "test tag2" })
+            .onConflictDoNothing();
+        await db
             .insert(schema.languagesTable)
             .values({ name: "test language", iso_code: "TS", icon: "dklja" })
+            .onConflictDoNothing();
+        await db
+            .insert(schema.languagesTable)
+            .values({ name: "test language2", iso_code: "SS", icon: "dkljaa" })
             .onConflictDoNothing();
     }
 });
@@ -65,6 +73,78 @@ async function publisTestQuiz(
 }
 
 describe("quiz related routes", async () => {
+    describe("edit quiz", async () => {
+        test("should edit quiz with relevant data", async () => {
+            const { cookies } = await registerAndLogin(client);
+
+            const post = await publisTestQuiz(client, cookies, 0);
+            expect(post.status).toBe(201);
+
+            const { data } = await post.json();
+
+            const edit = await client.quizzes.edit[":quizId"].$patch(
+                {
+                    json: {
+                        quiz: {
+                            title: `test quiz0 edited`,
+                            description: "test quiz description edited",
+                            status: "draft",
+                            banner: smallBase64Img,
+                        },
+                        cards: [
+                            {
+                                type: "normal",
+                                question: "test question edited",
+                                answers: ["test answer edited"],
+                                correct_answer_index: 0,
+                                picture: smallBase64Img,
+                            },
+                        ],
+                        tags: ["test tag2"],
+                        languageISOCodes: ["TS", "SS"],
+                    },
+                    param: { quizId: data.id },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+
+            expect(edit.status).toBe(200);
+
+            const quiz = await db.query.quizzesTable.findFirst({
+                where: eq(schema.quizzesTable.id, data.id),
+                with: {
+                    cards: true,
+                    tags: {
+                        columns: {},
+                        with: {
+                            tag: {
+                                columns: {
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    languages: {
+                        columns: {},
+                        with: {
+                            language: {
+                                columns: {
+                                    name: true,
+                                    iso_code: true,
+                                    support: true,
+                                    icon: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            console.log(quiz);
+            console.log(quiz?.languages);
+            console.log(quiz?.tags);
+        });
+    });
     describe("create quiz", async () => {
         test("should create quiz with relevant data", async () => {
             const { cookies } = await registerAndLogin(client);
