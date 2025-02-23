@@ -177,7 +177,6 @@ const handleFileChange = (event: Event) => {
 
     tempImage.value = file
     localPfp.value = URL.createObjectURL(file)
-    console.log(localPfp.value)
     queryClient.refetchQueries({ queryKey: ['userProfile'] })
     showSaveButton.value = true
   }
@@ -193,8 +192,6 @@ const saveProfileImage = async () => {
     body: tempImage.value,
   })
   if (pfpUpload.status === 200) {
-    const res = await pfpUpload.json()
-    console.log(res)
     toast('Profilkép sikeresen módosítva!', {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
@@ -274,9 +271,11 @@ const OnLogOut = async () => {
               <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{{ realUser?.username }}</h1>
               <p class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
 
-              <div class="flex flex-col gap-2 mt-2" v-show="realUser?.role === 'admin'">
+              <div class="flex flex-col gap-2 mt-2" v-show="realUser?.role.includes('admin')">
                 <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
-                  {{ realUser?.role }}
+                  <span v-for="role in realUser?.role" :key="role">
+                    {{ role }} 
+                  </span>
                 </p>
                 <button @click="isApiModal = true"
                   class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900 hover:border-white border-2 border-transparent">
