@@ -364,7 +364,7 @@ const marqueeDuration = computed(() => {
 </script>
 
 <template>
-  <MistBackground />
+  <MistBackground/>
   <NavBar />
   <Transition appear enter-active-class="transition ease-in-out duration-1000"
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
@@ -425,14 +425,18 @@ const marqueeDuration = computed(() => {
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleTagDropdown"
-                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
-                  <div class="flex-1 overflow-hidden marquee-container">
+                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between
+                   border border-white/30 overflow-hidden whitespace-nowrap">
+
+                  <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden marquee-container">
                     <div class="marquee-content" :class="{ 'animate-marquee': selectedTags.length > 2 }"
                       :style="{ '--marquee-duration': marqueeDuration }">
-                      <!-- Bind dynamic duration -->
                       <div v-if="selectedTags.length > 2" class="marquee-text">{{ tagString }}</div>
                       <div class="marquee-text">{{ tagString }}</div>
                     </div>
+                  </div>
+                  <div v-else>
+                    Válassz kategóriákat
                   </div>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300 flex-shrink-0"
                     :class="{ 'rotate-180': isTagDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
