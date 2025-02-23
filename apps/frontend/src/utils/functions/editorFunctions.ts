@@ -21,6 +21,12 @@ export const getQuiz = async (uuid: string) => {
       description: res.description,
       status: res.status,
       banner: arrayBufferToBase64(res.banner.data),
+      languages: res.languages.map((l) => ({
+        name: l.language.name,
+        iso_code: l.language.iso_code,
+        icon: l.language.icon,
+        support: l.language.support
+    })),
       languageISOCodes: res.languages.map((l) => l.language.iso_code),
       tags: res.tags.map((t) => t.tag.name),
       cards: await Promise.all(
