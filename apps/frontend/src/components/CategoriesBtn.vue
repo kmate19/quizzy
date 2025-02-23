@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
-import { useCounterStore } from '@/stores/counter'
+//import { useCounterStore } from '@/stores/counter'
 
 
-const store = useCounterStore()
+//const store = useCounterStore()
 const categories = ref([''])
 const isModalOpen = ref(false)
 const searchQuery = ref('')
@@ -14,7 +14,7 @@ const includeName = ref(true)
 
 const selectedCategories = computed(() => selectedCategoriesData.value)
 
-const extractCategories = () => {
+/*const extractCategories = () => {
   const allTagsArrays = [...new Set(store.returnQuizies().value.map((card) => card.tags))];
   const allTags: string[] = [];
 
@@ -24,9 +24,9 @@ const extractCategories = () => {
 
   const uniqueTags = [...new Set(allTags)];
   categories.value = uniqueTags;
-};
+};*/
 
-extractCategories();
+//extractCategories();
 
 const filteredCategories = computed(() => {
   const query = searchQuery.value.toLowerCase();

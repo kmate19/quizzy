@@ -2,28 +2,20 @@
 import { clientv1 } from '@/lib/apiClient'
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import NavBar from '@/components/NavBar.vue'
-import { Play, Loader2Icon } from 'lucide-vue-next'
+import { Loader2Icon } from 'lucide-vue-next'
 import { type quizCardView } from '@/utils/type'
 import { toast } from 'vue3-toastify'
+import { arrayBufferToBase64 } from '@/utils/helpers'
+import MistBackground from '@/components/MistBackground.vue'
 
 const route = useRoute()
 const uuid = route.params.uuid
 const data = ref<quizCardView>()
 const isLoading = ref(true)
 
-const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return `data:${mimeType};base64,${window.btoa(binary)}`
-}
-
 const getQuiz = async () => {
-  console.log('asdsad', uuid)
   const getQuiz = await clientv1.quizzes[':quizId'].$get({param:{quizId:uuid.toString()}})
   console.log(getQuiz)
   if (getQuiz.ok) {
@@ -63,8 +55,7 @@ const getQuiz = async () => {
     console.log(data.value)
     isLoading.value = false
     expandedQuestions.value = new Array(res.data.cards.length).fill(false)
-
-    //get
+    
   } else {
     const res = await getQuiz.json()
     toast(res.error.message, {
@@ -79,7 +70,9 @@ const getQuiz = async () => {
 
 const expandedQuestions = ref<boolean[]>([])
 
-getQuiz()
+onMounted(() => {
+  getQuiz()
+})
 
 const toggleQuestion = (index: number) => {
   expandedQuestions.value[index] = !expandedQuestions.value[index]
@@ -87,9 +80,15 @@ const toggleQuestion = (index: number) => {
 const handleViewUser = (uuid: string) => {
   router.push(`/profil/${uuid}`)
 }
+const handleTestPlay = () => {
+  router.push(`/quiz/practice/${uuid}`)
+  
+}
+
 </script>
 
 <template>
+  <MistBackground/>
   <div v-if="isLoading === true" class="min-h-screen flex justify-center items-center">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -130,8 +129,8 @@ const handleViewUser = (uuid: string) => {
           </div>
 
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <div class="mb-2">Tegek:</div>
-            <div class="flex flex-wrap gap-2">
+            <div class="mb-2">Kategóriák:</div>
+            <div class="flex flex-wrap gap-2 max-h-32 overflow-y-scroll">
               <span
                 v-for="tag in data?.tags"
                 :key="tag"
@@ -140,14 +139,14 @@ const handleViewUser = (uuid: string) => {
                 {{ tag }}
               </span>
             </div>
-            <div class="mb-2">Nyelvezet:</div>
+            <div class="mb-2">Nyelvek:</div>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="lang in data?.languageISOCodes"
                 :key="lang.iso_code"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
               >
-                {{ lang.iso_code }} {{ lang.icon }}
+                {{ lang.iso_code }} | {{ lang.icon }}
               </span>
             </div>
             <div class="mb-2">
@@ -165,11 +164,30 @@ const handleViewUser = (uuid: string) => {
 
           <div class="flex gap-2 justify-center">
             <button
-              class="flex-1 flex justify-center items-center rounded-xl font-bold backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg"
-            >
-              <Play :size="40" :stroke-width="2" absoluteStrokeWidth />
+              class="flex-1 
+              flex justify-center 
+              items-center rounded-xl
+               backdrop-blur-md
+                bg-blue-500/30
+                 hover:bg-blue-500/40 
+                 p-3 border border-white/20
+                  transition-all cursor-pointer
+                   duration-300 shadow-lg text-2xl"
+                   @click="handleTestPlay">
+                   Gyakorlás
             </button>
-           
+            <button
+              class="flex-1 
+              flex justify-center 
+              items-center rounded-xl
+               backdrop-blur-md
+                bg-green-500/30
+                 hover:bg-green-500/40 
+                 p-3 border border-white/20
+                  transition-all cursor-pointer
+                   duration-300 shadow-lg text-2xl">
+              Többjátékos
+            </button>
           </div>
         </div>
 

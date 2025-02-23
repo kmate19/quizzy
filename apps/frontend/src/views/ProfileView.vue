@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2 } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
 import NavBar from '@/components/NavBar.vue'
@@ -7,114 +7,123 @@ import MistBackground from '@/components/MistBackground.vue'
 import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
-import * as zod from 'zod'
+import { arrayBufferToBase64 } from '@/utils/helpers'
+import { queryClient } from '@/lib/queryClient'
+import { useQuery } from '@tanstack/vue-query'
+import { useRoute } from 'vue-router'
+import {
+  userData,
+  getOwnQuizzies,
+  handleDelete,
+  getApiKey,
+  handlePasswordChange,
+  deleteApiKey,
+  listApiKeys,
+} from '@/utils/functions/profileFunctions'
 
-const newPasswordSchema = zod.object({
-  password: zod
-    .string()
-    .min(1, { message: 'A mező kitöltése kötelező' })
-    .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
-    .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
-    .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
-    .regex(/[^a-zA-Z0-9]/, { message: 'Tartalmaznia kell speciális karaktert az új jelszónak' })
-    .regex(/\d/, { message: 'Tartalmaznia kell számot az új jelszónak' }),
+const localPfp = ref('')
+const keyId = ref(0)
+const isLoadingDelete = ref(false)
+const isLoadingKey = ref(false)
+const isDeleteApiKey = ref(false)
+const isApiModal = ref(false)
+const description = ref('')
+const expiration = ref('')
+const fileInput = ref<HTMLInputElement | null>(null)
+const selectedUuid = ref<string>('')
+const isDeleteModal = ref(false)
+const showSaveButton = ref<boolean>(false)
+const tempImage = ref<File | null>(null)
+const showPasswordModal = ref(false)
+const apiKey = ref('')
+const route = useRoute()
+const userId = route.params.uuid.toString()
+
+const minDateTime = computed(() => {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+  return now.toISOString().slice(0, 16)
 })
 
-type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
+const userPw = ref({
+  current_password: '',
+  new_password: '',
+  confirm_password: '',
+})
 
-const regErrors = ref<zod.ZodFormattedError<NewPasswordSchemaType> | null>(null)
+const { data: realUser, isLoading: isLoadingPage } = useQuery({
+  queryKey: ['userProfile'],
+  queryFn: () => userData(userId),
+  staleTime: 60 * 15 * 1000,
+  refetchInterval: 60 * 15 * 1000,
+  refetchOnMount: true,
+})
 
-interface Language {
-  name: string
-  iso_code: string
-  icon: string
-  support: 'none' | 'official' | 'partial'
-}
+const { data: userQuizzies, isLoading: isLoadingQuizzies } = useQuery({
+  queryKey: ['userQuizzies'],
+  queryFn: getOwnQuizzies,
+  staleTime: 60 * 15 * 1000,
+  refetchInterval: 60 * 15 * 1000,
+  refetchOnMount: true,
+})
 
-interface Tag {
-  name: string
-}
+watch(
+  realUser,
+  (newUser) => {
+    if (newUser?.profile_picture) {
+      localPfp.value = newUser.profile_picture
+    }
+  },
+  { immediate: true },
+)
 
-interface Quiz {
-  id: string
-  created_at: string
-  updated_at: string
-  user_id: string
-  description: string
-  title: string
-  status: 'published' | 'draft' | 'requires_review' | 'private'
-  rating: number
-  plays: number
-  banner: number[]
-  languages: Language[]
-  tags: Tag[]
-}
+const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
+  queryKey: ['apiKeys'],
+  queryFn: listApiKeys,
+  staleTime: 60 * 15 * 1000,
+  refetchInterval: 60 * 15 * 1000,
+  refetchOnMount: true,
+})
 
-interface sentFriendship {
-  created_at: string
-  status: 'pending' | 'blocked' | 'accepted'
-  addressee: {
-    id: string
-    username: string
-    activity_status: 'active' | 'inactive' | 'away'
-    profile_picture: {
-      type: 'Buffer'
-      data: number[]
-    } | null
-  }
-}
-
-interface recievedFriendships {
-  created_at: string
-  status: 'pending' | 'blocked' | 'accepted'
-  requester: {
-    id: string
-    username: string
-    activity_status: 'active' | 'inactive' | 'away'
-    profile_picture: {
-      type: 'Buffer'
-      data: number[]
-    } | null
-  }
-}
-
-const isLoading = ref(true)
-const userQuizzies = ref<Quiz[]>([])
-
-const getQuizzies = async () => {
+const genApiKey = async () => {
+  isLoadingKey.value = true;
   try {
-    isLoading.value = true
-    const res = await clientv1.quizzes.own.$get()
-    const data = await res.json()
-      ;[...data.data].forEach((el) => {
-        const temp: Quiz = {
-          id: el.id,
-          created_at: el.created_at,
-          updated_at: el.updated_at,
-          user_id: el.user_id,
-          description: el.description,
-          title: el.title,
-          status: el.status,
-          rating: el.rating,
-          plays: el.plays,
-          banner: el.banner.data,
-          languages: el.languages.map((lang) => ({
-            name: lang.language.name,
-            iso_code: lang.language.iso_code,
-            icon: lang.language.icon,
-            support: lang.language.support,
-          })),
-          tags: el.tags.map((tag) => ({
-            name: tag.tag.name,
-          })),
-        }
-        userQuizzies.value.push(temp)
+    if (expiration.value.trim() === "" || description.value.trim() === "") {
+      toast("Mezők kitöltése kötelező!", {
+        autoClose: 3500,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
       })
+      isLoadingKey.value = false;
+      return;
+    }
+    const generatedApiKey = await getApiKey(expiration.value, description.value) as string;
+    apiKey.value = generatedApiKey;
   } catch (error) {
-    console.error('error:', error)
+    console.error("Error generating API key:", error);
   } finally {
-    isLoading.value = false
+    isLoadingKey.value = false;
+    description.value = '';
+    expiration.value = '';
   }
+};
+
+const onDeleteApiKey = async (id: number) => {
+  await deleteApiKey(id)
+  isDeleteApiKey.value = false
+}
+
+const copyText = (copyValue: string) => {
+  navigator.clipboard.writeText(copyValue)
+  toast('API kulcs másolva a vágólapra!', {
+    autoClose: 3500,
+    position: toast.POSITION.TOP_CENTER,
+    type: 'success',
+    transition: 'zoom',
+    pauseOnHover: false,
+  } as ToastOptions)
 }
 
 const passwordRequirements = [
@@ -135,80 +144,18 @@ const showPasswordRequirements = () => {
   })
 }
 
-const realUser = ref({
-  email: '',
-  username: '',
-  created_at: '',
-  activity_status: '',
-  profile_picture: '',
-  sentFriendships: [] as sentFriendship[],
-  recievedFriendships: [] as recievedFriendships[],
-  friends: [] as sentFriendship[],
-  role: '',
-  stat: {
-    plays: 0,
-    first_places: 0,
-    second_places: 0,
-    third_places: 0,
-    wins: 0,
-    losses: 0,
-  },
-})
-
-const userData = async () => {
-  const user = await clientv1.userprofile.$get()
-  console.log('ASDASD', user.status)
-  if (user.status === 200) {
-    const res = await user.json()
-    console.log('stats', res.data.stats)
-    console.log('asd', res.data)
-    realUser.value = {
-      email: res.data.email,
-      username: res.data.username,
-      created_at: new Date(res.data.created_at).toLocaleDateString(),
-      activity_status: res.data.activity_status,
-      profile_picture: res.data.profile_picture
-        ? arrayBufferToBase64(res.data.profile_picture.data)
-        : '',
-      sentFriendships: res.data.sentFriendships,
-      recievedFriendships: res.data.recievedFriendships,
-      role: res.data.roles[0].role.name,
-      stat: res.data.stats,
-      friends: res.data.recievedFriendships
-        .filter((item) => item.status === 'accepted')
-        .map((item) => ({
-          created_at: item.created_at,
-          status: item.status,
-          addressee: {
-            id: item.requester.id,
-            username: item.requester.username,
-            activity_status: item.requester.activity_status,
-            profile_picture: item.requester.profile_picture,
-          },
-        })),
-    }
-  } else {
-    const res = await user.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
-  }
+const openPasswordModal = () => {
+  showPasswordModal.value = true
 }
 
-const fileInput = ref<HTMLInputElement | null>(null)
-const selectedUuid = ref<string>('')
-const isDeleteModal = ref(false)
-const showSaveButton = ref<boolean>(false)
-const tempImage = ref<File | null>(null)
-const userPw = ref({
-  current_password: '',
-  new_password: '',
-  confirm_password: '',
-})
+const closePasswordModal = async () => {
+  showPasswordModal.value = false
+  userPw.value = {
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
+  }
+}
 
 const handleFileChange = (event: Event) => {
   const inputElement = event.target as HTMLInputElement
@@ -229,18 +176,15 @@ const handleFileChange = (event: Event) => {
     }
 
     tempImage.value = file
-    realUser.value.profile_picture = URL.createObjectURL(file)
+    localPfp.value = URL.createObjectURL(file)
+    console.log(localPfp.value)
+    queryClient.refetchQueries({ queryKey: ['userProfile'] })
     showSaveButton.value = true
   }
 }
 
 const openFileDialog = () => {
   fileInput.value?.click()
-}
-
-const OnLogOut = async () => {
-  await clientv1.auth.logout.$get()
-  router.push('/login')
 }
 
 const saveProfileImage = async () => {
@@ -258,9 +202,8 @@ const saveProfileImage = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     })
-    console.log(showSaveButton.value)
     showSaveButton.value = false
-    console.log(showSaveButton.value)
+    queryClient.refetchQueries({ queryKey: ['userProfile'] })
   } else {
     const res = await pfpUpload.json()
     toast(res.error.message, {
@@ -270,85 +213,8 @@ const saveProfileImage = async () => {
       transition: 'zoom',
       pauseOnHover: false,
     })
-    realUser.value.profile_picture = tempImage.value ? URL.createObjectURL(tempImage.value) : ''
+    localPfp.value = tempImage.value ? URL.createObjectURL(tempImage.value) : ''
   }
-}
-
-const showPasswordModal = ref(false)
-
-const openPasswordModal = () => {
-  showPasswordModal.value = true
-}
-
-const closePasswordModal = async () => {
-  showPasswordModal.value = false
-  userPw.value = {
-    current_password: '',
-    new_password: '',
-    confirm_password: '',
-  }
-}
-
-const handlePasswordChange = async () => {
-  const result = newPasswordSchema.safeParse({ password: userPw.value.new_password })
-  if (!result.success) {
-    regErrors.value = result.error.format()
-    toast(
-      Object.values(regErrors.value.password?._errors || [])[0] || 'Érvénytelen jelszó formátum!',
-      {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions,
-    )
-    return
-  }
-  if (userPw.value.confirm_password !== userPw.value.new_password) {
-    toast('A jelszavak nem egyeznek', {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    } as ToastOptions)
-    return
-  } else {
-    const reset = await clientv1.auth.changepassword.$post({
-      json: { oldPassword: userPw.value.current_password, password: userPw.value.new_password },
-    })
-    if (reset.status === 200) {
-      toast('Jelszó sikeresen megváltoztatva!', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'success',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-      await clientv1.auth.logout.$get()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push('/login')
-    } else {
-      const res = await reset.json()
-      toast(res.message, {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-    }
-  }
-}
-
-const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/avif'): string => {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return `data:${mimeType};base64,${window.btoa(binary)}`
 }
 
 const handleQuizView = (uuid: string) => {
@@ -359,37 +225,18 @@ const handleQuizDeatailedView = (uuid: string) => {
   router.push(`/quiz/${uuid}`)
 }
 
-const handleDelete = async (uuid: string) => {
-  const del = await clientv1.quizzes.delete[':quizId'].$delete({ param: { quizId: uuid } })
-  if (del.status === 200) {
-    toast("Quiz sikeresen törölve", {
-      autoClose: 3500,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'success',
-      transition: 'zoom',
-      pauseOnHover: false,
-    } as ToastOptions)
-    isDeleteModal.value = false
-    userQuizzies.value = []
-    getQuizzies()
-  }
-  else
-  {
-    const res = await del.json()
-    toast(res.message,{
-        autoClose: 3500,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      })
-  }
+const onDelete = (uuid: string) => {
+  isLoadingDelete.value = true
+  handleDelete(uuid)
+  isLoadingDelete.value = false
+  isDeleteModal.value = false
 }
 
-onMounted(() => {
-  getQuizzies()
-  userData()
-})
+const OnLogOut = async () => {
+  await clientv1.auth.logout.$get()
+  queryClient.clear()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -397,20 +244,20 @@ onMounted(() => {
   <Transition appear enter-active-class="transition ease-in-out duration-1000"
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
-      <div v-if="isLoading === true" class="min-h-screen flex justify-center items-center">
-        <div v-if="isLoading" class="flex justify-center items-center h-64">
-          <Loader2Icon class="w-12 h-12 text-white animate-spin" />
-        </div>
-      </div>
-      <div v-else class="fixed inset-0 pointer-events-none overflow-hidden">
-      </div>
-      <div class="relative max-w-7xl mx-auto">
+      <div class="relative max-w-7xl mx-auto p-2">
         <NavBar />
         <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex flex-wrap gap-8">
-          <div class="flex flex-wrap items-center gap-8">
-            <div class="relative">
-              <img :src="realUser.profile_picture || ''"
-                class="w-32 h-32 rounded-full object-cover border-4 border-white/30" />
+          <div v-if="isLoadingPage === true" class="w-full flex justify-center items-center">
+            <div class="flex justify-center items-center h-38">
+              <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+            </div>
+          </div>
+          <div v-else
+            class="flex flex-col md:flex-row md:flex-wrap md:justify-center w-full items-center gap-6 md:gap-8 p-4">
+            <div class="relative mx-auto md:mx-0">
+              <v-img :src="localPfp"
+                class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30" fit>
+              </v-img>
               <div
                 class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
                 @click="openFileDialog">
@@ -422,146 +269,202 @@ onMounted(() => {
                 Mentés
               </button>
             </div>
-            <div class="text-white flex flex-col flex-wrap">
-              <h1 class="text-3xl font-bold mb-2">{{ realUser.username }}</h1>
-              <p class="text-white/80">{{ realUser.email }}</p>
-              <p v-if="realUser.role === 'admin'"
-                class="mt-2 px-3 py-1 bg-purple-500/30 rounded-full inline-block text-sm">
-                {{ realUser.role }}
-              </p>
-              <p v-else class="mt-2 px-3 py-1 bg-red-500/30 rounded-full inline-block text-sm">
-                {{ realUser.role }}
-              </p>
-            </div>
-          </div>
-          <div class="flex-1 flex flex-wrap justify-end items-center gap-4">
-            <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.plays }}</div>
-              <div class="text-white/70 text-sm">Összes játék</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">{{ realUser.stat.first_places }}</div>
-              <div class="text-white/70 text-sm">1. helyezés</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-2">
-                {{
-                  isNaN(Math.round((realUser.stat.first_places / realUser.stat.plays) * 100))
-                    ? 0
-                    : Math.round((realUser.stat.first_places / realUser.stat.plays) * 100)
-                }}%
+
+            <div class="flex flex-col items-center md:items-start text-center md:text-left text-white">
+              <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{{ realUser?.username }}</h1>
+              <p class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
+
+              <div class="flex flex-col gap-2 mt-2" v-show="realUser?.role === 'admin'">
+                <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
+                  {{ realUser?.role }}
+                </p>
+                <button @click="isApiModal = true"
+                  class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900 hover:border-white border-2 border-transparent">
+                  API Kulcs igénylése
+                </button>
               </div>
-              <div class="text-white/70 text-sm">Nyerési arány</div>
             </div>
-            <div class="flex gap-4">
-              <button @click="openPasswordModal"
-                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-green-900">
-                Jelszó módosítás
-              </button>
-              <button
-                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit !bg-red-900"
-                @click="OnLogOut">
-                Kijelentkezés
-              </button>
+
+            <div class="flex-1 flex flex-col md:flex-row justify-center md:justify-end items-center gap-6">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                <div>
+                  <div class="text-3xl md:text-4xl font-bold text-white">
+                    {{ realUser?.stats.plays }}
+                  </div>
+                  <div class="text-white/70 text-xs md:text-sm">Összes játék</div>
+                </div>
+                <div>
+                  <div class="text-3xl md:text-4xl font-bold text-white">
+                    {{ realUser?.stats.first_places }}
+                  </div>
+                  <div class="text-white/70 text-xs md:text-sm">1. helyezés</div>
+                </div>
+                <div>
+                  <div class="text-3xl md:text-4xl font-bold text-white">
+                    {{
+                      isNaN(
+                        Math.round(
+                          (realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100,
+                        ),
+                      )
+                        ? 0
+                        : Math.round(
+                          (realUser?.stats?.first_places! / realUser?.stats?.plays!) * 100,
+                        )
+                    }}%
+                  </div>
+                  <div class="text-white/70 text-xs md:text-sm">Nyerési arány</div>
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button @click="openPasswordModal"
+                  class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-green-900 hover:border-white border-2 border-transparent">
+                  Jelszó módosítás
+                </button>
+                <button
+                  class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-red-900 hover:border-white border-2 border-transparent"
+                  @click="OnLogOut">
+                  Kijelentkezés
+                </button>
+              </div>
             </div>
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
-              Barátok
-              <span class="text-sm font-normal text-white/70">
-                {{ realUser.friends.length }} összesen
-              </span>
-            </h2>
-            <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="friend in realUser.friends" :key="friend.addressee.id" class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
-              border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
-                <img :src="friend.addressee.profile_picture?.data
-                  ? arrayBufferToBase64(friend.addressee.profile_picture.data)
-                  : ''
-                  " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
-                <div class="flex-1">
-                  <h3 class="text-white font-medium text-xl mb-2">
-                    {{ friend.addressee.username }}
-                  </h3>
-                  <p class="text-sm">
-                    <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active'
-                      ? 'bg-green-400'
-                      : 'bg-gray-400'
-                      ">
-                    </span>
-                    {{ friend.addressee.activity_status }}
-                  </p>
+            <div v-if="isLoadingPage === true" class="h-[456px] flex justify-center items-center self-center">
+              <div class="flex justify-center items-center h-64">
+                <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+              </div>
+            </div>
+            <div v-else>
+              <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
+                Barátok
+                <span class="text-sm font-normal text-white/70">
+                  {{ realUser?.friends.length }} összesen
+                </span>
+              </h2>
+              <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]" style="max-height: 400px">
+                <div v-for="friend in realUser?.friends" :key="friend.addressee.id"
+                  class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10">
+                  <img :src="friend.addressee.profile_picture?.data
+                    ? arrayBufferToBase64(friend.addressee.profile_picture.data)
+                    : ''
+                    " alt="Friend profile" class="w-20 h-20 rounded-full object-cover" />
+                  <div class="flex-1">
+                    <h3 class="text-white font-medium text-xl mb-2">
+                      {{ friend.addressee.username }}
+                    </h3>
+                    <p class="text-sm">
+                      <span class="inline-block w-2 h-2 rounded-full mr-2" :class="friend.addressee.activity_status === 'active'
+                        ? 'bg-green-400'
+                        : 'bg-gray-400'
+                        ">
+                      </span>
+                      {{ friend.addressee.activity_status }}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
-              Quizzes
-              <span class="text-sm font-normal text-white/70">
-                {{ userQuizzies.length }} összesen
-              </span>
-            </h2>
-            <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6" style="max-height: 400px">
-              <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex gap-4 p-2 rounded-xl h-32 text-white hover:border-white 
-                border-2 border-transparent shadow-lg transition-all duration-500 cursor-pointer bg-white/10" @click="
-                  quiz.status === 'draft'
-                    ? handleQuizView(quiz.id)
-                    : handleQuizDeatailedView(quiz.id)
-                  ">
-                <div class="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <img v-if="quiz.banner && quiz.banner.length" :src="arrayBufferToBase64(quiz.banner)"
-                    alt="Quiz banner" class="w-full h-full object-cover" />
-                  <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center">
+            <div v-if="isLoadingQuizzies === true" class="h-[456px] flex justify-center items-center self-center">
+              <div class="flex justify-center items-center h-64">
+                <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+              </div>
+            </div>
+            <div v-else>
+              <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
+                Quizzes
+                <span class="text-sm font-normal text-white/70">
+                  {{ userQuizzies?.length }} összesen
+                </span>
+              </h2>
+              <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
+                <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col sm:flex-row gap-4 p-2 rounded-xl text-white 
+         hover:border-white border-2 border-transparent shadow-lg transition-all 
+         duration-500 cursor-pointer bg-white/10" @click="
+          quiz.status === 'draft'
+            ? handleQuizView(quiz.id)
+            : handleQuizDeatailedView(quiz.id)
+          ">
+                
+                  <div class="relative w-full sm:w-20 h-20 rounded-lg overflow-hidden shrink-0">
+                    <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner" alt="Quiz banner"
+                      class="w-full h-full object-cover" />
+                    <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
                   </div>
-                </div>
 
-                <div class="flex-1">
-                  <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-                    <span v-if="quiz.status !== 'draft'" class="absolute top-2 right-2 flex rounded-full text-xs bg-blue-700 w-10 h-10 justify-center items-center border-2 border-transparent
-                    hover:border-white transition-all duration-300 ">
-                      <Settings @click.stop="handleQuizView(quiz.id)" />
-                    </span>
-                    <span class="absolute bottom-2 right-2 flex rounded-full text-xs
-                     bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent
-                    hover:border-white transition-all duration-300">
-                      <Trash2 @click.stop="(isDeleteModal = !isDeleteModal, selectedUuid = quiz.id)" />
-                    </span>
-                  </div>
-                  <span class="px-2 py-1 rounded-full text-xs" :class="{
-                    'bg-green-500': quiz.status === 'published',
-                    'bg-yellow-500': quiz.status === 'requires_review',
-                    'bg-gray-500': quiz.status === 'draft',
-                    'bg-blue-500': quiz.status === 'private',
-                  }">
-                    {{ quiz.status }}
-                  </span>
+               
+                  <div class="flex-1 relative">
+                    <div class="flex items-center justify-between mb-2">
+                      <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
 
-                  <p class="text-sm text-white/70 mb-2 line-clamp-2">{{ quiz.description }}</p>
+                     
+                      <span v-if="quiz.status !== 'draft'" @click.stop="handleQuizView(quiz.id)" class="absolute
+                       top-2 right-12 flex rounded-full text-xs bg-blue-700 w-10 h-10 
+               justify-center items-center border-2 border-transparent 
+               hover:border-white transition-all duration-300">
+                        <Settings />
+                      </span>
 
-                  <div class="flex items-center gap-4 text-sm">
-                    <div class="flex items-center">
-                      <span class="mr-1">⭐</span>
-                      {{ quiz.rating }}
-                    </div>
-                    <div class="flex items-center">
-                      <span class="mr-1">👥</span>
-                      {{ quiz.plays }}
-                    </div>
-                    <div class="flex gap-1">
-                      <span v-for="lang in quiz.languages" :key="lang.name"
-                        class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center" :title="lang.name">
-                        {{ lang.iso_code }}
+                      
+                      <span @click.stop="
+                        (isDeleteModal = !isDeleteModal),
+                        (selectedUuid = quiz.id)
+                        " class="absolute top-2 right-0 flex rounded-full text-xs bg-red-700 w-10 h-10 
+               justify-center items-center border-2 border-transparent 
+               hover:border-white transition-all duration-300">
+                        <Trash2 />
                       </span>
                     </div>
-                    <div class="flex flex-wrap gap-1">
-                      <span v-for="tag in quiz.tags" :key="tag.name"
-                        class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
-                        {{ tag.name }}
-                      </span>
+
+                   
+                    <span class="px-2 py-1 rounded-full text-xs" :class="{
+                      'bg-green-500': quiz.status === 'published',
+                      'bg-yellow-500': quiz.status === 'requires_review',
+                      'bg-gray-500': quiz.status === 'draft',
+                      'bg-blue-500': quiz.status === 'private',
+                    }">
+                      {{ quiz.status }}
+                    </span>
+
+                   
+                    <p class="text-sm text-white/70 mb-2 line-clamp-2">
+                      {{ quiz.description }}
+                    </p>
+
+                    
+                    <div class="flex items-center flex-wrap gap-4 text-sm">
+                      
+                      <div class="flex items-center">
+                        <span class="mr-1">⭐</span>
+                        {{ quiz.rating }}
+                      </div>
+
+                     
+                      <div class="flex items-center">
+                        <span class="mr-1">👥</span>
+                        {{ quiz.plays }}
+                      </div>
+
+                     
+                      <div class="flex gap-1">
+                        <span v-for="lang in quiz.languages" :key="lang.name"
+                          class="w-6 h-6 rounded-lg p-1 bg-white/10 flex items-center justify-center" :title="lang.name">
+                          {{ lang.iso_code }}
+                        </span>
+                      </div>
+
+                     
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="tag in quiz.tags" :key="tag.name"
+                          class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
+                          {{ tag.name }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -581,7 +484,13 @@ onMounted(() => {
             </div>
             <XButton @click="closePasswordModal" />
           </div>
-          <form @submit.prevent="handlePasswordChange" class="space-y-4 text-white">
+          <form @submit.prevent="
+            handlePasswordChange(
+              userPw.new_password,
+              userPw.confirm_password,
+              userPw.current_password,
+            )
+            " class="space-y-4 text-white">
             <div>
               <v-text-field type="text" variant="outlined" density="comfortable" label="Jelenlegi jelszó"
                 v-model="userPw.current_password" />
@@ -610,16 +519,123 @@ onMounted(() => {
             </div>
             <XButton @click="isDeleteModal = !isDeleteModal" />
           </div>
-          <form @submit.prevent="handleDelete(selectedUuid)" class="space-y-4 text-white">
+          <form @submit.prevent="onDelete(selectedUuid)" class="flex text-white gap-2">
             <button type="submit"
               class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-              Igen
+              <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </span>
+              <span v-else> Igen </span>
             </button>
-            <button type="button" @click="isDeleteModal = !isDeleteModal" 
+            <button type="button" @click="isDeleteModal = !isDeleteModal"
               class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
               Nem
             </button>
           </form>
+        </div>
+      </div>
+      <div v-if="isDeleteApiKey"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-evenly flex-row">
+              <h3 class="text-2xl font-bold text-white">
+                Biztosan szeretnéd törölni az API kulcsot?
+              </h3>
+            </div>
+            <XButton @click="isDeleteApiKey = !isDeleteApiKey" />
+          </div>
+          <form @submit.prevent="onDeleteApiKey(keyId)" class="flex text-white gap-2">
+            <button type="submit"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+              <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </span>
+              <span v-else> Igen </span>
+            </button>
+            <button type="button" @click="isDeleteApiKey = !isDeleteApiKey"
+              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+              Nem
+            </button>
+          </form>
+        </div>
+      </div>
+      <div v-if="isApiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div v-if="isLoadingApiKeys === true" class="min-h-screen flex justify-center items-center">
+          <div class="flex justify-center items-center h-64">
+            <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+          </div>
+        </div>
+        <div v-else class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-evenly flex-row">
+              <h3 class="text-2xl font-bold text-white">Api kulcs igénylése</h3>
+            </div>
+            <XButton @click="isApiModal = false" class="cursor-pointer text-white" />
+          </div>
+          <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-4">
+            <input type="text" v-model="description" placeholder="Leírás" class="bg-white/10 p-2 rounded-md" />
+            <input type="datetime-local" v-model="expiration" :min="minDateTime" class="bg-white/10 p-2 rounded-md" />
+            <div v-if="apiKey" class="flex flex-row gap-2 justify-center items-center w-full">
+              <div class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent
+                 hover:border-white text-white break-all shadow-lg transition-all duration-300
+                  hover:bg-white/20 flex gap-2 items-center cursor-pointer" @click="copyText(apiKey)">
+                Generált kulcs másolása
+              </div>
+            </div>
+            <button type="submit"
+              class="glass-button px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+              <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </span>
+              <span v-else>Generálás</span>
+            </button>
+          </form>
+
+          <div class="mt-8">
+            <h4 class="text-xl font-semibold text-white mb-4">
+              API Kulcsaid: {{ apiKeys?.length }}
+            </h4>
+            <div class="space-y-2 h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar p-2">
+              <li v-for="key in apiKeys" :key="key.key"
+                class="flex justify-between items-center bg-white/10 p-3 rounded-md">
+                <div>
+                  <p class="text-white font-medium">Leírás: {{ key.description }}</p>
+                  <div class="flex items-center">
+                    <p class="text-white text-sm">
+                      Kulcs:
+                      <span
+                        class="text-white cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white hover:after:w-full after:transition-all after:duration-300"
+                        @click="copyText(key.key)">
+                        másolás
+                      </span>
+                    </p>
+                  </div>
+                  <p class="text-white/70 text-sm">Lejár: {{ key.expires_at }}</p>
+                </div>
+                <span
+                  class="flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300 text-white cursor-pointer"
+                  @click="((isDeleteApiKey = true), (keyId = key.id_by_user), (isApiModal = false))">
+                  <Trash2 />
+                </span>
+              </li>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -663,14 +679,14 @@ button {
 .glass-button {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
+  border: 2px solid transparent;
 }
 
 .glass-button:hover {
   background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  border: 2px solid white;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
 }

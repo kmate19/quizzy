@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import MistBackground from './components/MistBackground.vue';
+import { VueQueryDevtools } from '@tanstack/vue-query-devtools'
 //itt meg kell mokolni mert navbar meg bg idejon de ha bg itt akk homeon van egy fatyol mindenen ?
 </script>
 
 <template>
-  <MistBackground/>
+    <VueQueryDevtools />
   <RouterView/>
 </template>

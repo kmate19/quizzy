@@ -7,6 +7,8 @@ import { ref, watch } from 'vue'
 import DetailedView from '@/views/DetailedView.vue'
 import { clientv1 } from '@/lib/apiClient'
 import ForgotPassword from '@/views/ForgotPassword.vue'
+import { queryClient } from '@/lib/queryClient'
+import QuizPractice from '@/views/QuizPractice.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -49,6 +51,14 @@ const router = createRouter({
         requiresAuth: true,
       },
     },
+    {
+      path: '/quiz/practice/:uuid',
+      name: 'quiz_practice',
+      component: QuizPractice,
+      meta: {
+        requiresAuth: true,
+      },
+    },
   ],
 })
 
@@ -59,28 +69,34 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
 
   const requiresAuth = toRoute.meta.requiresAuth
   const isLoginPath = toRoute.path === '/login'
+  const cachedUser = queryClient.getQueryData(['authUser'])
 
-  try {
-    const auth = await clientv1.auth.authed.$get({ query: {} })
-    const isAuthenticated = auth.status === 200
-
+  if (cachedUser) {
     if (isLoginPath) {
+      return next('/')
+    }
+  } else {
+    try {
+      const auth = await clientv1.auth.authed.$get({ query: {} })
+      const isAuthenticated = auth.status === 200
+
       if (isAuthenticated) {
-        return next('/')//authed
+        queryClient.setQueryData(['authUser'], auth)
+
+        if (isLoginPath) {
+          return next('/')
+        }
       } else {
-        return next()//geos to login
+        if (isLoginPath) {
+        } else if (requiresAuth) {
+          return next('/login')
+        }
       }
-    }
-    if (requiresAuth) {
-      if (!isAuthenticated) {
-        return next('/login')//not authed and goes to route which requires auth
+    } catch (error) {
+      console.error('Error during auth check:', error)
+      if (requiresAuth && !isLoginPath) {
+        return next('/login')
       }
-    }
-  } catch (error) {
-    console.error('Error during auth check:', error)
-    if (requiresAuth && !isLoginPath) {
-      console.log('Error during login and auth check')
-      return next('/login')
     }
   }
 
@@ -91,15 +107,21 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
     case 'home':
       newTitle = 'Kezdőlap'
       break
-    case 'profil':
+    case 'profile':
       newTitle = 'Profil'
       break
     case 'game_creation':
       newTitle = 'Játék készítés'
       break
+    case 'detailed_view':
+      newTitle = 'Megtekintés'
+      break
+    case 'quiz_practice':
+      newTitle = 'Gyakorlás'
+      break
   }
 
-  title.value = newTitle
+  document.title = newTitle
   next()
 })
 
