@@ -86,7 +86,7 @@ const filteredLanguages = computed(() => {
 
 const toggleLanguageDropdown = () => {
   isLanguageDropdownOpen.value = !isLanguageDropdownOpen.value
-  ;(document.querySelector('#languageSearchInput') as HTMLInputElement)?.focus()
+    ; (document.querySelector('#languageSearchInput') as HTMLInputElement)?.focus()
 }
 
 const isSelectedLanguage = (lang: Language) => {
@@ -161,7 +161,7 @@ onMounted(async () => {
   if (result && !Array.isArray(result) && typeof result === 'object') {
     quiz.value = result.data
     selectedLanguages.value = result.languages
-    selectedTags.value = result.data.tags.map((t) => ({ name: t}))
+    selectedTags.value = result.data.tags.map((t) => ({ name: t }))
     isEdit.value = result.success
   }
   isLoading.value = false
@@ -348,49 +348,29 @@ const uploadOrUpdate = async () => {
 <template>
   <MistBackground />
   <NavBar />
-  <Transition
-    appear
-    enter-active-class="transition ease-in-out duration-1000"
-    enter-from-class="opacity-0 translate-y-4"
-    enter-to-class="opacity-100 translate-y-0"
-  >
+  <Transition appear enter-active-class="transition ease-in-out duration-1000"
+    enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <v-container fluid class="max-h-[80%] flex justify-center items-center">
-      <v-row
-        class="mx-auto max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
-      >
+      <v-row class="mx-auto max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10">
         <v-col cols="12" md="4" class="glass-panel">
           <div class="p-6 rounded-lg backdrop-blur-lg text-white first">
             <div class="mb-2">
-              <input
-                type="file"
-                ref="gameImageInput"
-                accept=".png,.jpg,.jpeg,.svg"
-                class="hidden"
-                @change="handleGameImageUpload"
-              />
+              <input type="file" ref="gameImageInput" accept=".png,.jpg,.jpeg,.svg" class="hidden"
+                @change="handleGameImageUpload" />
               <div
-                class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75"
-              >
-                <v-img
-                  :src="quiz.banner || '/placeholder.svg?height=200&width=300'"
-                  height="200"
-                  fit
-                >
+                class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75">
+                <v-img :src="quiz.banner || '/placeholder.svg?height=200&width=300'" height="200" fit>
                   <template v-slot:placeholder>
                     <div class="flex flex-col items-center justify-center h-full">
-                      <CirclePlus
-                        @click="$refs.gameImageInput.click()"
+                      <CirclePlus @click="$refs.gameImageInput.click()"
                         class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
-                        stroke-width="0.75"
-                      />
+                        stroke-width="0.75" />
                     </div>
                   </template>
                 </v-img>
-                <div
-                  v-if="quiz.banner && !quiz.banner.includes('/placeholder')"
+                <div v-if="quiz.banner && !quiz.banner.includes('/placeholder')"
                   class="absolute top-2 right-2 rounded-full cursor-pointer transition-all duration-500 w-fit h-fit"
-                  @click.stop="clearGameImage"
-                >
+                  @click.stop="clearGameImage">
                   <XButton />
                 </div>
               </div>
@@ -400,46 +380,23 @@ const uploadOrUpdate = async () => {
                 Láthatóság
               </label>
               <div class="relative inline-block text-left">
-                <button
-                  @click="toggleDropdown"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30"
-                >
+                <button @click="toggleDropdown"
+                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
                   <span>{{ quiz.status }}</span>
-                  <svg
-                    class="ml-2 h-5 w-5 transform transition-transform duration-300"
-                    :class="{ 'rotate-180': isOpen }"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg class="ml-2 h-5 w-5 transform transition-transform duration-300"
+                    :class="{ 'rotate-180': isOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <transition
-                  enter-active-class="transition ease-out duration-300"
-                  enter-from-class="opacity-0"
-                  enter-to-class="opacity-100"
-                  leave-active-class="transition ease-in duration-300"
-                  leave-from-class="opacity-100"
-                  leave-to-class="opacity-0"
-                >
-                  <div
-                    v-if="isOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300"
-                  >
+                <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
+                  enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
+                  leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <div v-if="isOpen"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
                     <div class="py-1">
-                      <div
-                        v-for="item in items"
-                        :key="item"
-                        @click="selectItem(item)"
-                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-"
-                      >
+                      <div v-for="item in items" :key="item" @click="selectItem(item)"
+                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
                         {{ item }}
                       </div>
                     </div>
@@ -449,81 +406,48 @@ const uploadOrUpdate = async () => {
             </div>
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
-                <button
-                  @click="toggleTagDropdown"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30"
-                >
-                  <span>
-                    {{
-                      selectedTags.length > 0
-                        ? selectedTags.map((tag) => tag.name).join(', ')
-                        : 'Válassz kategóriákat'
-                    }}
-                  </span>
-                  <svg
-                    class="ml-2 h-5 w-5 transform transition-transform duration-300"
-                    :class="{ 'rotate-180': isTagDropdownOpen }"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
+                <button @click="toggleTagDropdown" class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 
+           inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
+                  <div class="flex-1 overflow-hidden">
+                    <span class="inline-block animate-marquee">
+                      {{
+                        selectedTags.length > 0
+                          ? selectedTags.map(tag => tag.name).join(', ')
+                          : 'Válassz kategóriákat'
+                      }}
+                    </span>
+                  </div>
+                  <svg class="ml-2 h-5 w-5 transform transition-transform duration-300 flex-shrink-0"
+                    :class="{ 'rotate-180': isTagDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <transition
-                  enter-active-class="transition ease-out duration-300"
-                  enter-from-class="opacity-0"
-                  enter-to-class="opacity-100"
-                  leave-active-class="transition ease-in duration-300"
-                  leave-from-class="opacity-100"
-                  leave-to-class="opacity-0"
-                >
-                  <div
-                    v-if="isTagDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar"
-                  >
+                <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
+                  enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
+                  leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <div v-if="isTagDropdownOpen"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar">
                     <div class="py-1">
-                      <input
-                        v-model="tagSearchQuery"
-                        type="text"
-                        placeholder="Keresés..."
-                        id="tagSearchInput"
-                        class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1"
-                      />
+                      <input v-model="tagSearchQuery" type="text" placeholder="Keresés..." id="tagSearchInput"
+                        class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1" />
 
                       <template v-if="allTags && allTags.length > 0">
                         <div v-for="tag in filteredTags" :key="tag.name" class="px-3 py-1">
-                          <input
-                            type="checkbox"
-                            :id="tag.name"
-                            :value="tag"
-                            :checked="isSelected(tag)"
-                            @change="toggleTagSelection(tag)"
-                            class="opacity-0 absolute"
-                          />
-                          <label
-                            :for="tag.name"
+                          <input type="checkbox" :id="tag.name" :value="tag" :checked="isSelected(tag)"
+                            @change="toggleTagSelection(tag)" class="opacity-0 absolute" />
+                          <label :for="tag.name"
                             class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
-                            :class="
-                              isSelected(tag)
-                                ? 'text-green-400 hover:border-green-400'
-                                : 'text-white hover:border-white'
-                            "
-                          >
+                            :class="isSelected(tag)
+                              ? 'text-green-400 hover:border-green-400'
+                              : 'text-white hover:border-white'
+                              ">
                             {{ tag.name }}
                           </label>
                         </div>
                       </template>
-                      <div
-                        v-if="filteredTags.length === 0"
-                        class="px-4 py-2 text-white flex justify-center items-center"
-                      >
+                      <div v-if="filteredTags.length === 0"
+                        class="px-4 py-2 text-white flex justify-center items-center">
                         Nincs találat.
                       </div>
                     </div>
@@ -533,10 +457,8 @@ const uploadOrUpdate = async () => {
             </div>
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
-                <button
-                  @click="toggleLanguageDropdown"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30"
-                >
+                <button @click="toggleLanguageDropdown"
+                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
                   <span>
                     {{
                       selectedLanguages.length > 0
@@ -544,70 +466,37 @@ const uploadOrUpdate = async () => {
                         : 'Válassz nyelveket'
                     }}
                   </span>
-                  <svg
-                    class="ml-2 h-5 w-5 transform transition-transform duration-300"
-                    :class="{ 'rotate-180': isLanguageDropdownOpen }"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg class="ml-2 h-5 w-5 transform transition-transform duration-300"
+                    :class="{ 'rotate-180': isLanguageDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <transition
-                  enter-active-class="transition ease-out duration-300"
-                  enter-from-class="opacity-0"
-                  enter-to-class="opacity-100"
-                  leave-active-class="transition ease-in duration-300"
-                  leave-from-class="opacity-100"
-                  leave-to-class="opacity-0"
-                >
-                  <div
-                    v-if="isLanguageDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar"
-                  >
+                <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
+                  enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
+                  leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <div v-if="isLanguageDropdownOpen"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar">
                     <div class="py-1">
-                      <input
-                        v-model="languageSearchQuery"
-                        type="text"
-                        placeholder="Keresés..."
-                        id="languageSearchInput"
-                        class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1"
-                      />
+                      <input v-model="languageSearchQuery" type="text" placeholder="Keresés..." id="languageSearchInput"
+                        class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1" />
 
                       <template v-if="allLanguages && allLanguages.length > 0">
                         <div v-for="lang in filteredLanguages" :key="lang.name" class="px-3 py-1">
-                          <input
-                            type="checkbox"
-                            :id="lang.name"
-                            :value="lang"
-                            :checked="isSelectedLanguage(lang)"
-                            @change="toggleLanguageSelection(lang)"
-                            class="opacity-0 absolute"
-                          />
-                          <label
-                            :for="lang.name"
+                          <input type="checkbox" :id="lang.name" :value="lang" :checked="isSelectedLanguage(lang)"
+                            @change="toggleLanguageSelection(lang)" class="opacity-0 absolute" />
+                          <label :for="lang.name"
                             class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
-                            :class="
-                              isSelectedLanguage(lang)
-                                ? 'text-green-400 hover:border-green-400'
-                                : 'text-white hover:border-white'
-                            "
-                          >
+                            :class="isSelectedLanguage(lang)
+                              ? 'text-green-400 hover:border-green-400'
+                              : 'text-white hover:border-white'
+                              ">
                             {{ lang.name }} | {{ lang.support }} | {{ lang.icon }}
                           </label>
                         </div>
                       </template>
-                      <div
-                        v-if="filteredLanguages.length === 0"
-                        class="px-4 py-2 text-white flex justify-center items-center"
-                      >
+                      <div v-if="filteredLanguages.length === 0"
+                        class="px-4 py-2 text-white flex justify-center items-center">
                         Nincs találat.
                       </div>
                     </div>
@@ -615,39 +504,20 @@ const uploadOrUpdate = async () => {
                 </transition>
               </div>
             </div>
-            <v-text-field
-              v-model="quiz.title"
-              label="Cím"
-              variant="outlined"
-              bg-color="rgba(255, 255, 255, 0.1)"
-            />
-            <v-textarea
-              v-model="quiz.description"
-              label="Leírás"
-              variant="outlined"
-              bg-color="rgba(255, 255, 255, 0.1)"
-            />
+            <v-text-field v-model="quiz.title" label="Cím" variant="outlined" bg-color="rgba(255, 255, 255, 0.1)" />
+            <v-textarea v-model="quiz.description" label="Leírás" variant="outlined"
+              bg-color="rgba(255, 255, 255, 0.1)" />
             <v-btn block color="success" class="mt-2" @click="uploadOrUpdate">
               <span v-if="isLoading" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    fill="none"
-                  />
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                    fill="none" />
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </span>
               <span v-else class="flex gap-2">
-                Quiz {{ isEdit? 'módosítása': 'feltöltése'}}
+                Quiz {{ isEdit ? 'módosítása' : 'feltöltése' }}
                 <CloudUpload />
               </span>
             </v-btn>
@@ -657,36 +527,21 @@ const uploadOrUpdate = async () => {
         <v-col cols="12" md="4" class="glass-panel transition-all duration-500 text-white">
           <div class="p-6 rounded-lg backdrop-blur-lg">
             <div class="mb-2">
-              <input
-                type="file"
-                ref="questionImageInput"
-                accept=".png,.jpg,.jpeg,.svg"
-                class="hidden"
-                @change="handleQuestionImageUpload"
-              />
+              <input type="file" ref="questionImageInput" accept=".png,.jpg,.jpeg,.svg" class="hidden"
+                @change="handleQuestionImageUpload" />
               <div
-                class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75"
-              >
-                <v-img
-                  :src="oneQuestion.picture || '/placeholder.svg?height=200&width=300'"
-                  height="200"
-                  fit
-                >
+                class="relative rounded-lg border-2 border-dashed border-white/20 overflow-hidden transition-all hover:opacity-75">
+                <v-img :src="oneQuestion.picture || '/placeholder.svg?height=200&width=300'" height="200" fit>
                   <template v-slot:placeholder>
                     <div class="flex flex-col items-center justify-center h-full">
-                      <CirclePlus
-                        @click="$refs.questionImageInput.click()"
+                      <CirclePlus @click="$refs.questionImageInput.click()"
                         class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
-                        stroke-width="0.75"
-                      />
+                        stroke-width="0.75" />
                     </div>
                   </template>
                 </v-img>
-                <div
-                  v-if="oneQuestion.picture && !oneQuestion.picture.includes('/placeholder')"
-                  class="absolute top-2 right-2 p-1 rounded-full cursor-pointer"
-                  @click.stop="clearQuestionImage"
-                >
+                <div v-if="oneQuestion.picture && !oneQuestion.picture.includes('/placeholder')"
+                  class="absolute top-2 right-2 p-1 rounded-full cursor-pointer" @click.stop="clearQuestionImage">
                   <XButton />
                 </div>
               </div>
@@ -697,46 +552,23 @@ const uploadOrUpdate = async () => {
                 Kérdés fajtája
               </label>
               <div class="relative inline-block text-left">
-                <button
-                  @click="isQType = !isQType"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30"
-                >
+                <button @click="isQType = !isQType"
+                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
                   <span>{{ oneQuestion.type }}</span>
-                  <svg
-                    class="ml-2 h-5 w-5 transform transition-transform duration-200"
-                    :class="{ 'rotate-180': isQType }"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg class="ml-2 h-5 w-5 transform transition-transform duration-200"
+                    :class="{ 'rotate-180': isQType }" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <transition
-                  enter-active-class="transition ease-out duration-300"
-                  enter-from-class="opacity-0"
-                  enter-to-class="opacity-100"
-                  leave-active-class="transition ease-in duration-300"
-                  leave-from-class="opacity-100"
-                  leave-to-class="opacity-0"
-                >
-                  <div
-                    v-if="isQType"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300"
-                  >
+                <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
+                  enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
+                  leave-from-class="opacity-100" leave-to-class="opacity-0">
+                  <div v-if="isQType"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
                     <div class="py-1">
-                      <div
-                        v-for="type in qTypes"
-                        :key="type"
-                        @click="selectType(type)"
-                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-"
-                      >
+                      <div v-for="type in qTypes" :key="type" @click="selectType(type)"
+                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
                         {{ type }}
                       </div>
                     </div>
@@ -745,50 +577,25 @@ const uploadOrUpdate = async () => {
               </div>
             </div>
 
-            <v-textarea
-              v-model="oneQuestion.question"
-              label="Kérdés"
-              variant="outlined"
-              class="glass-input"
-              bg-color="rgba(255, 255, 255, 0.1)"
-            />
+            <v-textarea v-model="oneQuestion.question" label="Kérdés" variant="outlined" class="glass-input"
+              bg-color="rgba(255, 255, 255, 0.1)" />
 
             <div>
               <div v-if="oneQuestion.type == 'normal'" class="grid grid-cols-2 gap-2 mb-2">
-                <v-text-field
-                  v-for="(answer, index) in oneQuestion.answers"
-                  :key="index"
-                  v-model="oneQuestion.answers[index]"
-                  :label="`Válasz ${index + 1}`"
-                  variant="outlined"
-                  bg-color="rgba(255, 255, 255, 0.1)"
-                />
+                <v-text-field v-for="(answer, index) in oneQuestion.answers" :key="index"
+                  v-model="oneQuestion.answers[index]" :label="`Válasz ${index + 1}`" variant="outlined"
+                  bg-color="rgba(255, 255, 255, 0.1)" />
               </div>
               <div v-else class="grid grid-cols-2 gap-2 mb-2">
-                <v-text-field
-                  v-for="(answer, index) in oneQuestion.answers"
-                  :key="index"
-                  v-model="oneQuestion.answers[index]"
-                  :placeholder="index == 1 ? 'Hamis' : 'Igaz'"
-                  variant="outlined"
-                  bg-color="rgba(255, 255, 255, 0.1)"
-                />
+                <v-text-field v-for="(answer, index) in oneQuestion.answers" :key="index"
+                  v-model="oneQuestion.answers[index]" :placeholder="index == 1 ? 'Hamis' : 'Igaz'" variant="outlined"
+                  bg-color="rgba(255, 255, 255, 0.1)" />
               </div>
-              <v-text-field
-                v-model="oneQuestion.correct_answer_index"
-                label="Helyes válasz száma"
-                variant="outlined"
-                class="glass-input w-full col-span-2"
-                bg-color="!rgba(0, 0, 0, 0)"
-                type="number"
-                :rules="
-                  oneQuestion.type == 'normal'
-                    ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
-                    : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
-                "
-                min="1"
-                :max="oneQuestion.type == 'normal' ? 4 : 2"
-              />
+              <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"
+                class="glass-input w-full col-span-2" bg-color="!rgba(0, 0, 0, 0)" type="number" :rules="oneQuestion.type == 'normal'
+                  ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
+                  : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
+                  " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
 
             <v-btn block color="primary" @click="addQuestion"> Kérdés hozzáadása </v-btn>
@@ -796,20 +603,14 @@ const uploadOrUpdate = async () => {
         </v-col>
 
         <!-- Preview -->
-        <v-col
-          cols="12"
-          md="4"
-          class="glass-panel text-white max-h-[calc(100vh-50px)] overflow-y-scroll custom-scrollbar"
-        >
+        <v-col cols="12" md="4"
+          class="glass-panel text-white max-h-[calc(100vh-50px)] overflow-y-scroll custom-scrollbar">
           <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
             <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
             <div class="space-y-4">
-              <div
-                v-for="(c, index) in quiz.cards"
-                :key="index"
+              <div v-for="(c, index) in quiz.cards" :key="index"
                 class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500 cursor-pointer"
-                @click="handleQuestionModify(index)"
-              >
+                @click="handleQuestionModify(index)">
                 <XButton @click.stop="handleQuestionRemove(index)"> </XButton>
                 <v-img :key="c.picture" :src="c.picture" height="200" fit />
                 <p class="text-white/90 mb-2">{{ c.question }}</p>
@@ -817,11 +618,7 @@ const uploadOrUpdate = async () => {
                   Típus: {{ c.type }}
                 </div>
                 <div class="flex flex-row flex-wrap gap-2 mt-2">
-                  <div
-                    v-for="(answer, index) in c.answers"
-                    :key="index"
-                    class="bg-white/30 rounded-lg text-center p-1"
-                  >
+                  <div v-for="(answer, index) in c.answers" :key="index" class="bg-white/30 rounded-lg text-center p-1">
                     {{ answer }}
                   </div>
                 </div>
@@ -855,5 +652,16 @@ const uploadOrUpdate = async () => {
   background-color: rgba(155, 155, 155, 0.5);
   border-radius: 20px;
   border: transparent;
+}
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+.animate-marquee {
+  animation: marquee 10s linear infinite;
 }
 </style>
