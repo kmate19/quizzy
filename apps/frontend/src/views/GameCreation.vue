@@ -350,18 +350,16 @@ const tagString = computed(() => {
 
 const marqueeDuration = computed(() => {
   const textLength = tagString.value.length;
-  const baseDuration = 2; // Base duration in seconds for shorter text
-  const lengthFactor = 0.05; // Adjust this factor to control speed scaling
+  const baseDuration = 2;
+  const lengthFactor = 0.05;
 
-  // Linear scaling: duration increases with length
   let calculatedDuration = baseDuration + (textLength * lengthFactor);
 
-  // Ensure a minimum and maximum duration (optional)
-  const minDuration = 1.5; // Minimum duration in seconds
-  const maxDuration = 10;  // Maximum duration in seconds
+  const minDuration = 1.5;
+  const maxDuration = 10;
   calculatedDuration = Math.max(minDuration, Math.min(calculatedDuration, maxDuration));
 
-  return `${calculatedDuration}s`; // Return duration as a string with "s"
+  return `${calculatedDuration}s`;
 });
 </script>
 
