@@ -6,8 +6,9 @@ import { logger } from "hono/logger";
 import apikey from "./routes/apikey";
 import quizzes from "./routes/quizzes";
 import meta from "./routes/meta";
+import admin from "./routes/admin";
 import userprofile from "./routes/userprofile";
-import { ApiResponse } from "repo";
+import type { ApiResponse } from "repo";
 import { openAPISpecs } from "hono-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 
@@ -61,6 +62,8 @@ if (ENV.NODE_ENV() === "development") {
         })
     );
 }
+
+app.route("/", admin);
 
 const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);

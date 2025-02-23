@@ -25,7 +25,7 @@ export const userApiKeys = pgTable(
         key: varchar({ length: 255 }).notNull().unique(),
         description: varchar({ length: 255 }),
         //access_permissions: integer().notNull().references(() => resourceAccessControlTable.id),
-        expires_at: timestamp({ mode: "string" }).notNull(),
+        expires_at: timestamp().notNull(),
         created_at: timestamp().notNull().defaultNow(),
         updated_at: timestamp()
             .notNull()
