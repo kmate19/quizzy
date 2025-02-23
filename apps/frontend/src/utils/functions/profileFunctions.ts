@@ -6,7 +6,7 @@ import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
 
-export const userData = async (id: string) => {
+export const userData = async (/*id: string*/) => {
   //await new Promise(resolve => setTimeout(resolve, 2000))
  //const temp = userId === "" ? await clientv1.userprofile.$get() : await clientv1.userprofile[':userId'].$get({param: {userId: id}})
   const user = await clientv1.userprofile.$get()
@@ -182,7 +182,7 @@ export const getApiKey = async (expiration: string, description: string) => {
   })
   if (post.status === 200) {
     const res = await post.json()
-    toast('Sikeres API kulcs generálás!', {
+    toast('Sikeres API kulcs generálás, mentse el mert többet nem tudod majd elérni!', {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'success',

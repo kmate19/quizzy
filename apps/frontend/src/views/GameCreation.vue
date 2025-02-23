@@ -8,6 +8,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload, Question, Tag, Language } from '@/utils/type'
 import { useRoute } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
+//import "@fontsource/noto-color-emoji"; workspaces cucc miatt no working
 import {
   getQuiz,
   handleQuizyUpload,
@@ -364,7 +365,7 @@ const marqueeDuration = computed(() => {
 </script>
 
 <template>
-  <MistBackground/>
+  <MistBackground />
   <NavBar />
   <Transition appear enter-active-class="transition ease-in-out duration-1000"
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
@@ -424,8 +425,7 @@ const marqueeDuration = computed(() => {
             </div>
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
-                <button @click="toggleTagDropdown"
-                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between
+                <button @click="toggleTagDropdown" class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between
                    border border-white/30 overflow-hidden whitespace-nowrap">
 
                   <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden marquee-container">
@@ -460,8 +460,8 @@ const marqueeDuration = computed(() => {
                           <label :for="tag.name"
                             class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
                             :class="isSelected(tag)
-                                ? 'text-green-400 hover:border-green-400'
-                                : 'text-white hover:border-white'
+                              ? 'text-green-400 hover:border-green-400'
+                              : 'text-white hover:border-white'
                               ">
                             {{ tag.name }}
                           </label>
@@ -509,10 +509,13 @@ const marqueeDuration = computed(() => {
                           <label :for="lang.name"
                             class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
                             :class="isSelectedLanguage(lang)
-                                ? 'text-green-400 hover:border-green-400'
-                                : 'text-white hover:border-white'
+                              ? 'text-green-400 hover:border-green-400'
+                              : 'text-white hover:border-white'
                               ">
-                            {{ lang.name }} | {{ lang.support }} | {{ lang.icon }}
+                            {{ lang.name }} | {{ lang.support }} | {{ lang.icon }} | 
+                            <span class="flag-wrapper">
+                             
+                            </span>
                           </label>
                         </div>
                       </template>
@@ -614,8 +617,8 @@ const marqueeDuration = computed(() => {
               </div>
               <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"
                 class="glass-input w-full col-span-2" bg-color="!rgba(0, 0, 0, 0)" type="number" :rules="oneQuestion.type == 'normal'
-                    ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
-                    : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
+                  ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
+                  : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
                   " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
 
@@ -679,13 +682,14 @@ const marqueeDuration = computed(() => {
   0% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(-50%);
   }
 }
 
 .animate-marquee {
-  animation: marquee var(--marquee-duration) linear infinite; 
+  animation: marquee var(--marquee-duration) linear infinite;
   width: fit-content;
   min-width: 100%;
 }
@@ -703,5 +707,8 @@ const marqueeDuration = computed(() => {
 .marquee-text {
   white-space: nowrap;
   padding-right: 1em;
+}
+body {
+  font-family: "Noto Color Emoji";
 }
 </style>

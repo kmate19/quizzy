@@ -619,9 +619,9 @@ const OnLogOut = async () => {
                     <p class="text-white text-sm">
                       Kulcs:
                       <span
-                        class="text-white cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white hover:after:w-full after:transition-all after:duration-300"
-                        @click="copyText(key.key)">
-                        másolás
+                        class="text-white"
+                        >
+                        {{ key.key }}
                       </span>
                     </p>
                   </div>
