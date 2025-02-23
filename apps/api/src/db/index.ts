@@ -16,6 +16,8 @@ if (ENV.NODE_ENV() === "production") {
     await db.execute("SELECT 1");
 }
 
+await db.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm");
+
 for (const role of GLOBALS.DB_ROLES) {
     await db.insert(schema.rolesTable).values(role).onConflictDoNothing();
 }

@@ -23,13 +23,15 @@ const getHandlers = GLOBALS.CONTROLLER_FACTORY(
         const limit = c.req.valid("query").limit || 20;
         const page = c.req.valid("query").page || 1;
 
+        const offset = limit * (page - 1);
+
         const quizzes = await db.query.quizzesTable.findMany({
             where: eq(quizzesTable.status, "published"),
             columns: {
                 status: false,
             },
-            offset: limit * (page - 1),
-            limit: limit,
+            offset,
+            limit,
             with: {
                 user: {
                     columns: {
