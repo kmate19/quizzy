@@ -271,10 +271,10 @@ const OnLogOut = async () => {
               <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{{ realUser?.username }}</h1>
               <p class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
 
-              <div class="flex flex-col gap-2 mt-2" v-show="realUser?.role.includes('admin')">
+                <div class="flex flex-col gap-2 mt-2" v-if="realUser?.roles?.some(role => role.role.name === 'admin')">
                 <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
-                  <span v-for="role in realUser?.role" :key="role">
-                    {{ role }} 
+                  <span v-for="role in realUser?.roles" :key="role.role.name">
+                    {{ role.role.name }} 
                   </span>
                 </p>
                 <button @click="isApiModal = true"

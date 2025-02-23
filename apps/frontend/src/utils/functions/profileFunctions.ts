@@ -12,7 +12,6 @@ export const userData = async (id: string) => {
   const user = await clientv1.userprofile.$get()
   if (user.status === 200) {
     const res = await user.json()
-    console.log(res.data.roles[0].role.name)
     const userObj = {
       email: res.data.email,
       username: res.data.username,
@@ -23,7 +22,7 @@ export const userData = async (id: string) => {
         : '',
       sentFriendships: res.data.sentFriendships,
       recievedFriendships: res.data.recievedFriendships,
-      role: res.data.roles[0].role.name,
+      roles: res.data.roles,
       stats: res.data.stats,
       friends: res.data.recievedFriendships
         .filter((item) => item.status === 'accepted')
