@@ -1,9 +1,9 @@
 import { relations } from "drizzle-orm";
 import {
     index,
+    integer,
     pgEnum,
     pgTable,
-    serial,
     smallint,
     timestamp,
     uuid,
@@ -19,7 +19,7 @@ export const quizTypeEnum = pgEnum("quiz_type", ["normal", "twochoice"]);
 export const quizCardsTable = pgTable(
     "quiz_cards",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         quiz_id: uuid()
             .notNull()
             .references(() => quizzesTable.id, { onDelete: "cascade" }),
@@ -43,7 +43,6 @@ export type QuizCard = typeof quizCardsTable.$inferInsert;
 
 export const insertQuizCardsSchema = createInsertSchema(quizCardsTable)
     .omit({
-        id: true,
         quiz_id: true,
         created_at: true,
         updated_at: true,

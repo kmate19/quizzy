@@ -3,10 +3,10 @@ import {
     text,
     pgTable,
     timestamp,
-    serial,
     varchar,
     boolean,
     uniqueIndex,
+    integer,
 } from "drizzle-orm/pg-core";
 import { permissionsTable } from "./permissionsSchema";
 import { userRolesTable } from "./userRolesSchema";
@@ -14,7 +14,7 @@ import { userRolesTable } from "./userRolesSchema";
 export const rolesTable = pgTable(
     "roles",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         name: varchar({ length: 255 }).notNull().unique(),
         description: text().notNull(),
         is_system_role: boolean().notNull().default(false),

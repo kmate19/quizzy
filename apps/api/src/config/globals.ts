@@ -22,9 +22,9 @@ const GLOBALS = {
         { name: "admin", description: "Basic admin role." },
     ] satisfies Role[],
     DB_LANGUAGES: [
-        { name: "Német", iso_code: "DE", icon: "🇩🇪", support: "official" },
+        { name: "Német", iso_code: "DE", icon: "🇩🇪", support: "partial" },
         { name: "Angol", iso_code: "EN", icon: "🇺🇸", support: "official" },
-        { name: "Magyar", iso_code: "HU", icon: "🇭🇺", support: "partial" },
+        { name: "Magyar", iso_code: "HU", icon: "🇭🇺", support: "official" },
     ] satisfies Language[],
     DB_TAGS: [
         { name: "Matematika" },

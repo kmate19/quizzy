@@ -4,10 +4,10 @@ import {
     index,
     pgEnum,
     pgTable,
-    serial,
     timestamp,
     uuid,
     check,
+    integer,
 } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 
@@ -20,7 +20,7 @@ export const friendshipStatusEnum = pgEnum("friendship_status", [
 export const friendshipsTable = pgTable(
     "friendships",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         user_id: uuid()
             .notNull()
             .references(() => usersTable.id, { onDelete: "cascade" }),

@@ -1,18 +1,11 @@
 import { relations } from "drizzle-orm";
-import {
-    pgTable,
-    timestamp,
-    uuid,
-    serial,
-    index,
-    integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, index, integer } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 
 export const userStatsTable = pgTable(
     "user_stats",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         user_id: uuid()
             .notNull()
             .references(() => usersTable.id, { onDelete: "cascade" }),

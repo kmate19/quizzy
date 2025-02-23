@@ -1,19 +1,12 @@
 import { relations } from "drizzle-orm";
-import {
-    pgTable,
-    timestamp,
-    serial,
-    uuid,
-    index,
-    integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, index, integer } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 import { rolesTable } from "./rolesSchema";
 
 export const userRolesTable = pgTable(
     "user_roles",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         user_id: uuid()
             .notNull()
             .references(() => usersTable.id, { onDelete: "cascade" }),

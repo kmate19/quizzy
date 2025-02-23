@@ -2,10 +2,10 @@ import { relations } from "drizzle-orm";
 import {
     uniqueIndex,
     pgTable,
-    serial,
     timestamp,
     varchar,
     pgEnum,
+    integer,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { quizLanguagesTable } from "./quizLanguagesSchema";
@@ -19,7 +19,7 @@ export const languageSupportEnum = pgEnum("language_support", [
 export const languagesTable = pgTable(
     "languages",
     {
-        id: serial().primaryKey(),
+        id: integer().generatedAlwaysAsIdentity().primaryKey(),
         name: varchar({ length: 24 }).notNull().unique(),
         iso_code: varchar({ length: 2 }).notNull().unique(),
         icon: varchar({ length: 24 }).notNull().unique(),
@@ -42,7 +42,6 @@ export const languagesTable = pgTable(
 export type Language = typeof languagesTable.$inferInsert;
 
 export const insertLanguageSchema = createInsertSchema(languagesTable).omit({
-    id: true,
     created_at: true,
     updated_at: true,
     name: true,

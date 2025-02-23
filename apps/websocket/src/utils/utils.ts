@@ -1,8 +1,8 @@
-import crypto from 'node:crypto';
+import crypto from "node:crypto";
 
 export function genLobbyId() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
 
     // Get 8 bytes of random values
     const randomBytes = crypto.randomBytes(8);
@@ -17,14 +17,13 @@ export function genLobbyId() {
 }
 
 // TODO: put into shared to use with client
-export function generateSessionHash(lobbyCode: string, secretKey: string): string {
+export function generateSessionHash(
+    lobbyCode: string,
+    secretKey: string
+): string {
     const timestamp = Math.floor(Date.now() / 1000);
     const data = `${lobbyCode}:${timestamp}`;
 
     // Create HMAC
-    return crypto
-        .createHmac("sha256", secretKey)
-        .update(data)
-        .digest("hex");
+    return crypto.createHmac("sha256", secretKey).update(data).digest("hex");
 }
-
