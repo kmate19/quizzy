@@ -50,8 +50,6 @@ export const getQuiz = async (uuid: string) => {
   }
 }
 
-
-
 export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid: string) => {
   await nextTick()
   console.log(quiz)
