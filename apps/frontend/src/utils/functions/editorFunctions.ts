@@ -56,7 +56,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
   if (isEdit) {
     const edit = await clientv1.quizzes.edit[':quizId'].$patch({
       param: { quizId: uuid },
-      json: {
+      /*json: {
         quiz: {
           title: quiz.title,
           description: quiz.description,
@@ -66,7 +66,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
         cards: quiz.cards,
         //tags: quiz.tags,
         //languageISOCodes: quiz.languageISOCodes,
-      },
+      },*/
     })
     if (edit.status === 200) {
       toast('Quiz sikeresen módosítva!', {

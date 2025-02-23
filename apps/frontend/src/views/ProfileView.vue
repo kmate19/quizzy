@@ -612,7 +612,7 @@ const OnLogOut = async () => {
               API Kulcsaid: {{ apiKeys?.length }}
             </h4>
             <div class="space-y-2 h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar p-2">
-              <li v-for="key in apiKeys" :key="key.id"
+              <li v-for="key in apiKeys" :key="key.key"
                 class="flex justify-between items-center bg-white/10 p-3 rounded-md">
                 <div>
                   <p class="text-white font-medium">Leírás: {{ key.description }}</p>
