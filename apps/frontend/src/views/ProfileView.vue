@@ -88,8 +88,8 @@ const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
 const genApiKey = async () => {
   isLoadingKey.value = true;
   try {
-    if (expiration.value.trim() === "" || description.value.trim() === "") {
-      toast("Mezők kitöltése kötelező!", {
+    if (expiration.value.trim() === "") {
+      toast("Érvényesség megadása kötelező!", {
         autoClose: 3500,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',

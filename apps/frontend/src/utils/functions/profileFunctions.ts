@@ -236,14 +236,5 @@ export const listApiKeys = async () => {
     return res.data.sort(
       (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
     )
-  } else {
-    const res = await get.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
   }
 }
