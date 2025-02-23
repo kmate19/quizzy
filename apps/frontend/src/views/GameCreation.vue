@@ -159,13 +159,11 @@ onMounted(async () => {
   const uuid = route.params.uuid.toString()
   const result = await getQuiz(uuid)
   if (result && !Array.isArray(result) && typeof result === 'object') {
-    console.log(result)
     quiz.value = result.data
-    selectedLanguages.value = result.data.languages
+    selectedLanguages.value = result.languages
     selectedTags.value = result.data.tags.map((t) => ({ name: t}))
     isEdit.value = result.success
   }
-
   isLoading.value = false
 })
 
@@ -331,6 +329,7 @@ const resetInputValues = () => {
   oneQuestion.value = resetObject(oneQuestion.value)
   selectedLanguages.value = []
   selectedTags.value = []
+  quiz.value.status = "published"
 }
 
 const uploadOrUpdate = async () => {
@@ -396,7 +395,6 @@ const uploadOrUpdate = async () => {
                 </div>
               </div>
             </div>
-            <!--Pulicity-->
             <div class="flex flex-col mb-2">
               <label for="quizStatus" class="mb-1 text-white font-medium text-xl">
                 Láthatóság
@@ -649,7 +647,7 @@ const uploadOrUpdate = async () => {
                 </svg>
               </span>
               <span v-else class="flex gap-2">
-                Quiz feltöltése
+                Quiz {{ isEdit? 'módosítása': 'feltöltése'}}
                 <CloudUpload />
               </span>
             </v-btn>

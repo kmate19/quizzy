@@ -123,8 +123,8 @@ const handleViewUser = (uuid: string) => {
           </div>
 
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <div class="mb-2">Tegek:</div>
-            <div class="flex flex-wrap gap-2">
+            <div class="mb-2">Kategóriák:</div>
+            <div class="flex flex-wrap gap-2 max-h-32 overflow-y-scroll">
               <span
                 v-for="tag in data?.tags"
                 :key="tag"
@@ -133,14 +133,14 @@ const handleViewUser = (uuid: string) => {
                 {{ tag }}
               </span>
             </div>
-            <div class="mb-2">Nyelvezet:</div>
+            <div class="mb-2">Nyelvek:</div>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="lang in data?.languageISOCodes"
                 :key="lang.iso_code"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
               >
-                {{ lang.iso_code }} {{ lang.icon }}
+                {{ lang.iso_code }} | {{ lang.icon }}
               </span>
             </div>
             <div class="mb-2">
