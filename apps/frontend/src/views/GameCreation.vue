@@ -329,7 +329,7 @@ const resetInputValues = () => {
   oneQuestion.value = resetObject(oneQuestion.value)
   selectedLanguages.value = []
   selectedTags.value = []
-  quiz.value.status = "published"
+  quiz.value.status = 'published'
 }
 
 const uploadOrUpdate = async () => {
@@ -343,6 +343,26 @@ const uploadOrUpdate = async () => {
   }
   isLoading.value = false
 }
+
+const tagString = computed(() => {
+  return selectedTags.value.map((tag) => tag.name).join(' ')
+})
+
+const marqueeDuration = computed(() => {
+  const textLength = tagString.value.length;
+  const baseDuration = 2; // Base duration in seconds for shorter text
+  const lengthFactor = 0.05; // Adjust this factor to control speed scaling
+
+  // Linear scaling: duration increases with length
+  let calculatedDuration = baseDuration + (textLength * lengthFactor);
+
+  // Ensure a minimum and maximum duration (optional)
+  const minDuration = 1.5; // Minimum duration in seconds
+  const maxDuration = 10;  // Maximum duration in seconds
+  calculatedDuration = Math.max(minDuration, Math.min(calculatedDuration, maxDuration));
+
+  return `${calculatedDuration}s`; // Return duration as a string with "s"
+});
 </script>
 
 <template>
@@ -362,7 +382,7 @@ const uploadOrUpdate = async () => {
                 <v-img :src="quiz.banner || '/placeholder.svg?height=200&width=300'" height="200" fit>
                   <template v-slot:placeholder>
                     <div class="flex flex-col items-center justify-center h-full">
-                      <CirclePlus @click="$refs.gameImageInput.click()"
+                      <CirclePlus @click="gameImageInput?.click()"
                         class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
                         stroke-width="0.75" />
                     </div>
@@ -406,16 +426,15 @@ const uploadOrUpdate = async () => {
             </div>
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
-                <button @click="toggleTagDropdown" class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 
-           inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
-                  <div class="flex-1 overflow-hidden">
-                    <span class="inline-block animate-marquee">
-                      {{
-                        selectedTags.length > 0
-                          ? selectedTags.map(tag => tag.name).join(', ')
-                          : 'Válassz kategóriákat'
-                      }}
-                    </span>
+                <button @click="toggleTagDropdown"
+                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
+                  <div class="flex-1 overflow-hidden marquee-container">
+                    <div class="marquee-content" :class="{ 'animate-marquee': selectedTags.length > 2 }"
+                      :style="{ '--marquee-duration': marqueeDuration }">
+                      <!-- Bind dynamic duration -->
+                      <div v-if="selectedTags.length > 2" class="marquee-text">{{ tagString }}</div>
+                      <div class="marquee-text">{{ tagString }}</div>
+                    </div>
                   </div>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300 flex-shrink-0"
                     :class="{ 'rotate-180': isTagDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -439,8 +458,8 @@ const uploadOrUpdate = async () => {
                           <label :for="tag.name"
                             class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
                             :class="isSelected(tag)
-                              ? 'text-green-400 hover:border-green-400'
-                              : 'text-white hover:border-white'
+                                ? 'text-green-400 hover:border-green-400'
+                                : 'text-white hover:border-white'
                               ">
                             {{ tag.name }}
                           </label>
@@ -488,8 +507,8 @@ const uploadOrUpdate = async () => {
                           <label :for="lang.name"
                             class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
                             :class="isSelectedLanguage(lang)
-                              ? 'text-green-400 hover:border-green-400'
-                              : 'text-white hover:border-white'
+                                ? 'text-green-400 hover:border-green-400'
+                                : 'text-white hover:border-white'
                               ">
                             {{ lang.name }} | {{ lang.support }} | {{ lang.icon }}
                           </label>
@@ -534,7 +553,7 @@ const uploadOrUpdate = async () => {
                 <v-img :src="oneQuestion.picture || '/placeholder.svg?height=200&width=300'" height="200" fit>
                   <template v-slot:placeholder>
                     <div class="flex flex-col items-center justify-center h-full">
-                      <CirclePlus @click="$refs.questionImageInput.click()"
+                      <CirclePlus @click="questionImageInput?.click()"
                         class="w-30 h-30 rounded-full hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
                         stroke-width="0.75" />
                     </div>
@@ -593,8 +612,8 @@ const uploadOrUpdate = async () => {
               </div>
               <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"
                 class="glass-input w-full col-span-2" bg-color="!rgba(0, 0, 0, 0)" type="number" :rules="oneQuestion.type == 'normal'
-                  ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
-                  : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
+                    ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
+                    : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
                   " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
 
@@ -653,15 +672,34 @@ const uploadOrUpdate = async () => {
   border-radius: 20px;
   border: transparent;
 }
+
 @keyframes marquee {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0%);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }
+
 .animate-marquee {
-  animation: marquee 10s linear infinite;
+  animation: marquee var(--marquee-duration) linear infinite; 
+  width: fit-content;
+  min-width: 100%;
+}
+
+.marquee-container {
+  overflow: hidden;
+}
+
+.marquee-content {
+  display: flex;
+  width: fit-content;
+  min-width: 100%;
+}
+
+.marquee-text {
+  white-space: nowrap;
+  padding-right: 1em;
 }
 </style>

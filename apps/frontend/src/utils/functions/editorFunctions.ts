@@ -64,8 +64,8 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
           banner: quiz.banner,
         },
         cards: quiz.cards,
-        tags: quiz.tags,
-        languageISOCodes: quiz.languageISOCodes,
+        //tags: quiz.tags,
+        //languageISOCodes: quiz.languageISOCodes,
       },
     })
     if (edit.status === 200) {
