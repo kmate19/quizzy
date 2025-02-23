@@ -12,7 +12,6 @@ export const userData = async (id: string) => {
   const user = await clientv1.userprofile.$get()
   if (user.status === 200) {
     const res = await user.json()
-    console.log(res.data.roles[0].role.name)
     const userObj = {
       email: res.data.email,
       username: res.data.username,
@@ -23,7 +22,7 @@ export const userData = async (id: string) => {
         : '',
       sentFriendships: res.data.sentFriendships,
       recievedFriendships: res.data.recievedFriendships,
-      role: res.data.roles[0].role.name,
+      roles: res.data.roles,
       stats: res.data.stats,
       friends: res.data.recievedFriendships
         .filter((item) => item.status === 'accepted')
@@ -236,14 +235,5 @@ export const listApiKeys = async () => {
     return res.data.sort(
       (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
     )
-  } else {
-    const res = await get.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
   }
 }
