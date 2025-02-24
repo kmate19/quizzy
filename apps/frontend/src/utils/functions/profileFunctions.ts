@@ -6,9 +6,9 @@ import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
 
-export const userData = async (/*id: string*/) => {
+export const userData = async (id: string) => {
   //await new Promise(resolve => setTimeout(resolve, 2000))
- //const temp = userId === "" ? await clientv1.userprofile.$get() : await clientv1.userprofile[':userId'].$get({param: {userId: id}})
+  //const temp = userId === "" ? await clientv1.userprofile.$get() : await clientv1.userprofile[':userId'].$get({param: {userId: id}})
   const user = await clientv1.userprofile.$get()
   if (user.status === 200) {
     const res = await user.json()

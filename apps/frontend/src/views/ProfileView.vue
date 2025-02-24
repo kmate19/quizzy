@@ -10,7 +10,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
 import { queryClient } from '@/lib/queryClient'
 import { useQuery } from '@tanstack/vue-query'
-//import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import {
   userData,
   getOwnQuizzies,
@@ -36,8 +36,8 @@ const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const showPasswordModal = ref(false)
 const apiKey = ref('')
-//const route = useRoute()
-//const userId = route.params.uuid.toString()
+const route = useRoute()
+const userId = route.params.uuid.toString()
 
 const minDateTime = computed(() => {
   const now = new Date()
@@ -53,7 +53,7 @@ const userPw = ref({
 
 const { data: realUser, isLoading: isLoadingPage } = useQuery({
   queryKey: ['userProfile'],
-  queryFn: () => userData(),//userId be lesz kuldve 
+  queryFn: () => userData(userId),
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
   refetchOnMount: true,
@@ -382,7 +382,7 @@ const OnLogOut = async () => {
                 </span>
               </h2>
               <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
-                <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col sm:flex-row gap-4 p-2 rounded-xl text-white 
+                <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-col lg:flex-row gap-4 p-2 rounded-xl text-white 
          hover:border-white border-2 border-transparent shadow-lg transition-all 
          duration-500 cursor-pointer bg-white/10" @click="
           quiz.status === 'draft'
@@ -390,7 +390,7 @@ const OnLogOut = async () => {
             : handleQuizDeatailedView(quiz.id)
           ">
 
-                  <div class="relative w-full sm:w-20 h-20 rounded-lg overflow-hidden shrink-0">
+                  <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
                     <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner" alt="Quiz banner"
                       class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
