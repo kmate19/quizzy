@@ -237,7 +237,10 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
             }
         }
 
-        const quizzes = await db.query.quizzesTable.findMany({
+        const quizzesWCount = await db.query.quizzesTable.findMany({
+            extras: {
+                totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
+            },
             offset,
             limit,
             where: and(
@@ -249,9 +252,14 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
             orderBy: tsRankOrderBy,
         });
 
+        const totalCount = quizzesWCount[0]?.totalCount || 0;
+
+        // eslint-disable-next-line
+        const quizzes = quizzesWCount.map(({ totalCount, ...rest }) => rest);
+
         console.log(quizzes);
 
-        return c.json(quizzes);
+        return c.json({ quizzes, totalCount }, 200);
     }
 );
 

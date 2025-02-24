@@ -4,7 +4,7 @@ import { quizzesTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { numericString } from "@/utils/schemas/zod-schemas";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { ApiResponse } from "repo";
 import { z } from "zod";
 
@@ -25,7 +25,10 @@ const getHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         const offset = limit * (page - 1);
 
-        const quizzes = await db.query.quizzesTable.findMany({
+        const quizzesWCount = await db.query.quizzesTable.findMany({
+            extras: {
+                totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
+            },
             where: eq(quizzesTable.status, "published"),
             columns: {
                 status: false,
@@ -64,9 +67,14 @@ const getHandlers = GLOBALS.CONTROLLER_FACTORY(
             },
         });
 
+        const totalCount = quizzesWCount[0]?.totalCount || 0;
+
+        // eslint-disable-next-line
+        const quizzes = quizzesWCount.map(({ totalCount, ...rest }) => rest);
+
         const res = {
             message: "Quizzes fetched",
-            data: quizzes,
+            data: { quizzes, totalCount },
         } satisfies ApiResponse;
 
         return c.json(res, 200);
