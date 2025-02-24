@@ -274,7 +274,7 @@ const addQuestion = () => {
       questionImageInput.value!.value = ''
     }
     oneQuestion.value.answers = oneQuestion.value.type == 'normal' ? ['', '', '', ''] : ['', '']
-    oneQuestion.value.correct_answer_index = 0
+    oneQuestion.value.correct_answer_index = 1
     oneQuestion.value.question = ''
     oneQuestion.value.type = 'normal'
   } else {
@@ -350,18 +350,18 @@ const tagString = computed(() => {
 })
 
 const marqueeDuration = computed(() => {
-  const textLength = tagString.value.length;
-  const baseDuration = 2;
-  const lengthFactor = 0.05;
+  const textLength = tagString.value.length
+  const baseDuration = 2
+  const lengthFactor = 0.05
 
-  let calculatedDuration = baseDuration + (textLength * lengthFactor);
+  let calculatedDuration = baseDuration + textLength * lengthFactor
 
-  const minDuration = 1.5;
-  const maxDuration = 10;
-  calculatedDuration = Math.max(minDuration, Math.min(calculatedDuration, maxDuration));
+  const minDuration = 1.5
+  const maxDuration = 10
+  calculatedDuration = Math.max(minDuration, Math.min(calculatedDuration, maxDuration))
 
-  return `${calculatedDuration}s`;
-});
+  return `${calculatedDuration}s`
+})
 </script>
 
 <template>
@@ -370,8 +370,9 @@ const marqueeDuration = computed(() => {
   <Transition appear enter-active-class="transition ease-in-out duration-1000"
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <v-container fluid class="max-h-[80%] flex justify-center items-center">
-      <v-row class="mx-auto max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10">
-        <v-col cols="12" md="4" class="glass-panel">
+      <v-row
+        class="mx-auto w-full max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex justify-center items-center">
+        <v-col cols="12" md="4" class="glass-panel !max-w-[94vw] lg:!max-w-[35vw]">
           <div class="p-6 rounded-lg backdrop-blur-lg text-white first">
             <div class="mb-2">
               <input type="file" ref="gameImageInput" accept=".png,.jpg,.jpeg,.svg" class="hidden"
@@ -425,21 +426,20 @@ const marqueeDuration = computed(() => {
             </div>
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
-                <button @click="toggleTagDropdown" class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between
-                         border border-white/30 overflow-hidden whitespace-nowrap">
-
+                <button @click="toggleTagDropdown"
+                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
                   <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden max-w-full">
-                    <div class="marquee-container max-w-full">
-                      <div class="marquee-content" :class="{ 'animate-marquee': selectedTags.length > 2 }"
+                    <div class="overflow-x-hidden">
+                      <div class="flex w-fit" :class="{ 'animate-marquee': selectedTags.length > 2 }"
                         :style="{ '--marquee-duration': marqueeDuration }">
-                        <div v-if="selectedTags.length > 2" class="marquee-text">{{ tagString }}</div>
+                        <div v-if="selectedTags.length > 2" class="marquee-text">
+                          {{ tagString }}
+                        </div>
                         <div class="marquee-text">{{ tagString }}</div>
                       </div>
                     </div>
                   </div>
-                  <div v-else>
-                    Válassz kategóriákat
-                  </div>
+                  <div v-else>Válassz kategóriákat</div>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300 flex-shrink-0"
                     :class="{ 'rotate-180': isTagDropdownOpen }" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
@@ -515,9 +515,7 @@ const marqueeDuration = computed(() => {
                               : 'text-white hover:border-white'
                               ">
                             {{ lang.name }} | {{ lang.support }} | {{ lang.icon }} |
-                            <span class="flag-wrapper">
-
-                            </span>
+                            <span class="flag-wrapper"> </span>
                           </label>
                         </div>
                       </template>
@@ -550,7 +548,8 @@ const marqueeDuration = computed(() => {
           </div>
         </v-col>
         <!--Question-->
-        <v-col cols="12" md="4" class="glass-panel transition-all duration-500 text-white">
+        <v-col cols="12" md="4"
+          class="glass-panel transition-all duration-500 text-white !max-w-[94vw] lg:!max-w-[35vw]">
           <div class="p-6 rounded-lg backdrop-blur-lg">
             <div class="mb-2">
               <input type="file" ref="questionImageInput" accept=".png,.jpg,.jpeg,.svg" class="hidden"
@@ -627,33 +626,35 @@ const marqueeDuration = computed(() => {
             <v-btn block color="primary" @click="addQuestion"> Kérdés hozzáadása </v-btn>
           </div>
         </v-col>
-
         <!-- Preview -->
-        <v-col cols="12" md="4"
-          class="glass-panel text-white max-h-[calc(100vh-50px)] overflow-y-scroll custom-scrollbar">
-          <div class="p-6 rounded-lg backdrop-blur-lg bg-white/10">
-            <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
-            <div class="space-y-4">
-              <div v-for="(c, index) in quiz.cards" :key="index"
-                class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500 cursor-pointer"
-                @click="handleQuestionModify(index)">
-                <XButton @click.stop="handleQuestionRemove(index)" class="absolute top-2 right-2 z-50"> </XButton>
-                <v-img :key="c.picture" :src="c.picture" height="200" fit />
-                <p class="text-white/90 mb-2">{{ c.question }}</p>
-                <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
-                  Típus: {{ c.type }}
-                </div>
-                <div class="flex flex-row flex-wrap gap-2 mt-2">
-                  <div v-for="(answer, index) in c.answers" :key="index" class="bg-white/30 rounded-lg text-center p-1">
-                    {{ answer }}
+        <v-col cols="12" md="4" class="glass-panel text-white !max-w-[94vw] lg:!max-w-[35vw]">
+          <transition name="height-fade">
+            <div v-if="quiz.cards.length"
+              class="p-6 rounded-lg backdrop-blur-lg bg-white/10 overflow-hidden h-[calc(100vh-15vh)] flex flex-col">
+              <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
+              <div class="space-y-4 overflow-y-scroll custom-scrollbar flex-1 p-2">
+                <div v-for="(c, index) in quiz.cards" :key="index"
+                  class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500 cursor-pointer"
+                  @click="handleQuestionModify(index)">
+                  <XButton @click.stop="handleQuestionRemove(index)" class="absolute top-2 right-2 z-50" />
+                  <v-img :key="c.picture" :src="c.picture" height="200" fit />
+                  <p class="text-white/90 mb-2">{{ c.question }}</p>
+                  <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
+                    Típus: {{ c.type }}
                   </div>
+                  <div class="flex flex-row flex-wrap gap-2 mt-2">
+                    <div v-for="(answer, index) in c.answers" :key="index"
+                      class="bg-white/30 rounded-lg text-center p-1">
+                      {{ answer }}
+                    </div>
+                  </div>
+                  <h2 class="text-green-500">
+                    Helyes válasz: {{ c.answers[c.correct_answer_index] }}
+                  </h2>
                 </div>
-                <h2 class="text-green-500">
-                  Helyes válasz: {{ c.answers[c.correct_answer_index] }}
-                </h2>
               </div>
             </div>
-          </div>
+          </transition>
         </v-col>
       </v-row>
     </v-container>
@@ -696,23 +697,13 @@ const marqueeDuration = computed(() => {
   min-width: 100%;
 }
 
-.marquee-container {
-  overflow: hidden;
-}
-
-.marquee-content {
-  display: flex;
-  width: fit-content;
-  min-width: 100%;
-}
-
 .marquee-text {
   white-space: nowrap;
   padding-right: 1em;
 }
 
 body {
-  font-family: "Noto Color Emoji";
+  font-family: 'Noto Color Emoji';
 }
 
 .custom-scrollbar {
@@ -738,5 +729,19 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.5);
+}
+
+.height-fade-enter-active, .height-fade-leave-active {
+  transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.height-fade-enter-from, .height-fade-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.height-fade-enter-to, .height-fade-leave-from {
+  max-height: calc(100vh - 15vh);
+  opacity: 1;
 }
 </style>
