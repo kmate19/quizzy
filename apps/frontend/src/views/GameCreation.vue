@@ -426,13 +426,15 @@ const marqueeDuration = computed(() => {
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleTagDropdown" class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between
-                   border border-white/30 overflow-hidden whitespace-nowrap">
+                         border border-white/30 overflow-hidden whitespace-nowrap">
 
-                  <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden marquee-container">
-                    <div class="marquee-content" :class="{ 'animate-marquee': selectedTags.length > 2 }"
-                      :style="{ '--marquee-duration': marqueeDuration }">
-                      <div v-if="selectedTags.length > 2" class="marquee-text">{{ tagString }}</div>
-                      <div class="marquee-text">{{ tagString }}</div>
+                  <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden max-w-full">
+                    <div class="marquee-container max-w-full">
+                      <div class="marquee-content" :class="{ 'animate-marquee': selectedTags.length > 2 }"
+                        :style="{ '--marquee-duration': marqueeDuration }">
+                        <div v-if="selectedTags.length > 2" class="marquee-text">{{ tagString }}</div>
+                        <div class="marquee-text">{{ tagString }}</div>
+                      </div>
                     </div>
                   </div>
                   <div v-else>
@@ -512,9 +514,9 @@ const marqueeDuration = computed(() => {
                               ? 'text-green-400 hover:border-green-400'
                               : 'text-white hover:border-white'
                               ">
-                            {{ lang.name }} | {{ lang.support }} | {{ lang.icon }} | 
+                            {{ lang.name }} | {{ lang.support }} | {{ lang.icon }} |
                             <span class="flag-wrapper">
-                             
+
                             </span>
                           </label>
                         </div>
@@ -635,7 +637,7 @@ const marqueeDuration = computed(() => {
               <div v-for="(c, index) in quiz.cards" :key="index"
                 class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border-4 border-transparent hover:border-white transition-all duration-500 cursor-pointer"
                 @click="handleQuestionModify(index)">
-                <XButton @click.stop="handleQuestionRemove(index)"> </XButton>
+                <XButton @click.stop="handleQuestionRemove(index)" class="absolute top-2 right-2 z-50"> </XButton>
                 <v-img :key="c.picture" :src="c.picture" height="200" fit />
                 <p class="text-white/90 mb-2">{{ c.question }}</p>
                 <div class="text-blue-300 bg-white/30 w-fit rounded-lg p-1 text-sm">
@@ -708,7 +710,33 @@ const marqueeDuration = computed(() => {
   white-space: nowrap;
   padding-right: 1em;
 }
+
 body {
   font-family: "Noto Color Emoji";
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+  scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 </style>

@@ -110,7 +110,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="block md:hidden mobile-navbar">
-          <button @click="toggleMobileMenu" class="text-white hover:bg-white/50 p-2 rounded-md">
+          <button @click="toggleMobileMenu" class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16" />
@@ -128,19 +128,19 @@ onMounted(() => {
         class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a @click="router.push('/')"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
             Kezdőlap
           </a>
           <a @click="isCodeModal = !isCodeModal"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
             Közös játék
           </a>
           <a @click="router.push('/game_creation')"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
             Játék készítés
           </a>
           <a @click="router.push('/profil')"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
             Profil
           </a>
         </div>
