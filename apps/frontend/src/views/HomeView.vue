@@ -137,25 +137,14 @@ const displayedPages = computed<(number | 'ellipsis')[]>(() => {
   const total = totalPages.value
   const current = currentPage.value
 
-  if (total <= 5) {
+  if (total <= 3) {
     return Array.from({ length: total }, (_, i) => i + 1)
   }
 
-  const pageSet = new Set<number>()
-  pageSet.add(1)
-  pageSet.add(total)
+  const result: (number | 'ellipsis')[] = [current, 'ellipsis', total]
 
-  if (current !== 1 && current !== total) {
-    pageSet.add(current)
-  }
+  console.log(result)
 
-  const pagesArr = Array.from(pageSet).sort((a, b) => a - b)
-
-  const result: (number | 'ellipsis')[] = []
-  for (let i = 0; i < pagesArr.length; i++) {
-    result.push(pagesArr[i])
-  }
-  result.splice(result.length - 1, 0, 'ellipsis')
   return result
 })
 
@@ -171,9 +160,10 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <MistBackground/>
+    <MistBackground/><!--removeolni kell ugyis es most par dolgot kitakar-->
     <NavBar />
-    <div class="container mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar">
+    <div class="container mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md 
+     cursor-pointer">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
@@ -197,14 +187,15 @@ onMounted(() => {
       <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
         {{ error }}
       </div>
-      <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6" style="direction: ltr;">
+      <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6 " 
+      style="direction: ltr;">
         <div v-for="quiz in quizzes" :key="quiz.id" class="break-inside-avoid mb-6">
           <QuizCard :quiz="quiz" />
         </div>
       </div>
       
     </div>
-    <div v-if="!loading && !error" class="mt-8">
+    <div v-if="!error" class="mt-8">
         <div class="flex flex-col-reverse gap-2 md:flex-row justify-center items-center space-x-2 text-white">
           <button @click="prevPage" :disabled="currentPage === 1"
             class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
@@ -238,7 +229,8 @@ onMounted(() => {
                          after:border-t-white backdrop-blur-2xl">
                     <div class="grid grid-cols-5 gap-2">
                       <button v-for="page in totalPagesArray" :key="page" @click="goToPage(page); showFullPages = false"
-                        class="px-2 py-1 rounded transition-all duration-300 hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
+                        class="px-2 py-1 rounded transition-all duration-300
+                         hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
                         {{ page }}
                       </button>
                     </div>
@@ -300,7 +292,7 @@ onMounted(() => {
 }
 
 .custom-scrollbar {
-  scrollbar-width: thin;
+  scrollbar-width: thin;/*tuzroka miatt kell*/
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
   scroll-behavior: smooth;
 }
