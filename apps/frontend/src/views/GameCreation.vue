@@ -188,11 +188,14 @@ const handleGameImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
-
+    
     const size = file.size / (1024 * 1024)
-
+    
     if (size > 1) {
-      gameImageInput.value = null
+      if (gameImageInput.value) {
+        gameImageInput.value.value = ''
+      }
+      
       toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -202,13 +205,13 @@ const handleGameImageUpload = (event: Event) => {
       } as ToastOptions)
       return
     }
-
+    
     const reader = new FileReader()
-
+    
     reader.onload = (e) => {
       quiz.value.banner = e.target?.result as string
     }
-
+    
     reader.readAsDataURL(file)
   }
 }
@@ -216,7 +219,8 @@ const handleGameImageUpload = (event: Event) => {
 const clearGameImage = () => {
   quiz.value.banner = ''
   if (gameImageInput.value) {
-    gameImageInput.value = null
+    const input = gameImageInput.value;
+    input.type = 'file';
   }
 }
 
@@ -224,11 +228,14 @@ const handleQuestionImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
-
+    
     const size = file.size / (1024 * 1024)
-
+    
     if (size > 1) {
-      questionImageInput.value = null
+      if (questionImageInput.value) {
+        questionImageInput.value.value = ''
+      }
+      
       toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -238,15 +245,13 @@ const handleQuestionImageUpload = (event: Event) => {
       } as ToastOptions)
       return
     }
-
+    
     const reader = new FileReader()
-
+    
     reader.onload = (e) => {
-      console.log(e.target?.result as string)
       oneQuestion.value.picture = e.target?.result as string
-      console.log(e.target?.result)
     }
-
+    
     reader.readAsDataURL(file)
   }
 }
@@ -254,7 +259,8 @@ const handleQuestionImageUpload = (event: Event) => {
 const clearQuestionImage = () => {
   oneQuestion.value.picture = ''
   if (questionImageInput.value) {
-    questionImageInput.value = null
+    const input = questionImageInput.value;
+    input.type = 'file';
   }
 }
 

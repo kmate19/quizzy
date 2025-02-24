@@ -4,7 +4,26 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getQuiz } from '@/utils/functions/editorFunctions';
 import { useRoute } from 'vue-router';
 
-const quiz = ref<any>(null);
+interface QuizAnswer {
+  text: string;  // Assuming each answer has at least text
+}
+
+interface QuizCard {
+  question: string;
+  type: string;  // Might be more specific like "multiple-choice" | "true-false" etc.
+  answers: QuizAnswer[];
+  picture: string;  // URL or base64 string
+  correct_answer_index: number;
+}
+
+interface Quiz {
+  title: string;
+  banner: string;  // URL or base64 string
+  description: string;
+  cards: QuizCard[];
+}
+
+const quiz = ref<Quiz>();
 
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
 const currentQuestionIndex = ref(0)
@@ -114,17 +133,19 @@ onMounted(async () => {
 
     console.log(quizId)
     console.log(res)
-    quiz.value = {
-        title: res?.data.title,
-        banner: res?.data?.banner,
-        description: res?.data.description || '',
-        cards: res?.data.cards.map((card) => ({
-            question: card.question,
-            type: card.type,
-            answers: card.answers,
-            picture: card.picture,
-            correct_answer_index: card.correct_answer_index,
-        })),
+    if (res?.data) {
+        quiz.value = {
+            title: res.data.title || 'Untitled Quiz',
+            banner: res.data.banner || '',
+            description: res.data.description || '',
+            cards: res.data.cards?.map((card) => ({
+                question: card.question,
+                type: card.type,
+                answers: card.answers.map(answer => typeof answer === 'string' ? { text: answer } : answer),
+                picture: card.picture || '',
+                correct_answer_index: card.correct_answer_index,
+            })) || [],
+        }
     }
     startPreGameTimer()
 })
@@ -161,20 +182,20 @@ onUnmounted(() => {
                 </div>
 
                 <div class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
-                    <img v-if="currentQuestion.picture" :src="currentQuestion.picture" :alt="currentQuestion.question"
+                    <img v-if="currentQuestion?.picture" :src="currentQuestion.picture" :alt="currentQuestion.question"
                         class="w-full max-h-64 object-contain mb-6 rounded" />
-                    <h2 class="text-xl font-semibold text-white">{{ currentQuestion.question }}</h2>
+                    <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
                 </div>
 
                 <div :class="[
                     'grid gap-4',
-                    currentQuestion.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
+                    currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
                 ]">
-                    <button v-for="(answer, index) in currentQuestion.answers" :key="index" :class="[
+                    <button v-for="(answer, index) in currentQuestion?.answers" :key="index" :class="[
                         'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
                         getAnswerButtonClass(index),
                     ]" :disabled="answerSelected" @click="selectAnswer(index)">
-                        {{ answer }}
+                        {{ answer.text }}
                     </button>
                 </div>
             </div>
