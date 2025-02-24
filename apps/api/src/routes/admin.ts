@@ -7,6 +7,16 @@ const admin = new Hono()
     .basePath("/admin")
     .post("/set/role", ...setRoleHandlers)
     .post("/set/authstatus", ...setAuthStatusHandlers)
-    .get("/authenticate", check_apikey);
+    .get("/authenticate", async (c) => {
+        // @ts-expect-error not passing next
+        const res = await check_apikey(c);
+
+        if (res) {
+            c.res = res;
+            return c.res.clone();
+        }
+
+        return c.json({ message: "Authenticated" }, 200);
+    });
 
 export default admin;
