@@ -10,7 +10,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
 import { queryClient } from '@/lib/queryClient'
 import { useQuery } from '@tanstack/vue-query'
-import { useRoute } from 'vue-router'
+//import { useRoute } from 'vue-router'
 import {
   userData,
   getOwnQuizzies,
@@ -36,8 +36,8 @@ const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const showPasswordModal = ref(false)
 const apiKey = ref('')
-const route = useRoute()
-const userId = route.params.uuid.toString()
+//const route = useRoute()
+//const userId = route.params.uuid.toString()
 
 const minDateTime = computed(() => {
   const now = new Date()
@@ -53,7 +53,7 @@ const userPw = ref({
 
 const { data: realUser, isLoading: isLoadingPage } = useQuery({
   queryKey: ['userProfile'],
-  queryFn: () => userData(userId),
+  queryFn: () => userData(),//userId be lesz kuldve 
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
   refetchOnMount: true,
@@ -271,15 +271,15 @@ const OnLogOut = async () => {
               <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{{ realUser?.username }}</h1>
               <p class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
 
-                <div class="flex flex-col gap-2 mt-2" v-if="realUser?.roles?.some(role => role.role.name === 'admin')">
+              <div class="flex flex-col gap-2 mt-2" v-if="realUser?.roles?.some(role => role.role.name === 'admin')">
                 <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
                   <span v-for="role in realUser?.roles" :key="role.role.name">
-                    {{ role.role.name }} 
+                    {{ role.role.name }}
                   </span>
                 </p>
                 <button @click="isApiModal = true"
                   class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900 hover:border-white border-2 border-transparent">
-                  API Kulcs igénylése
+                  API Kulcs igénylés
                 </button>
               </div>
             </div>
@@ -389,19 +389,19 @@ const OnLogOut = async () => {
             ? handleQuizView(quiz.id)
             : handleQuizDeatailedView(quiz.id)
           ">
-                
+
                   <div class="relative w-full sm:w-20 h-20 rounded-lg overflow-hidden shrink-0">
                     <img v-if="quiz.banner && quiz.banner.length" :src="quiz.banner" alt="Quiz banner"
                       class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
                   </div>
 
-               
+
                   <div class="flex-1 relative">
                     <div class="flex items-center justify-between mb-2">
                       <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
 
-                     
+
                       <span v-if="quiz.status !== 'draft'" @click.stop="handleQuizView(quiz.id)" class="absolute
                        top-2 right-12 flex rounded-full text-xs bg-blue-700 w-10 h-10 
                justify-center items-center border-2 border-transparent 
@@ -409,7 +409,7 @@ const OnLogOut = async () => {
                         <Settings />
                       </span>
 
-                      
+
                       <span @click.stop="
                         (isDeleteModal = !isDeleteModal),
                         (selectedUuid = quiz.id)
@@ -420,7 +420,7 @@ const OnLogOut = async () => {
                       </span>
                     </div>
 
-                   
+
                     <span class="px-2 py-1 rounded-full text-xs" :class="{
                       'bg-green-500': quiz.status === 'published',
                       'bg-yellow-500': quiz.status === 'requires_review',
@@ -430,34 +430,35 @@ const OnLogOut = async () => {
                       {{ quiz.status }}
                     </span>
 
-                   
+
                     <p class="text-sm text-white/70 mb-2 line-clamp-2">
                       {{ quiz.description }}
                     </p>
 
-                    
+
                     <div class="flex items-center flex-wrap gap-4 text-sm">
-                      
+
                       <div class="flex items-center">
                         <span class="mr-1">⭐</span>
                         {{ quiz.rating }}
                       </div>
 
-                     
+
                       <div class="flex items-center">
                         <span class="mr-1">👥</span>
                         {{ quiz.plays }}
                       </div>
 
-                     
+
                       <div class="flex gap-1">
                         <span v-for="lang in quiz.languages" :key="lang.name"
-                          class="w-6 h-6 rounded-lg p-1 bg-white/10 flex items-center justify-center" :title="lang.name">
+                          class="w-6 h-6 rounded-lg p-1 bg-white/10 flex items-center justify-center"
+                          :title="lang.name">
                           {{ lang.iso_code }}
                         </span>
                       </div>
 
-                     
+
                       <div class="flex flex-wrap gap-1">
                         <span v-for="tag in quiz.tags" :key="tag.name"
                           class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
@@ -578,7 +579,7 @@ const OnLogOut = async () => {
         <div v-else class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
           <div class="flex justify-between items-center mb-6">
             <div class="flex justify-evenly flex-row">
-              <h3 class="text-2xl font-bold text-white">Api kulcs igénylése</h3>
+              <h3 class="text-2xl font-bold text-white">API kulcs igénylés</h3>
             </div>
             <XButton @click="isApiModal = false" class="cursor-pointer text-white" />
           </div>
@@ -592,8 +593,9 @@ const OnLogOut = async () => {
                 Generált kulcs másolása
               </div>
             </div>
-            <button type="submit"
-              class="glass-button px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+            <button type="submit" :disabled="apiKeys?.length === 10"
+              class="px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full bg-green-900 hover:bg-green-700"
+              :class="{ 'opacity-50 cursor-not-allowed hover:bg-green-900 hover:opacity-50 hover:cursor-not-allowed': apiKeys?.length === 10 }">
               <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
@@ -618,9 +620,7 @@ const OnLogOut = async () => {
                   <div class="flex items-center">
                     <p class="text-white text-sm">
                       Kulcs:
-                      <span
-                        class="text-white"
-                        >
+                      <span class="text-white">
                         {{ key.key }}
                       </span>
                     </p>

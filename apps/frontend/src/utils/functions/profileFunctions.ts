@@ -182,7 +182,7 @@ export const getApiKey = async (expiration: string, description: string) => {
   })
   if (post.status === 200) {
     const res = await post.json()
-    toast('Sikeres API kulcs generálás, mentse el mert többet nem tudod majd elérni!', {
+    toast('Sikeres API kulcs generálás, mentse el mert többet nem tudja majd elérni!', {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'success',
