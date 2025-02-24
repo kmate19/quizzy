@@ -372,7 +372,7 @@ const marqueeDuration = computed(() => {
     <v-container fluid class="max-h-[80%] flex justify-center items-center">
       <v-row
         class="mx-auto w-full max-w-7xl p-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex justify-center items-center">
-        <v-col cols="12" md="4" class="glass-panel !max-w-[94vw] lg:!max-w-[35vw]">
+        <v-col cols="12" md="4" class="glass-panel !sm:max-w-[94vw] lg:!w-[20vw]">
           <div class="p-6 rounded-lg backdrop-blur-lg text-white first">
             <div class="mb-2">
               <input type="file" ref="gameImageInput" accept=".png,.jpg,.jpeg,.svg" class="hidden"
@@ -427,7 +427,9 @@ const marqueeDuration = computed(() => {
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleTagDropdown"
-                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
+                  class="relative w-full bg-white/10 backdrop-blur-md
+                   text-white rounded px-3 py-2 inline-flex items-center
+                    justify-between border border-white/30 overflow-hidden whitespace-nowrap">
                   <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden max-w-full">
                     <div class="overflow-x-hidden">
                       <div class="flex w-fit" :class="{ 'animate-marquee': selectedTags.length > 2 }"
