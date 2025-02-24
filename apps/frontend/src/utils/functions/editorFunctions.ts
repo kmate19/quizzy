@@ -6,7 +6,6 @@ import type { quizUpload } from '../type'
 import { queryClient } from '@/lib/queryClient'
 
 export const getQuiz = async (uuid: string) => {
-  console.log('belso:', uuid)
   if (uuid === '') {
     return
   }
