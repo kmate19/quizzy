@@ -9,7 +9,11 @@ import {
 } from "@/db/schemas";
 import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
-import { pagination } from "@/utils/schemas/zod-schemas";
+import {
+    languageISOCodesQuery,
+    pagination,
+    tagNamesQuery,
+} from "@/utils/schemas/zod-schemas";
 import { and, countDistinct, eq, exists, inArray, SQL, sql } from "drizzle-orm";
 import { PgTable } from "drizzle-orm/pg-core";
 import { Context } from "hono";
@@ -104,18 +108,8 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
         pagination.merge(
             z.object({
                 query: z.string().nonempty().optional(),
-                tags: z
-                    .string()
-                    .nonempty()
-                    .array()
-                    .optional()
-                    .or(z.string().nonempty().optional()),
-                languages: z
-                    .string()
-                    .nonempty()
-                    .array()
-                    .optional()
-                    .or(z.string().nonempty().optional()),
+                tagNamesQuery,
+                languageISOCodesQuery,
                 strict: z
                     .string()
                     .transform((a) => {
@@ -126,7 +120,11 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
         )
     ),
     async (c) => {
-        const { query, tags, languages } = c.req.valid("query");
+        const {
+            query,
+            tagNamesQuery: tags,
+            languageISOCodesQuery: languages,
+        } = c.req.valid("query");
 
         const limit = c.req.valid("query").limit || 20;
         const page = c.req.valid("query").page || 1;
@@ -156,6 +154,7 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
         }
 
         let quizTagsSubquery: SQL | undefined = undefined;
+        console.error(tags);
         if (tags) {
             const idsOfTags: number[] = [];
             if (tags instanceof Array) {

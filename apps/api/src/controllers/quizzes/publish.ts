@@ -14,6 +14,7 @@ import {
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { makeSharpImage } from "@/utils/helpers";
+import { languageISOCodes, tagNames } from "@/utils/schemas/zod-schemas";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBuffer } from "file-type";
 import type { ApiResponse } from "repo";
@@ -25,14 +26,19 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
         "json",
         z.object({
             quiz: insertQuizSchema,
-            cards: insertQuizCardsSchema.array().min(1).max(10),
-            languageISOCodes: z.string().length(2).array().optional(),
-            tags: z.string().array().optional(),
+            cards: insertQuizCardsSchema.array().nonempty().max(10),
+            languageISOCodes,
+            tagNames,
         })
     ),
     async (c) => {
         const { userId } = c.get("accessTokenPayload");
-        const { quiz, cards, languageISOCodes, tags } = c.req.valid("json");
+        const {
+            quiz,
+            cards,
+            languageISOCodes,
+            tagNames: tags,
+        } = c.req.valid("json");
 
         const existingQuizzes = await db
             .select({ id: quizzesTable.id })

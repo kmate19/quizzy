@@ -67,7 +67,7 @@ async function publisTestQuiz(
                         picture: smallBase64Img,
                     },
                 ],
-                tags,
+                tagNames: tags,
                 languageISOCodes: langs,
             },
         },
@@ -113,7 +113,7 @@ describe("quiz related routes", async () => {
             const req2 = await client.quizzes.search.$get(
                 {
                     query: {
-                        tags: ["test tag2"],
+                        tagNamesQuery: ["test tag2"],
                     },
                 },
                 { headers: { cookie: cookies.join(";") } }
@@ -132,7 +132,7 @@ describe("quiz related routes", async () => {
             const req3 = await client.quizzes.search.$get(
                 {
                     query: {
-                        languages: ["SS"],
+                        languageISOCodesQuery: ["SS"],
                     },
                 },
                 { headers: { cookie: cookies.join(";") } }
@@ -151,8 +151,8 @@ describe("quiz related routes", async () => {
             const req4 = await client.quizzes.search.$get(
                 {
                     query: {
-                        languages: ["SS"],
-                        tags: ["test tag2"],
+                        languageISOCodesQuery: ["SS"],
+                        tagNamesQuery: ["test tag2"],
                     },
                 },
                 { headers: { cookie: cookies.join(";") } }
@@ -308,7 +308,7 @@ describe("quiz related routes", async () => {
                                 picture: smallBase64Img,
                             },
                         ],
-                        tags: ["doesntexist"],
+                        tagNames: ["doesntexist"],
                     },
                 },
                 { headers: { cookie: cookies.join(";") } }

@@ -13,6 +13,21 @@ export const pagination = z.object({
     page: numericString.optional(),
 });
 
+export const tagNames = z.string().nonempty().array().nonempty().optional();
+
+export const tagNamesQuery = tagNames.or(z.string().nonempty().optional());
+
+export const languageISOCodes = z
+    .string()
+    .length(2)
+    .array()
+    .nonempty()
+    .optional();
+
+export const languageISOCodesQuery = languageISOCodes.or(
+    z.string().length(2).optional()
+);
+
 export const ApiErrorSchema = z.object({
     message: z.string(),
     case: z.enum([
