@@ -8,6 +8,11 @@ function assertequal<T extends true>() {}
 
 export const numericString = z.string().regex(/^\d+$/).transform(Number);
 
+export const pagination = z.object({
+    limit: numericString.refine((num) => num < 51 && num > 9).optional(),
+    page: numericString.optional(),
+});
+
 export const ApiErrorSchema = z.object({
     message: z.string(),
     case: z.enum([

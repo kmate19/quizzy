@@ -9,7 +9,7 @@ import {
 } from "@/db/schemas";
 import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
-import { numericString } from "@/utils/schemas/zod-schemas";
+import { pagination } from "@/utils/schemas/zod-schemas";
 import { and, countDistinct, eq, exists, inArray, SQL, sql } from "drizzle-orm";
 import { PgTable } from "drizzle-orm/pg-core";
 import { Context } from "hono";
@@ -101,31 +101,29 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
     apikey_or_jwt(),
     zv(
         "query",
-        z.object({
-            query: z.string().nonempty().optional(),
-            tags: z
-                .string()
-                .nonempty()
-                .array()
-                .optional()
-                .or(z.string().nonempty().optional()),
-            languages: z
-                .string()
-                .nonempty()
-                .array()
-                .optional()
-                .or(z.string().nonempty().optional()),
-            strict: z
-                .string()
-                .transform((a) => {
-                    return a === "true" ? true : false;
-                })
-                .optional(),
-            limit: numericString
-                .refine((num) => num < 51 && num > 9)
-                .optional(),
-            page: numericString.optional(),
-        })
+        pagination.merge(
+            z.object({
+                query: z.string().nonempty().optional(),
+                tags: z
+                    .string()
+                    .nonempty()
+                    .array()
+                    .optional()
+                    .or(z.string().nonempty().optional()),
+                languages: z
+                    .string()
+                    .nonempty()
+                    .array()
+                    .optional()
+                    .or(z.string().nonempty().optional()),
+                strict: z
+                    .string()
+                    .transform((a) => {
+                        return a === "true" ? true : false;
+                    })
+                    .optional(),
+            })
+        )
     ),
     async (c) => {
         const { query, tags, languages } = c.req.valid("query");
