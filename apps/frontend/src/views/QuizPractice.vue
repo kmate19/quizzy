@@ -10,7 +10,7 @@ const quiz = ref<Game>();
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
 const currentQuestionIndex = ref(0)
 const score = ref(0)
-const timer = ref(20)
+const timer = ref(0)
 const preGameTimer = ref(5)
 const answerSelected = ref(false)
 const lastAnswerCorrect = ref(false)
@@ -30,7 +30,7 @@ const startPreGameTimer = () => {
 }
 
 const startQuestionTimer = () => {
-    timer.value = 20
+    timer.value = 10
     timerInterval = setInterval(() => {
         timer.value--
         if (timer.value === 0) {
@@ -66,7 +66,7 @@ const selectAnswer = (index: number) => {
     lastAnswerCorrect.value = correct
     setTimeout(() => {
         gamePhase.value = 'results'
-    }, 1000)
+    }, 2000) //meddig legyen lathato a valasz
 }
 
 const nextQuestion = () => {
