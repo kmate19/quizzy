@@ -10,9 +10,10 @@ export const getQuiz = async (uuid: string) => {
     return
   }
   const get = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
-  if (get.status === 200) {
+  if (get.status === 200) 
+    {
     const res = (await get.json()).data
-    console.log(res)
+    console.log("belso res",res)
     console.log(arrayBufferToBase64(res.banner.data))
     console.log('cards[0].picture.data', res.cards[0].picture.data)
     const quiz = {
@@ -44,7 +45,9 @@ export const getQuiz = async (uuid: string) => {
         support: l.language.support,
       })),
     }
-  } else {
+  } 
+  else 
+  {
     console.log('request failed: ', get.status)
   }
 }

@@ -117,9 +117,24 @@ export interface userProfile{
   created_at: string
   activity_status: string
   profile_picture: string
-  sentFriendships: sentFriendship[]        // Adjust these types if you have more specific types
+  sentFriendships: sentFriendship[]
   recievedFriendships: recievedFriendships[]
   friends: sentFriendship[]
   role: string
   stats: stats  
+}
+
+export interface Question {
+  question: string;
+  type: 'normal' | 'twochoice'
+  answers: string[];
+  picture: string;
+  correct_answer_index: number;
+}
+
+export interface Game {
+  title: string;
+  banner: string;
+  description: string;
+  cards: Question[];
 }

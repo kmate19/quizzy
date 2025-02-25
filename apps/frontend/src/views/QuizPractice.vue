@@ -1,29 +1,11 @@
 <script setup lang="ts">
 import NavBar from '@/components/NavBar.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getQuiz } from '@/utils/functions/editorFunctions';
+import { getGameQuiz } from '@/utils/functions/gameFunctions';
+import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
 
-interface QuizAnswer {
-  text: string;  // Assuming each answer has at least text
-}
-
-interface QuizCard {
-  question: string;
-  type: string;  // Might be more specific like "multiple-choice" | "true-false" etc.
-  answers: QuizAnswer[];
-  picture: string;  // URL or base64 string
-  correct_answer_index: number;
-}
-
-interface Quiz {
-  title: string;
-  banner: string;  // URL or base64 string
-  description: string;
-  cards: QuizCard[];
-}
-
-const quiz = ref<Quiz>();
+const quiz = ref<Game>();
 
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
 const currentQuestionIndex = ref(0)
@@ -129,24 +111,12 @@ const getBaseButtonColor = (index: number) => {
 onMounted(async () => {
     const route = useRoute()
     const quizId = route.params.uuid.toString()
-    const res = await getQuiz(quizId)
+    const res = await getGameQuiz(quizId)
 
     console.log(quizId)
-    console.log(res)
-    if (res?.data) {
-        quiz.value = {
-            title: res.data.title || 'Untitled Quiz',
-            banner: res.data.banner || '',
-            description: res.data.description || '',
-            cards: res.data.cards?.map((card) => ({
-                question: card.question,
-                type: card.type,
-                answers: card.answers.map(answer => typeof answer === 'string' ? { text: answer } : answer),
-                picture: card.picture || '',
-                correct_answer_index: card.correct_answer_index,
-            })) || [],
-        }
-    }
+    console.log("res",res)
+    if (res)
+        quiz.value = res
     startPreGameTimer()
 })
 
@@ -165,10 +135,10 @@ onUnmounted(() => {
         <NavBar />
 
         <div v-if="quiz" class="relative z-10 p-4 min-h-screen">
-            <nav class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-4 mb-6">
+            <div class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-4 mb-6">
                 <h1 class="text-3xl font-bold text-white text-center">{{ quiz.title }}</h1>
-                <p class="text-gray-200 text-center">{{ quiz.description }}</p>
-            </nav>
+                <p class="text-gray-200 text-center max-h-[20h]">{{ quiz.description }}</p>
+            </div>
 
             <div v-if="gamePhase === 'pre-game'" class="text-center text-white">
                 <div class="text-8xl font-bold mb-4 animate-pulse">{{ preGameTimer }}</div>
@@ -195,7 +165,7 @@ onUnmounted(() => {
                         'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
                         getAnswerButtonClass(index),
                     ]" :disabled="answerSelected" @click="selectAnswer(index)">
-                        {{ answer.text }}
+                        {{ answer }}
                     </button>
                 </div>
             </div>
