@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import NavBar from '@/components/NavBar.vue';
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { getGameQuiz } from '@/utils/functions/gameFunctions';
 import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
 
 const quiz = ref<Game>();
-
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
+watch(gamePhase, (newValue: string) => {
+    console.log('Game phase:', newValue)
+    if(gamePhase.value === 'completed'){
+        console.log(userAnswers)
+    }
+})
 const currentQuestionIndex = ref(0)
 const score = ref(0)
 const timer = ref(0)
@@ -15,6 +20,8 @@ const preGameTimer = ref(5)
 const answerSelected = ref(false)
 const lastAnswerCorrect = ref(false)
 let timerInterval: number | undefined
+
+const userAnswers = ref<number[]>([])
 
 const currentQuestion = computed(() => quiz.value?.cards[currentQuestionIndex.value])
 const isLastQuestion = computed(() => currentQuestionIndex.value === (quiz.value?.cards?.length ?? 0) - 1)
@@ -37,9 +44,8 @@ const startQuestionTimer = () => {
             clearInterval(timerInterval)
             answerSelected.value = true
             lastAnswerCorrect.value = false
-            setTimeout(() => {
-                gamePhase.value = 'results'
-            }, 1000)
+            userAnswers.value[currentQuestionIndex.value] = -1
+            showResultAndProceed()
         }
     }, 1000) as unknown as number
 }
@@ -57,45 +63,40 @@ const startQuestion = () => {
 }
 
 const selectAnswer = (index: number) => {
+    console.log(index)
     answerSelected.value = true
     stopTimer()
     const correct = index === currentQuestion.value?.correct_answer_index
+
+    userAnswers.value[currentQuestionIndex.value] = index
+
     if (correct) {
-        score.value += 100
+        score.value++
     }
     lastAnswerCorrect.value = correct
-    setTimeout(() => {
-        gamePhase.value = 'results'
-    }, 2000) //meddig legyen lathato a valasz
+
+    showResultAndProceed()
 }
 
-const nextQuestion = () => {
-    if (isLastQuestion.value) {
-        gamePhase.value = 'completed'
-    } else {
-        currentQuestionIndex.value++
-        startQuestion()
-    }
+const showResultAndProceed = () => {
+    gamePhase.value = 'results'
+
+    setTimeout(() => {
+        if (isLastQuestion.value) {
+            gamePhase.value = 'completed'
+        } else {
+            currentQuestionIndex.value++
+            startQuestion()
+        }
+    }, 500)//meddig van a result elott ido
 }
 
 const restartGame = () => {
     currentQuestionIndex.value = 0
-    score.value = 0
     preGameTimer.value = 5
+    userAnswers.value = []
     gamePhase.value = 'pre-game'
     startPreGameTimer()
-}
-
-const getAnswerButtonClass = (index: number) => {
-    if (!answerSelected.value) {
-        return getBaseButtonColor(index)
-    }
-
-    if (index === currentQuestion.value?.correct_answer_index) {
-        return 'bg-green-500'
-    }
-
-    return 'bg-red-500'
 }
 
 const getBaseButtonColor = (index: number) => {
@@ -113,10 +114,9 @@ onMounted(async () => {
     const quizId = route.params.uuid.toString()
     const res = await getGameQuiz(quizId)
 
-    console.log(quizId)
-    console.log("res",res)
     if (res)
         quiz.value = res
+    gamePhase.value = 'pre-game'
     startPreGameTimer()
 })
 
@@ -126,70 +126,86 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-            <div class="absolute inset-0 opacity-20">
-                <div class="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] bg-[length:20px_20px]"></div>
-            </div>
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] bg-[length:20px_20px]"></div>
         </div>
         <NavBar />
+        <div class="absolute inset-0 flex justify-center items-center w-full pl-2 pr-2">
+            <div class=" flex items-center justify-center flex-col gap-2">
+                <transition name="fade-slide" mode="out-in" appear>
+                    <div v-if="gamePhase === 'pre-game'" class="text-center space-y-4">
+                        <h2 class="text-white text-3xl font-bold mb-4">A gyakorlás hamarosan kezdődik!</h2>
+                        <div class="text-white text-6xl font-bold" :key="preGameTimer">
+                            {{ preGameTimer }}
+                        </div>
+                    </div>
+                    <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl">
+                        <div class="flex justify-between items-center m-4 px-4">
+                            <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
+                        </div>
 
-        <div v-if="quiz" class="relative z-10 p-4 min-h-screen">
-            <div class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-4 mb-6">
-                <h1 class="text-3xl font-bold text-white text-center">{{ quiz.title }}</h1>
-                <p class="text-gray-200 text-center max-h-[20h]">{{ quiz.description }}</p>
-            </div>
+                        <div class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
+                            <img v-if="currentQuestion?.picture" :src="currentQuestion.picture"
+                                :alt="currentQuestion.question" class="w-full max-h-64 object-contain mb-6 rounded" />
+                            <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
+                        </div>
 
-            <div v-if="gamePhase === 'pre-game'" class="text-center text-white">
-                <div class="text-8xl font-bold mb-4 animate-pulse">{{ preGameTimer }}</div>
-                <p class="text-2xl">Készülj fel!</p>
-            </div>
+                        <transition-group name="fade-scale" tag="div" :class="[
+                            'grid gap-4',
+                            currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
+                        ]">
+                            <button v-for="(answer, index) in currentQuestion?.answers" :key="index" :class="[
+                                'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+                                getBaseButtonColor(index),
+                            ]" :disabled="answerSelected" @click="selectAnswer(index)">
+                                {{ answer }}
+                            </button>
+                        </transition-group>
+                    </div>
+                </transition>
 
-            <div v-else-if="gamePhase === 'question'" class="space-y-4">
-                <div class="flex justify-between items-center mb-4 px-4">
-                    <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
-                    <div class="text-2xl font-bold text-white">Pontszám: {{ score }}</div>
-                </div>
+                <transition name="fade" mode="out-in" appear>
+                    <div v-if="gamePhase === 'completed'"
+                        class="text-center space-y-6 text-white sm:w-[50vw] max-w-4xl md:max-w-5xl lg:max-w-6xl">
+                        <div class="bg-white/20 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
+                            <h2 class="text-5xl font-bold mb-4">Játék vége!</h2>
+                            <p class="text-3xl mb-6">Eredmény: {{ quiz?.cards.length }}/{{ score }}</p>
+                            <h3 class="text-xl font-bold mb-4">Válaszaid összegzése</h3>
 
-                <div class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
-                    <img v-if="currentQuestion?.picture" :src="currentQuestion.picture" :alt="currentQuestion.question"
-                        class="w-full max-h-64 object-contain mb-6 rounded" />
-                    <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
-                </div>
+                            <transition-group name="list" tag="div"
+                                class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
+                                <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex"
+                                    class="p-4 rounded-lg  backdrop-blur-md userAnswers[qIndex] === card.correct_answer_index bg-white/1">
+                                    <p class="font-medium text-left mb-2 text-white">{{ qIndex + 1 }}. {{ card.question
+                                    }}
+                                    </p>
 
-                <div :class="[
-                    'grid gap-4',
-                    currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
-                ]">
-                    <button v-for="(answer, index) in currentQuestion?.answers" :key="index" :class="[
-                        'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
-                        getAnswerButtonClass(index),
-                    ]" :disabled="answerSelected" @click="selectAnswer(index)">
-                        {{ answer }}
-                    </button>
-                </div>
-            </div>
+                                    <ul class="text-left list-disc pl-5 space-y-1">
+                                        <li v-for="(answer, aIndex) in card.answers" :key="aIndex" class="w-fit" :class="[
+                                            aIndex === card.correct_answer_index
+                                                ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-1 rounded'
+                                                : aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index
+                                                    ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-1 rounded '
+                                                    : 'text-gray-200 font-bold'
+                                        ]">
+                                            {{ answer }}
+                                            <span v-if="aIndex === card.correct_answer_index" class="ml-1">✓</span>
+                                            <span
+                                                v-if="aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index"
+                                                class="ml-1">✗</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </transition-group>
+                        </div>
 
-            <div v-else-if="gamePhase === 'results'" class="text-center space-y-6 text-white">
-                <h2 class="text-3xl font-bold">
-                    {{ lastAnswerCorrect ? 'Helyes! 🎉' : 'Helytelen! 😢' }}
-                </h2>
-                <p class="text-2xl">
-                    {{ lastAnswerCorrect ? '+100 pont!' : 'Nem kaptál pontot' }}
-                </p>
-                <button @click="nextQuestion"
-                    class="bg-purple-600/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg font-bold hover:bg-purple-700/80 transition-all">
-                    {{ isLastQuestion ? 'Végeredmény megtekintése' : 'Következő kérdés' }}
-                </button>
-            </div>
-
-            <div v-else-if="gamePhase === 'completed'" class="text-center space-y-6 text-white">
-                <h2 class="text-5xl font-bold mb-4">Játék vége!</h2>
-                <p class="text-3xl">Eredmény: {{ score }}</p>
-                <button @click="restartGame"
-                    class="bg-green-600/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg font-bold hover:bg-green-700/80 transition-all">
-                    Újrakezdés
-                </button>
+                        <button @click="restartGame"
+                            class="bg-green-600/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg font-bold hover:bg-green-700/80 transition-all">
+                            Újrakezdés
+                        </button>
+                    </div>
+                </transition>
             </div>
         </div>
     </div>
@@ -204,11 +220,122 @@ onUnmounted(() => {
     0% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
+
     100% {
         background-position: 0% 50%;
     }
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+    scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: all 0.3s ease-out;
+}
+
+.fade-slide-appear-from {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.fade-slide-appear-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-slide-appear-active {
+    transition: all 0.3s ease-out;
+}
+
+.fade-slide-enter-from {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.fade-slide-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-30px);
+}
+
+
+.fade-scale-enter-active {
+    transition: all 0.3s ease-out;
+}
+
+.fade-scale-leave-active {
+    transition: all 0.3s ease-out;
+    transition-delay: 0;
+}
+
+.fade-scale-enter-from {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.fade-scale-leave-to {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.4s ease-out;
+}
+
+.list-enter-from {
+    opacity: 0;
+    transform: translateX(-30px);
+}
+
+.list-enter-to {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>
