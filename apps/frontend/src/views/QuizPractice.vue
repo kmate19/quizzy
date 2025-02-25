@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import NavBar from '@/components/NavBar.vue';
+import NavBar from '../components/NavBar.vue';
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { getGameQuiz } from '@/utils/functions/gameFunctions';
 import type { Game } from '@/utils/type'
@@ -9,7 +9,7 @@ const quiz = ref<Game>();
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
 watch(gamePhase, (newValue: string) => {
     console.log('Game phase:', newValue)
-    if(gamePhase.value === 'completed'){
+    if (gamePhase.value === 'completed') {
         console.log(userAnswers)
     }
 })
@@ -130,7 +130,9 @@ onUnmounted(() => {
         <div class="absolute inset-0 opacity-20">
             <div class="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] bg-[length:20px_20px]"></div>
         </div>
-        <NavBar />
+        <div class="relative z-10">
+            <NavBar />
+        </div>
         <div class="absolute inset-0 flex justify-center items-center w-full pl-2 pr-2">
             <div class=" flex items-center justify-center flex-col gap-2">
                 <transition name="fade-slide" mode="out-in" appear>
@@ -178,7 +180,7 @@ onUnmounted(() => {
                                 <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex"
                                     class="p-4 rounded-lg  backdrop-blur-md userAnswers[qIndex] === card.correct_answer_index bg-white/1">
                                     <p class="font-medium text-left mb-2 text-white">{{ qIndex + 1 }}. {{ card.question
-                                    }}
+                                        }}
                                     </p>
 
                                     <ul class="text-left list-disc pl-5 space-y-1">
