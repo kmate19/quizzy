@@ -15,7 +15,7 @@
         </Grid.ColumnDefinitions>
         
         <StackPanel Grid.Column="0" Margin="10">
-            <Image Source="../icon.ico" Height="160" Stretch="Fill" />
+            <Image Source="../icon.ico" Height="160"  />
             <Separator Margin="5"/>
             <TextBlock>
                 <Run Text="Készítette: " FontWeight="Bold"/>
@@ -60,7 +60,7 @@
         </StackPanel>
 
         <StackPanel Grid.Column="1" Margin="10">
-            <Image Source="../icon.ico" Height="150" Stretch="fill"/>
+            <Image Source="../icon.ico" Height="150"/>
             <TextBlock Text="{Binding CurrentQuizCard.Question}" FontSize="18" FontWeight="Bold" TextAlignment="Center" Margin="10"/>
 
             <DockPanel Width="400">

@@ -72,7 +72,7 @@ namespace localadmin.Views
                 Debug.WriteLine($"Response: {response}");
 
                 string responseContent = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(responseContent);
+                Debug.WriteLine("Response Content: "+responseContent);
 
                 var responseData = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
                 Debug.WriteLine($"ResponseData: {responseData}");

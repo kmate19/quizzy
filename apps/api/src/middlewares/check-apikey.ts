@@ -7,7 +7,6 @@ const check_apikey = createMiddleware<{
     Variables: { userIdForApiKey: string };
 }>(async (c, next) => {
     const apikey = c.req.header("X-Api-Key");
-    console.log(".DSDSDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"+apikey)
 
     if (!apikey) {
         return c.json({ message: "" }, 401);
