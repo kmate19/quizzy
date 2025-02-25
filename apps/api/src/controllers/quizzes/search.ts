@@ -143,16 +143,16 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
             ts_rank(
                 setweight(to_tsvector('english', unaccent(title)), 'A') ||
                 setweight(to_tsvector('english', unaccent(coalesce(description, ''))), 'B'),
-                to_tsquery('english', unaccent(${query}) || ':*')
-            ) DESC
+                plainto_tsquery('english', unaccent(${query}))
+            ) DESC, similarity(unaccent(title), unaccent(${query})) DESC
         `;
 
             queryWhereClause = sql`
             (
                 to_tsvector('english', unaccent(title)) ||
                 to_tsvector('english', unaccent(coalesce(description, ''))) @@ 
-                to_tsquery('english', unaccent(${query}) || ':*')
-                OR unaccent(title) % unaccent(${query}) -- Trigram match
+                plainto_tsquery('english', unaccent(${query}))
+                OR similarity(unaccent(title), unaccent(${query})) > 0.65 -- Trigram match
             )
         `;
         }
@@ -241,6 +241,36 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
             extras: {
                 totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
             },
+            with: {
+                user: {
+                    columns: {
+                        username: true,
+                    },
+                },
+                tags: {
+                    columns: {},
+                    with: {
+                        tag: {
+                            columns: {
+                                name: true,
+                            },
+                        },
+                    },
+                },
+                languages: {
+                    columns: {},
+                    with: {
+                        language: {
+                            columns: {
+                                name: true,
+                                iso_code: true,
+                                support: true,
+                                icon: true,
+                            },
+                        },
+                    },
+                },
+            },
             offset,
             limit,
             where: and(
@@ -259,7 +289,12 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         console.log(quizzes);
 
-        return c.json({ quizzes, totalCount }, 200);
+        const res = {
+            message: "search results",
+            data: { quizzes, totalCount },
+        } satisfies ApiResponse;
+
+        return c.json(res, 200);
     }
 );
 

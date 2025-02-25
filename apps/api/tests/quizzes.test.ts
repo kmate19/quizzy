@@ -41,9 +41,14 @@ beforeEach(async () => {
 async function publisTestQuiz(
     client: any,
     cookies: string[],
-    idx: number,
-    status: string = "published"
+    idx: string,
+    status: string = "published",
+    extra?: { [key: string]: any }
 ) {
+    const tags = ["test tag"];
+    const langs = ["TS"];
+    if (extra?.tag) tags.push(extra.tag);
+    if (extra?.lang) langs.push(extra.lang);
     const pub = await client.quizzes.publish.$post(
         {
             json: {
@@ -62,8 +67,8 @@ async function publisTestQuiz(
                         picture: smallBase64Img,
                     },
                 ],
-                tags: ["test tag"],
-                languageISOCodes: ["TS"],
+                tags,
+                languageISOCodes: langs,
             },
         },
         { headers: { cookie: cookies.join(";") } }
@@ -73,6 +78,105 @@ async function publisTestQuiz(
 }
 
 describe("quiz related routes", async () => {
+    describe("search quizzes", async () => {
+        test("should return quizzes with relevant data", async () => {
+            const { cookies } = await registerAndLogin(client);
+            for (let i = 0; i < 9; ++i) {
+                await publisTestQuiz(
+                    client,
+                    cookies,
+                    i.toString() + "asd",
+                    "published",
+                    {
+                        tag: Math.random() > 0.5 ? "test tag2" : undefined,
+                        lang: Math.random() > 0.5 ? "SS" : undefined,
+                    }
+                );
+            }
+            await publisTestQuiz(client, cookies, "asd", "published", {
+                tag: "test tag2",
+                lang: "SS",
+            });
+
+            const req1 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        query: "test quiz4asd",
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req1.status).toBe(200);
+            const jdson = await req1.json();
+            expect(jdson.data.quizzes[0].title).toBe("test quiz4asd");
+
+            const req2 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        tags: ["test tag2"],
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req2.status).toBe(200);
+            if (req2.status === 200) {
+                const jdson2 = await req2.json();
+                console.log(jdson2.data.quizzes[0].tags);
+                expect(
+                    jdson2.data.quizzes.every((q) =>
+                        q.tags.some((t) => t.tag.name === "test tag2")
+                    )
+                ).toBe(true);
+            }
+
+            const req3 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        languages: ["SS"],
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req3.status).toBe(200);
+            if (req3.status === 200) {
+                const jdson3 = await req3.json();
+                console.log(jdson3.data.quizzes[0].languages);
+                expect(
+                    jdson3.data.quizzes.every((q) =>
+                        q.languages.some((l) => l.language.iso_code === "SS")
+                    )
+                ).toBe(true);
+            }
+
+            const req4 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        languages: ["SS"],
+                        tags: ["test tag2"],
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req4.status).toBe(200);
+            if (req4.status === 200) {
+                const jdson4 = await req4.json();
+                expect(
+                    jdson4.data.quizzes.every((q) => {
+                        console.log(q.languages);
+                        console.log(q.tags);
+                        const a = q.languages.some(
+                            (l) => l.language.iso_code === "SS"
+                        );
+                        const b = q.tags.some(
+                            (t) => t.tag.name === "test tag2"
+                        );
+
+                        return a && b;
+                    })
+                ).toBe(true);
+            }
+        });
+    });
     describe("edit quiz", async () => {
         test("should edit quiz with relevant data", async () => {
             const { cookies } = await registerAndLogin(client);
