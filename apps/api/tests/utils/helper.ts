@@ -7,11 +7,12 @@ export async function registerTestUser(
     client: any,
     user: { username: string; email: string; password: string } = {
         username: "mateka",
-        email: "test@example.com",
+        email: "test",
         password: "123",
     },
     verifyEmail = false
 ) {
+    user.email = user.email + "@example.com";
     const reg = await client.auth.register.$post({ json: user });
     expect(reg.status).toBe(200);
 
@@ -30,11 +31,14 @@ export async function registerAndLogin(
     client: any,
     user: { username: string; email: string; password: string } = {
         username: "mateka",
-        email: "test@example.com",
+        email: "tes",
         password: "123",
     }
 ) {
+    user.email = user.email + "@example.com";
+    console.log(user);
     const reg = await client.auth.register.$post({ json: user });
+    console.log(await reg.json());
     expect(reg.status).toBe(200);
 
     await db

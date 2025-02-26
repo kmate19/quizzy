@@ -12,6 +12,7 @@ import {
     getQuizzesDesc,
     publishQuizDesc,
 } from "@/openapi/quizzes-openapi";
+import searchHandlers from "@/controllers/quizzes/search";
 
 const quizzes = new Hono()
     .basePath("/quizzes")
@@ -25,6 +26,7 @@ const quizzes = new Hono()
     .get("/own", getOwnQuizzesDesc, ...getOwnHandlers)
     .get("/by/:userId", ...getByUserIdHandlers)
     .get("/own/:quizId", ...getOwnByIdHandlers)
+    .get("/search", ...searchHandlers)
     .patch("/edit/:quizId", ...editHandlers)
     .delete("/delete/:quizId", ...deleteHandlers)
     .get("/:quizId", ...getByIdHandlers);

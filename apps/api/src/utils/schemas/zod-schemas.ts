@@ -8,6 +8,26 @@ function assertequal<T extends true>() {}
 
 export const numericString = z.string().regex(/^\d+$/).transform(Number);
 
+export const pagination = z.object({
+    limit: numericString.refine((num) => num < 51 && num > 9).optional(),
+    page: numericString.optional(),
+});
+
+export const tagNames = z.string().nonempty().array().nonempty().optional();
+
+export const tagNamesQuery = tagNames.or(z.string().nonempty().optional());
+
+export const languageISOCodes = z
+    .string()
+    .length(2)
+    .array()
+    .nonempty()
+    .optional();
+
+export const languageISOCodesQuery = languageISOCodes.or(
+    z.string().length(2).optional()
+);
+
 export const ApiErrorSchema = z.object({
     message: z.string(),
     case: z.enum([

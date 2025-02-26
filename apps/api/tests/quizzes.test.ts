@@ -41,9 +41,14 @@ beforeEach(async () => {
 async function publisTestQuiz(
     client: any,
     cookies: string[],
-    idx: number,
-    status: string = "published"
+    idx: string,
+    status: string = "published",
+    extra?: { [key: string]: any }
 ) {
+    const tags = ["test tag"];
+    const langs = ["TS"];
+    if (extra?.tag) tags.push(extra.tag);
+    if (extra?.lang) langs.push(extra.lang);
     const pub = await client.quizzes.publish.$post(
         {
             json: {
@@ -62,8 +67,8 @@ async function publisTestQuiz(
                         picture: smallBase64Img,
                     },
                 ],
-                tags: ["test tag"],
-                languageISOCodes: ["TS"],
+                tagNames: tags,
+                languageISOCodes: langs,
             },
         },
         { headers: { cookie: cookies.join(";") } }
@@ -73,6 +78,105 @@ async function publisTestQuiz(
 }
 
 describe("quiz related routes", async () => {
+    describe("search quizzes", async () => {
+        test("should return quizzes with relevant data", async () => {
+            const { cookies } = await registerAndLogin(client);
+            for (let i = 0; i < 9; ++i) {
+                await publisTestQuiz(
+                    client,
+                    cookies,
+                    i.toString() + "asd",
+                    "published",
+                    {
+                        tag: Math.random() > 0.5 ? "test tag2" : undefined,
+                        lang: Math.random() > 0.5 ? "SS" : undefined,
+                    }
+                );
+            }
+            await publisTestQuiz(client, cookies, "asd", "published", {
+                tag: "test tag2",
+                lang: "SS",
+            });
+
+            const req1 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        query: "test quiz4asd",
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req1.status).toBe(200);
+            const jdson = await req1.json();
+            expect(jdson.data.quizzes[0].title).toBe("test quiz4asd");
+
+            const req2 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        tagNamesQuery: ["test tag2"],
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req2.status).toBe(200);
+            if (req2.status === 200) {
+                const jdson2 = await req2.json();
+                console.log(jdson2.data.quizzes[0].tags);
+                expect(
+                    jdson2.data.quizzes.every((q) =>
+                        q.tags.some((t) => t.tag.name === "test tag2")
+                    )
+                ).toBe(true);
+            }
+
+            const req3 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        languageISOCodesQuery: ["SS"],
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req3.status).toBe(200);
+            if (req3.status === 200) {
+                const jdson3 = await req3.json();
+                console.log(jdson3.data.quizzes[0].languages);
+                expect(
+                    jdson3.data.quizzes.every((q) =>
+                        q.languages.some((l) => l.language.iso_code === "SS")
+                    )
+                ).toBe(true);
+            }
+
+            const req4 = await client.quizzes.search.$get(
+                {
+                    query: {
+                        languageISOCodesQuery: ["SS"],
+                        tagNamesQuery: ["test tag2"],
+                    },
+                },
+                { headers: { cookie: cookies.join(";") } }
+            );
+            expect(req4.status).toBe(200);
+            if (req4.status === 200) {
+                const jdson4 = await req4.json();
+                expect(
+                    jdson4.data.quizzes.every((q) => {
+                        console.log(q.languages);
+                        console.log(q.tags);
+                        const a = q.languages.some(
+                            (l) => l.language.iso_code === "SS"
+                        );
+                        const b = q.tags.some(
+                            (t) => t.tag.name === "test tag2"
+                        );
+
+                        return a && b;
+                    })
+                ).toBe(true);
+            }
+        });
+    });
     describe("edit quiz", async () => {
         test("should edit quiz with relevant data", async () => {
             const { cookies } = await registerAndLogin(client);
@@ -204,7 +308,7 @@ describe("quiz related routes", async () => {
                                 picture: smallBase64Img,
                             },
                         ],
-                        tags: ["doesntexist"],
+                        tagNames: ["doesntexist"],
                     },
                 },
                 { headers: { cookie: cookies.join(";") } }
@@ -361,7 +465,7 @@ describe("quiz related routes", async () => {
                 await registerAndLogin(client, {
                     username: "otheruser",
                     password: "otherpassword",
-                    email: "test@example.org",
+                    email: "test2",
                 })
             ).cookies;
 
@@ -437,41 +541,75 @@ describe("quiz related routes", async () => {
 
             const { data } = await quizzes.json();
 
-            expect(data.length).toBe(1);
-            expect(data[0].title).toBe("test quiz0");
-            expect(data[0].description).toBe("test quiz description");
-            expect(data[0].user.username).toBe("mateka");
-            expect(data[0].tags[0].tag.name).toBe("test tag");
-            expect(data[0].languages[0].language.name).toBe("test language");
+            expect(data.quizzes.length).toBe(1);
+            expect(data.quizzes[0].title).toBe("test quiz0");
+            expect(data.quizzes[0].description).toBe("test quiz description");
+            expect(data.quizzes[0].user.username).toBe("mateka");
+            expect(data.quizzes[0].tags[0].tag.name).toBe("test tag");
+            expect(data.quizzes[0].languages[0].language.name).toBe(
+                "test language"
+            );
         });
         test("should return with correct limits and offsets", async () => {
             const { cookies } = await registerAndLogin(client);
             for (let i = 0; i < 10; ++i) {
                 await publisTestQuiz(client, cookies, i);
             }
+            const { cookies: cookies1 } = await registerAndLogin(client, {
+                username: "m",
+                email: "m",
+                password: "m",
+            });
+            for (let i = 10; i < 20; ++i) {
+                await publisTestQuiz(client, cookies1, i);
+            }
+            const { cookies: cookies2 } = await registerAndLogin(client, {
+                username: "m1",
+                email: "m1",
+                password: "m",
+            });
+            for (let i = 20; i < 30; ++i) {
+                await publisTestQuiz(client, cookies2, i);
+            }
+            const { cookies: cookies3 } = await registerAndLogin(client, {
+                username: "m2",
+                email: "m2",
+                password: "m",
+            });
+            for (let i = 30; i < 40; ++i) {
+                await publisTestQuiz(client, cookies3, i);
+            }
+            const { cookies: cookies4 } = await registerAndLogin(client, {
+                username: "m3",
+                email: "m3",
+                password: "m",
+            });
+            for (let i = 40; i < 50; ++i) {
+                await publisTestQuiz(client, cookies4, i);
+            }
 
             const quizzes = await client.quizzes.$get(
                 { query: {} },
                 { headers: { cookie: cookies.join(";") } }
             );
-            const quizzes50 = await client.quizzes.$get(
-                { query: { limit: "50" } },
+            const quizzes30 = await client.quizzes.$get(
+                { query: { limit: "30" } },
                 { headers: { cookie: cookies.join(";") } }
             );
-            const quizzes501 = await client.quizzes.$get(
-                { query: { limit: "50", page: "2" } },
+            const quizzes301 = await client.quizzes.$get(
+                { query: { limit: "30", page: "2" } },
                 { headers: { cookie: cookies.join(";") } }
             );
 
-            const { data } = await quizzes.json();
-            const data50 = (await quizzes50.json()).data;
+            const data = (await quizzes.json()).data.quizzes;
+            const data30 = (await quizzes30.json()).data.quizzes;
 
             expect(quizzes.status).toBe(200);
-            expect(data.length).toBe(10);
-            expect(quizzes50.status).toBe(200);
-            expect(data50.length).toBe(10);
-            expect(quizzes501.status).toBe(200);
-            expect((await quizzes501.json()).data.length).toBe(0);
+            expect(data.length).toBe(20);
+            expect(quizzes30.status).toBe(200);
+            expect(data30.length).toBe(30);
+            expect(quizzes301.status).toBe(200);
+            expect((await quizzes301.json()).data.quizzes.length).toBe(20);
         });
         test("should not return quizzes that are not of published status", async () => {
             const { cookies } = await registerAndLogin(client);
@@ -498,7 +636,8 @@ describe("quiz related routes", async () => {
 
             const { data } = await quizzes.json();
 
-            expect(data.length).toBe(0);
+            expect(data.totalCount).toBe(0);
+            expect(data.quizzes.length).toBe(0);
         });
     });
 });
