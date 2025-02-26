@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
-//import { useCounterStore } from '@/stores/counter'
+import { getTags, getLanguages } from '@/utils/functions/metaFunctions'
 
-
-//const store = useCounterStore()
 const categories = ref([''])
 const isModalOpen = ref(false)
 const searchQuery = ref('')

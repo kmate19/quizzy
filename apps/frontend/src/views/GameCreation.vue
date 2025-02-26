@@ -12,9 +12,13 @@ import { useQuery } from '@tanstack/vue-query'
 import {
   getQuiz,
   handleQuizyUpload,
+
+} from '@/utils/functions/editorFunctions'
+
+import {
   getTags,
   getLanguages,
-} from '@/utils/functions/editorFunctions'
+} from '@/utils/functions/metaFunctions'
 
 const qTypes = ['twochoice', 'normal']
 const items = ['draft', 'published', 'requires_review', 'private']
