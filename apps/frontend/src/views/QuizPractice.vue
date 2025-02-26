@@ -93,6 +93,7 @@ const showResultAndProceed = () => {
 
 const restartGame = () => {
     currentQuestionIndex.value = 0
+    score.value = 0
     preGameTimer.value = 5
     userAnswers.value = []
     gamePhase.value = 'pre-game'
@@ -136,13 +137,14 @@ onUnmounted(() => {
         <div class="absolute inset-0 flex justify-center items-center w-full pl-2 pr-2">
             <div class=" flex items-center justify-center flex-col gap-2">
                 <transition name="fade-slide" mode="out-in" appear>
-                    <div v-if="gamePhase === 'pre-game'" class="text-center space-y-4">
+                    <div v-if="gamePhase === 'pre-game'" class="text-center space-y-4" key="pre-game">
                         <h2 class="text-white text-3xl font-bold mb-4">A gyakorlás hamarosan kezdődik!</h2>
                         <div class="text-white text-6xl font-bold" :key="preGameTimer">
                             {{ preGameTimer }}
                         </div>
                     </div>
-                    <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl">
+
+                    <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl" key="question">
                         <div class="flex justify-between items-center m-4 px-4">
                             <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
                         </div>
@@ -165,11 +167,10 @@ onUnmounted(() => {
                             </button>
                         </transition-group>
                     </div>
-                </transition>
 
-                <transition name="fade" mode="out-in" appear>
-                    <div v-if="gamePhase === 'completed'"
-                        class="text-center space-y-6 text-white sm:w-[50vw] max-w-4xl md:max-w-5xl lg:max-w-6xl">
+                    <div v-else-if="gamePhase === 'completed'"
+                        class="text-center space-y-6 text-white sm:w-[50vw] max-w-4xl md:max-w-5xl lg:max-w-6xl"
+                        key="completed">
                         <div class="bg-white/20 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
                             <h2 class="text-5xl font-bold mb-4">Játék vége!</h2>
                             <p class="text-3xl mb-6">Eredmény: {{ quiz?.cards.length }}/{{ score }}</p>
@@ -178,9 +179,9 @@ onUnmounted(() => {
                             <transition-group name="list" tag="div"
                                 class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
                                 <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex"
-                                    class="p-4 rounded-lg  backdrop-blur-md userAnswers[qIndex] === card.correct_answer_index bg-white/1">
+                                    class="p-4 rounded-lg backdrop-blur-md userAnswers[qIndex] === card.correct_answer_index bg-white/1">
                                     <p class="font-medium text-left mb-2 text-white">{{ qIndex + 1 }}. {{ card.question
-                                        }}
+                                    }}
                                     </p>
 
                                     <ul class="text-left list-disc pl-5 space-y-1">

@@ -19,9 +19,7 @@ export const getGameQuiz = async (id: string) =>
                 picture: arrayBufferToBase64(q.picture.data),
                 correct_answer_index: q.correct_answer_index
             }))
-        
         }
-
         return game
             
     }
