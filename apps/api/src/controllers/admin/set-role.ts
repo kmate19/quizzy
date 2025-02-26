@@ -9,7 +9,7 @@ import { z } from "zod";
 
 const setRoleHandlers = GLOBALS.CONTROLLER_FACTORY(
     check_apikey,
-    zv("json", z.object({ userId: z.string(), roleName: z.string() })),
+    zv("json", z.object({ userId: z.string().uuid(), roleName: z.string() })),
     async (c) => {
         const { roleName, userId } = c.req.valid("json");
 

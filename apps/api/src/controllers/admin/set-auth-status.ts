@@ -13,7 +13,7 @@ const setAuthStatusHandlers = GLOBALS.CONTROLLER_FACTORY(
     zv(
         "json",
         z.object({
-            userId: z.string(),
+            userId: z.string().uuid(),
             status: z.union([
                 z.literal("active"),
                 z.literal("pending"),
