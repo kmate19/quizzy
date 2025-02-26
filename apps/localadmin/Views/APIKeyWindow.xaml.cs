@@ -16,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using localadmin.Services;
 
 namespace localadmin.Views
 {
@@ -41,20 +42,13 @@ namespace localadmin.Views
 
             if (await AuthenticateApiKey(apiKey))
             {
-                Dispatcher.Invoke(() =>
-                {
-                    MainWindow mainWindow = new MainWindow();
-                    Application.Current.MainWindow = mainWindow;
-                    mainWindow.Show();
-                    Close();
-                });
+                SharedStateService.Instance.ApiKey = apiKey;
+                MainWindow.Show();
+                Hide();
             }
             else
-            {
                 MessageBox.Show("Helytelen API kulcs. Kérlek próbálkozz újra.");
-            }
 
-            // Re-enable the button after the request completes
             if (button != null) 
                 button.IsEnabled = true;
         }
@@ -65,26 +59,19 @@ namespace localadmin.Views
 
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-            Debug.WriteLine("sending api key: " + apiKey);
             try
             {
                 HttpResponseMessage response = await client.GetAsync(url);
-                Debug.WriteLine($"Response: {response}");
-
                 string responseContent = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine("Response Content: "+responseContent);
-
                 var responseData = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-                Debug.WriteLine($"ResponseData: {responseData}");
 
                 return responseData != null &&
-                       responseData.TryGetValue("success", out string? success) &&
-                       success.Equals("true", StringComparison.OrdinalIgnoreCase);
+                       responseData.TryGetValue("message", out string? success) &&
+                       success.Equals("Authenticated", StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);    
-                MessageBox.Show($"Hiba történt az API ellenőrzése közben: {ex.Message}");
                 return false;
             }
         }

@@ -1,13 +1,20 @@
 ﻿using localadmin.Services;
 using localadmin.ViewModels;
 using localadmin.Views;
+using System.Data;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace localadmin.Models
 {
+    public class RoleWrapper
+    {
+        public Roles Role { get; set; }
+    }
+
     public class User
     {
         public enum EActivityStatus
@@ -39,7 +46,9 @@ namespace localadmin.Models
 
         public string TranslatedActivityStatus => ActivityStatusTranslations.TryGetValue(ActivityStatus, out var translation) ? translation : ActivityStatus.ToString();
         public string TranslatedAuthStatus => AuthStatusTranslations.TryGetValue(AuthStatus, out var translation) ? translation : AuthStatus.ToString();
-        public string UserRoles=> string.Join(", ", Roles.Select(r => r.Name));
+        public string UserRoles => Roles != null
+            ? string.Join(", ", Roles.Select(r => r.Role?.Name ?? "Unknown"))
+            : "No Roles";
 
         private readonly NavigationService navigationService;
         private readonly SharedStateService sharedState;
@@ -50,11 +59,16 @@ namespace localadmin.Models
         public string UUID { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
+        [JsonPropertyName("activity_status")]
         public EActivityStatus ActivityStatus { get; set; }
+        [JsonPropertyName("auth_status")]
         public EAuthStatus AuthStatus { get; set; }
+        [JsonPropertyName("created_at")]
         public DateTime CreatedAt { get; set; }
+        [JsonPropertyName("updated_at")]
         public DateTime UpdatedAt { get; set; }
-        public List<Roles> Roles { get; set; }
+        //pfp
+        public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
 
 
         public User(NavigationService navigationService, SharedStateService sharedState)
@@ -66,6 +80,8 @@ namespace localadmin.Models
             DeleteUserCommand = new RelayCommand(DeleteUser);
             EditUserCommand = new RelayCommand(EditUser);
         }
+
+        public User() { }
 
         private void EditUser(object parameter)
         {

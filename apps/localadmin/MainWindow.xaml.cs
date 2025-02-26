@@ -5,6 +5,8 @@ using localadmin.ViewModels;
 using System.Diagnostics;
 using localadmin.Services;
 using localadmin.Views;
+using System.Printing;
+using System.Formats.Asn1;
 
 namespace localadmin;
 
@@ -12,9 +14,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 {
     public NavigationService NavigationService { get; } = new NavigationService();
     public SharedStateService SharedState { get; } = SharedStateService.Instance;
-    public UserViewModel UserViewModel { get; }
-    public ReviewViewModel ReviewViewModel { get; }
-    public QuizViewModel QuizViewModel { get; }
+    public UserViewModel UserViewModel { get; private set; }
+    public ReviewViewModel ReviewViewModel { get; private set; }
+    public QuizViewModel QuizViewModel { get; private set; }
 
     private object _currentView = null!;
 
@@ -40,15 +42,22 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         InitializeComponent();
         Hide();
 
+        Loaded += MainWindow_Loaded;
+
+        NavigationService.ViewModelChanged += OnViewModelChanged;
+
+        DataContext = this;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
         UserViewModel = new UserViewModel(NavigationService, SharedState);
         ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
         QuizViewModel = new QuizViewModel(NavigationService, SharedState);
 
-        NavigationService.ViewModelChanged += OnViewModelChanged;
+        await UserViewModel.GetUsers();
 
         CurrentView = UserViewModel;
-
-        DataContext = this;
     }
 
     private void OnViewModelChanged(object newViewModel)

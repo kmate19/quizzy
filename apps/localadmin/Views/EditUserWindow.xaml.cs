@@ -30,7 +30,7 @@ namespace localadmin.Views
                 .Select(r => new SelectableItem<string>
                 {
                     Value = r.Name,
-                    IsSelected = user.Roles.Contains(r)
+                    IsSelected = user.Roles.Any(roleWrapper => roleWrapper.Role.Name == r.Name)
                 })
                 .ToList();
 

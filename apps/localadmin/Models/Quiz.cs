@@ -37,11 +37,17 @@ namespace localadmin.Models
             get
             {
                 UserViewModel userView = new UserViewModel(NavigationService, SharedState);
-                return userView.Users.Where(x => x.UUID == UserID).First().Username;
+                User user = userView.Users.FirstOrDefault(x => x.UUID == UserID);
+                if (user == null)
+                {
+                    return "Unknown"; // Or any default value
+                }
+
+                else
+                    return user.Username;
             }
             set { }
         }
-
 
         public Quiz(NavigationService navigation, SharedStateService sharedState)
         {

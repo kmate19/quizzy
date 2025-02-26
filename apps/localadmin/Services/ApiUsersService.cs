@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
+using System.Data;
+using System.Diagnostics;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using localadmin.Models;
+using localadmin.Services;
 
 namespace localadmin.Services
 {
@@ -15,27 +13,50 @@ namespace localadmin.Services
         private static readonly HttpClient client = new HttpClient();
         private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            IncludeFields = true
         };
 
         public static async Task<ObservableCollection<User>> GetUsersAsync()
         {
-            string url = "http://localhost:3000/api/v1/users"; // Change URL if needed
+            string url = "http://localhost:3000/api/v1/admin/all-users";
+            client.DefaultRequestHeaders.Remove("X-Api-Key");
+            client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
+
             try
             {
                 HttpResponseMessage response = await client.GetAsync(url);
                 response.EnsureSuccessStatusCode();
-
                 string jsonResponse = await response.Content.ReadAsStringAsync();
-                ObservableCollection<User>? users = JsonSerializer.Deserialize<ObservableCollection<User>>(jsonResponse, jsonSerializerOptions);
+                Debug.WriteLine($"Raw JSON Response: {jsonResponse}");
 
-                return users ?? new ObservableCollection<User>();
+                using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
+                {
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("data", out JsonElement dataElement) &&
+                        dataElement.TryGetProperty("users", out JsonElement usersElement) &&
+                        usersElement.ValueKind == JsonValueKind.Array)
+                    {
+                        var users = JsonSerializer.Deserialize<ObservableCollection<User>>(usersElement.GetRawText(), jsonSerializerOptions)
+                                   ?? new ObservableCollection<User>();
+
+                        return users;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Error: 'data.users' field missing or not an array.");
+                    }
+                }
+
+                return new ObservableCollection<User>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching users: {ex.Message}");
+                Debug.WriteLine($"Error fetching users: {ex.Message}");
                 return new ObservableCollection<User>();
             }
         }
     }
+
 }

@@ -8,6 +8,7 @@ namespace localadmin.Services
         public static SharedStateService Instance => _instance;
 
         private string _searchText = "Search";
+        private string _apiKey = string.Empty;
         public string SearchText
         {
             get => _searchText;
@@ -17,6 +18,19 @@ namespace localadmin.Services
                 {
                     _searchText = value;
                     OnPropertyChanged(nameof(SearchText));
+                }
+            }
+        }
+
+        public string ApiKey
+        {
+            get => _apiKey;
+            set
+            {
+                if (_apiKey != value)
+                {
+                    _apiKey = value;
+                    OnPropertyChanged(nameof(ApiKey));
                 }
             }
         }

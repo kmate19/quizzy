@@ -30,7 +30,13 @@ namespace localadmin.Models
             get
             {
                 UserViewModel userView = new UserViewModel(NavigationService, SharedState);
-                return userView.Users.Where(x => x.UUID == UserUUID).First().Username;
+                User user = userView.Users.FirstOrDefault(x => x.UUID == UserUUID);
+                if (user == null)
+                {
+                    return "Unknown";
+                }
+                else
+                    return user.Username;
             }
         }
 

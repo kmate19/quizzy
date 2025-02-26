@@ -1,4 +1,7 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.User;
@@ -9,7 +12,7 @@ namespace localadmin.ViewModels
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
-        public ObservableCollection<User> Users { get; set; } = new ObservableCollection<User>();
+        public ObservableCollection<User> Users { get; set; } = new();
         public ObservableCollection<User> FilteredUsers { get; private set; }
 
         public UserViewModel(NavigationService Navigation, SharedStateService State)
@@ -17,13 +20,9 @@ namespace localadmin.ViewModels
             NavigationService = Navigation;
             SharedState = State;
 
-            GetUses();
+            GetUsers();
 
-
-
-
-
-
+            /*
             Users = new ObservableCollection<User>
             {
                 new User(NavigationService, SharedState)
@@ -93,13 +92,21 @@ namespace localadmin.ViewModels
                     UpdatedAt = DateTime.UtcNow.AddMonths(-2)
                     }
             };
-
-            FilteredUsers = new ObservableCollection<User>(Users);
+            */
         }
 
-        private async void GetUses()
+        public  async Task GetUsers()
         {
-            Users = await ApiUsersService.GetUsersAsync();
+            var fetchedUsers = await ApiUsersService.GetUsersAsync();
+            Users.Clear();
+            foreach (var user in fetchedUsers)
+            {
+                Users.Add(user);
+            }
+            FilteredUsers = new ObservableCollection<User>(Users);
+
+            OnPropertyChanged(nameof(Users));
+            OnPropertyChanged(nameof(FilteredUsers));
         }
 
         public void SearchUsers(string query)
@@ -111,5 +118,12 @@ namespace localadmin.ViewModels
                 FilteredUsers.Add(user);
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }

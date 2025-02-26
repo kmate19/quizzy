@@ -154,7 +154,7 @@ namespace localadmin.ViewModels
                 Debug.WriteLine(FiltredQuizzes[i].Status);
             }
         }
-
+        
         public void SearchQuizes(string query)
         {
             var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.MadeBy, quiz.Title]);
@@ -163,6 +163,6 @@ namespace localadmin.ViewModels
             {
                 FiltredQuizzes.Add(quiz);
             }
-        }
+        } 
     }
 }
