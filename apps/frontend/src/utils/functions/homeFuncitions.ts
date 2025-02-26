@@ -7,8 +7,7 @@ export const getQuizzes = async (limit: string | undefined, currentPage: string 
   isStrict: string | undefined, tags: string | [string, ...string[]] | undefined, 
   languages: string | [string, ...string[]] | undefined, searchText: string | undefined) => {
   let response;
-    if(tags?.length > 0 || (searchText && searchText !== "") || languages?.length > 0){
-      console.log("asdasdsdsadadsds",searchText)
+    if((Array.isArray(tags) && tags.length > 0) || (searchText && searchText !== "") || (Array.isArray(languages) && languages.length > 0)){
       response = await clientv1.quizzes.search.$get({query:{
         query: searchText !== undefined ? searchText : undefined,
         strict: isStrict !== undefined ? searchText : undefined, 

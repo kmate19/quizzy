@@ -344,6 +344,7 @@ const resetInputValues = () => {
 
 const uploadOrUpdate = async () => {
   isLoading.value = true
+  console.log(quiz.value)
   const uuid = route.params.uuid.toString()
   quiz.value.languageISOCodes = selectedLanguages.value.map((l: Language) => l.iso_code)
   quiz.value.tags = selectedTags.value.map((t: Tag) => t.name)

@@ -68,6 +68,7 @@ const handleSave = async (payload: FilterPayload) => {
   console.log(tags.value)
   console.log(languages.value)
   selectParams()
+  console.log(params)
   const res = await getQuizzes(
     params.limit,
     params.page,
