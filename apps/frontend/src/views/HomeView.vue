@@ -5,7 +5,7 @@ import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
 import CategoriesButton from '@/components/CategoriesBtn.vue'
 import QuizCard from '@/components/QuizCard.vue'
-import { type quizCardView, type Tag } from '@/utils/type'
+import type { quizCardView } from '@/utils/type'
 import { getQuizzes } from '@/utils/functions/homeFuncitions'
 
 const quizzes = ref<quizCardView[]>([])
@@ -15,7 +15,9 @@ const isExpanded = ref(false)
 const searchContainer = ref<HTMLElement | null>(null)
 //--------Ezek kellenek nekem-------
 const searchText = ref('')
-const tags = ref<Tag[]>([])
+const strict = ref(false)
+const tags = ref<string[]>([])
+const languages = ref<string[]>([])
 const currentPage = ref(1)
 const limit = ref(10) // minimum 10
 //--------Ezek kellenek nekem-------
@@ -23,12 +25,60 @@ const totalPages = ref(0)
 const showFullPages = ref(false)
 
 interface FilterPayload {
-  tags: Tag[]
+  tags: string[]
+  strictSearch: boolean
+  languages: string[]
 }
 
-const handleSave = (payload: FilterPayload) => {
-  console.log('Save Payload:', payload)
+const params: {
+  limit?: string
+  page?: string
+  strict?: string
+  tags?: [string, ...string[]]
+  languages?: [string, ...string[]]
+  searchText?: string
+} = {}
+
+const selectParams = () => {
+  if (limit.value) {
+    params.limit = limit.value.toString()
+  }
+  if (currentPage.value) {
+    params.page = currentPage.value.toString()
+  }
+  if (strict.value === true) {
+    params.strict = 'true'
+  }
+  if (tags.value && tags.value.length > 0) {
+    params.tags = tags.value as [string, ...string[]]
+  }
+  if (languages.value && languages.value.length > 0) {
+    params.languages = languages.value as [string, ...string[]]
+  }
+  if (searchText.value) {
+    params.searchText = searchText.value
+  }
+}
+
+const handleSave = async (payload: FilterPayload) => {
+  loading.value = true
   tags.value = payload.tags
+  strict.value = payload.strictSearch
+  languages.value = payload.languages
+  console.log(tags.value)
+  console.log(languages.value)
+  selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+  quizzes.value = res.quizzes
+  totalPages.value = res.totalPages
+  loading.value = false
 }
 
 const toggleExpand = async () => {
@@ -40,7 +90,6 @@ const toggleExpand = async () => {
   }
 }
 
-
 const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number) => {
   let timeout: ReturnType<typeof setTimeout>
   return (...args: T) => {
@@ -51,11 +100,20 @@ const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number)
   }
 }
 
-const doSearch = async (query: string) => {
-  searchText.value = query
-  console.log('Search Query:', query)
+const doSearch = async () => {
+  console.log('Search Query:', searchText.value)
   loading.value = true
-  const res = await getQuizzes(limit.value, currentPage.value)
+  selectParams()
+  console.log(params)
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+  console.log(res)
   quizzes.value = res.quizzes
   totalPages.value = res.totalPages
   loading.value = false
@@ -63,9 +121,8 @@ const doSearch = async (query: string) => {
 
 const search = debounce(doSearch, 250)
 
-function onInput(event: Event) {
-  const input = event.target as HTMLInputElement
-  search(input.value)
+function onInput() {
+  search()
 }
 
 const handleBlur = () => {
@@ -76,7 +133,15 @@ const nextPage = async () => {
   if (currentPage.value < totalPages.value) {
     loading.value = true
     currentPage.value++
-    const res = await getQuizzes(limit.value, currentPage.value)
+    selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
     quizzes.value = res.quizzes
     totalPages.value = res.totalPages
     loading.value = false
@@ -87,7 +152,15 @@ const prevPage = async () => {
   if (currentPage.value > 1) {
     loading.value = true
     currentPage.value--
-    const res = await getQuizzes(limit.value, currentPage.value)
+    selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
     quizzes.value = res.quizzes
     totalPages.value = res.totalPages
     loading.value = true
@@ -98,7 +171,15 @@ const goToPage = async (page: number) => {
   if (page !== currentPage.value) {
     loading.value = true
     currentPage.value = page
-    const res = await getQuizzes(limit.value, currentPage.value)
+    selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
     quizzes.value = res.quizzes
     totalPages.value = res.totalPages
     loading.value = false
@@ -124,10 +205,17 @@ const totalPagesArray = computed(() => {
   return Array.from({ length: totalPages.value }, (_, i) => i + 1)
 })
 
-
 onMounted(async () => {
   loading.value = true
-  const res = await getQuizzes(limit.value, currentPage.value)
+  selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
   quizzes.value = res.quizzes
   totalPages.value = res.totalPages
   console.log(totalPages.value)
@@ -137,7 +225,7 @@ onMounted(async () => {
 
 <template>
   <div class="home-page">
-    <MistBackground /><!--removeolni kell ugyis es most par dolgot kitakar-->
+    <MistBackground />
     <NavBar />
     <div
       class="container mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer">
@@ -198,7 +286,8 @@ onMounted(async () => {
                 <div v-if="showFullPages" @mouseleave="showFullPages = false"
                   class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar w-48 p-4 bg-white/10 shadow-lg rounded-lg z-10 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-white backdrop-blur-2xl">
                   <div class="grid grid-cols-5 gap-2">
-                    <button v-for="page in totalPagesArray" :key="page" @click="goToPage(page), showFullPages = false"
+                    <button v-for="page in totalPagesArray" :key="page"
+                      @click="(goToPage(page), (showFullPages = false))"
                       class="px-2 py-1 rounded transition-all duration-300 hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
                       {{ page }}
                     </button>

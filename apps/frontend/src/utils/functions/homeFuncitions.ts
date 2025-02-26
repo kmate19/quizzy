@@ -2,10 +2,27 @@ import { clientv1 } from "@/lib/apiClient"
 import type { quizCardView } from "../type"
 import { arrayBufferToBase64 } from "../helpers"
 
-export const getQuizzes = async (limit: number, currentPage: number) => {
-    const response = await clientv1.quizzes.$get({
-      query: { limit: limit.toString(), page: currentPage.toString() }
-    })
+//const res = await getQuizzes(limit.value, currentPage.value, strict.value, tags.value, searchText.value)
+export const getQuizzes = async (limit: string | undefined, currentPage: string | undefined, 
+  isStrict: string | undefined, tags: string | [string, ...string[]] | undefined, 
+  languages: string | [string, ...string[]] | undefined, searchText: string | undefined) => {
+  let response;
+    if(tags?.length > 0 || (searchText && searchText !== "") || languages?.length > 0){
+      console.log("asdasdsdsadadsds",searchText)
+      response = await clientv1.quizzes.search.$get({query:{
+        query: searchText !== undefined ? searchText : undefined,
+        strict: isStrict !== undefined ? searchText : undefined, 
+        limit: limit !== undefined ? limit : undefined, 
+        page: currentPage !== undefined ? currentPage : undefined, 
+        tagNamesQuery: tags !== undefined ? tags : undefined,
+        languageISOCodesQuery: languages !== undefined ? languages : undefined,
+      }})
+    }
+    else{
+      response = await clientv1.quizzes.$get({
+        query: { limit: limit?.toString(), page: currentPage?.toString() }
+      })
+    }
     if (!response.ok) {
       throw new Error('Failed to fetch quizzes')
     }
