@@ -1,3 +1,4 @@
+import getAllUsersHandlers from "@/controllers/admin/get-all-users";
 import setAuthStatusHandlers from "@/controllers/admin/set-auth-status";
 import setRoleHandlers from "@/controllers/admin/set-role";
 import check_apikey from "@/middlewares/check-apikey";
@@ -7,6 +8,7 @@ const admin = new Hono()
     .basePath("/admin")
     .post("/set/role", ...setRoleHandlers)
     .post("/set/authstatus", ...setAuthStatusHandlers)
+    .get("/all-users", ...getAllUsersHandlers)
     .get("/authenticate", async (c) => {
         // @ts-expect-error not passing next
         const res = await check_apikey(c);
