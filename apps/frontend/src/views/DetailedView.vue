@@ -5,14 +5,14 @@ import router from '@/router'
 import { ref, onMounted } from 'vue'
 import NavBar from '@/components/NavBar.vue'
 import { Loader2Icon } from 'lucide-vue-next'
-import { type quizCardView } from '@/utils/type'
+import type{  Quiz, Tag } from '@/utils/type'
 import { toast } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
 import MistBackground from '@/components/MistBackground.vue'
 
 const route = useRoute()
 const uuid = route.params.uuid
-const data = ref<quizCardView>()
+const data = ref<Quiz>()
 const isLoading = ref(true)
 
 const getQuiz = async () => {
@@ -28,20 +28,20 @@ const getQuiz = async () => {
       console.log(user)
     }
     data.value = {
-      quiz_id: res.data.id,
+      id: res.data.id,
       status: res.data.status,
-      created_at: new Date(res.data.created_at),
-      updated_at: new Date(res.data.updated_at),
+      created_at: new Date(res.data.created_at).toISOString().split('T')[0] ,
+      updated_at: new Date(res.data.updated_at).toISOString().split('T')[0] ,
       title: res.data.title,
       description: res.data.description,
-      rating: res.data.rating.toString(),
-      plays: res.data.plays.toString(),
+      rating: res.data.rating,
+      plays: res.data.plays,
       banner: arrayBufferToBase64(res.data.banner.data),
-      languageISOCodes: [...res.data.languages].map((lang) => ({
+      languages: [...res.data.languages].map((lang) => ({
         iso_code: lang.language.iso_code,
         icon: lang.language.icon,
       })),
-      tags: res.data.tags.map((tag) => tag.tag.name),
+      tags: res.data.tags.map((tag) => tag.tag.name as unknown as Tag),
       user_id: res.data.user_id,
       username: user,
       cards: res.data.cards.map((card) => ({
@@ -110,7 +110,7 @@ const handleTestPlay = () => {
             <h2 class="text-xl font-semibold">
               {{ data?.title }}<br />
             </h2>
-            <div class="max-h-20 overflow-y-scroll custom-scrollbar">
+            <div class="max-h-20 overflow-y-scroll">
               {{ data?.description }}
             </div>
           </div>
@@ -128,14 +128,14 @@ const handleTestPlay = () => {
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
             <div class="mb-2">Kategóriák:</div>
             <div class="flex flex-wrap gap-2 max-h-20 overflow-y-scroll">
-              <span v-for="tag in data?.tags" :key="tag"
+              <span v-for="tag in data?.tags" :key="tag.name"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm">
                 {{ tag }}
               </span>
             </div>
             <div class="mb-2">Nyelvek:</div>
             <div class="flex flex-wrap gap-2">
-              <span v-for="lang in data?.languageISOCodes" :key="lang.iso_code"
+              <span v-for="lang in data?.languages" :key="lang.iso_code"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm">
                 {{ lang.iso_code }} | {{ lang.icon }}
               </span>
@@ -143,7 +143,7 @@ const handleTestPlay = () => {
             <div class="mb-2">
               Publikálás ideje:
               <span class="font-bold text-blue-500">
-                {{ data?.created_at.toISOString().split('T')[0] }}
+                {{ data?.created_at}}
               </span>
             </div>
             <div class="mb-2">{{ data?.plays }}x játszották</div>
@@ -167,7 +167,7 @@ const handleTestPlay = () => {
 
         <!-- Right -->
         <div class="flex-1">
-          <div class="space-y-4 pl-2 pr-2 h-[calc(100vh-10vh)] overflow-y-scroll custom-scrollbar">
+          <div class="space-y-4 pl-2 pr-2 h-[calc(100vh-10vh)] overflow-y-scroll">
             <div v-for="(card, index) in data?.cards" :key="card.picture"
               class="rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border
                border-white/20 shadow-lg">

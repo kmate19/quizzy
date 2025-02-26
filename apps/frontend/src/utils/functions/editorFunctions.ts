@@ -126,3 +126,4 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
     }
   }
 }
+

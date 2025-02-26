@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { StarIcon, PlayIcon } from 'lucide-vue-next'
-import { type Quiz } from '@/utils/type'
+import { type quizCardView } from '@/utils/type'
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
 
-defineProps<{ quiz: Quiz }>()
+defineProps<{ quiz: quizCardView }>()
 
 </script>
 

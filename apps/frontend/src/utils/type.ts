@@ -23,29 +23,19 @@ export interface Question {
 }
 
 export interface quizCardView {
-  status: string
+  id: string
   created_at: Date
   updated_at: Date
   title: string
   quiz_id: string
   description: string
-  rating: string
-  plays: string
+  rating: number
+  plays: number
   banner: string
   username: string
-  languageISOCodes: {
-    iso_code: string
-    icon: string
-  }[]
-  tags: string[]
+  languages: Language[]
+  tags: Tag[]
   user_id: string
-  cards: {
-    question: string
-    type: string
-    answers: string[]
-    picture: string
-    correct_answer_index: number
-  }[]
 }
 
 export interface Tag {
@@ -64,6 +54,7 @@ export interface Quiz {
   created_at: string
   updated_at: string
   user_id: string
+  username: string
   description: string
   title: string
   status?: 'published' | 'draft' | 'requires_review' | 'private'
@@ -72,6 +63,7 @@ export interface Quiz {
   banner: string
   languages: Language[]
   tags: Tag[]
+  cards: Question[]
 }
 
 export interface sentFriendship {
