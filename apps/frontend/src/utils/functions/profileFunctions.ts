@@ -22,7 +22,7 @@ export const userData = async (id: string) => {
         roles: res.data.roles,
         stats: res.data.stats,
       }
-      
+
       return userObj
     } else {
       const res = await user.json()
@@ -79,40 +79,70 @@ export const userData = async (id: string) => {
   }
 }
 
-export const getOwnQuizzies = async () => {
-  //await new Promise(resolve => setTimeout(resolve, 2000))
-  try {
-    const res = await clientv1.quizzes.own.$get()
-    const data = await res.json()
+export const getUserQuizzies = async (userId: string) => {
+  if(userId !== ""){
 
-    const quizzes: Quiz[] = data.data.map((el) => ({
-      id: el.id,
-      created_at: el.created_at,
-      updated_at: el.updated_at,
-      user_id: el.user_id,
-      description: el.description,
-      title: el.title,
-      status: el.status,
-      rating: el.rating,
-      plays: el.plays,
-      banner: arrayBufferToBase64(el.banner.data),
-      languages: el.languages.map((lang) => ({
-        name: lang.language.name,
-        iso_code: lang.language.iso_code,
-        icon: lang.language.icon,
-        support: lang.language.support,
-      })),
-      tags: el.tags.map((tag) => ({
-        name: tag.tag.name,
-      })),
-    }))
-    return quizzes
-  } catch (error) {
-    console.error('error:', error)
-  } finally {
+    try {
+      const res = await clientv1.quizzes.by[':userId'].$get({param: {userId: userId}})
+      const data = await res.json()
+      
+      const quizzes: Quiz[] = data.data.map((el) => ({
+        id: el.id,
+        created_at: el.created_at,
+        updated_at: el.updated_at,
+        user_id: el.user_id,
+        description: el.description,
+        title: el.title,
+        status: el.status,
+        rating: el.rating,
+        plays: el.plays,
+        banner: arrayBufferToBase64(el.banner.data),
+        languages: el.languages.map((lang) => ({
+          name: lang.language.name,
+          iso_code: lang.language.iso_code,
+          icon: lang.language.icon,
+          support: lang.language.support,
+        })),
+        tags: el.tags.map((tag) => ({
+          name: tag.tag.name,
+        })),
+      }))
+      return quizzes
+    } catch (error) {
+      console.error('error:', error)
+    }
+  }else{
+    try {
+      const res = await clientv1.quizzes.own.$get()
+      const data = await res.json()
+  
+      const quizzes: Quiz[] = data.data.map((el) => ({
+        id: el.id,
+        created_at: el.created_at,
+        updated_at: el.updated_at,
+        user_id: el.user_id,
+        description: el.description,
+        title: el.title,
+        status: el.status,
+        rating: el.rating,
+        plays: el.plays,
+        banner: arrayBufferToBase64(el.banner.data),
+        languages: el.languages.map((lang) => ({
+          name: lang.language.name,
+          iso_code: lang.language.iso_code,
+          icon: lang.language.icon,
+          support: lang.language.support,
+        })),
+        tags: el.tags.map((tag) => ({
+          name: tag.tag.name,
+        })),
+      }))
+      return quizzes
+    } catch (error) {
+      console.error('error:', error)
+    }
   }
 }
-
 export const handleDelete = async (uuid: string) => {
   const del = await clientv1.quizzes.delete[':quizId'].$delete({ param: { quizId: uuid } })
   if (del.status === 200) {
