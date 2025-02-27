@@ -1,3 +1,8 @@
+import {
+    insertQuizCardsSchema,
+    insertQuizSchema,
+    LoginUserSchema,
+} from "@/db/schemas";
 import { Equal } from "drizzle-orm";
 import { ApiError, ApiResponse } from "repo";
 import { z } from "zod";
@@ -34,6 +39,36 @@ export const languageISOCodesSchema = z
 export const languageISOCodesQuerySchema = languageISOCodesSchema.or(
     z.string().length(2).optional()
 );
+
+export const trueStringSchema = z.string().transform((a) => {
+    return a === "true" ? true : false;
+});
+
+export const searchQuerySchema = paginationSchema.merge(
+    z.object({
+        query: z.string().nonempty().optional(),
+        tagNames: tagNamesQuerySchema,
+        languageISOCodes: languageISOCodesQuerySchema,
+        strict: trueStringSchema.optional(),
+    })
+);
+
+export const publishQuizSchema = z
+    .object({
+        quiz: insertQuizSchema,
+        cards: insertQuizCardsSchema.array().nonempty().max(10),
+        languageISOCodes: languageISOCodesSchema,
+        tagNames: tagNamesSchema,
+    })
+    .required();
+
+export const editQuizSchema = publishQuizSchema.partial();
+
+export const changePasswordSchema = LoginUserSchema.omit({
+    username_or_email: true,
+}).extend({
+    oldPassword: z.string(),
+});
 
 export const ApiErrorSchema = z.object({
     message: z.string(),

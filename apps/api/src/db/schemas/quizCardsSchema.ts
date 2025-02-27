@@ -39,7 +39,8 @@ export const quizCardsTable = pgTable(
     }
 );
 
-export type QuizCard = typeof quizCardsTable.$inferInsert;
+export type QuizCard = typeof quizCardsTable.$inferSelect;
+export type QuizCardInsert = typeof quizCardsTable.$inferInsert;
 
 export const insertQuizCardsSchema = createInsertSchema(quizCardsTable)
     .omit({

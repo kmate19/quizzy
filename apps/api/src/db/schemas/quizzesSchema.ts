@@ -49,7 +49,7 @@ export const quizzesTable = pgTable(
     }
 );
 
-export type Quiz = typeof quizzesTable.$inferInsert;
+export type Quiz = typeof quizzesTable.$inferSelect;
 
 export const insertQuizSchema = createInsertSchema(quizzesTable)
     .omit({

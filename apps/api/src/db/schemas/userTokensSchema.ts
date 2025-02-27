@@ -38,7 +38,7 @@ export const userTokensTable = pgTable(
     }
 );
 
-export type UserTokens = typeof userTokensTable.$inferInsert;
+export type UserTokens = typeof userTokensTable.$inferSelect;
 
 export const userTokensRelations = relations(userTokensTable, ({ one }) => ({
     user: one(usersTable, {

@@ -47,7 +47,7 @@ export const friendshipsTable = pgTable(
     }
 );
 
-export type Friendship = typeof friendshipsTable.$inferInsert;
+export type Friendship = typeof friendshipsTable.$inferSelect;
 
 export const friendshipsRelations = relations(friendshipsTable, ({ one }) => ({
     requester: one(usersTable, {

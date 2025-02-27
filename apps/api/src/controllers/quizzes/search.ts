@@ -12,6 +12,7 @@ import { zv } from "@/middlewares/zv";
 import {
     languageISOCodesQuerySchema,
     paginationSchema,
+    searchQuerySchema,
     tagNamesQuerySchema,
 } from "@/utils/schemas/zod-schemas";
 import {
@@ -122,27 +123,12 @@ async function checkFilters(
 
 const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
     apikey_or_jwt(),
-    zv(
-        "query",
-        paginationSchema.merge(
-            z.object({
-                query: z.string().nonempty().optional(),
-                tagNamesQuery: tagNamesQuerySchema,
-                languageISOCodesQuery: languageISOCodesQuerySchema,
-                strict: z
-                    .string()
-                    .transform((a) => {
-                        return a === "true" ? true : false;
-                    })
-                    .optional(),
-            })
-        )
-    ),
+    zv("query", searchQuerySchema),
     async (c) => {
         const {
             query,
-            tagNamesQuery: tags,
-            languageISOCodesQuery: languages,
+            tagNames: tags,
+            languageISOCodes: languages,
         } = c.req.valid("query");
 
         const limit = c.req.valid("query").limit || 20;

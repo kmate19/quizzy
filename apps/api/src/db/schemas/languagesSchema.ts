@@ -39,7 +39,8 @@ export const languagesTable = pgTable(
     }
 );
 
-export type Language = typeof languagesTable.$inferInsert;
+export type Language = typeof languagesTable.$inferSelect;
+export type LanguageInsert = typeof languagesTable.$inferInsert;
 
 export const insertLanguageSchema = createInsertSchema(languagesTable).omit({
     created_at: true,

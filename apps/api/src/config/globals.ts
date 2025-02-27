@@ -1,7 +1,7 @@
 import type { CookieOptions } from "hono/utils/cookie";
 import ENV from "./env";
 import { createFactory } from "hono/factory";
-import { Language, Role, Tag } from "@/db/schemas";
+import { LanguageInsert, RoleInsert, TagInsert } from "@/db/schemas";
 
 const controllerFactory = createFactory().createHandlers;
 
@@ -20,12 +20,12 @@ const GLOBALS = {
     DB_ROLES: [
         { name: "default", description: "Default user role." },
         { name: "admin", description: "Basic admin role." },
-    ] satisfies Role[],
+    ] satisfies RoleInsert[],
     DB_LANGUAGES: [
         { name: "Német", iso_code: "DE", icon: "🇩🇪", support: "partial" },
         { name: "Angol", iso_code: "EN", icon: "🇺🇸", support: "official" },
         { name: "Magyar", iso_code: "HU", icon: "🇭🇺", support: "official" },
-    ] satisfies Language[],
+    ] satisfies LanguageInsert[],
     DB_TAGS: [
         { name: "Matematika" },
         { name: "Tudomány" },
@@ -57,7 +57,7 @@ const GLOBALS = {
         { name: "Ételek" },
         { name: "Utazás" },
         { name: "Divat" },
-    ] satisfies Tag[],
+    ] satisfies TagInsert[],
     WORKERCONF: {
         workerExtension: ENV.NODE_ENV() === "production" ? ".js" : ".ts",
         workerRelativePath: ENV.NODE_ENV() === "production" ? "./" : "../../",
