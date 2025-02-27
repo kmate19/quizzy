@@ -14,7 +14,18 @@ import {
     pagination,
     tagNamesQuery,
 } from "@/utils/schemas/zod-schemas";
-import { and, countDistinct, eq, exists, inArray, SQL, sql } from "drizzle-orm";
+import {
+    and,
+    count,
+    countDistinct,
+    eq,
+    exists,
+    gte,
+    inArray,
+    or,
+    SQL,
+    sql,
+} from "drizzle-orm";
 import { PgTable } from "drizzle-orm/pg-core";
 import { Context } from "hono";
 import type { ApiResponse } from "repo";
@@ -23,24 +34,28 @@ import { z } from "zod";
 function createSubquery<
     T extends typeof quizTagsTable | typeof quizLanguagesTable,
 >(table: T, compArray: number[], strict: boolean) {
+    const comparer = strict ? eq : gte;
     if (table === quizTagsTable) {
         const inner = db
             .select({
                 quizId: table.quiz_id,
             })
             .from(table as PgTable)
-            .where(
+            .where(sql`${table.quiz_id} = "quizzesTable"."id"`)
+            .groupBy(table.quiz_id)
+            .having(
                 and(
-                    sql`${table.quiz_id} = "quizzesTable"."id"`,
-                    inArray(table.tag_id, compArray)
+                    comparer(
+                        countDistinct(
+                            sql`CASE WHEN ${inArray(table.tag_id, compArray)} then ${table.tag_id} END`
+                        ),
+                        strict ? compArray.length : 1
+                    ),
+                    strict
+                        ? eq(count(table.tag_id), compArray.length)
+                        : undefined
                 )
             );
-
-        if (strict) {
-            inner
-                .groupBy(table.quiz_id)
-                .having(eq(countDistinct(table.tag_id), compArray.length));
-        }
 
         return exists(inner);
     } else if (table === quizLanguagesTable) {
@@ -49,18 +64,22 @@ function createSubquery<
                 quizId: table.quiz_id,
             })
             .from(table as PgTable)
-            .where(
+            .where(sql`${table.quiz_id} = "quizzesTable"."id"`)
+            .groupBy(table.quiz_id)
+            .having(
                 and(
-                    sql`${table.quiz_id} = "quizzesTable"."id"`,
-                    inArray(table.language_id, compArray)
+                    comparer(
+                        countDistinct(
+                            sql`CASE WHEN ${inArray(table.language_id, compArray)} then ${table.language_id} END`
+                        ),
+                        strict ? compArray.length : 1
+                    ),
+                    strict
+                        ? eq(count(table.language_id), compArray.length)
+                        : undefined
                 )
             );
 
-        if (strict) {
-            inner
-                .groupBy(table.quiz_id)
-                .having(eq(countDistinct(table.language_id), compArray.length));
-        }
         return exists(inner);
     }
 }
@@ -234,6 +253,10 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
             }
         }
 
+        const queries = strict
+            ? and(queryWhereClause, quizTagsSubquery, quizLanguagesSubquery)
+            : or(queryWhereClause, quizTagsSubquery, quizLanguagesSubquery);
+
         const quizzesWCount = await db.query.quizzesTable.findMany({
             extras: {
                 totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
@@ -270,12 +293,7 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
             },
             offset,
             limit,
-            where: and(
-                eq(quizzesTable.status, "published"),
-                queryWhereClause,
-                quizTagsSubquery,
-                quizLanguagesSubquery
-            ),
+            where: and(eq(quizzesTable.status, "published"), queries),
             orderBy: tsRankOrderBy,
         });
 
