@@ -46,8 +46,8 @@ const toggleCategory = (category: string) => {
 const saveParams = () => {
   isModalOpen.value = false
   emit('save', {
-    tags: selectedTagsData.value,
-    languages: selectedLanguagesData.value,
+    tags: selectedTagsData.value.length > 0 ? selectedTagsData.value : [],
+    languages: selectedLanguagesData.value.length > 0 ? selectedLanguagesData.value : [],
     strictSearch: strictSearch.value
   })
 }

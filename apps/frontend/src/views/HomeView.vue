@@ -40,6 +40,9 @@ const params: {
 } = {}
 
 const selectParams = () => {
+  for (const key in params) {
+    delete params[key as keyof typeof params];
+  }
   if (limit.value) {
     params.limit = limit.value.toString()
   }
@@ -63,12 +66,10 @@ const selectParams = () => {
 const handleSave = async (payload: FilterPayload) => {
   loading.value = true
   tags.value = payload.tags
-  strict.value = payload.strictSearch
   languages.value = payload.languages
-  console.log(tags.value)
-  console.log(languages.value)
+  strict.value = payload.strictSearch
   selectParams()
-  console.log(params)
+  console.log("itt megy a params log",params)
   const res = await getQuizzes(
     params.limit,
     params.page,
