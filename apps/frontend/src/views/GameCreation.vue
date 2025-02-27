@@ -170,12 +170,10 @@ onMounted(async () => {
       description: data.description,
       status: data.status,
       banner: data.banner,
-      // Ensure that languageISOCodes is a nonempty tuple or undefined
       languageISOCodes:
         data.languageISOCodes && data.languageISOCodes.length > 0
           ? data.languageISOCodes as [string, ...string[]]
           : undefined,
-      // Ensure that tags is a nonempty tuple or undefined
       tags:
         data.tags && data.tags.length > 0
           ? data.tags as [string, ...string[]]
