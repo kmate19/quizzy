@@ -9,15 +9,10 @@ import type { quizUpload, cardType, Tag, Language, nonemptyCardArray } from '@/u
 import { useRoute } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 //import "@fontsource/noto-color-emoji"; workspaces cucc miatt no working
-import {
-  getQuiz,
-  handleQuizyUpload,
-} from '@/utils/functions/editorFunctions'
+import { getQuiz, handleQuizyUpload } from '@/utils/functions/editorFunctions'
 
-import {
-  getTags,
-  getLanguages,
-} from '@/utils/functions/metaFunctions'
+import { getTags, getLanguages } from '@/utils/functions/metaFunctions'
+import router from '@/router'
 
 const qTypes = ['twochoice', 'normal']
 const items = ['draft', 'published', 'requires_review', 'private']
@@ -108,9 +103,9 @@ const toggleLanguageSelection = (lang: Language) => {
 }
 
 const route = useRoute()
-
 const isLoading = ref(false)
-const isEdit = ref(false)
+const isEdit = computed(() => route.params.uuid !== undefined && route.params.uuid !== '')
+const justEditedQuiz = ref(false)
 const isQType = ref(false)
 const isOpen = ref(false)
 const gameImageInput = ref<HTMLInputElement | null>(null)
@@ -131,7 +126,7 @@ const quiz = ref<quizUpload>({
   banner: '',
   languageISOCodes: undefined,
   tags: undefined,
-  cards: [oneQuestion.value] as [cardType,...cardType[]],
+  cards: [oneQuestion.value] as [cardType, ...cardType[]],
 })
 
 watch(
@@ -159,31 +154,40 @@ watch(
 )
 
 onMounted(async () => {
+  const editSuccess = localStorage.getItem('quizEditSuccess')
+  console.log("editsuccess", editSuccess)
+  if (editSuccess === 'true') {
+    toast('Quiz sikeresen módosítva!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+    localStorage.removeItem('quizEditSuccess')
+  }
   isLoading.value = true
   const uuid = route.params.uuid.toString()
-  const result = await getQuiz(uuid)
-  if (result && !Array.isArray(result) && typeof result === 'object') {
-    const data = result.data
+  if (isEdit.value) {
+    const result = await getQuiz(uuid)
+    if (result && !Array.isArray(result) && typeof result === 'object') {
+      const data = result.data
+      quiz.value = {
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        banner: data.banner,
+        languageISOCodes:
+          data.languageISOCodes && data.languageISOCodes.length > 0
+            ? (data.languageISOCodes as [string, ...string[]])
+            : undefined,
+        tags: data.tags && data.tags.length > 0 ? (data.tags as [string, ...string[]]) : undefined,
+        cards: data.cards as nonemptyCardArray,
+      }
 
-    quiz.value = {
-      title: data.title,
-      description: data.description,
-      status: data.status,
-      banner: data.banner,
-      languageISOCodes:
-        data.languageISOCodes && data.languageISOCodes.length > 0
-          ? data.languageISOCodes as [string, ...string[]]
-          : undefined,
-      tags:
-        data.tags && data.tags.length > 0
-          ? data.tags as [string, ...string[]]
-          : undefined,
-      cards: data.cards as nonemptyCardArray,
+      selectedLanguages.value = result.languages
+      selectedTags.value = data.tags.map((t) => ({ name: t }))
     }
-    
-    selectedLanguages.value = result.languages
-    selectedTags.value = data.tags.map((t) => ({ name: t }))
-    isEdit.value = result.success
   }
   isLoading.value = false
 })
@@ -208,14 +212,14 @@ const handleGameImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
-    
+
     const size = file.size / (1024 * 1024)
-    
+
     if (size > 1) {
       if (gameImageInput.value) {
         gameImageInput.value.value = ''
       }
-      
+
       toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -225,13 +229,13 @@ const handleGameImageUpload = (event: Event) => {
       } as ToastOptions)
       return
     }
-    
+
     const reader = new FileReader()
-    
+
     reader.onload = (e) => {
       quiz.value.banner = e.target?.result as string
     }
-    
+
     reader.readAsDataURL(file)
   }
 }
@@ -248,14 +252,14 @@ const handleQuestionImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
     const file = input.files[0]
-    
+
     const size = file.size / (1024 * 1024)
-    
+
     if (size > 1) {
       if (questionImageInput.value) {
         questionImageInput.value.value = ''
       }
-      
+
       toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -265,13 +269,13 @@ const handleQuestionImageUpload = (event: Event) => {
       } as ToastOptions)
       return
     }
-    
+
     const reader = new FileReader()
-    
+
     reader.onload = (e) => {
       oneQuestion.value.picture = e.target?.result as string
     }
-    
+
     reader.readAsDataURL(file)
   }
 }
@@ -279,9 +283,9 @@ const handleQuestionImageUpload = (event: Event) => {
 const clearQuestionImage = () => {
   oneQuestion.value.picture = ''
   if (questionImageInput.value) {
-    const input = questionImageInput.value;
-    input.type = '';
-    input.type = 'file';
+    const input = questionImageInput.value
+    input.type = ''
+    input.type = 'file'
   }
 }
 
@@ -339,6 +343,8 @@ const resetObject = <T extends object>(obj: T): T => {
         newObj[key as keyof T] = '' as T[keyof T]
       } else if (typeof value === 'number') {
         newObj[key as keyof T] = 1 as T[keyof T]
+      } else if (typeof value === 'number') {
+        newObj[key as keyof T] = 1 as T[keyof T]
       } else if (typeof value === 'boolean') {
         newObj[key as keyof T] = false as T[keyof T]
       } else if (Array.isArray(value)) {
@@ -362,17 +368,40 @@ const resetInputValues = () => {
 const uploadOrUpdate = async () => {
   isLoading.value = true
   console.log(quiz.value)
-  const uuid = route.params.uuid.toString()
+  const uuid = route.params.uuid?.toString()
   const mappedCodes = selectedLanguages.value.map((l) => l.iso_code)
-  quiz.value.languageISOCodes = mappedCodes.length ? mappedCodes as [string, ...string[]] : undefined
+  quiz.value.languageISOCodes = mappedCodes.length
+    ? (mappedCodes as [string, ...string[]])
+    : undefined
   const mappedTags = selectedTags.value.map((t) => t.name)
-  quiz.value.tags = mappedTags.length ? mappedTags as [string, ...string[]] : undefined
+  quiz.value.tags = mappedTags.length ? (mappedTags as [string, ...string[]]) : undefined
   const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
   if (res === true) {
     resetInputValues()
+    oneQuestion.value.type = 'normal'
+
+    justEditedQuiz.value = true
+
+    router.push('/game_creation')
   }
   isLoading.value = false
 }
+
+watch(
+  () => route.params.uuid,(newUuid, oldUuid) => {
+    if (oldUuid && !newUuid && justEditedQuiz.value) {//basically its  from to route watcher
+      toast('Quiz sikeresen módosítva!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'success',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      justEditedQuiz.value = false
+    }
+  }
+)
+
 
 const tagString = computed(() => {
   return selectedTags.value.map((tag) => tag.name).join(' ')
@@ -456,9 +485,7 @@ const marqueeDuration = computed(() => {
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleTagDropdown"
-                  class="relative w-full bg-white/10 backdrop-blur-md
-                   text-white rounded px-3 py-2 inline-flex items-center
-                    justify-between border border-white/30 overflow-hidden whitespace-nowrap">
+                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap">
                   <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden max-w-full">
                     <div class="overflow-x-hidden">
                       <div class="flex w-fit" :class="{ 'animate-marquee': selectedTags.length > 2 }"
@@ -762,16 +789,21 @@ body {
   background-color: rgba(255, 255, 255, 0.5);
 }
 
-.height-fade-enter-active, .height-fade-leave-active {
-  transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+.height-fade-enter-active,
+.height-fade-leave-active {
+  transition:
+    max-height 0.5s ease-in-out,
+    opacity 0.5s ease-in-out;
 }
 
-.height-fade-enter-from, .height-fade-leave-to {
+.height-fade-enter-from,
+.height-fade-leave-to {
   max-height: 0;
   opacity: 0;
 }
 
-.height-fade-enter-to, .height-fade-leave-from {
+.height-fade-enter-to,
+.height-fade-leave-from {
   max-height: calc(100vh - 15vh);
   opacity: 1;
 }

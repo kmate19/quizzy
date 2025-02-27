@@ -5,6 +5,7 @@ import { nextTick } from 'vue'
 import type { quizUpload } from '../type'
 import { queryClient } from '@/lib/queryClient'
 
+
 export const getQuiz = async (uuid: string) => {
   if (uuid === '') {
     return
@@ -71,13 +72,6 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
       },
     })
     if (edit.status === 200) {
-      toast('Quiz sikeresen módosítva!', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'success',
-        transition: 'zoom',
-        pauseOnHover: false,
-      })
       queryClient.invalidateQueries({ queryKey: ['userQuizzies'], refetchType: 'none' })
       return true
     } else {
