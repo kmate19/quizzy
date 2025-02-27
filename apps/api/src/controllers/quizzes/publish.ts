@@ -14,7 +14,10 @@ import {
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { processImage } from "@/utils/helpers";
-import { languageISOCodes, tagNames } from "@/utils/schemas/zod-schemas";
+import {
+    languageISOCodesSchema,
+    tagNamesSchema,
+} from "@/utils/schemas/zod-schemas";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBuffer } from "file-type";
 import type { ApiResponse } from "repo";
@@ -27,8 +30,8 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
         z.object({
             quiz: insertQuizSchema,
             cards: insertQuizCardsSchema.array().nonempty().max(10),
-            languageISOCodes,
-            tagNames,
+            languageISOCodes: languageISOCodesSchema,
+            tagNames: tagNamesSchema,
         })
     ),
     async (c) => {

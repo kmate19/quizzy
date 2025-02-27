@@ -10,9 +10,9 @@ import {
 import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
 import {
-    languageISOCodesQuery,
-    pagination,
-    tagNamesQuery,
+    languageISOCodesQuerySchema,
+    paginationSchema,
+    tagNamesQuerySchema,
 } from "@/utils/schemas/zod-schemas";
 import {
     and,
@@ -124,11 +124,11 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
     apikey_or_jwt(),
     zv(
         "query",
-        pagination.merge(
+        paginationSchema.merge(
             z.object({
                 query: z.string().nonempty().optional(),
-                tagNamesQuery,
-                languageISOCodesQuery,
+                tagNamesQuery: tagNamesQuerySchema,
+                languageISOCodesQuery: languageISOCodesQuerySchema,
                 strict: z
                     .string()
                     .transform((a) => {

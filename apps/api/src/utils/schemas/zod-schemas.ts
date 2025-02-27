@@ -6,25 +6,32 @@ import { z } from "zod";
 // eslint-disable-next-line
 function assertequal<T extends true>() {}
 
-export const numericString = z.string().regex(/^\d+$/).transform(Number);
+export const numericStringSchema = z.string().regex(/^\d+$/).transform(Number);
 
-export const pagination = z.object({
-    limit: numericString.refine((num) => num < 51 && num > 9).optional(),
-    page: numericString.optional(),
+export const paginationSchema = z.object({
+    limit: numericStringSchema.refine((num) => num < 51 && num > 9).optional(),
+    page: numericStringSchema.optional(),
 });
 
-export const tagNames = z.string().nonempty().array().nonempty().optional();
+export const tagNamesSchema = z
+    .string()
+    .nonempty()
+    .array()
+    .nonempty()
+    .optional();
 
-export const tagNamesQuery = tagNames.or(z.string().nonempty().optional());
+export const tagNamesQuerySchema = tagNamesSchema.or(
+    z.string().nonempty().optional()
+);
 
-export const languageISOCodes = z
+export const languageISOCodesSchema = z
     .string()
     .length(2)
     .array()
     .nonempty()
     .optional();
 
-export const languageISOCodesQuery = languageISOCodes.or(
+export const languageISOCodesQuerySchema = languageISOCodesSchema.or(
     z.string().length(2).optional()
 );
 

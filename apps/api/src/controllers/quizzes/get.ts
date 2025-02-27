@@ -3,13 +3,13 @@ import db from "@/db";
 import { quizzesTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
-import { pagination } from "@/utils/schemas/zod-schemas";
+import { paginationSchema } from "@/utils/schemas/zod-schemas";
 import { eq, sql } from "drizzle-orm";
 import { ApiResponse } from "repo";
 
 const getHandlers = GLOBALS.CONTROLLER_FACTORY(
     checkJwt(),
-    zv("query", pagination),
+    zv("query", paginationSchema),
     async (c) => {
         const limit = c.req.valid("query").limit || 20;
         const page = c.req.valid("query").page || 1;
