@@ -18,7 +18,7 @@ export type cardType = {
 
 export type nonemptyCardArray = [cardType, ...cardType[]]
 
-export interface Question  {
+export type Question = {
   question: string
   type: 'twochoice' | 'normal'
   answers: string[]
@@ -26,7 +26,7 @@ export interface Question  {
   correct_answer_index: number
 }
 
-export interface quizCardView {
+export type quizCardView = {
   id: string
   created_at: Date
   updated_at: Date
@@ -42,18 +42,18 @@ export interface quizCardView {
   user_id: string
 }
 
-export interface Tag {
+export type Tag = {
   name: string
 }
 
-export interface Language {
+export type Language = {
   name?: string
   iso_code: string
   icon: string
   support?: 'none' | 'official' | 'partial'
 }
 
-export interface Quiz {
+export type Quiz = {
   id: string
   created_at: string
   updated_at: string
@@ -68,7 +68,7 @@ export interface Quiz {
   tags: Tag[]
 }
 
-export interface sentFriendship {
+export type sentFriendship = {
   created_at: string
   status: 'pending' | 'blocked' | 'accepted'
   addressee: {
@@ -82,7 +82,7 @@ export interface sentFriendship {
   }
 }
 
-export interface recievedFriendships {
+export type recievedFriendships = {
   created_at: string
   status: 'pending' | 'blocked' | 'accepted'
   requester: {
@@ -96,7 +96,7 @@ export interface recievedFriendships {
   }
 }
 
-export interface stats {
+export type stats = {
     plays: number,
     first_places: number,
     second_places: number,
@@ -105,7 +105,7 @@ export interface stats {
     losses: number,
 }
 
-export interface userProfile{
+export type userProfile = {
   email: string
   username: string
   created_at: string
@@ -120,7 +120,7 @@ export interface userProfile{
 
 
 
-export interface Game {
+export type Game = {
   title: string;
   banner: string;
   description: string;

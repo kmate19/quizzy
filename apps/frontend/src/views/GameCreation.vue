@@ -155,7 +155,6 @@ watch(
 
 onMounted(async () => {
   const editSuccess = localStorage.getItem('quizEditSuccess')
-  console.log("editsuccess", editSuccess)
   if (editSuccess === 'true') {
     toast('Quiz sikeresen módosítva!', {
       autoClose: 5000,
@@ -164,11 +163,11 @@ onMounted(async () => {
       transition: 'zoom',
       pauseOnHover: false,
     })
-    localStorage.removeItem('quizEditSuccess')
   }
   isLoading.value = true
   const uuid = route.params.uuid.toString()
-  if (isEdit.value) {
+  console.log("isedit",isEdit.value)
+  if (isEdit.value === true) {
     const result = await getQuiz(uuid)
     if (result && !Array.isArray(result) && typeof result === 'object') {
       const data = result.data
@@ -188,6 +187,9 @@ onMounted(async () => {
       selectedLanguages.value = result.languages
       selectedTags.value = data.tags.map((t) => ({ name: t }))
     }
+  }
+  else{
+    quiz.value.cards.splice(0,1)
   }
   isLoading.value = false
 })
@@ -389,7 +391,7 @@ const uploadOrUpdate = async () => {
 
 watch(
   () => route.params.uuid,(newUuid, oldUuid) => {
-    if (oldUuid && !newUuid && justEditedQuiz.value) {//basically its  from to route watcher
+    if (oldUuid && !newUuid && justEditedQuiz.value) {//basically its a from to route watcher
       toast('Quiz sikeresen módosítva!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
