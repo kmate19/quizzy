@@ -39,6 +39,10 @@ const apiKey = ref('')
 const route = useRoute()
 const userId = route.params.uuid.toString()
 
+const isOtherUser = computed(() => {
+  return userId !== ''
+})
+
 const minDateTime = computed(() => {
   const now = new Date()
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
@@ -255,23 +259,25 @@ const OnLogOut = async () => {
               <v-img :src="localPfp"
                 class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30" fit>
               </v-img>
-              <div
-                class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
-                @click="openFileDialog">
-                <PencilIcon class="w-5 h-5 text-white" />
+              <div v-if="!isOtherUser">
+                <div
+                  class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
+                  @click="openFileDialog">
+                  <PencilIcon class="w-5 h-5 text-white" />
+                </div>
+                <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
+                <button v-if="showSaveButton" @click="saveProfileImage"
+                  class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors">
+                  Mentés
+                </button>
               </div>
-              <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
-              <button v-if="showSaveButton" @click="saveProfileImage"
-                class="absolute -bottom-2 -right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition-colors">
-                Mentés
-              </button>
             </div>
 
             <div class="flex flex-col items-center md:items-start text-center md:text-left text-white">
               <h1 class="text-2xl md:text-3xl font-bold mb-1 md:mb-2">{{ realUser?.username }}</h1>
-              <p class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
+              <p v-if="!isOtherUser" class="text-white/80 text-sm md:text-base">{{ realUser?.email }}</p>
 
-              <div class="flex flex-col gap-2 mt-2" v-if="realUser?.roles?.some(role => role.role.name === 'admin')">
+              <div class="flex flex-col gap-2 mt-2" v-if="realUser?.roles?.some(role => role.role.name === 'admin') && !isOtherUser">
                 <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
                   <span v-for="role in realUser?.roles" :key="role.role.name">
                     {{ role.role.name }}
@@ -316,7 +322,7 @@ const OnLogOut = async () => {
                 </div>
               </div>
 
-              <div class="flex flex-col sm:flex-row gap-3">
+              <div class="flex flex-col sm:flex-row gap-3" v-if="!isOtherUser">
                 <button @click="openPasswordModal"
                   class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-full sm:w-fit !bg-green-900 hover:border-white border-2 border-transparent">
                   Jelszó módosítás
@@ -337,7 +343,7 @@ const OnLogOut = async () => {
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
               </div>
             </div>
-            <div v-else>
+            <div v-else-if="realUser?.friends && !isOtherUser">
               <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
                 Barátok
                 <span class="text-sm font-normal text-white/70">
@@ -402,15 +408,14 @@ const OnLogOut = async () => {
                       <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
 
 
-                      <span v-if="quiz.status !== 'draft'" @click.stop="handleQuizView(quiz.id)" class="absolute
+                      <span v-if="quiz.status !== 'draft' && !isOtherUser" @click.stop="handleQuizView(quiz.id)" class="absolute
                        top-2 right-12 flex rounded-full text-xs bg-blue-700 w-10 h-10 
                justify-center items-center border-2 border-transparent 
                hover:border-white transition-all duration-300">
                         <Settings />
                       </span>
-
-
-                      <span @click.stop="
+                      <span v-if="!isOtherUser"
+                       @click.stop="
                         (isDeleteModal = !isDeleteModal),
                         (selectedUuid = quiz.id)
                         " class="absolute top-2 right-0 flex rounded-full text-xs bg-red-700 w-10 h-10 

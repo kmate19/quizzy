@@ -1,30 +1,57 @@
 import { clientv1 } from '@/lib/apiClient'
 import { arrayBufferToBase64 } from '../helpers'
 import { toast } from 'vue3-toastify'
-import { type Quiz } from '../type'
+import { type Quiz, type userProfile } from '../type'
 import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
 
 export const userData = async (id: string) => {
   //await new Promise(resolve => setTimeout(resolve, 2000))
-  //const temp = userId === "" ? await clientv1.userprofile.$get() : await clientv1.userprofile[':userId'].$get({param: {userId: id}})
-  const user = await clientv1.userprofile.$get()
-  if (user.status === 200) {
-    const res = await user.json()
-    const userObj = {
-      email: res.data.email,
-      username: res.data.username,
-      created_at: new Date(res.data.created_at).toLocaleDateString(),
-      activity_status: res.data.activity_status,
-      profile_picture: res.data.profile_picture
+  if(id !== ""){
+    const user = await clientv1.userprofile[':userId'].$get({param: {userId: id}})
+    if (user.status === 200) {
+      const res = await user.json()
+      const userObj: userProfile = {
+        username: res.data.username,
+        created_at: new Date(res.data.created_at).toLocaleDateString(),
+        activity_status: res.data.activity_status,
+        profile_picture: res.data.profile_picture
         ? arrayBufferToBase64(res.data.profile_picture.data)
         : '',
-      sentFriendships: res.data.sentFriendships,
-      recievedFriendships: res.data.recievedFriendships,
-      roles: res.data.roles,
-      stats: res.data.stats,
-      friends: res.data.recievedFriendships
+        roles: res.data.roles,
+        stats: res.data.stats,
+      }
+      
+      return userObj
+    } else {
+      const res = await user.json()
+      toast(res.error.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+    }
+  }
+  else{
+    const user = await clientv1.userprofile.$get()
+    if (user.status === 200) {
+      const res = await user.json()
+      const userObj = {
+        email: res.data.email,
+        username: res.data.username,
+        created_at: new Date(res.data.created_at).toLocaleDateString(),
+        activity_status: res.data.activity_status,
+        profile_picture: res.data.profile_picture
+        ? arrayBufferToBase64(res.data.profile_picture.data)
+        : '',
+        sentFriendships: res.data.sentFriendships,
+        recievedFriendships: res.data.recievedFriendships,
+        roles: res.data.roles,
+        stats: res.data.stats,
+        friends: res.data.recievedFriendships
         .filter((item) => item.status === 'accepted')
         .map((item) => ({
           created_at: item.created_at,
@@ -36,18 +63,19 @@ export const userData = async (id: string) => {
             profile_picture: item.requester.profile_picture,
           },
         })),
+      }
+      
+      return userObj
+    } else {
+      const res = await user.json()
+      toast(res.error.message, {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
     }
-
-    return userObj
-  } else {
-    const res = await user.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
   }
 }
 

@@ -105,20 +105,24 @@ export type stats = {
     losses: number,
 }
 
+type role = {
+  role: {
+    name: string
+  }
+}
+
 export type userProfile = {
-  email: string
+  email?: string
   username: string
   created_at: string
   activity_status: string
   profile_picture: string
-  sentFriendships: sentFriendship[]
-  recievedFriendships: recievedFriendships[]
-  friends: sentFriendship[]
-  role: string
+  sentFriendships?: sentFriendship[]
+  recievedFriendships?: recievedFriendships[]
+  friends?: sentFriendship[]
+  roles: role[]
   stats: stats  
 }
-
-
 
 export type Game = {
   title: string;
@@ -126,3 +130,4 @@ export type Game = {
   description: string;
   cards: Question[];
 }
+
