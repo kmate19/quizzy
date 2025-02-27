@@ -1,20 +1,24 @@
-export interface quizUpload {
+export type quizUpload = {
   description: string
   title: string
   status: 'draft' | 'published' | 'requires_review' | 'private'
   banner: string
-  languageISOCodes: string[]
-  tags: string[]
-  cards: {
-    question: string
-    type: 'normal' | 'twochoice'
-    answers: string[]
-    picture: string
-    correct_answer_index: number
-  }[]
+  languageISOCodes: [string,...string[]] | undefined
+  tags: [string,...string[]] | undefined
+  cards: nonemptyCardArray
 }
 
-export interface Question {
+export type cardType = {
+  question: string
+  type: 'normal' | 'twochoice'
+  answers: string[]
+  picture: string
+  correct_answer_index: number
+}
+
+export type nonemptyCardArray = [cardType, ...cardType[]]
+
+export interface Question  {
   question: string
   type: 'twochoice' | 'normal'
   answers: string[]
@@ -54,7 +58,6 @@ export interface Quiz {
   created_at: string
   updated_at: string
   user_id: string
-  username: string
   description: string
   title: string
   status?: 'published' | 'draft' | 'requires_review' | 'private'
@@ -63,7 +66,6 @@ export interface Quiz {
   banner: string
   languages: Language[]
   tags: Tag[]
-  cards: Question[]
 }
 
 export interface sentFriendship {
@@ -116,13 +118,7 @@ export interface userProfile{
   stats: stats  
 }
 
-export interface Question {
-  question: string;
-  type: 'normal' | 'twochoice'
-  answers: string[];
-  picture: string;
-  correct_answer_index: number;
-}
+
 
 export interface Game {
   title: string;

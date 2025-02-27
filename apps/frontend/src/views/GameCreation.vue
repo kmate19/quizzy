@@ -5,14 +5,13 @@ import XButton from '@/components/XButton.vue'
 import { ref, watch, onMounted, computed } from 'vue'
 import { CloudUpload, CirclePlus } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
-import type { quizUpload, Question, Tag, Language } from '@/utils/type'
+import type { quizUpload, cardType, Tag, Language, nonemptyCardArray } from '@/utils/type'
 import { useRoute } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 //import "@fontsource/noto-color-emoji"; workspaces cucc miatt no working
 import {
   getQuiz,
   handleQuizyUpload,
-
 } from '@/utils/functions/editorFunctions'
 
 import {
@@ -117,7 +116,7 @@ const isOpen = ref(false)
 const gameImageInput = ref<HTMLInputElement | null>(null)
 const questionImageInput = ref<HTMLInputElement | null>(null)
 
-const oneQuestion = ref<Question>({
+const oneQuestion = ref<cardType>({
   question: '',
   type: <'twochoice' | 'normal'>'normal',
   answers: ['', '', '', ''],
@@ -130,9 +129,9 @@ const quiz = ref<quizUpload>({
   description: '',
   status: <'draft' | 'published' | 'requires_review' | 'private'>'published',
   banner: '',
-  languageISOCodes: [],
-  tags: [],
-  cards: <Question[]>[],
+  languageISOCodes: undefined,
+  tags: undefined,
+  cards: [oneQuestion.value] as [cardType,...cardType[]],
 })
 
 watch(
@@ -164,9 +163,28 @@ onMounted(async () => {
   const uuid = route.params.uuid.toString()
   const result = await getQuiz(uuid)
   if (result && !Array.isArray(result) && typeof result === 'object') {
-    quiz.value = result.data
+    const data = result.data
+
+    quiz.value = {
+      title: data.title,
+      description: data.description,
+      status: data.status,
+      banner: data.banner,
+      // Ensure that languageISOCodes is a nonempty tuple or undefined
+      languageISOCodes:
+        data.languageISOCodes && data.languageISOCodes.length > 0
+          ? data.languageISOCodes as [string, ...string[]]
+          : undefined,
+      // Ensure that tags is a nonempty tuple or undefined
+      tags:
+        data.tags && data.tags.length > 0
+          ? data.tags as [string, ...string[]]
+          : undefined,
+      cards: data.cards as nonemptyCardArray,
+    }
+    
     selectedLanguages.value = result.languages
-    selectedTags.value = result.data.tags.map((t) => ({ name: t }))
+    selectedTags.value = data.tags.map((t) => ({ name: t }))
     isEdit.value = result.success
   }
   isLoading.value = false
@@ -223,11 +241,11 @@ const handleGameImageUpload = (event: Event) => {
 const clearGameImage = () => {
   quiz.value.banner = ''
   if (gameImageInput.value) {
-    const input = gameImageInput.value;
-    input.type = 'file';
+    const input = gameImageInput.value
+    input.type = ''
+    input.type = 'file'
   }
 }
-
 const handleQuestionImageUpload = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
@@ -264,6 +282,7 @@ const clearQuestionImage = () => {
   oneQuestion.value.picture = ''
   if (questionImageInput.value) {
     const input = questionImageInput.value;
+    input.type = '';
     input.type = 'file';
   }
 }
@@ -346,8 +365,10 @@ const uploadOrUpdate = async () => {
   isLoading.value = true
   console.log(quiz.value)
   const uuid = route.params.uuid.toString()
-  quiz.value.languageISOCodes = selectedLanguages.value.map((l: Language) => l.iso_code)
-  quiz.value.tags = selectedTags.value.map((t: Tag) => t.name)
+  const mappedCodes = selectedLanguages.value.map((l) => l.iso_code)
+  quiz.value.languageISOCodes = mappedCodes.length ? mappedCodes as [string, ...string[]] : undefined
+  const mappedTags = selectedTags.value.map((t) => t.name)
+  quiz.value.tags = mappedTags.length ? mappedTags as [string, ...string[]] : undefined
   const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
   if (res === true) {
     resetInputValues()

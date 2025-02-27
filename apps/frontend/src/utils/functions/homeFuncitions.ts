@@ -2,7 +2,6 @@ import { clientv1 } from "@/lib/apiClient"
 import type { quizCardView } from "../type"
 import { arrayBufferToBase64 } from "../helpers"
 
-//const res = await getQuizzes(limit.value, currentPage.value, strict.value, tags.value, searchText.value)
 export const getQuizzes = async (limit: string | undefined, currentPage: string | undefined, 
   isStrict: string | undefined, tags: string | [string, ...string[]] | undefined, 
   languages: string | [string, ...string[]] | undefined, searchText: string | undefined) => {
