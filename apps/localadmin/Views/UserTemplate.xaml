@@ -18,7 +18,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel>
-                                        <Image Source="../icon.ico" Width="50" Height="50" Margin="0, 5, 10, 0" />
+                                        <Image Source="{Binding ProfileImage}" Width="50" Height="50" Margin="0, 5, 10, 0" />
                                     </StackPanel>
                                     
                                     <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0, 0, 20, 0">
@@ -68,7 +68,6 @@
 
                                 <StackPanel Grid.Column="4" Margin="20, 0, 40, 10">
                                     <Button Content="Módosítás" Command="{Binding EditUserCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
-                                    <!-- <Button Content="Törlés" Background="Red" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6" Command="{Binding DeleteUserCommand}"/> -->
                                 </StackPanel>
                             </Grid>
                         

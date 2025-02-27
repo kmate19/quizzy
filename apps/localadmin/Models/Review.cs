@@ -53,21 +53,22 @@ namespace localadmin.Models
         {
             NavigationService = navigation;
             SharedState = sharedState;
+
             ViewUserCommand = new RelayCommand(ViewUser);
             ViewQuizCommand = new RelayCommand(ViewQuiz);
         }
 
         private void ViewUser(object parameter)
         {
-            UserViewModel userView = new UserViewModel(NavigationService, SharedState);
+            UserViewModel userView = new UserViewModel(NavigationService, SharedState); 
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
         }
 
         private void ViewQuiz(object parameter) 
-        { 
-            QuizViewModel quizView=new QuizViewModel(NavigationService, SharedState);
+        {
+            QuizViewModel quizView = new QuizViewModel(NavigationService, SharedState);
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(quizView);
             quizView.SearchQuizes(SharedState.SearchText);

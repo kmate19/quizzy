@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using localadmin.Models;
 using localadmin.Services;
 
@@ -14,7 +15,8 @@ namespace localadmin.Services
         private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            IncludeFields = true
+            IncludeFields = true,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
 
         public static async Task<ObservableCollection<User>> GetUsersAsync()
@@ -57,6 +59,8 @@ namespace localadmin.Services
                 return new ObservableCollection<User>();
             }
         }
+
+
     }
 
 }

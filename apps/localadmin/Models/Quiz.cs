@@ -3,6 +3,10 @@ using System.Diagnostics;
 using System.Windows.Input;
 using localadmin.Services;
 using System.Windows;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
+using System.IO;
+using System.Windows.Media.Imaging;
 
 namespace localadmin.Models
 {
@@ -53,15 +57,15 @@ namespace localadmin.Models
         {
             NavigationService= navigation;
             SharedState = sharedState;
+
             ViewUserCommand = new RelayCommand(ViewUser);
             ViewReviewCommand = new RelayCommand(ViewReview);
             ViewQuizCommand = new RelayCommand(ViewQuiz);
         }
-        
+
         private void ViewUser(object parameter)
         {
-            Debug.WriteLine("emebr: " + MadeBy);
-            UserViewModel userView= new UserViewModel(NavigationService, SharedState);
+            UserViewModel userView = new UserViewModel(NavigationService, SharedState);
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
@@ -69,7 +73,7 @@ namespace localadmin.Models
 
         private void ViewReview(object parameter)
         {
-            ReviewViewModel reviewView=new ReviewViewModel(NavigationService, SharedState);
+            ReviewViewModel reviewView = new ReviewViewModel(NavigationService, SharedState);
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(reviewView);
             reviewView.SearchReviews(SharedState.SearchText);

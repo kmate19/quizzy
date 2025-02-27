@@ -3,9 +3,12 @@ using localadmin.ViewModels;
 using localadmin.Views;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace localadmin.Models
@@ -14,20 +17,37 @@ namespace localadmin.Models
     {
         public Roles Role { get; set; }
     }
+    public class ProfilePictureWrapper
+    {
+        [JsonPropertyName("data")]
+        public List<byte> Data { get; set; }
+
+        public byte[] GetByteArray()
+        {
+            if (Data == null || Data.Count == 0)
+            {
+                return null;
+            }
+            return Data.ToArray();
+        }
+    }
 
     public class User
     {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum EActivityStatus
         {
             Active,
             Inactive,
             Away
         }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum EAuthStatus
         {
-            Pending,
-            Active,
-            Blocked
+            pending,
+            active,
+            blocked
         }
 
         private static readonly Dictionary<EActivityStatus, string> ActivityStatusTranslations = new Dictionary<EActivityStatus, string>
@@ -39,9 +59,9 @@ namespace localadmin.Models
 
         private static readonly Dictionary<EAuthStatus, string> AuthStatusTranslations = new Dictionary<EAuthStatus, string>
         {
-            { EAuthStatus.Pending, "Folyamatban" },
-            { EAuthStatus.Active, "Aktív" },
-            { EAuthStatus.Blocked, "Blokkolva" }
+            { EAuthStatus.pending, "Folyamatban" },
+            { EAuthStatus.active, "Aktív" },
+            { EAuthStatus.blocked, "Blokkolva" }
         };
 
         public string TranslatedActivityStatus => ActivityStatusTranslations.TryGetValue(ActivityStatus, out var translation) ? translation : ActivityStatus.ToString();
@@ -54,7 +74,6 @@ namespace localadmin.Models
         private readonly SharedStateService sharedState;
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
-        public ICommand DeleteUserCommand { get; }
         public ICommand EditUserCommand { get; }
         public string UUID { get; set; }
         public string Username { get; set; }
@@ -67,7 +86,12 @@ namespace localadmin.Models
         public DateTime CreatedAt { get; set; }
         [JsonPropertyName("updated_at")]
         public DateTime UpdatedAt { get; set; }
-        //pfp
+
+        [JsonPropertyName("profile_picture")]
+        public ProfilePictureWrapper ProfilePicture { get; set; }
+        public byte[] ProfilePictureArray => ProfilePicture?.GetByteArray();
+        public ImageSource ProfileImage => ByteArrayToImage(ProfilePictureArray);
+
         public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
 
 
@@ -75,13 +99,46 @@ namespace localadmin.Models
         {
             this.navigationService = navigationService;
             this.sharedState = sharedState;
-            ViewQuizCommand=new RelayCommand(ViewQuiz);
+
+            ViewQuizCommand =new RelayCommand(ViewQuiz);
             ViewReviewCommand = new RelayCommand(ViewReview);
-            DeleteUserCommand = new RelayCommand(DeleteUser);
             EditUserCommand = new RelayCommand(EditUser);
         }
 
         public User() { }
+
+        public static ImageSource ByteArrayToImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+                return GetDefaultProfileImage();
+
+            BitmapImage image = new BitmapImage();
+            using (var ms = new MemoryStream(imageData))
+            {
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = ms;
+                image.EndInit();
+            }
+            return image;
+        }
+
+        public static ImageSource GetDefaultProfileImage()
+        {
+            try
+            {
+                BitmapImage defaultImage = new BitmapImage();
+                defaultImage.BeginInit();
+                defaultImage.UriSource = new Uri("../icon.ico");
+                defaultImage.CacheOption = BitmapCacheOption.OnLoad;
+                defaultImage.EndInit();
+                return defaultImage;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         private void EditUser(object parameter)
         {
@@ -92,7 +149,7 @@ namespace localadmin.Models
 
         private void ViewQuiz(object parameter)
         {
-            QuizViewModel quizView = new (navigationService, sharedState);
+            QuizViewModel quizView = new(navigationService, sharedState);
             sharedState.SearchText = Username;
             navigationService.NavigateTo(quizView);
             quizView.SearchQuizes(Username);
@@ -100,20 +157,10 @@ namespace localadmin.Models
 
         private void ViewReview(object parameter)
         {
-            ReviewViewModel reviewView=new (navigationService, sharedState);
+            ReviewViewModel reviewView = new(navigationService, sharedState);
             sharedState.SearchText = Username;
             navigationService.NavigateTo(reviewView);
             reviewView.SearchReviews(Username);
-        }
-
-        private void DeleteUser(object parameter)
-        {
-            PopUpModal modal = new ("Biztosan törölni szeretnéd ezt a felhasználót: "+Username);
-            bool? result = modal.ShowDialog();
-
-            if (result == true) {
-                MessageBox.Show("Felhasznalo sikeresen törölve");
-            }
         }
     }
 }

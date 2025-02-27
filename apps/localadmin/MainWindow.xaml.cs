@@ -49,15 +49,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         DataContext = this;
     }
 
-    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         UserViewModel = new UserViewModel(NavigationService, SharedState);
         ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
         QuizViewModel = new QuizViewModel(NavigationService, SharedState);
 
-        await UserViewModel.GetUsers();
-
         CurrentView = UserViewModel;
+        OnPropertyChanged(nameof(CurrentView));
+
+        Loaded -= MainWindow_Loaded;
     }
 
     private void OnViewModelChanged(object newViewModel)
