@@ -10,7 +10,7 @@ export const getQuizzes = async (limit: string | undefined, currentPage: string 
     if((Array.isArray(tags) && tags.length > 0) || (searchText && searchText !== "") || (Array.isArray(languages) && languages.length > 0)){
       response = await clientv1.quizzes.search.$get({query:{
         query: searchText !== undefined ? searchText : undefined,
-        strict: isStrict !== undefined ? searchText : undefined, 
+        strict: isStrict !== undefined ? isStrict : undefined, 
         limit: limit !== undefined ? limit : undefined, 
         page: currentPage !== undefined ? currentPage : undefined, 
         tagNamesQuery: tags !== undefined ? tags : undefined,

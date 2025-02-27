@@ -79,7 +79,7 @@ const handleSave = async (payload: FilterPayload) => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = res.totalPages
+  totalPages.value = Math.ceil(res.totalPages/10)
   loading.value = false
 }
 
@@ -117,7 +117,7 @@ const doSearch = async () => {
   );
   console.log(res)
   quizzes.value = res.quizzes
-  totalPages.value = res.totalPages
+  totalPages.value = Math.ceil(res.totalPages/10)
   loading.value = false
 }
 
@@ -145,7 +145,7 @@ const nextPage = async () => {
     params.searchText
   );
     quizzes.value = res.quizzes
-    totalPages.value = res.totalPages
+    totalPages.value = Math.ceil(res.totalPages/10)
     loading.value = false
   }
 }
@@ -164,7 +164,7 @@ const prevPage = async () => {
     params.searchText
   );
     quizzes.value = res.quizzes
-    totalPages.value = res.totalPages
+    totalPages.value = Math.ceil(res.totalPages/10)
     loading.value = true
   }
 }
@@ -183,7 +183,7 @@ const goToPage = async (page: number) => {
     params.searchText
   );
     quizzes.value = res.quizzes
-    totalPages.value = res.totalPages
+    totalPages.value = Math.ceil(res.totalPages/10)
     loading.value = false
   }
 }
@@ -219,8 +219,8 @@ onMounted(async () => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = res.totalPages
-  console.log(totalPages.value)
+  totalPages.value = Math.ceil(res.totalPages/10)
+  console.log("total pages",totalPages.value)
   loading.value = false
 })
 </script>
