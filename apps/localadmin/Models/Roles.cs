@@ -16,9 +16,8 @@ namespace localadmin.Models
 
         public static readonly List<Roles> AllRoles = new List<Roles>
         {
-            new Roles { ID = 1, Name = "default", Description = "Has full access to the system.", IsSystemRole = true},
-            new Roles { ID = 2, Name = "admin", Description = "Can manage users and content.", IsSystemRole = false},
-           
+            new Roles { ID = 1, Name = "default", Description = "Az alap felhasználói jogosultság.", IsSystemRole = true},
+            new Roles { ID = 2, Name = "admin", Description = "Mindent IS tud mokolni", IsSystemRole = false},   
         };
     }
 }

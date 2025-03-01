@@ -4,11 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:localadmin.Views"
+        xmlns:services="clr-namespace:localadmin.Services"
         mc:Ignorable="d"
         Title="Felhasználó módosítása" 
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Height="300" Width="400">
+    <Window.Resources>
+        <services:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -29,11 +34,15 @@
 
             <TextBlock Grid.Column="0" Grid.Row="0" Text="Felhasználó jogosultsága:" FontWeight="Bold" HorizontalAlignment="Center"/>
             <GroupBox Grid.Column="0" Grid.Row="0" Width="150" Height="150" Margin="0, 15, 0, 0">
-                <ListBox ItemsSource="{Binding AllRoles}" >
+                <ListBox ItemsSource="{Binding AllRoles}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <CheckBox Content="{Binding Value}" 
-                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            <StackPanel>
+                                <CheckBox Content="{Binding Value}" 
+                                        IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                                        IsEnabled="{Binding IsLocked, Converter={StaticResource InvertBooleanConverter}}"/>
+                                <TextBlock Text="{Binding Description}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

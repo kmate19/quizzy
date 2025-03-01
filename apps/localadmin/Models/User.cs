@@ -2,14 +2,11 @@
 using localadmin.ViewModels;
 using localadmin.Views;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace localadmin.Models
 {
@@ -70,11 +67,13 @@ namespace localadmin.Models
             ? string.Join(", ", Roles.Select(r => r.Role?.Name ?? "Unknown"))
             : "No Roles";
 
-        private readonly NavigationService navigationService;
-        private readonly SharedStateService sharedState;
+        private NavigationService navigationService= new NavigationService();
+        private SharedStateService sharedState=new SharedStateService();
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand EditUserCommand { get; }
+
+        [JsonPropertyName("id")]
         public string UUID { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
@@ -94,18 +93,18 @@ namespace localadmin.Models
 
         public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
 
-
-        public User(NavigationService navigationService, SharedStateService sharedState)
+        public User()
         {
-            this.navigationService = navigationService;
-            this.sharedState = sharedState;
-
-            ViewQuizCommand =new RelayCommand(ViewQuiz);
+            ViewQuizCommand = new RelayCommand(ViewQuiz);
             ViewReviewCommand = new RelayCommand(ViewReview);
             EditUserCommand = new RelayCommand(EditUser);
         }
 
-        public User() { }
+        public void Initialize(NavigationService navigationService, SharedStateService sharedState)
+        {
+            this.navigationService = navigationService;
+            this.sharedState = sharedState;
+        }
 
         public static ImageSource ByteArrayToImage(byte[] imageData)
         {
@@ -123,11 +122,13 @@ namespace localadmin.Models
             return image;
         }
 
+        //nem mukodik
         public static ImageSource GetDefaultProfileImage()
         {
             try
             {
                 BitmapImage defaultImage = new BitmapImage();
+                
                 defaultImage.BeginInit();
                 defaultImage.UriSource = new Uri("../icon.ico");
                 defaultImage.CacheOption = BitmapCacheOption.OnLoad;
@@ -142,7 +143,6 @@ namespace localadmin.Models
 
         private void EditUser(object parameter)
         {
-            Debug.WriteLine("edit user clicked");
             EditUserWindow editUserWindow = new(this);
             editUserWindow.Show();
         }

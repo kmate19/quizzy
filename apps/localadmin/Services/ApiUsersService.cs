@@ -2,10 +2,12 @@
 using System.Data;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using localadmin.Models;
 using localadmin.Services;
+using static localadmin.Models.User;
 
 namespace localadmin.Services
 {
@@ -46,9 +48,7 @@ namespace localadmin.Services
                         return users;
                     }
                     else
-                    {
                         Debug.WriteLine("Error: 'data.users' field missing or not an array.");
-                    }
                 }
 
                 return new ObservableCollection<User>();
@@ -60,7 +60,82 @@ namespace localadmin.Services
             }
         }
 
+        public static async Task<bool> UpdateUserAuthStatus(string userUuid, EAuthStatus newStatus)
+        {
+            string url = "http://localhost:3000/api/v1/admin/set/authstatus";
+            client.DefaultRequestHeaders.Remove("X-Api-Key");
+            client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
+            var body = new
+            {
+                userId = userUuid,
+                status = newStatus.ToString().ToLower()
+            };
+
+            string jsonPayload = JsonSerializer.Serialize(body);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            try
+            {
+                HttpResponseMessage response = await client.PostAsync(url, content);
+                string responseText = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine("User auth status updated successfully!");
+                    return true;
+                }
+                else
+                {
+                    Debug.WriteLine($"Failed to update user auth status: {response.StatusCode}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error updating user auth status: {ex.Message}");
+                return false;
+            }
+        }
+
+
+        //todo: implement UpdateUserRole method
+        public static async Task<bool> UpdateUserRole(string userUuid, string newRole)
+        {
+            string url = "http://localhost:3000/api/v1/admin/set/role";
+            client.DefaultRequestHeaders.Remove("X-Api-Key");
+            client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
+
+            var body = new
+            {
+                userId = userUuid,
+                roleName = newRole.ToLower()
+            };
+
+            string jsonPayload = JsonSerializer.Serialize(body);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            try
+            {
+                HttpResponseMessage response = await client.PostAsync(url, content);
+                string responseText = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine("User role updated successfully!");
+                    return true;
+                }
+                else
+                {
+                    Debug.WriteLine($"Failed to update user role: {response.StatusCode}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error updating user role {ex.Message}");
+                return false;
+            }
+        }
     }
-
 }

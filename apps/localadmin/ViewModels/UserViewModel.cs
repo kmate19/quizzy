@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using localadmin.Models;
 using localadmin.Services;
+using Microsoft.VisualBasic.Logging;
 using static localadmin.Models.User;
 
 namespace localadmin.ViewModels
@@ -13,7 +14,7 @@ namespace localadmin.ViewModels
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
         public ObservableCollection<User> Users { get; set; } = new();
-        public ObservableCollection<User> FilteredUsers { get; private set; }
+        public ObservableCollection<User> FilteredUsers { get; private set; } = new();
 
         public UserViewModel(NavigationService Navigation, SharedStateService State)
         {
@@ -32,14 +33,18 @@ namespace localadmin.ViewModels
         {
             var fetchedUsers = await ApiUsersService.GetUsersAsync();
             Users.Clear();
+            FilteredUsers.Clear();
             foreach (var user in fetchedUsers)
             {
                 Users.Add(user);
+                FilteredUsers.Add(user);
+                user.Initialize(NavigationService, SharedState);
             }
-            FilteredUsers = new ObservableCollection<User>(Users);
 
             OnPropertyChanged(nameof(Users));
             OnPropertyChanged(nameof(FilteredUsers));
+
+            Debug.WriteLine($"Fetched {Users.Count} users.");
         }
 
         public void SearchUsers(string query)
