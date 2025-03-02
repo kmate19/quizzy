@@ -1,5 +1,11 @@
 import { relations } from "drizzle-orm";
-import { pgTable, timestamp, uuid, index, integer } from "drizzle-orm/pg-core";
+import {
+    pgTable,
+    timestamp,
+    uuid,
+    integer,
+    uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { usersTable } from "./usersSchema";
 import { rolesTable } from "./rolesSchema";
 
@@ -20,7 +26,7 @@ export const userRolesTable = pgTable(
             .$onUpdate(() => new Date()),
     },
     (table) => {
-        return [index().on(table.user_id), index().on(table.role_id)];
+        return [uniqueIndex().on(table.user_id, table.role_id)];
     }
 );
 
