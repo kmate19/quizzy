@@ -8,11 +8,10 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import type { quizUpload, cardType, Tag, Language, nonemptyCardArray } from '@/utils/type'
 import { useRoute } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
-//import "@fontsource/noto-color-emoji"; workspaces cucc miatt no working
 import { getQuiz, handleQuizyUpload } from '@/utils/functions/editorFunctions'
-
 import { getTags, getLanguages } from '@/utils/functions/metaFunctions'
 import router from '@/router'
+
 
 const qTypes = ['twochoice', 'normal']
 const items = ['draft', 'published', 'requires_review', 'private']
@@ -457,7 +456,7 @@ const marqueeDuration = computed(() => {
             </div>
             <div class="flex flex-col mb-2">
               <label for="quizStatus" class="mb-1 text-white font-medium text-xl">
-                Láthatóság
+                Láthatóság 
               </label>
               <div class="relative inline-block text-left">
                 <button @click="toggleDropdown"
@@ -474,10 +473,10 @@ const marqueeDuration = computed(() => {
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
                   <div v-if="isOpen"
                     class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
-                    <div class="py-1">
+                    <div class="py-1" v-click-outside="() => isOpen = false">
                       <div v-for="item in items" :key="item" @click="selectItem(item)"
-                        class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
-                        {{ item }}
+                      class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
+                      {{ item }}
                       </div>
                     </div>
                   </div>
@@ -511,7 +510,7 @@ const marqueeDuration = computed(() => {
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
                   <div v-if="isTagDropdownOpen"
                     class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar">
-                    <div class="py-1">
+                    <div class="py-1" v-click-outside="() => isTagDropdownOpen = false">
                       <input v-model="tagSearchQuery" type="text" placeholder="Keresés..." id="tagSearchInput"
                         class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1" />
 
@@ -560,7 +559,7 @@ const marqueeDuration = computed(() => {
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
                   <div v-if="isLanguageDropdownOpen"
                     class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar">
-                    <div class="py-1">
+                    <div class="py-1" v-click-outside="() => isLanguageDropdownOpen = false">
                       <input v-model="languageSearchQuery" type="text" placeholder="Keresés..." id="languageSearchInput"
                         class="w-full px-4 py-2 rounded text-black bg-white/80 backdrop-blur-md focus:outline-none ml-1" />
 
@@ -569,7 +568,8 @@ const marqueeDuration = computed(() => {
                           <input type="checkbox" :id="lang.name" :value="lang" :checked="isSelectedLanguage(lang)"
                             @change="toggleLanguageSelection(lang)" class="opacity-0 absolute" />
                           <label :for="lang.name"
-                            class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105"
+                            class="cursor-pointer w-full transition-all duration-300 border-2 border-transparent rounded-lg flex justify-center items-center hover:scale-105
+                            emoji-text"
                             :class="isSelectedLanguage(lang)
                               ? 'text-green-400 hover:border-green-400'
                               : 'text-white hover:border-white'
@@ -651,7 +651,7 @@ const marqueeDuration = computed(() => {
                   leave-from-class="opacity-100" leave-to-class="opacity-0">
                   <div v-if="isQType"
                     class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
-                    <div class="py-1">
+                    <div class="py-1" v-click-outside="() => isQType = false">
                       <div v-for="type in qTypes" :key="type" @click="selectType(type)"
                         class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
                         {{ type }}
@@ -762,14 +762,14 @@ const marqueeDuration = computed(() => {
   padding-right: 1em;
 }
 
-body {
-  font-family: 'Noto Color Emoji';
-}
-
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
   scroll-behavior: smooth;
+}
+
+.emoji-text {
+  font-family: 'Segoe UI', 'Noto Color Emoji', sans-serif;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

@@ -21,7 +21,7 @@ import {
   listApiKeys,
 } from '@/utils/functions/profileFunctions'
 
-const localPfp = ref('')
+const localPfp = ref('') 
 const keyId = ref(0)
 const isLoadingDelete = ref(false)
 const isLoadingKey = ref(false)
@@ -238,6 +238,16 @@ const OnLogOut = async () => {
   queryClient.clear()
   router.push('/login')
 }
+
+watch(
+  () => route.params.uuid,
+  (newUserId, oldUserId) => {
+    if (newUserId !== oldUserId) {
+      queryClient.refetchQueries({ queryKey: ['userQuizzies', userId]})
+    }
+  }
+);
+
 </script>
 <template>
   <MistBackground/>
@@ -644,7 +654,7 @@ const OnLogOut = async () => {
   </Transition>
 </template>
 
-<style>
+<style scoped>
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
@@ -708,5 +718,9 @@ button {
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 </style>
