@@ -56,7 +56,7 @@ const userPw = ref({
 })
 
 const { data: realUser, isLoading: isLoadingPage } = useQuery({
-  queryKey: ['userProfile'],
+  queryKey: ['userProfile', userId],
   queryFn: () => userData(userId),
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
@@ -64,7 +64,7 @@ const { data: realUser, isLoading: isLoadingPage } = useQuery({
 })
 
 const { data: userQuizzies, isLoading: isLoadingQuizzies } = useQuery({
-  queryKey: ['userQuizzies'],
+  queryKey: ['userQuizzies', userId],
   queryFn: () => getUserQuizzies(userId),
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,

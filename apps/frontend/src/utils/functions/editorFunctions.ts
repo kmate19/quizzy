@@ -14,9 +14,6 @@ export const getQuiz = async (uuid: string) => {
   if (get.status === 200) 
     {
     const res = (await get.json()).data
-    console.log("belso res",res)
-    console.log(arrayBufferToBase64(res.banner.data))
-    console.log('cards[0].picture.data', res.cards[0].picture.data)
     const quiz = {
       title: res.title,
       description: res.description,
