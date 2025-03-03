@@ -91,10 +91,15 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
             }
         }
 
-        await db
-            .update(usersTable)
-            .set({ profile_picture: await makeDefaultPfp(user.username) })
-            .where(eq(usersTable.id, user.id));
+        if (user.firstTimeLogin) {
+            await db
+                .update(usersTable)
+                .set({
+                    profile_picture: await makeDefaultPfp(user.username),
+                    firstTimeLogin: false,
+                })
+                .where(eq(usersTable.id, user.id));
+        }
 
         const refreshTokenPayload = {
             userId: user.id,
