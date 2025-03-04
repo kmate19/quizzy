@@ -1,15 +1,15 @@
 import { clientv1 } from '@/lib/apiClient'
 import { arrayBufferToBase64 } from '../helpers'
 import { toast } from 'vue3-toastify'
-import { type Quiz, type userProfile } from '../type'
+import type { quizCardView, userProfile } from '../type'
 import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
 
 export const userData = async (id: string) => {
   //await new Promise(resolve => setTimeout(resolve, 2000))
-  if(id !== ""){
-    const user = await clientv1.userprofile[':userId'].$get({param: {userId: id}})
+  if (id !== '') {
+    const user = await clientv1.userprofile[':userId'].$get({ param: { userId: id } })
     if (user.status === 200) {
       const res = await user.json()
       const userObj: userProfile = {
@@ -17,8 +17,8 @@ export const userData = async (id: string) => {
         created_at: new Date(res.data.created_at).toLocaleDateString(),
         activity_status: res.data.activity_status,
         profile_picture: res.data.profile_picture
-        ? arrayBufferToBase64(res.data.profile_picture.data)
-        : '',
+          ? arrayBufferToBase64(res.data.profile_picture.data)
+          : '',
         roles: res.data.roles,
         stats: res.data.stats,
       }
@@ -34,8 +34,7 @@ export const userData = async (id: string) => {
         pauseOnHover: false,
       })
     }
-  }
-  else{
+  } else {
     const user = await clientv1.userprofile.$get()
     if (user.status === 200) {
       const res = await user.json()
@@ -45,26 +44,26 @@ export const userData = async (id: string) => {
         created_at: new Date(res.data.created_at).toLocaleDateString(),
         activity_status: res.data.activity_status,
         profile_picture: res.data.profile_picture
-        ? arrayBufferToBase64(res.data.profile_picture.data)
-        : '',
+          ? arrayBufferToBase64(res.data.profile_picture.data)
+          : '',
         sentFriendships: res.data.sentFriendships,
         recievedFriendships: res.data.recievedFriendships,
         roles: res.data.roles,
         stats: res.data.stats,
         friends: res.data.recievedFriendships
-        .filter((item) => item.status === 'accepted')
-        .map((item) => ({
-          created_at: item.created_at,
-          status: item.status,
-          addressee: {
-            id: item.requester.id,
-            username: item.requester.username,
-            activity_status: item.requester.activity_status,
-            profile_picture: item.requester.profile_picture,
-          },
-        })),
+          .filter((item) => item.status === 'accepted')
+          .map((item) => ({
+            created_at: item.created_at,
+            status: item.status,
+            addressee: {
+              id: item.requester.id,
+              username: item.requester.username,
+              activity_status: item.requester.activity_status,
+              profile_picture: item.requester.profile_picture,
+            },
+          })),
       }
-      
+
       return userObj
     } else {
       const res = await user.json()
@@ -80,13 +79,11 @@ export const userData = async (id: string) => {
 }
 
 export const getUserQuizzies = async (userId: string) => {
-  if(userId !== ""){
-
+  if (userId !== '') {
     try {
-      const res = await clientv1.quizzes.by[':userId'].$get({param: {userId: userId}})
+      const res = await clientv1.quizzes.by[':userId'].$get({ param: { userId: userId } })
       const data = await res.json()
-      
-      const quizzes: Quiz[] = data.data.map((el) => ({
+      const quizzes: quizCardView[] = data.data.map((el) => ({
         id: el.id,
         created_at: el.created_at,
         updated_at: el.updated_at,
@@ -109,14 +106,14 @@ export const getUserQuizzies = async (userId: string) => {
       }))
       return quizzes
     } catch (error) {
-      console.error('error:', error)
+      console.log('error:', error)
     }
-  }else{
+  } else {
     try {
       const res = await clientv1.quizzes.own.$get()
       const data = await res.json()
-  
-      const quizzes: Quiz[] = data.data.map((el) => ({
+
+      const quizzes: quizCardView[] = data.data.map((el) => ({
         id: el.id,
         created_at: el.created_at,
         updated_at: el.updated_at,
@@ -139,7 +136,7 @@ export const getUserQuizzies = async (userId: string) => {
       }))
       return quizzes
     } catch (error) {
-      console.error('error:', error)
+      console.log('error:', error)
     }
   }
 }
@@ -156,6 +153,7 @@ export const handleDelete = async (uuid: string) => {
     queryClient.refetchQueries({ queryKey: ['userQuizzies'] })
   } else {
     const res = await del.json()
+    console.log('Delete error:', res.message)
     toast(res.message, {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
