@@ -30,8 +30,8 @@ export const getQuizzes = async (limit: string | undefined, currentPage: string 
     data.data.quizzes.forEach((quiz) => {
         quizArray.push({
           id: quiz.id,
-          created_at: new Date(quiz.created_at),
-          updated_at: new Date(quiz.updated_at),
+          created_at: new Date(quiz.created_at).toISOString().split('T')[0] ,
+          updated_at: new Date(quiz.updated_at).toISOString().split('T')[0] ,
           title: quiz.title,
           quiz_id: quiz.id,
           description: quiz.description,

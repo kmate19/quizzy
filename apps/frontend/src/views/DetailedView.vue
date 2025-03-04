@@ -1,77 +1,29 @@
 <script lang="ts" setup>
-import { clientv1 } from '@/lib/apiClient'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { ref, onMounted } from 'vue'
 import NavBar from '@/components/NavBar.vue'
 import { Loader2Icon } from 'lucide-vue-next'
-import type{  Quiz, Tag } from '@/utils/type'
-import { toast } from 'vue3-toastify'
-import { arrayBufferToBase64 } from '@/utils/helpers'
+import type{  detailedQuiz } from '@/utils/type'
 import MistBackground from '@/components/MistBackground.vue'
+import { getQuiz } from '@/utils/functions/detailedFunctions'
 
 const route = useRoute()
 const uuid = route.params.uuid
-const data = ref<Quiz>()
+const data = ref<detailedQuiz>()
+const user = ref()
 const isLoading = ref(true)
-
-const getQuiz = async () => {
-  const getQuiz = await clientv1.quizzes[':quizId'].$get({ param: { quizId: uuid.toString() } })
-  console.log(getQuiz)
-  if (getQuiz.ok) {
-    const res = await getQuiz.json()
-    const getUser = await clientv1.userprofile[':userId'].$get({ param: { userId: res.data.user_id } })
-    let user = ''
-    if (getUser.ok) {
-      const userRes = await getUser.json()
-      user = userRes.data.username
-      console.log(user)
-    }
-    data.value = {
-      id: res.data.id,
-      status: res.data.status,
-      created_at: new Date(res.data.created_at).toISOString().split('T')[0] ,
-      updated_at: new Date(res.data.updated_at).toISOString().split('T')[0] ,
-      title: res.data.title,
-      description: res.data.description,
-      rating: res.data.rating,
-      plays: res.data.plays,
-      banner: arrayBufferToBase64(res.data.banner.data),
-      languages: [...res.data.languages].map((lang) => ({
-        iso_code: lang.language.iso_code,
-        icon: lang.language.icon,
-      })),
-      tags: res.data.tags.map((tag) => tag.tag.name as unknown as Tag),
-      user_id: res.data.user_id,
-      username: user,
-      cards: res.data.cards.map((card) => ({
-        question: card.question,
-        type: card.type,
-        answers: card.answers,
-        picture: arrayBufferToBase64(card.picture.data),
-        correct_answer_index: card.correct_answer_index,
-      })),
-    }
-    console.log(data.value)
-    isLoading.value = false
-    expandedQuestions.value = new Array(res.data.cards.length).fill(false)
-
-  } else {
-    const res = await getQuiz.json()
-    toast(res.error.message, {
-      autoClose: 5000,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'error',
-      transition: 'zoom',
-      pauseOnHover: false,
-    })
-  }
-}
 
 const expandedQuestions = ref<boolean[]>([])
 
-onMounted(() => {
-  getQuiz()
+onMounted(async() => {
+  const temp = await getQuiz(uuid?.toString())
+  if (temp) {
+    data.value = temp.data
+    user.value = temp.user
+    expandedQuestions.value = Array(data.value?.cards.length).fill(false)
+    isLoading.value = false
+  }
 })
 
 const toggleQuestion = (index: number) => {

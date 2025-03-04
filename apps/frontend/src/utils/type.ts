@@ -28,8 +28,8 @@ export type Question = {
 
 export type quizCardView = {
   id: string
-  created_at: Date
-  updated_at: Date
+  created_at: string
+  updated_at: string
   title: string
   quiz_id: string
   description: string
@@ -53,13 +53,15 @@ export type Language = {
   support?: 'none' | 'official' | 'partial'
 }
 
-export type Quiz = {
+export type detailedQuiz = {
   id: string
   created_at: string
   updated_at: string
+  username: string
   user_id: string
   description: string
   title: string
+  cards: Question[]
   status?: 'published' | 'draft' | 'requires_review' | 'private'
   rating: number
   plays: number
