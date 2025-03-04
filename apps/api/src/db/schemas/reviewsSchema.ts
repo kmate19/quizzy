@@ -36,6 +36,7 @@ export const reviewsTable = pgTable(
     }
 );
 
+export const ReviewsInferSelectRaw = reviewsTable.$inferSelect;
 export type Review = typeof reviewsTable.$inferSelect;
 
 export const reviewsRelations = relations(reviewsTable, ({ one }) => ({

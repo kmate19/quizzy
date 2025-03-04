@@ -24,6 +24,7 @@ export const tagsTable = pgTable(
     }
 );
 
+export const TagInferSelectRaw = tagsTable.$inferSelect;
 export type Tag = typeof tagsTable.$inferSelect;
 export type TagInsert = typeof tagsTable.$inferInsert;
 

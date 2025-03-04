@@ -39,6 +39,7 @@ export const quizCardsTable = pgTable(
     }
 );
 
+export const QuizCardInferSelectRaw = quizCardsTable.$inferSelect;
 export type QuizCard = typeof quizCardsTable.$inferSelect;
 export type QuizCardInsert = typeof quizCardsTable.$inferInsert;
 

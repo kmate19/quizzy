@@ -29,6 +29,7 @@ export const rolesTable = pgTable(
     }
 );
 
+export const RolesInferSelectRaw = rolesTable.$inferSelect;
 export type Role = typeof rolesTable.$inferSelect;
 export type RoleInsert = typeof rolesTable.$inferInsert;
 

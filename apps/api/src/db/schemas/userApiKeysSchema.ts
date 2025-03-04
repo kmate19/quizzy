@@ -38,6 +38,7 @@ export const userApiKeys = pgTable(
 );
 
 export type UserApiKey = typeof userApiKeys.$inferSelect;
+export const UserApiKeyInferSelectRaw = userApiKeys.$inferSelect;
 
 // TODO: finish this with actual resourceAccessControl
 

@@ -49,6 +49,7 @@ export const quizzesTable = pgTable(
     }
 );
 
+export const QuizInfertSelectRaw = quizzesTable.$inferSelect;
 export type Quiz = typeof quizzesTable.$inferSelect;
 
 export const insertQuizSchema = createInsertSchema(quizzesTable)

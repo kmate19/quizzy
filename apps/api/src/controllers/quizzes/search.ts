@@ -9,12 +9,7 @@ import {
 } from "@/db/schemas";
 import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
-import {
-    languageISOCodesQuerySchema,
-    paginationSchema,
-    searchQuerySchema,
-    tagNamesQuerySchema,
-} from "@/utils/schemas/zod-schemas";
+import { searchQuerySchema } from "@/utils/schemas/zod-schemas";
 import {
     and,
     count,
@@ -30,7 +25,6 @@ import {
 import { PgTable } from "drizzle-orm/pg-core";
 import { Context } from "hono";
 import type { ApiResponse } from "repo";
-import { z } from "zod";
 
 function createSubquery<
     T extends typeof quizTagsTable | typeof quizLanguagesTable,

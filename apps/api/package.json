@@ -9,7 +9,7 @@
                 "types": "./dist/hc.d.ts"
             }
         },
-        "./schemas": {
+        "./public-schemas": {
             "import": {
                 "default": "./dist/public-schemas.js",
                 "types": "./dist/public-schemas.d.ts"

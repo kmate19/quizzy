@@ -57,6 +57,7 @@ export const usersTable = pgTable(
 );
 
 export type User = typeof usersTable.$inferSelect;
+export const UserInferSelectRaw = usersTable.$inferSelect;
 
 export const SelectUserSchemaRaw = createSelectSchema(usersTable);
 export const RegisterUserSchema = createInsertSchema(usersTable)
