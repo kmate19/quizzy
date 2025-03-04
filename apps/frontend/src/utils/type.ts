@@ -31,15 +31,14 @@ export type quizCardView = {
   created_at: string
   updated_at: string
   title: string
-  quiz_id: string
   description: string
   rating: number
   plays: number
   banner: string
-  username: string
   languages: Language[]
   tags: Tag[]
   user_id: string
+  status?: string
 }
 
 export type Tag = {

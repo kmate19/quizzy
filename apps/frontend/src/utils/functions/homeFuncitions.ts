@@ -33,12 +33,10 @@ export const getQuizzes = async (limit: string | undefined, currentPage: string 
           created_at: new Date(quiz.created_at).toISOString().split('T')[0] ,
           updated_at: new Date(quiz.updated_at).toISOString().split('T')[0] ,
           title: quiz.title,
-          quiz_id: quiz.id,
           description: quiz.description,
           rating: quiz.rating,
           plays: quiz.plays,
           banner: arrayBufferToBase64(quiz.banner.data),
-          username: quiz.user.username,
           languages: quiz.languages.map((l) => ({
             icon: l.language.icon,
             iso_code: l.language.iso_code,
