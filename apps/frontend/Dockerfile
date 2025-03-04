@@ -10,6 +10,7 @@ COPY apps/frontend/ ./apps/frontend/
 COPY apps/api/ ./apps/api/
 COPY apps/websocket/ ./apps/websocket/
 COPY packages/ ./packages/
+RUN apk add --no-cache python3 build-base cairo-dev pkgconfig pixman-dev jpeg-dev giflib-dev pango-dev
 RUN pnpm install --frozen-lockfile
 RUN pnpm run --filter frontend build
 
