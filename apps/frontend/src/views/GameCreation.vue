@@ -357,7 +357,7 @@ const validateCard = () =>{
 
   if (oneQuestion.value.type === 'twochoice') {
     const hasValidAnswers = oneQuestion.value.answers.length === 2;
-    if (!hasValidAnswers || oneQuestion.value.correct_answer_index < 0 || oneQuestion.value.correct_answer_index > 1) {
+    if (!hasValidAnswers || oneQuestion.value.correct_answer_index < 0 || oneQuestion.value.correct_answer_index > 2) {
       return { valid: false, msg: 'Kérlek, válassz érvényes válaszokat és a helyes választ!' };
     }
   } else if (oneQuestion.value.type === 'normal') {
