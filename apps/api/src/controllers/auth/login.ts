@@ -5,6 +5,7 @@ import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
 import { zv } from "@/middlewares/zv";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
+import { makeDefaultPfp } from "@/utils/helpers";
 import { eq, or } from "drizzle-orm";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
@@ -88,6 +89,16 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
                 } satisfies ApiResponse;
                 return c.json(blocked_res, 401);
             }
+        }
+
+        if (user.firstTimeLogin) {
+            await db
+                .update(usersTable)
+                .set({
+                    profile_picture: await makeDefaultPfp(user.username),
+                    firstTimeLogin: false,
+                })
+                .where(eq(usersTable.id, user.id));
         }
 
         const refreshTokenPayload = {

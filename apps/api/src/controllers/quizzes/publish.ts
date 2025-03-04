@@ -13,7 +13,7 @@ import {
 } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
-import { makeSharpImage } from "@/utils/helpers";
+import { processImage } from "@/utils/helpers";
 import { languageISOCodes, tagNames } from "@/utils/schemas/zod-schemas";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBuffer } from "file-type";
@@ -100,7 +100,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
                 return c.json(res, 400);
             }
 
-            const parsedBanner = await makeSharpImage(rawFileBuf);
+            const parsedBanner = await processImage(rawFileBuf);
 
             parsedQuiz = {
                 ...quiz,
@@ -152,7 +152,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
                 }
                 parsedCards.push({
                     ...card,
-                    picture: await makeSharpImage(
+                    picture: await processImage(
                         Buffer.from(card.picture.split(";base64,")[1], "base64")
                     ),
                 });

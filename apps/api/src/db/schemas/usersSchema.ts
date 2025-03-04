@@ -7,6 +7,7 @@ import {
     uuid,
     varchar,
     uniqueIndex,
+    boolean,
 } from "drizzle-orm/pg-core";
 import { friendshipsTable } from "./friendshipsSchema";
 import { userTokensTable } from "./userTokensSchema";
@@ -39,6 +40,7 @@ export const usersTable = pgTable(
         activity_status: userStatusEnum().notNull().default("inactive"),
         profile_picture: bytea(),
         auth_status: authStatusEnum().notNull().default("pending"),
+        firstTimeLogin: boolean().default(true),
         created_at: timestamp().notNull().defaultNow(),
         updated_at: timestamp()
             .notNull()

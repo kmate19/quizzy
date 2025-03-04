@@ -2,7 +2,7 @@ import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { usersTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
-import { makeSharpImage } from "@/utils/helpers";
+import { processImage } from "@/utils/helpers";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBlob } from "file-type";
 import { ApiResponse } from "repo";
@@ -56,7 +56,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(
             return c.json(res, 400);
         }
 
-        const finalImage = await makeSharpImage(pfpBuf);
+        const finalImage = await processImage(pfpBuf);
 
         try {
             await db
