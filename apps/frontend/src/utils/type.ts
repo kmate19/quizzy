@@ -1,20 +1,24 @@
-export interface quizUpload {
+export type quizUpload = {
   description: string
   title: string
   status: 'draft' | 'published' | 'requires_review' | 'private'
   banner: string
-  languageISOCodes: string[]
-  tags: string[]
-  cards: {
-    question: string
-    type: 'normal' | 'twochoice'
-    answers: string[]
-    picture: string
-    correct_answer_index: number
-  }[]
+  languageISOCodes: [string,...string[]] | undefined
+  tags: [string,...string[]] | undefined
+  cards: nonemptyCardArray
 }
 
-export interface Question {
+export type cardType = {
+  question: string
+  type: 'normal' | 'twochoice'
+  answers: string[]
+  picture: string
+  correct_answer_index: number
+}
+
+export type nonemptyCardArray = [cardType, ...cardType[]]
+
+export type Question = {
   question: string
   type: 'twochoice' | 'normal'
   answers: string[]
@@ -22,50 +26,42 @@ export interface Question {
   correct_answer_index: number
 }
 
-export interface quizCardView {
-  status: string
-  created_at: Date
-  updated_at: Date
+export type quizCardView = {
+  id: string
+  created_at: string
+  updated_at: string
   title: string
   quiz_id: string
   description: string
-  rating: string
-  plays: string
+  rating: number
+  plays: number
   banner: string
   username: string
-  languageISOCodes: {
-    iso_code: string
-    icon: string
-  }[]
-  tags: string[]
+  languages: Language[]
+  tags: Tag[]
   user_id: string
-  cards: {
-    question: string
-    type: string
-    answers: string[]
-    picture: string
-    correct_answer_index: number
-  }[]
 }
 
-export interface Tag {
+export type Tag = {
   name: string
 }
 
-export interface Language {
+export type Language = {
   name?: string
   iso_code: string
   icon: string
   support?: 'none' | 'official' | 'partial'
 }
 
-export interface Quiz {
+export type detailedQuiz = {
   id: string
   created_at: string
   updated_at: string
+  username: string
   user_id: string
   description: string
   title: string
+  cards: Question[]
   status?: 'published' | 'draft' | 'requires_review' | 'private'
   rating: number
   plays: number
@@ -74,7 +70,7 @@ export interface Quiz {
   tags: Tag[]
 }
 
-export interface sentFriendship {
+export type sentFriendship = {
   created_at: string
   status: 'pending' | 'blocked' | 'accepted'
   addressee: {
@@ -88,7 +84,7 @@ export interface sentFriendship {
   }
 }
 
-export interface recievedFriendships {
+export type recievedFriendships = {
   created_at: string
   status: 'pending' | 'blocked' | 'accepted'
   requester: {
@@ -102,7 +98,7 @@ export interface recievedFriendships {
   }
 }
 
-export interface stats {
+export type stats = {
     plays: number,
     first_places: number,
     second_places: number,
@@ -111,15 +107,29 @@ export interface stats {
     losses: number,
 }
 
-export interface userProfile{
-  email: string
+type role = {
+  role: {
+    name: string
+  }
+}
+
+export type userProfile = {
+  email?: string
   username: string
   created_at: string
   activity_status: string
   profile_picture: string
-  sentFriendships: sentFriendship[]        // Adjust these types if you have more specific types
-  recievedFriendships: recievedFriendships[]
-  friends: sentFriendship[]
-  role: string
+  sentFriendships?: sentFriendship[]
+  recievedFriendships?: recievedFriendships[]
+  friends?: sentFriendship[]
+  roles: role[]
   stats: stats  
 }
+
+export type Game = {
+  title: string;
+  banner: string;
+  description: string;
+  cards: Question[];
+}
+

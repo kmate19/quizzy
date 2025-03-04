@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { StarIcon, PlayIcon } from 'lucide-vue-next'
-import { type Quiz } from '@/utils/type'
+import { type quizCardView } from '@/utils/type'
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
 
-defineProps<{ quiz: Quiz }>()
+defineProps<{ quiz: quizCardView }>()
 
 </script>
 
@@ -17,7 +17,7 @@ defineProps<{ quiz: Quiz }>()
       <v-img :src="quiz.banner || '/placeholder.svg?height=200&width=300'" fit="contain"></v-img>
       <div class="p-4">
         <h2 class="text-xl font-semibold text-white mb-2">{{ quiz.title }}</h2>
-        <p class="text-gray-300 text-sm mb-4">{{ quiz.description }}</p>
+        <p class="text-gray-300 text-sm mb-4 max-h-20 overflow-y-scroll custom-scrollbar">{{ quiz.description }}</p>
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center">
             <StarIcon class="w-5 h-5 text-yellow-400 mr-1" />
@@ -31,8 +31,7 @@ defineProps<{ quiz: Quiz }>()
         <div class="flex flex-wrap gap-2 mb-2">
           <span v-for="lang in quiz.languages" :key="lang.iso_code"
             class="inline-flex items-center bg-blue-500 bg-opacity-50 rounded-full px-2 py-1 text-xs text-white">
-            <img :src="lang.iso_code" :alt="lang.iso_code" class="w-4 h-4 mr-1" />
-            {{ lang.name }}
+            {{ lang.icon }} {{ lang.name }} 
           </span>
         </div>
         <div class="flex flex-wrap gap-2 max-h-20 h-fit overflow-y-scroll custom-scrollbar">

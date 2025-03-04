@@ -53,7 +53,12 @@ const clearRegistration = () => {
   }
 }
 
-const loginForm = ref({
+type loginFormType = {
+  username_or_email: string
+  password: string
+}
+
+const loginForm = ref<loginFormType>({
   username_or_email: '',
   password: '',
 })
@@ -75,7 +80,7 @@ const onRegistration = async () => {
   if (!valid.success) {
     regErrors.value = valid.error.format()
   } else {
-    regErrors.value = null
+    regErrors.value = null;
     const regRes = await clientv1.auth.register.$post({ json: regForm.value })
     console.log(regRes.status)
     if (regRes.status === 200) {
@@ -102,6 +107,9 @@ const onRegistration = async () => {
 }
 
 const onLogin = async () => {
+  (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
+      loginForm.value[key] = loginForm.value[key].trim()
+    })
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
   console.log(loginRes.status)
   if (loginRes.status === 200) {
@@ -138,7 +146,7 @@ const updateCardHeight = () => {
 
 onMounted(() => {
   updateCardHeight()
-  
+
   const storedUser = localStorage.getItem('authUser')
   if (storedUser) {
     const userData = JSON.parse(storedUser)
@@ -152,69 +160,41 @@ onMounted(() => {
   <div class="wrapper">
     <div
       class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly relative overflow-hidden text-white"
-      :style="{ height: `${cardHeight + 100}px` }"
-    >
-      <transition
-        name="fade"
-        enter-active-class="transition ease-out duration-300"
-        leave-active-class="transition ease-in duration-300"
-        mode="out-in"
-        @enter="updateCardHeight"
-        @leave="updateCardHeight"
-      >
+      :style="{ height: `${cardHeight + 100}px` }">
+      <transition name="fade" enter-active-class="transition ease-out duration-300"
+        leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
+        @leave="updateCardHeight">
         <div v-if="isLoginForm" class="form-content" key="login">
           <div class="flex justify-evenly flex-row mb-2">
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
           <form @submit.prevent="onLogin">
-            <v-text-field
-              label="Felhasználónév"
-              v-model="loginForm.username_or_email"
-              variant="outlined"
-              density="comfortable"
-              class="!mb-5"
-            ></v-text-field>
-            <v-text-field
-              name="pw"
-              label="Jelszó"
-              v-model="loginForm.password"
-              variant="outlined"
-              density="comfortable"
-              :type="showPassword ? 'text' : 'password'"
-              @click:append-inner="togglePassword"
-              class="relative"
-            >
-              <button
-                @click="togglePassword"
+            <v-text-field label="Felhasználónév" v-model="loginForm.username_or_email" variant="outlined"
+              density="comfortable" class="!mb-5"></v-text-field>
+            <v-text-field name="pw" label="Jelszó" v-model="loginForm.password" variant="outlined" density="comfortable"
+              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative">
+              <button @click="togglePassword"
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none"
-                type="button"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              >
+                type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
             </v-text-field>
             <div class="w-full text-right mb-5">
-              <router-link
-                to="/forgotPw"
-                class="text-sm text-blue-300 hover:text-blue-500 transition-colors duration-200"
-              >
+              <router-link to="/forgotPw"
+                class="text-sm text-blue-300 hover:text-blue-500 transition-colors duration-200">
                 Elfelejtett jelszó?
               </router-link>
             </div>
 
             <div class="w-full max-w-md space-y-6">
-              <button
-                type="submit"
-                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
-              >
+              <button type="submit"
+                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
                 Bejelentkezés
               </button>
-              <button
-                type="button"
+              <button type="button"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
-                @click="flipLogin"
-              >
+                @click="flipLogin">
                 Regisztráció
               </button>
             </div>
@@ -224,81 +204,41 @@ onMounted(() => {
           <div class="flex justify-evenly flex-row mb-2">
             <div class="flex items-center">
               <span class="font-weight-black text-3xl">Regisztráció</span>
-              <CircleHelp
-                class="h-7 w-7 text-blue-400 ml-2 cursor-pointer"
-                @click="showPasswordRequirements"
-              />
+              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
             </div>
           </div>
           <form @submit.prevent="onRegistration">
-            <v-text-field
-              label="Email"
-              name="email"
-              v-model="regForm.email"
-              variant="outlined"
-              density="comfortable"
-              :error-messages="regErrors?.email?._errors[0]"
-              class="!mb-5"
-            ></v-text-field>
+            <v-text-field label="Email" name="email" v-model="regForm.email" variant="outlined" density="comfortable"
+              :error-messages="regErrors?.email?._errors[0]" class="!mb-5"></v-text-field>
 
-            <v-text-field
-              label="Felhasználónév"
-              name="username"
-              v-model="regForm.username"
-              variant="outlined"
-              density="comfortable"
-              :error-messages="regErrors?.username?._errors[0]"
-              class="!mb-5"
-            ></v-text-field>
+            <v-text-field label="Felhasználónév" name="username" v-model="regForm.username" variant="outlined"
+              density="comfortable" :error-messages="regErrors?.username?._errors[0]" class="!mb-5"></v-text-field>
 
-            <v-text-field
-              label="Jelszó"
-              v-model="regForm.password"
-              name="pw"
-              variant="outlined"
-              density="comfortable"
-              :type="showPassword ? 'text' : 'password'"
-              @click:append-inner="togglePassword"
-              class="relative !mb-5"
-              :error-messages="regErrors?.password?._errors[0]"
-            >
-              <button
-                @click="togglePassword"
+            <v-text-field label="Jelszó" v-model="regForm.password" name="pw" variant="outlined" density="comfortable"
+              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative !mb-5"
+              :error-messages="regErrors?.password?._errors[0]">
+              <button @click="togglePassword"
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 text-whitefocus:outline-none hover:text-gray-400"
-                type="button"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              >
+                type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
             </v-text-field>
 
-            <v-text-field
-              label="Jelszó megerősítés"
-              v-model="regForm.confirmPassword"
-              :type="showPassword ? 'text' : 'password'"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="togglePassword"
-              name="pw"
-              variant="outlined"
-              density="comfortable"
-              :error-messages="regErrors?.confirmPassword?._errors[0]"
-              class="!mb-5"
-            >
+            <v-text-field label="Jelszó megerősítés" v-model="regForm.confirmPassword"
+              :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="togglePassword" name="pw" variant="outlined" density="comfortable"
+              :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-5">
             </v-text-field>
 
             <div class="w-full max-w-md space-y-6">
-              <button
-                type="submit"
-                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
-              >
+              <button type="submit"
+                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
                 Regisztráció
               </button>
-              <button
-                type="button"
+              <button type="button"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
-                @click="flipLogin"
-              >
+                @click="flipLogin">
                 Bejelentkezés
               </button>
             </div>
@@ -307,8 +247,7 @@ onMounted(() => {
       </transition>
     </div>
     <v-card
-      class="headers !flex !flex-col !justify-center !items-center !text-center !bg-opacity-50 !backdrop-blur-md !rounded-2xl !bg-white/10"
-    >
+      class="headers !flex !flex-col !justify-center !items-center !text-center !bg-opacity-50 !backdrop-blur-md !rounded-2xl !bg-white/10">
       <h1 class="title text-9xl text-white">Quizzy</h1>
       <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
     </v-card>

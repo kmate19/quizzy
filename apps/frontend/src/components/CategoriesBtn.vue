@@ -1,270 +1,243 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { XIcon, Settings2, Search, Save } from 'lucide-vue-next'
-//import { useCounterStore } from '@/stores/counter'
+import { ref, computed, onMounted } from 'vue'
+import { XIcon, Settings2, Search, Save, Check } from 'lucide-vue-next'
+import { getLanguages, getTags } from '@/utils/functions/metaFunctions'
+import type { Language, Tag } from '@/utils/type'
 
-
-//const store = useCounterStore()
-const categories = ref([''])
+const tags = ref<Tag[]>()
+const languages = ref<Language[]>()
 const isModalOpen = ref(false)
 const searchQuery = ref('')
-const selectedCategoriesData = ref<string[]>([])
-const includeDesc = ref(false)
-const includeName = ref(true)
+const selectedTagsData = ref<string[]>([])
+const selectedLanguagesData = ref<string[]>([])
+const strictSearch = ref(false)
 
-const selectedCategories = computed(() => selectedCategoriesData.value)
-
-/*const extractCategories = () => {
-  const allTagsArrays = [...new Set(store.returnQuizies().value.map((card) => card.tags))];
-  const allTags: string[] = [];
-
-  for (const tags of allTagsArrays) {
-    allTags.push(...tags);
-  }
-
-  const uniqueTags = [...new Set(allTags)];
-  categories.value = uniqueTags;
-};*/
-
-//extractCategories();
+const selectedCategories = computed(() => selectedTagsData.value)
 
 const filteredCategories = computed(() => {
-  const query = searchQuery.value.toLowerCase();
-  return categories.value.filter((category) =>
-    category.toLowerCase().includes(query)
-  );
-});
+  const query = searchQuery.value.toLowerCase()
+  if (!query) return tags.value
+  return tags.value?.filter((tag) =>
+    tag.name.toLowerCase().includes(query)
+  )
+})
+
+const filteredLanguages = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+  if (!query) return languages.value
+  return languages.value?.filter((lang) =>
+    lang?.name?.toLowerCase().includes(query)
+  )
+})
 
 const isSelected = (category: string): boolean => {
-  return selectedCategoriesData.value.includes(category)
+  return selectedTagsData.value.includes(category)
 }
 
 const toggleCategory = (category: string) => {
-  const index = selectedCategoriesData.value.indexOf(category)
+  const index = selectedTagsData.value.indexOf(category)
   if (index > -1) {
-    selectedCategoriesData.value.splice(index, 1)
+    selectedTagsData.value.splice(index, 1)
   } else {
-    selectedCategoriesData.value.push(category)
+    selectedTagsData.value.push(category)
   }
 }
 
-const saveCategories = () => {
+const saveParams = () => {
   isModalOpen.value = false
   emit('save', {
-    categories: selectedCategoriesData.value,
-    includeName: includeName.value,
-    includeDesc: includeDesc.value
+    tags: selectedTagsData.value.length > 0 ? selectedTagsData.value : [],
+    languages: selectedLanguagesData.value.length > 0 ? selectedLanguagesData.value : [],
+    strictSearch: strictSearch.value
   })
 }
 
 const clearSelectedCategories = () => {
-  selectedCategoriesData.value = []
+  selectedTagsData.value = []
 }
 
 const emit = defineEmits(['save'])
+
+onMounted(async () => {
+  tags.value = await getTags()
+  languages.value = await getLanguages()
+  console.log(tags.value, languages.value)
+})
 </script>
 
 <template>
-  <div class="relative w-10 h-10">
+  <div class="relative">
     <button
       @click="isModalOpen = true"
-      class="w-16 h-10 rounded-full border-2 bg-white/30 
-      border-gray-300 flex items-center justify-center p-3 hover:border-gray-400 relative text-white
-      transition-all duration-300 ease-in-out cursor-pointer glass-button"
+      class="w-16 h-10 rounded-full border-2 glass-button flex items-center justify-center p-3 transition-all duration-300 ease-in-out"
       aria-label="Open category selector"
     >
-      <Settings2 class="w-5 h-5 text-grey" absoluteStrokeWidth />
+      <Settings2 class="w-5 h-5 text-gray-300" />
     </button>
+    <transition name="fade">
+      <div
+        v-if="isModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
+      >
+        <div class="relative w-full max-w-md p-6 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg">
+          <button
+            @click="isModalOpen = false"
+            class="absolute top-2 right-2 ml-2 p-2 bg-white/20 text-white rounded-full w-11 flex items-center justify-center 
+            transition-colors border-2 border-transparent
+             hover:border-white cursor-pointer"
+          >
+            <XIcon class="w-5 h-5" />
+          </button>
 
-    <div
-      v-if="isModalOpen"
-      class="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center z-50 flex-col"
-    >
-      <div class="bg-white/0 backdrop-blur-3xl rounded-lg w-full max-w-md p-6 relative">
-        <button
-          @click="isModalOpen = false"
-          class="absolute top-4 right-4 text-gray-500 hover:scale-110 transition-all duration-300 border-4 w-10 h-10 flex justify-center items-center
-           border-red-800 rounded-full bg-red-800"
-        >
-          <XIcon class="w-5 h-5 text-white" />
-        </button>
-
-        <h2 class="text-xl font-semibold mb-4 text-white">Kategóriák</h2>
-
-        <div v-if="selectedCategories.length > 0" class="mb-4">
-          <div class="flex flex-wrap gap-2 overflow-y-scroll custom-scrollbar max-h-40 bg-">
-            <div
-              v-for="category in selectedCategories"
-              :key="category"
-              class="bg-gray-700 text-white px-3 py-1 rounded-full flex items-center gap-2"
+          <h2 class="text-xl font-semibold mb-4 text-white">Kategóriák</h2>
+          <transition name="fade" mode="out-in">
+            <div v-if="selectedCategories.length > 0" class="mb-4">
+              <div class="selected-categories flex flex-wrap gap-2 h-20 overflow-y-auto custom-scrollbar">
+                <transition-group name="category" tag="div" class="flex flex-wrap gap-2">
+                  <div
+                    v-for="category in selectedCategories"
+                    :key="category"
+                    class="bg-white/20 border border-white/30 backdrop-blur-md text-white px-3 py-1 rounded-full flex items-center gap-2 h-fit"
+                  >
+                    <span>{{ category }}</span>
+                    <button
+                      @click="toggleCategory(category)"
+                      class="hover:text-gray-200 cursor-pointer"
+                    >
+                      <XIcon class="w-4 h-4" />
+                    </button>
+                  </div>
+                </transition-group>
+              </div>
+            </div>
+            <div v-else class="mb-4">
+              <div class="selected-categories flex flex-wrap gap-2 h-20 overflow-y-auto custom-scrollbar items-center justify-center text-white font-bold">
+                Nincs kiválasztott kategória
+              </div>
+            </div>
+          </transition>
+          <div class="mb-4 relative flex">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Kategóriák keresése..."
+              class="w-full px-4 py-2 pl-10 bg-white/20 text-white font-bold rounded-full focus:outline-none focus:ring-2 focus:ring-white/50"
+            />
+            <Search class="w-5 h-5 text-white absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <button
+              @click="clearSelectedCategories"
+              class="ml-2 p-2 bg-white/20 text-white rounded-full w-11 flex items-center justify-center transition-colors border-2 border-transparent hover:border-white cursor-pointer"
             >
-              <span>{{ category }}</span>
-              <button @click="toggleCategory(category)" class="hover:text-gray-200">
-                <XIcon class="w-4 h-4" />
-              </button>
+              <XIcon class="w-5 h-5" />
+            </button>
+          </div>
+          <div class="mb-4 flex items-center">
+            <input type="checkbox" v-model="strictSearch" id="strictSearch" class="hidden" />
+            <label for="strictSearch" class="flex items-center cursor-pointer text-white">
+              <div
+                class="w-5 h-5 mr-2 border-2 border-white/20 rounded-sm flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <Check v-if="strictSearch" class="w-4 h-4 text-green-400" />
+              </div>
+              <span>Pontos keresés</span>
+            </label>
+          </div>
+          <div class="overflow-y-auto flex flex-wrap max-h-60 mb-4">
+            <label
+              v-for="t in filteredCategories"
+              :key="t.name"
+              class="flex items-center p-1 rounded cursor-pointer"
+            >
+              <input type="checkbox" :value="t.name" v-model="selectedTagsData" class="hidden" />
+              <div
+                class="flex-1 px-3 py-1 rounded-full border-2 border-transparent hover:border-white transition-all duration-300 cursor-pointer"
+                :class="isSelected(t.name)
+                  ? 'bg-green-600 text-white'
+                  : 'bg-white/10 backdrop-blur-sm text-white'"
+              >
+                {{ t.name }}
+              </div>
+            </label>
+          </div>
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold text-white">Nyelvek</h3>
+            <div class="overflow-y-auto flex flex-wrap gap-2 max-h-60 mb-4">
+              <label
+                v-for="lang in filteredLanguages"
+                :key="lang.iso_code"
+                class="flex items-center p-1 rounded cursor-pointer"
+              >
+                <input type="checkbox" :value="lang.iso_code" v-model="selectedLanguagesData" class="hidden" />
+                <div
+                  class="flex-1 px-3 py-1 rounded-full border-2 border-transparent hover:border-white transition-all duration-300 cursor-pointer"
+                  :class="selectedLanguagesData.includes(lang.iso_code ?? '')
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white/10 backdrop-blur-sm text-white'"
+                >
+                  {{ lang.iso_code }}
+                </div>
+              </label>
             </div>
           </div>
-        </div>
-
-        <div class="mb-4 relative flex">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Kategóriák keresése..."
-            class="w-full px-4 py-2 pl-10 bg-gray-600 text-white font-bold rounded-full focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-          <Search class="w-5 h-5 text-white absolute left-3 top-1/2 transform -translate-y-1/2" />
           <button
-            @click="clearSelectedCategories"
-            class="ml-2 p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-full w-11 flex justify-center items-center"
+            @click="saveParams"
+            class="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
-            <XIcon class="w-5 h-5 " />
+            <Save class="w-5 h-5" />
+            Kategóriák mentése
           </button>
         </div>
-
-        <div class="overflow-y-scroll custom-scrollbar flex flex-wrap max-h-60 mb-4">
-          <label
-            v-for="category in filteredCategories"
-            :key="category"
-            class="space-x-3 p-2 rounded hover:bg-gray-500 cursor-pointer max-w-fit"
-          >
-            <input
-              type="checkbox"
-              :value="category"
-              v-model="selectedCategoriesData"
-              class="hidden"
-            />
-            <div
-              class="flex-1 px-3 py-1 rounded-full"
-              :class="
-                isSelected(category)
-                  ? 'bg-green-600 text-white'
-                  : 'bg-red-600 backdrop-blur-md text-white'
-              "
-            >
-              {{ category }}
-            </div>
-          </label>
-        </div>
-        <div class="mb-4 flex flex-col space-y-2">
-          <h2 class="text-xl font-semibold mb-4 text-white">Keresési paraméterek</h2>
-          <button
-            @click="includeName = !includeName"
-            :class="[
-              'w-full py-2 px-4 rounded-full font-bold transition-colors',
-              includeName
-                ? 'bg-green-600 text-white'
-                : 'bg-red-600 text-white hover:bg-gray-500',
-            ]"
-          >
-            Név
-          </button>
-          <button
-            @click="includeDesc = !includeDesc"
-            :class="[
-              'w-full py-2 px-4 rounded-full font-bold transition-colors duration-300',
-              includeDesc
-                ? 'bg-green-600 text-white'
-                : 'bg-red-600 text-white hover:bg-gray-500',
-            ]"
-          >
-            Leírás
-          </button>
-        </div>
-        <button
-          @click="saveCategories"
-          class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-colors"
-        >
-          <Save class="w-5 h-5" />
-          Kategóriák mentése
-        </button>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <style scoped>
-.dots-pattern {
-  width: 100%;
-  height: 100%;
-  position: relative;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
-
-.dot {
-  width: 8px;
-  height: 8px;
-  background-color: #374151;
-  border-radius: 50%;
-  position: absolute;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
-
-.dot:nth-child(1) {
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+.category-enter-active,
+.category-leave-active {
+  transition: all 0.3s ease;
 }
-
-.dot:nth-child(2) {
-  bottom: 25%;
-  left: 25%;
+.category-enter-from,
+.category-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
 }
-
-.dot:nth-child(3) {
-  bottom: 25%;
-  right: 25%;
+.selected-categories {
+  transition: height 0.3s ease;
 }
-
-.dot::before {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 2px;
-  background-color: #374151;
-  top: 50%;
-  left: 50%;
-}
-
-.dot:nth-child(1)::before {
-  transform: translateX(-50%) rotate(90deg);
-}
-
-.dot:nth-child(2)::before {
-  transform: translateX(-50%) rotate(45deg);
-}
-
-.dot:nth-child(3)::before {
-  transform: translateX(-50%) rotate(-45deg);
-}
-
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
 .glass-button {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: relative;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .transition-all,
+  .transition-transform {
+    transition: none;
+  }
 }
 </style>

@@ -5,17 +5,15 @@ import { nextTick } from 'vue'
 import type { quizUpload } from '../type'
 import { queryClient } from '@/lib/queryClient'
 
+
 export const getQuiz = async (uuid: string) => {
-  console.log('belso:', uuid)
   if (uuid === '') {
     return
   }
   const get = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
-  if (get.status === 200) {
+  if (get.status === 200) 
+    {
     const res = (await get.json()).data
-    console.log(res)
-    console.log(arrayBufferToBase64(res.banner.data))
-    console.log('cards[0].picture.data', res.cards[0].picture.data)
     const quiz = {
       title: res.title,
       description: res.description,
@@ -45,7 +43,9 @@ export const getQuiz = async (uuid: string) => {
         support: l.language.support,
       })),
     }
-  } else {
+  } 
+  else 
+  {
     console.log('request failed: ', get.status)
   }
 }
@@ -69,13 +69,6 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
       },
     })
     if (edit.status === 200) {
-      toast('Quiz sikeresen módosítva!', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'success',
-        transition: 'zoom',
-        pauseOnHover: false,
-      })
       queryClient.invalidateQueries({ queryKey: ['userQuizzies'], refetchType: 'none' })
       return true
     } else {
@@ -98,7 +91,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
           banner: quiz.banner,
         },
         cards: quiz.cards,
-        tags: quiz.tags,
+        tagNames: quiz.tags,
         languageISOCodes: quiz.languageISOCodes,
       },
     })
@@ -125,24 +118,3 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
   }
 }
 
-export const getTags = async () => {
-  const get = await clientv1.meta.tags.$get()
-  if (get.status === 200) {
-    const res = await get.json()
-    return res.map((t) => ({ name: t.name }))
-  } else {
-    const res = await get.json()
-    console.log(res)
-  }
-}
-
-export const getLanguages = async () => {
-  const get = await clientv1.meta.languages.$get()
-  if (get.status === 200) {
-    const res = await get.json()
-    return res.map((l) => ({ name: l.name, icon: l.icon, support: l.support, iso_code: l.isoCode }))
-  } else {
-    const res = await get.json()
-    console.log(res)
-  }
-}

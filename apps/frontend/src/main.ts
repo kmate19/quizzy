@@ -9,7 +9,7 @@ import { queryClient } from './lib/queryClient'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
-import Vue3Toastify, {type ToastContainerOptions} from 'vue3-toastify'
+import Vue3Toastify, { type ToastContainerOptions } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 import App from './App.vue'
@@ -26,13 +26,12 @@ app.use(createPinia())
 app.use(router)
 
 app.use(VueQueryPlugin, {
-   queryClient,
-   enableDevtoolsV6Plugin: true,
-  })
+  queryClient,
+  enableDevtoolsV6Plugin: true,
+})
 app.use(vuetify)
 app.use(Vue3Toastify, {
-    autoClose: 5000,
-  } as ToastContainerOptions
-)
+  autoClose: 5000,
+} as ToastContainerOptions)
 
 app.mount('#app')

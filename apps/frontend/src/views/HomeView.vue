@@ -5,65 +5,82 @@ import NavBar from '@/components/NavBar.vue'
 import MistBackground from '@/components/MistBackground.vue'
 import CategoriesButton from '@/components/CategoriesBtn.vue'
 import QuizCard from '@/components/QuizCard.vue'
-import { type Quiz } from '@/utils/type'
-import { clientv1 } from '@/lib/apiClient'
-import { arrayBufferToBase64 } from '@/utils/helpers'
+import type { quizCardView } from '@/utils/type'
+import { getQuizzes } from '@/utils/functions/homeFuncitions'
 
-const quizzes = ref<Quiz[]>([])
+const quizzes = ref<quizCardView[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const isExpanded = ref(false)
-const isDescIncluded = ref(false)
-const isNameIncluded = ref(false)
-const categories = ref<string[]>([])
-const searchText = ref('')
 const searchContainer = ref<HTMLElement | null>(null)
-
+//--------Ezek kellenek nekem-------
+const searchText = ref('')
+const strict = ref(false)
+const tags = ref<string[]>([])
+const languages = ref<string[]>([])
 const currentPage = ref(1)
 const limit = ref(10) // minimum 10
-const totalPages = ref(20)
+//--------Ezek kellenek nekem-------
+const totalPages = ref(0)
 const showFullPages = ref(false)
 
 interface FilterPayload {
-  categories: string[]
-  includeName: boolean
-  includeDesc: boolean
+  tags: string[]
+  strictSearch: boolean
+  languages: string[]
 }
 
-const fetchQuizzes = async () => {
-  loading.value = true
-  quizzes.value = []
-  const response = await clientv1.quizzes.$get({
-    query: { limit: limit.value.toString(), page: currentPage.value.toString() }
-  })
-  if (!response.ok) {
-    throw new Error('Failed to fetch quizzes')
+const params: {
+  limit?: string
+  page?: string
+  strict?: string
+  tags?: [string, ...string[]]
+  languages?: [string, ...string[]]
+  searchText?: string
+} = {}
+
+const selectParams = () => {
+  for (const key in params) {
+    delete params[key as keyof typeof params];
   }
-  const data = await response.json()
-  data.data.forEach((quiz) => {
-    quizzes.value.push({
-      id: quiz.id,
-      created_at: new Date(quiz.created_at).toDateString(),
-      updated_at: new Date(quiz.updated_at).toDateString(),
-      user_id: quiz.user_id,
-      description: quiz.description,
-      title: quiz.title,
-      rating: quiz.rating,
-      plays: quiz.plays,
-      banner: arrayBufferToBase64(quiz.banner.data),
-      languages: quiz.languages.map((lang) => ({
-        name: lang.language.name,
-        iso_code: lang.language.iso_code,
-        icon: lang.language.icon,
-        support: lang.language.support,
-      })),
-      tags: quiz.tags.map((tag) => ({
-        name: tag.tag.name,
-      })),
-    })
-  })
-    totalPages.value = 100
-    loading.value = false
+  if (limit.value) {
+    params.limit = limit.value.toString()
+  }
+  if (currentPage.value) {
+    params.page = currentPage.value.toString()
+  }
+  if (strict.value === true) {
+    params.strict = 'true'
+  }
+  if (tags.value && tags.value.length > 0) {
+    params.tags = tags.value as [string, ...string[]]
+  }
+  if (languages.value && languages.value.length > 0) {
+    params.languages = languages.value as [string, ...string[]]
+  }
+  if (searchText.value) {
+    params.searchText = searchText.value
+  }
+}
+
+const handleSave = async (payload: FilterPayload) => {
+  loading.value = true
+  tags.value = payload.tags
+  languages.value = payload.languages
+  strict.value = payload.strictSearch
+  selectParams()
+  console.log("itt megy a params log",params)
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+  quizzes.value = res.quizzes
+  totalPages.value = Math.ceil(res.totalPages/10)
+  loading.value = false
 }
 
 const toggleExpand = async () => {
@@ -75,19 +92,9 @@ const toggleExpand = async () => {
   }
 }
 
-const handleSave = (payload: FilterPayload) => {
-  console.log('Save Payload:', payload)
-  categories.value = payload.categories
-  isNameIncluded.value = payload.includeName
-  isDescIncluded.value = payload.includeDesc
-}
-
-function debounce<Args extends unknown[]>(
-  func: (...args: Args) => void,
-  wait: number
-): (...args: Args) => void {
+const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number) => {
   let timeout: ReturnType<typeof setTimeout>
-  return (...args: Args): void => {
+  return (...args: T) => {
     clearTimeout(timeout)
     timeout = setTimeout(() => {
       func(...args)
@@ -95,97 +102,147 @@ function debounce<Args extends unknown[]>(
   }
 }
 
-function doSearch(query: string) {
-  searchText.value = query
-  console.log('Search Query:', query)
+const doSearch = async () => {
+  console.log('Search Query:', searchText.value)
+  loading.value = true
+  selectParams()
+  console.log(params)
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+  console.log(res)
+  quizzes.value = res.quizzes
+  totalPages.value = Math.ceil(res.totalPages/10)
+  loading.value = false
 }
 
 const search = debounce(doSearch, 250)
 
-function onInput(event: Event) {
-  const input = event.target as HTMLInputElement
-  search(input.value)
+function onInput() {
+  search()
 }
 
 const handleBlur = () => {
   isExpanded.value = false
 }
 
-const nextPage = () => {
+const nextPage = async () => {
   if (currentPage.value < totalPages.value) {
+    loading.value = true
     currentPage.value++
-    fetchQuizzes()
+    selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+    quizzes.value = res.quizzes
+    totalPages.value = Math.ceil(res.totalPages/10)
+    loading.value = false
   }
 }
 
-const prevPage = () => {
+const prevPage = async () => {
   if (currentPage.value > 1) {
+    loading.value = true
     currentPage.value--
-    fetchQuizzes()
+    selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+    quizzes.value = res.quizzes
+    totalPages.value = Math.ceil(res.totalPages/10)
+    loading.value = true
   }
 }
 
-const goToPage = (page: number) => {
+const goToPage = async (page: number) => {
   if (page !== currentPage.value) {
+    loading.value = true
     currentPage.value = page
-    fetchQuizzes()
+    selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+    quizzes.value = res.quizzes
+    totalPages.value = Math.ceil(res.totalPages/10)
+    loading.value = false
   }
 }
-
 
 const displayedPages = computed<(number | 'ellipsis')[]>(() => {
   const total = totalPages.value
   const current = currentPage.value
 
-  if (total <= 5) {
+  if (total <= 3) {
     return Array.from({ length: total }, (_, i) => i + 1)
   }
 
-  const pageSet = new Set<number>()
-  pageSet.add(1)
-  pageSet.add(total)
+  const result: (number | 'ellipsis')[] = [current, 'ellipsis', total]
 
-  if (current !== 1 && current !== total) {
-    pageSet.add(current)
-  }
+  console.log(result)
 
-  const pagesArr = Array.from(pageSet).sort((a, b) => a - b)
-
-  const result: (number | 'ellipsis')[] = []
-  for (let i = 0; i < pagesArr.length; i++) {
-    result.push(pagesArr[i])
-  }
-  result.splice(result.length - 1, 0, 'ellipsis')
   return result
 })
-
 
 const totalPagesArray = computed(() => {
   return Array.from({ length: totalPages.value }, (_, i) => i + 1)
 })
 
-onMounted(() => {
-  fetchQuizzes()
+onMounted(async () => {
+  loading.value = true
+  selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+  quizzes.value = res.quizzes
+  totalPages.value = Math.ceil(res.totalPages/10)
+  console.log("total pages",totalPages.value)
+  loading.value = false
 })
 </script>
 
 <template>
   <div class="home-page">
-    <MistBackground/>
+    <MistBackground />
     <NavBar />
-    <div class="container mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar">
+    <div
+      class="container mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
             'relative flex items-center transition-all duration-700 ease-in-out rounded-full border border-gray-300 bg-white/10 text-white cursor-pointer glass-button',
-            isExpanded ? 'w-[calc(100vh-80%)] justify-start' : 'w-14'
+            isExpanded ? 'w-[calc(100vh-80%)] justify-start' : 'w-14',
           ]">
             <div class="flex items-center px-4 py-2 z-10" @click="toggleExpand">
               <Search class="h-6 w-6" />
             </div>
             <input type="text" v-model="searchText" @input="onInput" @blur="handleBlur" placeholder="Keresés..." :class="[
               'bg-transparent outline-none pr-4 transition-all duration-700',
-              isExpanded ? 'w-full opacity-100' : 'w-0 opacity-0 pointer-events-none'
+              isExpanded ? 'w-full opacity-100' : 'w-0 opacity-0 pointer-events-none',
             ]" />
           </div>
           <CategoriesButton @save="handleSave" />
@@ -197,62 +254,57 @@ onMounted(() => {
       <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
         {{ error }}
       </div>
-      <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6" style="direction: ltr;">
+      <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6" style="direction: ltr">
         <div v-for="quiz in quizzes" :key="quiz.id" class="break-inside-avoid mb-6">
           <QuizCard :quiz="quiz" />
         </div>
       </div>
-      
     </div>
-    <div v-if="!loading && !error" class="mt-8">
-        <div class="flex flex-wrap justify-center items-center space-x-2 text-white">
-          <button @click="prevPage" :disabled="currentPage === 1"
-            class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
-            Előző
-          </button>
-          <div class="flex space-x-1">
-            <template v-for="item in displayedPages" :key="item">
-              <button v-if="item !== 'ellipsis'" @click="(goToPage(item as number),showFullPages = false)" :class="[
-                'glass-button px-4 py-2 rounded-2xl transition-all duration-300',
-                item === currentPage ? 'bg-white/20 text-white' : 'bg-transparent text-black hover:bg-white'
-              ]">
-                {{ item }}
+    <div v-if="!error" class="mt-8">
+      <div class="flex flex-col-reverse gap-2 md:flex-row justify-center items-center space-x-2 text-white">
+        <button @click="prevPage" :disabled="currentPage === 1"
+          class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
+          Vissza
+        </button>
+        <div class="flex space-x-1">
+          <template v-for="item in displayedPages" :key="item">
+            <button v-if="item !== 'ellipsis'" @click="(goToPage(item as number), (showFullPages = false))" :class="[
+              'glass-button px-4 py-2 rounded-2xl transition-all duration-300',
+              item === currentPage
+                ? 'bg-white/20 text-white'
+                : 'bg-transparent text-black hover:bg-white',
+            ]">
+              {{ item }}
+            </button>
+            <div v-else class="relative inline-block">
+              <button class="glass-button px-4 py-2 rounded-2xl transition-all duration-300 cursor-pointer"
+                @click="showFullPages = !showFullPages">
+                &hellip;
               </button>
-              <div v-else class="relative inline-block">
-                <button class="glass-button px-4 py-2 rounded-2xl transition-all duration-300 cursor-pointer"
-                  @click="showFullPages = !showFullPages">
-                  &hellip;
-                </button>
-                <Transition appear 
-                  enter-active-class="transition ease-in-out duration-500"
-                  enter-from-class="opacity-0 translate-y-4" 
-                  enter-to-class="opacity-100 translate-y-0"
-                  leave-active-class="transition ease-in-out duration-500"
-                  leave-from-class="opacity-100 translate-y-0"
-                  leave-to-class="opacity-0 translate-y-4">
-                  <div v-if="showFullPages" @mouseleave="showFullPages = false" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3
-                max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar
-                         w-48 p-4 bg-white/10 shadow-lg rounded-lg z-10
-                         after:content-[''] after:absolute after:top-full after:left-1/2
-                         after:-translate-x-1/2 after:border-8 after:border-transparent
-                         after:border-t-white backdrop-blur-2xl">
-                    <div class="grid grid-cols-5 gap-2">
-                      <button v-for="page in totalPagesArray" :key="page" @click="goToPage(page); showFullPages = false"
-                        class="px-2 py-1 rounded transition-all duration-300 hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
-                        {{ page }}
-                      </button>
-                    </div>
+              <Transition appear enter-active-class="transition ease-in-out duration-500"
+                enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition ease-in-out duration-500" leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-4">
+                <div v-if="showFullPages" @mouseleave="showFullPages = false"
+                  class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar w-48 p-4 bg-white/10 shadow-lg rounded-lg z-10 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-white backdrop-blur-2xl">
+                  <div class="grid grid-cols-5 gap-2">
+                    <button v-for="page in totalPagesArray" :key="page"
+                      @click="(goToPage(page), (showFullPages = false))"
+                      class="px-2 py-1 rounded transition-all duration-300 hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
+                      {{ page }}
+                    </button>
                   </div>
-                </Transition>
-              </div>
-            </template>
-          </div>
-          <button @click="nextPage" :disabled="currentPage === totalPages"
-            class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
-            Következő
-          </button>
+                </div>
+              </Transition>
+            </div>
+          </template>
         </div>
+        <button @click="nextPage" :disabled="currentPage === totalPages"
+          class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
+          Következő
+        </button>
       </div>
+    </div>
   </div>
 </template>
 
@@ -301,6 +353,7 @@ onMounted(() => {
 
 .custom-scrollbar {
   scrollbar-width: thin;
+  /*tuzroka miatt kell*/
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
   scroll-behavior: smooth;
 }
