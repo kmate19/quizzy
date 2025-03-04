@@ -286,6 +286,7 @@ const addQuestion = () => {
       correct_answer_index: oneQuestion.value.correct_answer_index - 1,
     })
     oneQuestion.value = resetObject(oneQuestion.value)
+    oneQuestion.value.type = 'normal'
   } else {
     toast(msg, {
       autoClose: 5000,
@@ -318,6 +319,9 @@ const resetObject = <T extends object>(obj: T): T => {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const value = obj[key as keyof T]
+      if (typeof value === 'string' && (value === 'normal' || value === 'twochoice')) {
+        newObj[key as keyof T] = 'normal' as T[keyof T]
+      } else
       if (typeof value === 'string') {
         newObj[key as keyof T] = '' as T[keyof T]
       } else if (typeof value === 'number') {
@@ -911,7 +915,8 @@ const marqueeDuration = computed(() => {
             />
 
             <div>
-              <div v-if="oneQuestion.type == 'normal'" class="grid grid-cols-2 gap-2 mb-2">
+              <!--ha normalrol normalra megy akk nem jo de ha twochoicerol normalra akk jo-->
+              <div v-show="oneQuestion.type == 'normal'" class="grid grid-cols-2 gap-2 mb-2">
                 <v-text-field
                   v-for="(answer, index) in oneQuestion.answers"
                   :key="index"
@@ -921,7 +926,7 @@ const marqueeDuration = computed(() => {
                   bg-color="rgba(255, 255, 255, 0.1)"
                 />
               </div>
-              <div v-else class="grid grid-cols-2 gap-2 mb-2">
+              <div v-show="oneQuestion.type != 'normal'" class="grid grid-cols-2 gap-2 mb-2">
                 <v-text-field
                   v-for="(answer, index) in oneQuestion.answers"
                   :key="index"
