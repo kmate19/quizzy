@@ -5,7 +5,8 @@ export const baseRegisterSchema = zod.object({
     .min(1, { message: 'A mező kitöltése kötelező' })
     .email({ message: 'Helytelen formátum' }),
   username: zod.string()
-    .min(1,{message: 'A mező kitöltése kötelező'}),
+    .min(1,{message: 'A mező kitöltése kötelező'})
+    .max(16,{message: 'Maximum 16 karaktert tartalmazhat'}),
   password: zod.string()
     .min(1, { message: 'A mező kitöltése kötelező' })
     .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia' })

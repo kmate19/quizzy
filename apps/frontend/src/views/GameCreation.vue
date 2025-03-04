@@ -125,31 +125,20 @@ const quiz = ref<quizUpload>({
   banner: '',
   languageISOCodes: undefined,
   tags: undefined,
-  cards: [oneQuestion.value] as [cardType, ...cardType[]],
+  cards: [] as unknown as nonemptyCardArray,
 })
 
 watch(
   () => oneQuestion.value.type,
   (newType) => {
     if (newType === 'twochoice') {
-      oneQuestion.value.answers = ['', '']
+      oneQuestion.value.answers = ['Igaz', 'Hamis']
     } else {
       oneQuestion.value.answers = ['', '', '', '']
     }
     oneQuestion.value.correct_answer_index = 1
   },
-  { immediate: true },
-)
-
-watch(
-  () => oneQuestion.value.type,
-  (newValue: string) => {
-    if (newValue === 'normal') {
-      oneQuestion.value.answers = ['', '', '', '']
-    } else {
-      oneQuestion.value.answers = ['Igaz', 'Hamis']
-    }
-  },
+  { immediate: true }
 )
 
 onMounted(async () => {
@@ -186,9 +175,6 @@ onMounted(async () => {
       selectedLanguages.value = result.languages
       selectedTags.value = data.tags.map((t) => ({ name: t }))
     }
-  }
-  else{
-    quiz.value.cards.splice(0,1)
   }
   isLoading.value = false
 })
@@ -300,14 +286,7 @@ const addQuestion = () => {
       correct_answer_index: oneQuestion.value.correct_answer_index - 1,
     })
 
-    oneQuestion.value.picture = ''
-    if (questionImageInput.value) {
-      questionImageInput.value!.value = ''
-    }
-    oneQuestion.value.answers = oneQuestion.value.type == 'normal' ? ['', '', '', ''] : ['', '']
-    oneQuestion.value.correct_answer_index = 1
-    oneQuestion.value.question = ''
-    oneQuestion.value.type = 'normal'
+    resetObject(oneQuestion.value)
   } else {
     toast('Maximum 10 kérdést tartalmazhat egy quiz!', {
       autoClose: 5000,
@@ -366,7 +345,46 @@ const resetInputValues = () => {
   quiz.value.status = 'published'
 }
 
+const validateQuizFields = () => {
+  let error = ''
+  if (!quiz.value.title || !quiz.value.description || !quiz.value.banner) {
+    error = 'Kérlek, töltsd ki a címet, leírást és a boríróképet is!'
+    return { valid: false, msg: error }    
+  }
+  if (quiz.value.cards.length === 0) {
+    error = 'Minden quiznek legalább egy kérdést kell tartalmaznia!'
+    return { valid: false, msg: error }
+  }
+  const allCardsValid = quiz.value.cards.every((card) => {
+    if (!card.question || !card.picture) {
+      error = 'Minden kérdésnek rendelkeznie kell kérdéssel és boríróképel is!'
+      return false
+    }
+    if (card.type === 'normal') {
+      return card.answers.every((answer) => answer !== '') && card.correct_answer_index !== undefined
+    }
+    return true
+  })
+  
+  if (!allCardsValid) {
+    return { valid: false, error: error }
+  }
+  return { valid: true, error: error }
+}
+
 const uploadOrUpdate = async () => {
+  const validationResult = validateQuizFields()
+  if (!validationResult.valid) {
+    toast(validationResult.error, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions);
+    return;
+  }
+
   isLoading.value = true
   console.log(quiz.value)
   const uuid = route.params.uuid?.toString()
