@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import NavBar from '../components/NavBar.vue';
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { getGameQuiz } from '@/utils/functions/gameFunctions';
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
+import { getGameQuiz } from '@/utils/functions/practiceFunctions';
 import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
 
@@ -173,32 +173,39 @@ onUnmounted(() => {
                         key="completed">
                         <div class="bg-white/20 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
                             <h2 class="text-5xl font-bold mb-4">Játék vége!</h2>
-                            <p class="text-3xl mb-6">Eredmény: {{ quiz?.cards.length }}/{{ score }}</p>
-                            <h3 class="text-xl font-bold mb-4">Válaszaid összegzése</h3>
-
-                            <transition-group name="list" tag="div"
-                                class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
-                                <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex"
-                                    class="p-4 rounded-lg backdrop-blur-md userAnswers[qIndex] === card.correct_answer_index bg-white/1">
-                                    <p class="font-medium text-left mb-2 text-white">{{ qIndex + 1 }}. {{ card.question
-                                    }}
-                                    </p>
-
+                            <p class="text-3xl mb-6">Eredmény: {{ score }}/{{ quiz?.cards.length }}</p>
+                            <!-- Legend -->
+                            <div class="flex justify-center mb-4">
+                                <div class="flex items-center mr-4">
+                                    <div class="w-4 h-4 bg-green-600 rounded-full mr-2"></div>
+                                    <span class="text-white">Helyes válasz</span>
+                                </div>
+                                <div class="flex items-center mr-4">
+                                    <div class="w-4 h-4 bg-red-600 rounded-full mr-2"></div>
+                                    <span class="text-white">Rossz válasz</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-purple-600 rounded-full mr-2"></div>
+                                    <span class="text-white">Helytelen válasz, de válaszoltál</span>
+                                </div>
+                            </div>
+                            <transition-group name="list" tag="div" class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
+                                <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex" class="p-4 rounded-lg backdrop-blur-md bg-white/10">
+                                    <p class="font-medium text-left mb-2 text-white">{{ qIndex + 1 }}. {{ card.question }}</p>
                                     <ul class="text-left list-disc pl-5 space-y-1">
                                         <li v-for="(answer, aIndex) in card.answers" :key="aIndex" class="w-fit" :class="[
                                             aIndex === card.correct_answer_index
                                                 ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-1 rounded'
                                                 : aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index
-                                                    ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-1 rounded '
+                                                    ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-1 rounded'
                                                     : 'text-gray-200 font-bold'
                                         ]">
                                             {{ answer }}
                                             <span v-if="aIndex === card.correct_answer_index" class="ml-1">✓</span>
-                                            <span
-                                                v-if="aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index"
-                                                class="ml-1">✗</span>
+                                            <span v-if="aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index" class="ml-1">✗</span>
                                         </li>
                                     </ul>
+                                    <span v-if="userAnswers[qIndex] === -1" class="ml-1 text-red-600 font-bold">Nem válaszoltál</span>
                                 </div>
                             </transition-group>
                         </div>

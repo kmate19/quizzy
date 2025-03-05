@@ -64,7 +64,8 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
           banner: quiz.banner,
         },
         cards: quiz.cards,
-        tags: quiz.tags,
+
+        tagNames: quiz.tags,
         languageISOCodes: quiz.languageISOCodes,
       },
     })
@@ -91,8 +92,8 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
           banner: quiz.banner,
         },
         cards: quiz.cards,
-        tagNames: quiz.tags,
-        languageISOCodes: quiz.languageISOCodes,
+        tagNames: quiz.tags,//controllerben kell optionalra tenni mert ezt alapbol nem kotelezo megadni
+        languageISOCodes: quiz.languageISOCodes,//same here
       },
     })
     if (query.status === 201) {

@@ -122,8 +122,8 @@ const quiz = ref<quizUpload>({
   description: '',
   status: <'draft' | 'published' | 'requires_review' | 'private'>'published',
   banner: '',
-  languageISOCodes: undefined,
-  tags: undefined,
+  languageISOCodes: [] as unknown as [string, ...string[]],
+  tags: [] as unknown as [string, ...string[]],
   cards: [] as unknown as nonemptyCardArray,
 })
 
@@ -169,8 +169,8 @@ onMounted(async () => {
         languageISOCodes:
           data.languageISOCodes && data.languageISOCodes.length > 0
             ? (data.languageISOCodes as [string, ...string[]])
-            : undefined,
-        tags: data.tags && data.tags.length > 0 ? (data.tags as [string, ...string[]]) : undefined,
+            : [] as unknown as [string, ...string[]],
+        tags: data.tags && data.tags.length > 0 ? (data.tags as [string, ...string[]]) : [] as unknown as [string, ...string[]],
         cards: data.cards as nonemptyCardArray,
       }
 
@@ -372,7 +372,7 @@ const validateCard = () => {
   if (oneQuestion.value.picture.trim() === '') {
     return { valid: false, msg: 'Kérlek adj egy képet a kérdéshez!' }
   }
-  
+
   if (!oneQuestion.value.question.trim()) {
     return { valid: false, msg: 'Kérlek adj kérdést a kártyához!' }
   }
@@ -440,6 +440,16 @@ const validateQuizFields = () => {
     return { valid: false, msg: error }
   }
 
+  if(!(selectedTags.value.length > 0)){
+    error = 'Kérlek, válassz legalább egy kategóriát!'
+    return { valid: false, msg: error }
+  }
+
+  if (!(selectedLanguages.value.length > 0)) {
+    error = 'Kérlek, válassz legalább egy nyelvet!'
+    return { valid: false, msg: error }
+  }
+
   if (quiz.value.cards.length === 0) {
     error = 'Minden quiznek legalább egy kérdést kell tartalmaznia!'
     return { valid: false, msg: error }
@@ -470,11 +480,9 @@ const uploadOrUpdate = async () => {
   console.log(quiz.value)
   const uuid = route.params.uuid?.toString()
   const mappedCodes = selectedLanguages.value.map((l) => l.iso_code)
-  quiz.value.languageISOCodes = mappedCodes.length
-    ? (mappedCodes as [string, ...string[]])
-    : undefined
+  quiz.value.languageISOCodes = mappedCodes as [string, ...string[]]
   const mappedTags = selectedTags.value.map((t) => t.name)
-  quiz.value.tags = mappedTags.length ? (mappedTags as [string, ...string[]]) : undefined
+  quiz.value.tags = mappedTags as [string, ...string[]]
   const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
   if (res === true) {
     resetInputValues()

@@ -3,8 +3,8 @@ export type quizUpload = {
   title: string
   status: 'draft' | 'published' | 'requires_review' | 'private'
   banner: string
-  languageISOCodes: [string,...string[]] | undefined
-  tags: [string,...string[]] | undefined
+  languageISOCodes: [string,...string[]]
+  tags: [string,...string[]]
   cards: nonemptyCardArray
 }
 
