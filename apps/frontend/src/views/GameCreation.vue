@@ -484,6 +484,7 @@ const uploadOrUpdate = async () => {
   const mappedTags = selectedTags.value.map((t) => t.name)
   quiz.value.tags = mappedTags as [string, ...string[]]
   const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
+
   if (res === true) {
     resetInputValues()
     oneQuestion.value.type = 'normal'
@@ -528,6 +529,7 @@ const marqueeDuration = computed(() => {
 
   return `${calculatedDuration}s`
 })
+
 </script>
 
 <template>

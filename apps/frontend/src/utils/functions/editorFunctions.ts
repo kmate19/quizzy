@@ -92,8 +92,8 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
           banner: quiz.banner,
         },
         cards: quiz.cards,
-        tagNames: quiz.tags,//controllerben kell optionalra tenni mert ezt alapbol nem kotelezo megadni
-        languageISOCodes: quiz.languageISOCodes,//same here
+        tagNames: quiz.tags,
+        languageISOCodes: quiz.languageISOCodes,
       },
     })
     if (query.status === 201) {
