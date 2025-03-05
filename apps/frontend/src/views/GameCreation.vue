@@ -137,7 +137,10 @@ watch(
     }
     oneQuestion.value.correct_answer_index = 1
   },
-  { immediate: true },
+  {
+    immediate: true,
+    flush: 'sync', // runs on every object reset
+  },
 )
 
 onMounted(async () => {
@@ -275,8 +278,24 @@ const clearQuestionImage = () => {
   }
 }
 
-const addQuestion = () => {
-  const {msg, valid} = validateCard()
+const resetQuestion = () => {
+  // Store the current type
+  const currentType = oneQuestion.value.type
+
+  oneQuestion.value = resetObject(oneQuestion.value)
+
+  oneQuestion.value.type = currentType
+
+  // Reset answers based on type
+  if (currentType === 'twochoice') {
+    oneQuestion.value.answers = ['Igaz', 'Hamis']
+  } else {
+    oneQuestion.value.answers = ['', '', '', '']
+  }
+}
+
+const addQuestion = async () => {
+  const { msg, valid } = validateCard()
   if (valid === true) {
     quiz.value.cards.push({
       question: oneQuestion.value.question,
@@ -285,7 +304,10 @@ const addQuestion = () => {
       picture: oneQuestion.value.picture,
       correct_answer_index: oneQuestion.value.correct_answer_index - 1,
     })
-    oneQuestion.value = resetObject(oneQuestion.value)
+
+    resetQuestion()
+
+    console.log(oneQuestion.value)
   } else {
     toast(msg, {
       autoClose: 5000,
@@ -315,13 +337,15 @@ const handleQuestionModify = (index: number) => {
 
 const resetObject = <T extends object>(obj: T): T => {
   const newObj = {} as T
+
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const value = obj[key as keyof T]
-      if (typeof value === 'string') {
+
+      if (key === 'type' && (value === 'normal' || value === 'twochoice')) {
+        newObj[key as keyof T] = 'normal' as T[keyof T]
+      } else if (typeof value === 'string') {
         newObj[key as keyof T] = '' as T[keyof T]
-      } else if (typeof value === 'number') {
-        newObj[key as keyof T] = 1 as T[keyof T]
       } else if (typeof value === 'number') {
         newObj[key as keyof T] = 1 as T[keyof T]
       } else if (typeof value === 'boolean') {
@@ -333,22 +357,24 @@ const resetObject = <T extends object>(obj: T): T => {
       }
     }
   }
+
   return newObj
 }
-
 const resetInputValues = () => {
   quiz.value = resetObject(quiz.value)
-  oneQuestion.value = resetObject(oneQuestion.value)
+  resetQuestion()
   selectedLanguages.value = []
   selectedTags.value = []
   quiz.value.status = 'published'
 }
 
-const validateCard = () =>{
-
-
-  if (!oneQuestion.value.question || oneQuestion.value.picture === "") {
-    return { valid: false, msg: 'Kérlek, töltsd ki a kérdést és a képet!' }
+const validateCard = () => {
+  if (oneQuestion.value.picture.trim() === '') {
+    return { valid: false, msg: 'Kérlek adj egy képet a kérdéshez!' }
+  }
+  
+  if (!oneQuestion.value.question.trim()) {
+    return { valid: false, msg: 'Kérlek adj kérdést a kártyához!' }
   }
 
   if (quiz.value.cards.length >= 10) {
@@ -356,19 +382,29 @@ const validateCard = () =>{
   }
 
   if (oneQuestion.value.type === 'twochoice') {
-    const hasValidAnswers = oneQuestion.value.answers.length === 2;
-    if (!hasValidAnswers || oneQuestion.value.correct_answer_index < 0 || oneQuestion.value.correct_answer_index > 2) {
-      return { valid: false, msg: 'Kérlek, válassz érvényes válaszokat és a helyes választ!' };
+    const hasValidAnswers = oneQuestion.value.answers.length === 2
+    if (
+      !hasValidAnswers ||
+      oneQuestion.value.correct_answer_index < 0 ||
+      oneQuestion.value.correct_answer_index > 2
+    ) {
+      return { valid: false, msg: 'Kérlek, válassz érvényes válaszokat és a helyes választ!' }
     }
   } else if (oneQuestion.value.type === 'normal') {
-    const hasAllAnswers = oneQuestion.value.answers.every(answer => answer !== '');
-    if (!hasAllAnswers || oneQuestion.value.correct_answer_index < 1 || oneQuestion.value.correct_answer_index > 4) {
-      return { valid: false, msg: 'Kérlek, töltsd ki az összes választ és válassz egy helyes választ!' };
+    const hasAllAnswers = oneQuestion.value.answers.every((answer) => answer.trim() !== '')
+    if (
+      !hasAllAnswers ||
+      oneQuestion.value.correct_answer_index < 1 ||
+      oneQuestion.value.correct_answer_index > 4
+    ) {
+      return {
+        valid: false,
+        msg: 'Kérlek, töltsd ki az összes választ és válassz egy helyes választ!',
+      }
     }
   }
 
-  return {valid: true, msg: ''}
-
+  return { valid: true, msg: '' }
 }
 
 const validateCards = () => {
@@ -386,12 +422,11 @@ const validateCards = () => {
       if (!hasAllAnswers || !hasCorrectAnswer) {
         error =
           'Minden normál típusú kártyának rendelkeznie kell kitöltött válaszokkal és kijelölt helyes válasszal!'
-          return { valid: false, msg: error }
+        return { valid: false, msg: error }
       }
     }
 
     return { valid: false, msg: '' }
-    
   })
 
   return { valid: error === '', msg: error }
@@ -409,7 +444,6 @@ const validateQuizFields = () => {
     error = 'Minden quiznek legalább egy kérdést kell tartalmaznia!'
     return { valid: false, msg: error }
   }
- 
 
   if (validateCards().valid === false) {
     error = validateCards().msg
@@ -457,7 +491,6 @@ watch(
   () => route.params.uuid,
   (newUuid, oldUuid) => {
     if (oldUuid && !newUuid && justEditedQuiz.value) {
-      //basically its a from to route watcher
       toast('Quiz sikeresen módosítva!', {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
@@ -901,7 +934,6 @@ const marqueeDuration = computed(() => {
                 </transition>
               </div>
             </div>
-
             <v-textarea
               v-model="oneQuestion.question"
               label="Kérdés"
@@ -909,27 +941,33 @@ const marqueeDuration = computed(() => {
               class="glass-input"
               bg-color="rgba(255, 255, 255, 0.1)"
             />
-
             <div>
-              <div v-if="oneQuestion.type == 'normal'" class="grid grid-cols-2 gap-2 mb-2">
-                <v-text-field
-                  v-for="(answer, index) in oneQuestion.answers"
-                  :key="index"
-                  v-model="oneQuestion.answers[index]"
-                  :label="`Válasz ${index + 1}`"
-                  variant="outlined"
-                  bg-color="rgba(255, 255, 255, 0.1)"
-                />
+              <div v-if="oneQuestion.type === 'normal'" :key="oneQuestion.type + 'normal'">
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                  <v-text-field
+                    v-for="(answer, index) in oneQuestion.answers"
+                    :key="`normal-${index}`"
+                    v-model="oneQuestion.answers[index]"
+                    :label="`Válasz ${index + 1}`"
+                    variant="outlined"
+                    bg-color="rgba(255, 255, 255, 0.1)"
+                  />
+                </div>
               </div>
-              <div v-else class="grid grid-cols-2 gap-2 mb-2">
-                <v-text-field
-                  v-for="(answer, index) in oneQuestion.answers"
-                  :key="index"
-                  v-model="oneQuestion.answers[index]"
-                  :placeholder="index == 1 ? 'Hamis' : 'Igaz'"
-                  variant="outlined"
-                  bg-color="rgba(255, 255, 255, 0.1)"
-                />
+              <div
+                v-else-if="oneQuestion.type === 'twochoice'"
+                :key="oneQuestion.type + 'twochoice'"
+              >
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                  <v-text-field
+                    v-for="(answer, index) in oneQuestion.answers"
+                    :key="`twochoice-${index}`"
+                    v-model="oneQuestion.answers[index]"
+                    :placeholder="index === 0 ? 'Igaz' : 'Hamis'"
+                    variant="outlined"
+                    bg-color="rgba(255, 255, 255, 0.1)"
+                  />
+                </div>
               </div>
               <v-text-field
                 v-model="oneQuestion.correct_answer_index"
@@ -938,7 +976,12 @@ const marqueeDuration = computed(() => {
                 class="glass-input w-full col-span-2"
                 bg-color="!rgba(0, 0, 0, 0)"
                 type="number"
-                @change="oneQuestion.correct_answer_index = Math.min(Math.max(oneQuestion.correct_answer_index, 1), oneQuestion.type == 'normal' ? 4 : 2)"
+                @change="
+                  oneQuestion.correct_answer_index = Math.min(
+                    Math.max(oneQuestion.correct_answer_index, 1),
+                    oneQuestion.type == 'normal' ? 4 : 2,
+                  )
+                "
                 :rules="
                   oneQuestion.type == 'normal'
                     ? [(v) => (v >= 1 && v <= 4) || '1 és 4 között kell lennie!']
