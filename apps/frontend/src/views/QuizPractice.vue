@@ -184,10 +184,6 @@ onUnmounted(() => {
                                     <div class="w-4 h-4 bg-red-600 rounded-full mr-2"></div>
                                     <span class="text-white">Rossz válasz</span>
                                 </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-purple-600 rounded-full mr-2"></div>
-                                    <span class="text-white">Helytelen válasz, de válaszoltál</span>
-                                </div>
                             </div>
                             <transition-group name="list" tag="div" class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
                                 <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex" class="p-4 rounded-lg backdrop-blur-md bg-white/10">

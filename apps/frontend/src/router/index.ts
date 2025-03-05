@@ -9,6 +9,7 @@ import { clientv1 } from '@/lib/apiClient'
 import ForgotPassword from '@/views/ForgotPassword.vue'
 import { queryClient } from '@/lib/queryClient'
 import QuizPractice from '@/views/QuizPractice.vue'
+import GameView from '@/views/GameView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,6 +56,14 @@ const router = createRouter({
       path: '/quiz/practice/:uuid',
       name: 'quiz_practice',
       component: QuizPractice,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/quiz/multiplayer/:uuid',
+      name: 'quiz_multiplayer',
+      component: GameView,
       meta: {
         requiresAuth: true,
       },
