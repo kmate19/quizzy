@@ -38,7 +38,7 @@ const handleTestPlay = () => {
 }
 
 async function generateSessionHash(lobbyCode: string, secretKey: string) {
-  const timestamp = Math.floor(Date.now() / 5000)
+  const timestamp = Math.floor(Date.now() / 10000)
   const data = `${lobbyCode}:${timestamp}`
   const encoder = new TextEncoder()
   const keyData = encoder.encode(secretKey)
@@ -81,8 +81,6 @@ const createLobby = async () => {
     }
     ws.addEventListener('open', () => {
       console.log('WebSocket connection is open')
-      ws.send(JSON.stringify({ type: 'join', lobbyId: first_data.code }))
-      router.push({ name: 'quiz_multiplayer', query: { lobbyId: first_data.code, role: 'creator' } });
     })
     ws.addEventListener('message', (event) => {
       console.log('Message from server:', event.data)
@@ -97,6 +95,7 @@ const createLobby = async () => {
     console.log('Lobby creation process failed.')
   }
 }
+
 </script>
 
 <template>

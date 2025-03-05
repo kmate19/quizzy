@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router'
 import { ref, watch, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import XButton from './XButton.vue'
+import { wsclient } from '@/lib/apiClient'
 
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
@@ -63,6 +64,64 @@ onMounted(() => {
   });
 
 })
+
+async function generateSessionHash(lobbyCode: string, secretKey: string) {
+  const timestamp = Math.floor(Date.now() / 10000)
+  const data = `${lobbyCode}:${timestamp}`
+  const encoder = new TextEncoder()
+  const keyData = encoder.encode(secretKey)
+  const messageData = encoder.encode(data)
+
+  const cryptoKey = await window.crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+
+  const signature = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData)
+
+  const hashArray = Array.from(new Uint8Array(signature))
+  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('')
+
+  return hashHex
+}
+
+const joinLobby = async (code: string) => {
+  const first = await wsclient.reserve.session[':code?'].$post({
+    param: { code: code },
+    query: { ts: Date.now().toString() },
+  })
+  if (first.status === 200) {
+    const first_data = await first.json()
+    console.log('Received code:', first_data.code)
+    const hash = await generateSessionHash(first_data.code, 'asd')
+    console.log('Generated hash:', hash)
+    const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
+      param: { lobbyid: first_data.code, hash: hash },
+    })
+    if (ws.readyState === 1) {
+      console.log('WebSocket connection is open.')
+    } else {
+      console.log('WebSocket connection not open, state:', ws.readyState)
+    }
+    ws.addEventListener('open', () => {
+      console.log('WebSocket connection is open')
+    })
+    ws.addEventListener('message', (event) => {
+      console.log('Message from server:', event.data)
+    })
+    ws.addEventListener('error', (error) => {
+      console.error('WebSocket error:', error)
+    })
+    ws.addEventListener('close', (event) => {
+      console.log('WebSocket closed:', event)
+    })
+  } else {
+    console.log('Connecting process failed.')
+  }
+}
 
 </script>
 
@@ -157,14 +216,14 @@ onMounted(() => {
         </div>
         <XButton @click="isCodeModal = !isCodeModal" />
       </div>
-      <form @submit.prevent class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4">
         <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
           class="w-full text-white"></v-text-field>
-        <button type="submit" class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all duration-300 ease-in-out
+        <button @click="joinLobby(lobbyCode)"  class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all duration-300 ease-in-out
             cursor-pointer w-full !bg-green-900">
           Csatlakozás
         </button>
-      </form>
+      </div>
     </div>
   </div>
 </template>
