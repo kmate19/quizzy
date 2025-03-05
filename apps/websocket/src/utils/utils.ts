@@ -21,7 +21,7 @@ export function generateSessionHash(
     lobbyCode: string,
     secretKey: string
 ): string {
-    const timestamp = Math.floor(Date.now() / 1000);
+    const timestamp = Math.floor(Date.now() / 10000);
     const data = `${lobbyCode}:${timestamp}`;
 
     // Create HMAC
