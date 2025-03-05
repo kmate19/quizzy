@@ -1,10 +1,8 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import {
-    insertQuizCardsSchema,
-    insertQuizSchema,
     languagesTable,
-    QuizCard,
+    QuizCardInsert,
     quizCardsTable,
     quizLanguagesTable,
     quizTagsTable,
@@ -14,23 +12,14 @@ import {
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { processImage } from "@/utils/helpers";
-import { languageISOCodes, tagNames } from "@/utils/schemas/zod-schemas";
+import { publishQuizSchema } from "@/utils/schemas/zod-schemas";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBuffer } from "file-type";
 import type { ApiResponse } from "repo";
-import { z } from "zod";
 
 const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
     checkJwt(),
-    zv(
-        "json",
-        z.object({
-            quiz: insertQuizSchema,
-            cards: insertQuizCardsSchema.array().nonempty().max(10),
-            languageISOCodes,
-            tagNames,
-        })
-    ),
+    zv("json", publishQuizSchema),
     async (c) => {
         const { userId } = c.get("accessTokenPayload");
         const {
@@ -118,7 +107,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             return c.json(res, 400);
         }
 
-        const parsedCards: Omit<QuizCard, "quiz_id">[] = [];
+        const parsedCards: Omit<QuizCardInsert, "quiz_id">[] = [];
         try {
             for (const card of cards) {
                 const rawFileBuf = Buffer.from(

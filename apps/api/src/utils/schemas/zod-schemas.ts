@@ -1,3 +1,8 @@
+import {
+    insertQuizCardsSchema,
+    insertQuizSchema,
+    LoginUserSchema,
+} from "@/db/schemas";
 import { Equal } from "drizzle-orm";
 import { ApiError, ApiResponse } from "repo";
 import { z } from "zod";
@@ -6,27 +11,64 @@ import { z } from "zod";
 // eslint-disable-next-line
 function assertequal<T extends true>() {}
 
-export const numericString = z.string().regex(/^\d+$/).transform(Number);
+export const numericStringSchema = z.string().regex(/^\d+$/).transform(Number);
 
-export const pagination = z.object({
-    limit: numericString.refine((num) => num < 51 && num > 9).optional(),
-    page: numericString.optional(),
+export const paginationSchema = z.object({
+    limit: numericStringSchema.refine((num) => num < 51 && num > 9).optional(),
+    page: numericStringSchema.optional(),
 });
 
-export const tagNames = z.string().nonempty().array().nonempty().optional();
+export const tagNamesSchema = z
+    .string()
+    .nonempty()
+    .array()
+    .nonempty()
+    .optional();
 
-export const tagNamesQuery = tagNames.or(z.string().nonempty().optional());
+export const tagNamesQuerySchema = tagNamesSchema.or(
+    z.string().nonempty().optional()
+);
 
-export const languageISOCodes = z
+export const languageISOCodesSchema = z
     .string()
     .length(2)
     .array()
     .nonempty()
     .optional();
 
-export const languageISOCodesQuery = languageISOCodes.or(
+export const languageISOCodesQuerySchema = languageISOCodesSchema.or(
     z.string().length(2).optional()
 );
+
+export const trueStringSchema = z.string().transform((a) => {
+    return a === "true" ? true : false;
+});
+
+export const searchQuerySchema = paginationSchema.merge(
+    z.object({
+        query: z.string().nonempty().optional(),
+        tagNames: tagNamesQuerySchema,
+        languageISOCodes: languageISOCodesQuerySchema,
+        strict: trueStringSchema.optional(),
+    })
+);
+
+export const publishQuizSchema = z
+    .object({
+        quiz: insertQuizSchema,
+        cards: insertQuizCardsSchema.array().nonempty().max(10),
+        languageISOCodes: languageISOCodesSchema,
+        tagNames: tagNamesSchema,
+    })
+    .required();
+
+export const editQuizSchema = publishQuizSchema.partial();
+
+export const changePasswordSchema = LoginUserSchema.omit({
+    username_or_email: true,
+}).extend({
+    oldPassword: z.string(),
+});
 
 export const ApiErrorSchema = z.object({
     message: z.string(),

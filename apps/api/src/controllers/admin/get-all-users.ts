@@ -2,13 +2,13 @@ import GLOBALS from "@/config/globals";
 import db from "@/db";
 import check_apikey from "@/middlewares/check-apikey";
 import { zv } from "@/middlewares/zv";
-import { pagination } from "@/utils/schemas/zod-schemas";
+import { paginationSchema } from "@/utils/schemas/zod-schemas";
 import { sql } from "drizzle-orm";
 import { ApiResponse } from "repo";
 
 const getAllUsersHandlers = GLOBALS.CONTROLLER_FACTORY(
     check_apikey,
-    zv("query", pagination),
+    zv("query", paginationSchema),
     async (c) => {
         const limit = c.req.valid("query").limit || 20;
         const page = c.req.valid("query").page || 1;

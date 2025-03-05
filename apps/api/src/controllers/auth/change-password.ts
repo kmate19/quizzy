@@ -1,20 +1,15 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
-import { LoginUserSchema, usersTable } from "@/db/schemas";
+import { usersTable } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
+import { changePasswordSchema } from "@/utils/schemas/zod-schemas";
 import { eq } from "drizzle-orm";
 import type { ApiResponse } from "repo";
-import { z } from "zod";
 
 const changePasswordHandler = GLOBALS.CONTROLLER_FACTORY(
     checkJwt(),
-    zv(
-        "json",
-        LoginUserSchema.omit({ username_or_email: true }).extend({
-            oldPassword: z.string(),
-        })
-    ),
+    zv("json", changePasswordSchema),
     async (c) => {
         const { userId } = c.get("accessTokenPayload");
         const { password, oldPassword } = c.req.valid("json");

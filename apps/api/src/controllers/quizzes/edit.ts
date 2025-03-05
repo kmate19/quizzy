@@ -1,10 +1,8 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import {
-    insertQuizCardsSchema,
-    insertQuizSchema,
     languagesTable,
-    QuizCard,
+    QuizCardInsert,
     quizCardsTable,
     quizLanguagesTable,
     quizTagsTable,
@@ -14,6 +12,7 @@ import {
 import checkJwt from "@/middlewares/check-jwt";
 import { zv } from "@/middlewares/zv";
 import { processImage } from "@/utils/helpers";
+import { editQuizSchema } from "@/utils/schemas/zod-schemas";
 import { and, eq } from "drizzle-orm";
 import { fileTypeFromBuffer } from "file-type";
 import { ApiResponse } from "repo";
@@ -21,15 +20,7 @@ import { z } from "zod";
 
 const editHandlers = GLOBALS.CONTROLLER_FACTORY(
     checkJwt(),
-    zv(
-        "json",
-        z.object({
-            quiz: insertQuizSchema.optional(),
-            cards: insertQuizCardsSchema.array().min(1).max(10).optional(),
-            languageISOCodes: z.string().length(2).array().optional(),
-            tags: z.string().array().optional(),
-        })
-    ),
+    zv("json", editQuizSchema),
     zv("param", z.object({ quizId: z.string().uuid() })),
     async (c) => {
         const { quizId } = c.req.valid("param");
@@ -39,7 +30,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
             quiz: modifiedQuiz,
             cards: newCards,
             languageISOCodes: newLanguageISOCodes,
-            tags: newTags,
+            tagNames: newTags,
         } = c.req.valid("json");
 
         if (!modifiedQuiz && !newCards && !newLanguageISOCodes && !newTags) {
@@ -166,7 +157,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
             }, quiz);
         }
 
-        const newParsedCards: Omit<QuizCard, "quiz_id">[] = [];
+        const newParsedCards: Omit<QuizCardInsert, "quiz_id">[] = [];
         if (newCards) {
             if (newCards.length >= 10) {
                 const res = {

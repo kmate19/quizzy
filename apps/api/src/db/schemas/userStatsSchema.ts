@@ -26,7 +26,8 @@ export const userStatsTable = pgTable(
     }
 );
 
-export type UserStats = typeof userStatsTable.$inferInsert;
+export type UserStats = typeof userStatsTable.$inferSelect;
+export const UserStatsInferSelectRaw = userStatsTable.$inferSelect;
 
 export const userStatsRelations = relations(userStatsTable, ({ one }) => ({
     user: one(usersTable, {

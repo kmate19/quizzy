@@ -9,11 +9,7 @@ import {
 } from "@/db/schemas";
 import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
-import {
-    languageISOCodesQuery,
-    pagination,
-    tagNamesQuery,
-} from "@/utils/schemas/zod-schemas";
+import { searchQuerySchema } from "@/utils/schemas/zod-schemas";
 import {
     and,
     count,
@@ -29,7 +25,6 @@ import {
 import { PgTable } from "drizzle-orm/pg-core";
 import { Context } from "hono";
 import type { ApiResponse } from "repo";
-import { z } from "zod";
 
 function createSubquery<
     T extends typeof quizTagsTable | typeof quizLanguagesTable,
@@ -122,27 +117,12 @@ async function checkFilters(
 
 const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
     apikey_or_jwt(),
-    zv(
-        "query",
-        pagination.merge(
-            z.object({
-                query: z.string().nonempty().optional(),
-                tagNamesQuery,
-                languageISOCodesQuery,
-                strict: z
-                    .string()
-                    .transform((a) => {
-                        return a === "true" ? true : false;
-                    })
-                    .optional(),
-            })
-        )
-    ),
+    zv("query", searchQuerySchema),
     async (c) => {
         const {
             query,
-            tagNamesQuery: tags,
-            languageISOCodesQuery: languages,
+            tagNames: tags,
+            languageISOCodes: languages,
         } = c.req.valid("query");
 
         const limit = c.req.valid("query").limit || 20;

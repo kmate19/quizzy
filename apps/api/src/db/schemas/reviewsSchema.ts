@@ -36,6 +36,9 @@ export const reviewsTable = pgTable(
     }
 );
 
+export const ReviewsInferSelectRaw = reviewsTable.$inferSelect;
+export type Review = typeof reviewsTable.$inferSelect;
+
 export const reviewsRelations = relations(reviewsTable, ({ one }) => ({
     quiz: one(quizzesTable, {
         fields: [reviewsTable.quiz_id],

@@ -8,6 +8,12 @@
                 "default": "./dist/hc.js",
                 "types": "./dist/hc.d.ts"
             }
+        },
+        "./public-schemas": {
+            "import": {
+                "default": "./dist/public-schemas.js",
+                "types": "./dist/public-schemas.d.ts"
+            }
         }
     },
     "scripts": {
