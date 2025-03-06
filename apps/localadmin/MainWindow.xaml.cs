@@ -72,9 +72,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             case ReviewViewModel reviewViewModel:
                 reviewViewModel.SearchReviews(SharedState.SearchText);
                 break;
+                /*
             case QuizViewModel quizViewModel:
                 quizViewModel.SearchQuizes(SharedState.SearchText);
                 break;
+                */
         }
     }
 

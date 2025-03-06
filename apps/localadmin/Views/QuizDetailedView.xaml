@@ -19,7 +19,7 @@
             <Separator Margin="5"/>
             <TextBlock>
                 <Run Text="Készítette: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.MadeBy}"/>
+                <Run Text="{Binding Quiz.Username}"/>
             </TextBlock>
             <TextBlock TextWrapping="Wrap">
                 <Run Text="Cím: " FontWeight="Bold"/>

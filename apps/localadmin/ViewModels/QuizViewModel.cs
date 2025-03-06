@@ -1,13 +1,15 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Windows.Documents;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.Quiz;
 
 namespace localadmin.ViewModels
 {
-    public class QuizViewModel
+    public class QuizViewModel : INotifyPropertyChanged
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
@@ -20,8 +22,8 @@ namespace localadmin.ViewModels
             {EQuizStatus.Private, 4 }
         };
 
-        public ObservableCollection<Quiz> Quizzes { get; set; }
-        public ObservableCollection<Quiz> FiltredQuizzes { get; set; }
+        public ObservableCollection<Quiz> Quizzes { get; set; } = new();
+        public ObservableCollection<Quiz> FiltredQuizzes { get; set; } = new();
 
 
         public QuizViewModel(NavigationService Navigation, SharedStateService State)
@@ -29,6 +31,10 @@ namespace localadmin.ViewModels
             NavigationService=Navigation;
             SharedState = State;
 
+            _= InitializeAsync();
+
+
+            /*
             //kurva ocsmany szar de megteszi <3
             Quizzes = new ObservableCollection<Quiz>
             {
@@ -149,20 +155,72 @@ namespace localadmin.ViewModels
                 Quizzes.OrderBy(x => QuizOrder[x.Status])
             );
 
-            for (int i = 0; i<FiltredQuizzes.Count; i++)
-            {
-                Debug.WriteLine(FiltredQuizzes[i].Status);
-            }
+
+            */
         }
-        
+        public async Task InitializeAsync()
+        {
+            await GetQuizes();
+        }
+
+        public async Task GetQuizes()
+        {
+            var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync();
+            Quizzes.Clear();
+            FiltredQuizzes.Clear();
+
+            foreach (var quiz in fetchedQuizes)
+            {
+                Quizzes.Add(quiz);
+                FiltredQuizzes.Add(quiz);
+                quiz.Initialize(NavigationService, SharedState);
+                quiz.QuizCards = await LoadQuizCards(quiz.UUID);
+            }
+
+            OnPropertyChanged(nameof(Quizzes));
+            OnPropertyChanged(nameof(FiltredQuizzes));
+            Debug.WriteLine($"Fetched {Quizzes.Count} quizes.");
+        }
+
+        private async Task<List<QuizCard>> LoadQuizCards(string quizId)
+        {
+            var quizCards = await ApiQuizzesService.GetQuizCardsByIdAsync(quizId);
+
+            if (quizCards.Any())
+            {
+                Debug.WriteLine($"Loaded {quizCards.Count} Quiz Cards");
+
+                foreach (var card in quizCards)
+                {
+                    Debug.WriteLine($"Question: {card.Question}, Answers: {string.Join(", ", card.Answers)}, Correct Index: {card.CorrectAnswerIndex}");
+                }
+            }
+            else
+            {
+                Debug.WriteLine("No quiz cards found.");
+            }
+
+            return quizCards;
+        }
+
+
         public void SearchQuizes(string query)
         {
-            var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.MadeBy, quiz.Title]);
+        /*
+            var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.username, quiz.Title]);
             FiltredQuizzes.Clear();
             foreach (var quiz in results)
             {
                 FiltredQuizzes.Add(quiz);
             }
-        } 
+        */
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }

@@ -18,12 +18,33 @@ namespace localadmin.Models
             RequiresReview,
             Private
         }
+        public class UserWrapper
+        {
+            public string username { get; set; }
+        }
+
+        public class PictureWrapper
+        {
+            [JsonPropertyName("data")]
+            public List<byte> Data { get; set; }
+
+            public byte[] GetByteArray()
+            {
+                if (Data == null || Data.Count == 0)
+                {
+                    return null;
+                }
+                return Data.ToArray();
+            }
+        }
+
         private NavigationService NavigationService;
 
         private SharedStateService SharedState;
         public ICommand ViewUserCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand ViewQuizCommand { get; }
+        [JsonPropertyName("id")]
         public string UUID { get; set; }
         public string UserID { get; set; }
         public string Title { get; set; }
@@ -31,42 +52,48 @@ namespace localadmin.Models
         public EQuizStatus Status { get; set; }
         public int Rating { get; set; }
         public int Plays { get; set; }
-        public byte[] Banner { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public List<QuizCard> QuizCards { get; set; }
+        public string Username { get; set; }
 
-        public string MadeBy
+        public ProfilePictureWrapper Banner { get; set; }
+        public byte[] ProfilePictureArray => Banner?.GetByteArray();
+        public ImageSource BannerImage => ByteArrayToImage(ProfilePictureArray);
+
+        public Quiz()
         {
-            get
-            {
-                UserViewModel userView = new UserViewModel(NavigationService, SharedState);
-                User user = userView.Users.FirstOrDefault(x => x.UUID == UserID);
-                if (user == null)
-                {
-                    return "Unknown"; // Or any default value
-                }
-
-                else
-                    return user.Username;
-            }
-            set { }
-        }
-
-        public Quiz(NavigationService navigation, SharedStateService sharedState)
-        {
-            NavigationService= navigation;
-            SharedState = sharedState;
-
             ViewUserCommand = new RelayCommand(ViewUser);
             ViewReviewCommand = new RelayCommand(ViewReview);
             ViewQuizCommand = new RelayCommand(ViewQuiz);
         }
 
+        public void Initialize(NavigationService navigation, SharedStateService sharedState)
+        {
+            NavigationService = navigation;
+            SharedState = sharedState;
+        }
+
+        public static ImageSource ByteArrayToImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+                return null;
+
+            BitmapImage image = new BitmapImage();
+            using (var ms = new MemoryStream(imageData))
+            {
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = ms;
+                image.EndInit();
+            }
+            return image;
+        }
+
         private void ViewUser(object parameter)
         {
             UserViewModel userView = new UserViewModel(NavigationService, SharedState);
-            SharedState.SearchText = MadeBy;
+            SharedState.SearchText = Username;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
         }
@@ -74,7 +101,7 @@ namespace localadmin.Models
         private void ViewReview(object parameter)
         {
             ReviewViewModel reviewView = new ReviewViewModel(NavigationService, SharedState);
-            SharedState.SearchText = MadeBy;
+            SharedState.SearchText = Username;
             NavigationService?.NavigateTo(reviewView);
             reviewView.SearchReviews(SharedState.SearchText);
         }

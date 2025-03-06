@@ -29,7 +29,7 @@ namespace localadmin.ViewModels
             await GetUsers();
         }
 
-        public  async Task GetUsers()
+        public async Task GetUsers()
         {
             var fetchedUsers = await ApiUsersService.GetUsersAsync();
             Users.Clear();

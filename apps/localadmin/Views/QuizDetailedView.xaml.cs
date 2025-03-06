@@ -108,7 +108,8 @@ namespace localadmin
             CurrentQuizCard = Quiz.QuizCards[CardIndex];
             Stars = new string('★', Quiz.Rating) + new string('☆', 5 - Quiz.Rating);
 
-            if(CurrentQuizCard.Type==QuizCard.EQuitType.twochoise)
+            /*
+            if(CurrentQuizCard.Type==QuizCard.EQuizType.twochoise)
             {
                 Answer3.Visibility = Visibility.Collapsed;
                 Answer4.Visibility = Visibility.Collapsed;
@@ -117,7 +118,7 @@ namespace localadmin
             {
                 Answer3.Visibility = Visibility.Visible;
                 Answer4.Visibility = Visibility.Visible;
-            }
+            }*/
 
             switch (CurrentQuizCard.CorrectAnswerIndex) {
                 case 0:
