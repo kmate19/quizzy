@@ -11,6 +11,17 @@ import { z } from "zod";
 // eslint-disable-next-line
 function assertequal<T extends true>() {}
 
+export const quizFinishedSchema = z.object({
+    userId: z.string().uuid(),
+    quizId: z.string().uuid(),
+    type: z.literal("solo").or(z.literal("multi")),
+    meta: z.object({
+        placement: z.number(),
+        correctAnswerCount: z.number(),
+        wrongAnswerCount: z.number(),
+    }),
+});
+
 export const numericStringSchema = z.string().regex(/^\d+$/).transform(Number);
 
 export const paginationSchema = z.object({

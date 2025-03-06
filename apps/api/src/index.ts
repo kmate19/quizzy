@@ -11,6 +11,7 @@ import userprofile from "./routes/userprofile";
 import type { ApiResponse } from "repo";
 import { openAPISpecs } from "hono-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
+import events from "./routes/events";
 
 console.log(ENV.NODE_ENV());
 
@@ -23,6 +24,7 @@ export const app = new Hono()
     .route("/", userprofile)
     .route("/", quizzes)
     .route("/", meta)
+    .route("/", events)
     .onError((err, c) => {
         // TEST: test this somehow (idk what could cause the fauilure here)
         console.error(err);

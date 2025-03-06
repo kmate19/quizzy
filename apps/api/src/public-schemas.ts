@@ -14,6 +14,7 @@ import {
     publishQuizSchema as pqs,
     editQuizSchema as eqs,
     changePasswordSchema as cps,
+    quizFinishedSchema as qfs,
 } from "./utils/schemas/zod-schemas";
 
 import {
@@ -47,6 +48,7 @@ export const editQuizSchema = eqs;
 export const changePasswordSchema = cps;
 export const RegisterUserSchema = ru;
 export const LoginUserSchema = lu;
+export const QuizFinishedSchema = qfs;
 
 const _user = UserInferSelectRaw;
 const _usertoken = UserTokensInferSelectRaw;

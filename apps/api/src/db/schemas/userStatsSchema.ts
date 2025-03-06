@@ -13,8 +13,8 @@ export const userStatsTable = pgTable(
         first_places: integer().notNull().default(0),
         second_places: integer().notNull().default(0),
         third_places: integer().notNull().default(0),
-        wins: integer().notNull().default(0),
-        losses: integer().notNull().default(0),
+        correct_answers: integer().notNull().default(0),
+        wrong_answers: integer().notNull().default(0),
         created_at: timestamp().notNull().defaultNow(),
         updated_at: timestamp()
             .notNull()
@@ -26,6 +26,7 @@ export const userStatsTable = pgTable(
     }
 );
 
+export type UserStatsInsert = typeof userStatsTable.$inferInsert;
 export type UserStats = typeof userStatsTable.$inferSelect;
 export const UserStatsInferSelectRaw = userStatsTable.$inferSelect;
 
