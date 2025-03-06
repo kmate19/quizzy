@@ -60,6 +60,7 @@ const isLanguageDropdownOpen = ref(false)
 const languageSearchQuery = ref('')
 const selectedLanguages = ref<Language[]>([])
 
+//if the site has a query which has the same key use that instead of the one from the function
 const { data: allLanguages } = useQuery({
   queryKey: ['languages'],
   queryFn: getLanguages,

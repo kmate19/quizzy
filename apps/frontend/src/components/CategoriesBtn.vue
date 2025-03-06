@@ -2,10 +2,26 @@
 import { ref, computed, onMounted } from 'vue'
 import { XIcon, Settings2, Search, Save, Check } from 'lucide-vue-next'
 import { getLanguages, getTags } from '@/utils/functions/metaFunctions'
-import type { Language, Tag } from '@/utils/type'
+import { useQuery } from '@tanstack/vue-query'
 
-const tags = ref<Tag[]>()
-const languages = ref<Language[]>()
+
+//set tags with useQuery
+const { data: tags } = useQuery({
+  queryKey: ['tags'],
+  queryFn: getTags,
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+})
+
+const { data: languages } = useQuery({
+  queryKey: ['languages'],
+  queryFn: getLanguages,
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+})
+
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedTagsData = ref<string[]>([])
@@ -59,8 +75,6 @@ const clearSelectedCategories = () => {
 const emit = defineEmits(['save'])
 
 onMounted(async () => {
-  tags.value = await getTags()
-  languages.value = await getLanguages()
   console.log(tags.value, languages.value)
 })
 </script>

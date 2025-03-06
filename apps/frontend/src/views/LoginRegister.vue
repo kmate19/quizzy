@@ -146,7 +146,6 @@ const updateCardHeight = () => {
 
 onMounted(() => {
   updateCardHeight()
-
   const storedUser = localStorage.getItem('authUser')
   if (storedUser) {
     const userData = JSON.parse(storedUser)
