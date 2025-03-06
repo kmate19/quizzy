@@ -4,6 +4,7 @@ import { ref, watch, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import XButton from './XButton.vue'
 import { wsclient } from '@/lib/apiClient'
+import { generateSessionHash } from '@/utils/helpers'
 
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
@@ -64,29 +65,6 @@ onMounted(() => {
   });
 
 })
-
-async function generateSessionHash(lobbyCode: string, secretKey: string) {
-  const timestamp = Math.floor(Date.now() / 10000)
-  const data = `${lobbyCode}:${timestamp}`
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(secretKey)
-  const messageData = encoder.encode(data)
-
-  const cryptoKey = await window.crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  )
-
-  const signature = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData)
-
-  const hashArray = Array.from(new Uint8Array(signature))
-  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('')
-
-  return hashHex
-}
 
 const joinLobby = async (code: string) => {
   const first = await wsclient.reserve.session[':code?'].$post({

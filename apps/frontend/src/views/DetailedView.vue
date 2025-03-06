@@ -10,6 +10,7 @@ import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
 import { userData } from '@/utils/functions/profileFunctions'
 import { useQuery } from '@tanstack/vue-query'
+import { generateSessionHash } from '@/utils/helpers'
 
 const route = useRoute()
 const uuid = route.params.uuid
@@ -29,7 +30,7 @@ onMounted(async () => {
   }
 })
 
-const {data: creator} = useQuery({
+const { data: creator } = useQuery({
   queryKey: ['userProfile', ''],
   queryFn: () => userData(''),
 })
@@ -44,31 +45,8 @@ const handleTestPlay = () => {
   router.push(`/quiz/practice/${uuid}`)
 }
 
-async function generateSessionHash(lobbyCode: string, secretKey: string) {
-  const timestamp = Math.floor(Date.now() / 10000)
-  const data = `${lobbyCode}:${timestamp}`
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(secretKey)
-  const messageData = encoder.encode(data)
-
-  const cryptoKey = await window.crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  )
-
-  const signature = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData)
-
-  const hashArray = Array.from(new Uint8Array(signature))
-  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('')
-
-  return hashHex
-}
-
 const createLobby = async () => {
-  console.log("creator username", creator.value?.username)  
+  console.log('creator username', creator.value?.username)
   const first = await wsclient.reserve.session[':code?'].$post({
     param: { code: '' },
     query: { ts: Date.now().toString() },
@@ -103,7 +81,6 @@ const createLobby = async () => {
     console.log('Lobby creation process failed.')
   }
 }
-
 </script>
 
 <template>

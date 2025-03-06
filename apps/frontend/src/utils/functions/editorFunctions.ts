@@ -70,7 +70,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
       },
     })
     if (edit.status === 200) {
-      queryClient.invalidateQueries({ queryKey: ['userQuizzies'], refetchType: 'none' })
+      queryClient.invalidateQueries({ queryKey: ['userQuizzies',''], refetchType: 'none' })
       return true
     } else {
       const res = await edit.json()
@@ -104,7 +104,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
         transition: 'zoom',
         pauseOnHover: false,
       })
-      queryClient.invalidateQueries({ queryKey: ['userQuizzies'], refetchType: 'none' })
+      queryClient.invalidateQueries({ queryKey: ['userQuizzies',''], refetchType: 'none' })
       return true
     } else {
       const res = await query.json()
