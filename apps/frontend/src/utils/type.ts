@@ -113,6 +113,7 @@ type role = {
 }
 
 export type userProfile = {
+  id?: string
   email?: string
   username: string
   created_at: string

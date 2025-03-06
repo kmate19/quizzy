@@ -7,7 +7,11 @@ import CategoriesButton from '@/components/CategoriesBtn.vue'
 import QuizCard from '@/components/QuizCard.vue'
 import type { quizCardView } from '@/utils/type'
 import { getQuizzes } from '@/utils/functions/homeFuncitions'
+import { useRoute } from 'vue-router'
+import { toast, type ToastContainerOptions } from 'vue3-toastify'
 
+
+const route = useRoute()
 const quizzes = ref<quizCardView[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -69,7 +73,6 @@ const handleSave = async (payload: FilterPayload) => {
   languages.value = payload.languages
   strict.value = payload.strictSearch
   selectParams()
-  console.log("itt megy a params log",params)
   const res = await getQuizzes(
     params.limit,
     params.page,
@@ -103,10 +106,8 @@ const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number)
 }
 
 const doSearch = async () => {
-  console.log('Search Query:', searchText.value)
   loading.value = true
   selectParams()
-  console.log(params)
   const res = await getQuizzes(
     params.limit,
     params.page,
@@ -115,7 +116,6 @@ const doSearch = async () => {
     params.languages,
     params.searchText
   );
-  console.log(res)
   quizzes.value = res.quizzes
   totalPages.value = Math.ceil(res.totalPages/10)
   loading.value = false
@@ -198,8 +198,6 @@ const displayedPages = computed<(number | 'ellipsis')[]>(() => {
 
   const result: (number | 'ellipsis')[] = [current, 'ellipsis', total]
 
-  console.log(result)
-
   return result
 })
 
@@ -219,8 +217,17 @@ onMounted(async () => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages/10)
-  console.log("total pages",totalPages.value)
+  totalPages.value = Math.ceil(res.totalPages / 10)
+  const username = route.query.username
+  if (username) {
+    toast(`Sikeres bejelentkezés!\nÜdvözöljük ${username}!`,{
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    }as ToastContainerOptions)
+  }
   loading.value = false
 })
 </script>

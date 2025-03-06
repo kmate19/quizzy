@@ -8,6 +8,8 @@ import type { detailedQuiz } from '@/utils/type'
 import MistBackground from '@/components/MistBackground.vue'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
+import { userData } from '@/utils/functions/profileFunctions'
+import { useQuery } from '@tanstack/vue-query'
 
 const route = useRoute()
 const uuid = route.params.uuid
@@ -25,6 +27,11 @@ onMounted(async () => {
     expandedQuestions.value = Array(data.value?.cards.length).fill(false)
     isLoading.value = false
   }
+})
+
+const {data: creator} = useQuery({
+  queryKey: ['userProfile', ''],
+  queryFn: () => userData(''),
 })
 
 const toggleQuestion = (index: number) => {
@@ -61,6 +68,7 @@ async function generateSessionHash(lobbyCode: string, secretKey: string) {
 }
 
 const createLobby = async () => {
+  console.log("creator username", creator.value?.username)  
   const first = await wsclient.reserve.session[':code?'].$post({
     param: { code: '' },
     query: { ts: Date.now().toString() },
