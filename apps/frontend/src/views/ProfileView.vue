@@ -119,7 +119,9 @@ const genApiKey = async () => {
 
 const onDeleteApiKey = async (id: number) => {
   await deleteApiKey(id)
+  queryClient.refetchQueries({ queryKey: ['apiKeys'] })//TODO: if there is one than the ui does not refresh, also add animation when generating and deleting api key
   isDeleteApiKey.value = false
+  isApiModal.value = true
 }
 
 const copyText = (copyValue: string) => {
@@ -524,11 +526,7 @@ watch(
             <div class="flex justify-evenly flex-row">
               <h3 class="text-2xl font-bold text-white">Biztosan szeretnéd törölni a quizt?</h3>
             </div>
-            <button @click="isDeleteModal = !isDeleteModal" class="text-white hover:text-gray-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+             <XButton @click="isDeleteModal = !isDeleteModal"/>
           </div>
           <form @submit.prevent="onDelete(selectedUuid)" class="flex text-white gap-2">
             <button type="submit"
@@ -574,7 +572,7 @@ watch(
               </span>
               <span v-else> Igen </span>
             </button>
-            <button type="button" @click="isDeleteApiKey = !isDeleteApiKey"
+            <button type="button" @click="(isDeleteApiKey = !isDeleteApiKey, isApiModal = true)"
               class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
               Nem
             </button>
@@ -592,11 +590,7 @@ watch(
             <div class="flex justify-evenly flex-row">
               <h3 class="text-2xl font-bold text-white">API kulcs igénylés</h3>
             </div>
-            <button @click="isApiModal = false" class="text-white hover:text-gray-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <XButton @click="isApiModal = false"/>
           </div>
           <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-4">
             <input type="text" v-model="description" placeholder="Leírás" class="bg-white/10 p-2 rounded-md" />

@@ -9,7 +9,7 @@ import { generateSessionHash } from '@/utils/helpers'
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
 const route = useRoute()
-
+const isLoading = ref(false)
 const isMobileMenuOpen = ref(false)
 
 const toggleMobileMenu = () => {
@@ -107,8 +107,7 @@ const joinLobby = async (code: string) => {
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <div
-          class="items-center border-transparent border-2 hover:scale-105 hover:border-white px-4 py-1 text-3xl
+        <div class="items-center border-transparent border-2 hover:scale-105 hover:border-white px-4 py-1 text-3xl
            text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative
             bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] 
             before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none
@@ -166,47 +165,63 @@ const joinLobby = async (code: string) => {
       <div v-if="isMobileMenuOpen"
         class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <a @click="router.push('/')"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
+          <a @click="router.push('/')" class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300
+            outlined-text">
             Kezdőlap
           </a>
-          <a @click="isCodeModal = !isCodeModal"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
+          <a @click="isCodeModal = !isCodeModal" class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300
+            outlined-text">
             Közös játék
           </a>
           <a @click="router.push('/game_creation')"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text">
             Játék készítés
           </a>
           <a @click="router.push('/profil')"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300">
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text">
             Profil
           </a>
         </div>
       </div>
     </transition>
   </nav>
-  <div v-if="isCodeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-    <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex-1">
-          <h3 class="text-2xl font-bold text-white">Adja meg a kapott kódot</h3>
-        </div>
-        <XButton @click="isCodeModal = !isCodeModal" />
-      </div>
-      <div class="flex flex-col gap-4">
-        <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
-          class="w-full text-white"></v-text-field>
-        <button @click="joinLobby(lobbyCode)"  class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all duration-300 ease-in-out
+  <transition name="fade">
+    <div v-if="isCodeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+      <div
+        class="relative w-full max-w-md p-6 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg">
+        <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
+        <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
+        <div class="flex flex-col gap-4">
+          <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
+            class="w-full text-white"></v-text-field>
+          <button @click="joinLobby(lobbyCode)" class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out
             cursor-pointer w-full !bg-green-900">
-          Csatlakozás
-        </button>
+            {{isLoading ? 'Csatlakozás...' : 'Csatlakozás'}}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+/* existing style*/
+.outlined-text {
+  text-shadow:
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black;
+}
+
 .glass-button {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);

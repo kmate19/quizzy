@@ -232,7 +232,7 @@ onMounted(async () => {
   <div class="home-page">
     <div
       class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer z-10">
-      <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+      <div class="flex flex-col md:flex-row justify-between  mb-8">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
             'relative flex items-center transition-all duration-700 ease-in-out rounded-full border border-gray-300 bg-white/10 text-white cursor-pointer glass-button',

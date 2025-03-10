@@ -254,7 +254,7 @@ onMounted(() => {
     </div>
     <v-card
       class="headers !flex !flex-col !justify-center !items-center !text-center !bg-opacity-50 !backdrop-blur-md !rounded-2xl !bg-white/10">
-      <h1 class="title text-9xl text-white">Quizzy</h1>
+      <h1 class="title text-9xl text-purple-500">Quizzy</h1>
       <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
     </v-card>
   </div>
