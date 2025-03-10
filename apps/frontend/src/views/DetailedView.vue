@@ -145,7 +145,7 @@ const createLobby = async () => {
                 :key="lang.iso_code"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
               >
-                {{ lang.iso_code }} | {{ lang.icon }}
+              {{ lang.icon }} {{ lang.iso_code }}
               </span>
             </div>
             <div class="mb-2">

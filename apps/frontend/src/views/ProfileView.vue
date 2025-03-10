@@ -289,8 +289,8 @@ watch(
                 <div class="flex flex-col gap-2 mt-2"
                   v-if="realUser?.roles?.some(role => role.role.name === 'admin') && !isOtherUser">
                   <p class="px-3 py-1 bg-purple-500/30 rounded-full text-sm flex justify-center items-center">
-                    <span v-for="role in realUser?.roles" :key="role.role.name">
-                      {{ role.role.name }}
+                    <span>
+                      Admin
                     </span>
                   </p>
                   <button @click="isApiModal = true"
