@@ -1,6 +1,7 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { quizzesTable, userStatsTable } from "@/db/schemas";
+import check_ws from "@/middlewares/check-ws";
 import { zv } from "@/middlewares/zv";
 import { tryCatchAsyncClosure } from "@/utils/helpers";
 import { quizFinishedSchema } from "@/utils/schemas/zod-schemas";
@@ -9,6 +10,7 @@ import { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { ApiResponse } from "repo";
 
 const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
+    check_ws,
     zv("json", quizFinishedSchema),
     async (c) => {
         const { userId, quizId, type, meta } = c.req.valid("json");
