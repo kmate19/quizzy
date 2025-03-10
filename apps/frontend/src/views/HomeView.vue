@@ -15,14 +15,12 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const isExpanded = ref(false)
 const searchContainer = ref<HTMLElement | null>(null)
-//--------Ezek kellenek nekem-------
 const searchText = ref('')
 const strict = ref(false)
 const tags = ref<string[]>([])
 const languages = ref<string[]>([])
 const currentPage = ref(1)
 const limit = ref(10) // minimum 10
-//--------Ezek kellenek nekem-------
 const totalPages = ref(0)
 const showFullPages = ref(false)
 
@@ -233,7 +231,7 @@ onMounted(async () => {
 <template>
   <div class="home-page">
     <div
-      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer z-50">
+      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer z-10">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[

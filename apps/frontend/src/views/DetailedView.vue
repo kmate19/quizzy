@@ -82,16 +82,16 @@ const createLobby = async () => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="min-h-screen flex justify-center items-center">
+  <div v-if="isLoading" class="flex justify-center items-center w-screen h-screen overflow-hidden fixed top-0 left-0">
     <div class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
     </div>
   </div>
-  <div v-else class="lg:overflow-hidden">
+  <div v-else class="lg:overflow-hidden w-screen h-[calc(100vh-10vh)] overflow-y-auto fixed left-0 p-2">
     <div class="text-white md:p-6">
-      <div class="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
+      <div class="flex flex-col lg:flex-row gap-5 max-w-7xl mx-auto">
         <!-- Left -->
-        <div class="lg:w-1/3 space-y-4 h-[calc(100vh-10vh)]">
+        <div class="lg:w-1/3 space-y-4 h-[calc(100vh-22vh)] overflow-y-auto">
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
             <div class="h-48 bg-white/10 rounded-lg">
               <v-img
@@ -116,7 +116,9 @@ const createLobby = async () => {
               Készítette:
               <span
                 @click="data?.user_id && handleViewUser(data.user_id)"
-                class="cursor-pointer font-bold relative before:absolute before:left-0 before:bottom-0 before:w-0 before:h-[2px] before:bg-white before:transition-all before:duration-300 hover:before:w-full"
+                class="cursor-pointer font-bold relative before:absolute before:left-0
+                before:bottom-0 before:w-0 before:h-[2px] before:bg-white
+                before:transition-all before:duration-300 hover:before:w-full"
               >
                 {{ data?.username }}
               </span>
@@ -141,7 +143,7 @@ const createLobby = async () => {
                 :key="lang.iso_code"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
               >
-              {{ lang.icon }} {{ lang.iso_code }}
+                {{ lang.icon }} {{ lang.iso_code }}
               </span>
             </div>
             <div class="mb-2">
@@ -172,7 +174,7 @@ const createLobby = async () => {
 
         <!-- Right -->
         <div class="flex-1">
-          <div class="space-y-4 pl-2 pr-2 h-[calc(100vh-10vh)] overflow-y-scroll">
+          <div class="space-y-4 pl-2 pr-2 max-h-[calc(100vh-22vh)] overflow-y-auto">
             <div
               v-for="(card, index) in data?.cards"
               :key="card.picture"
