@@ -16,7 +16,7 @@ export const quizFinishedSchema = z.object({
     quizId: z.string().uuid(),
     type: z.literal("solo").or(z.literal("multi")),
     meta: z.object({
-        placement: z.number(),
+        placement: z.number().optional(),
         correctAnswerCount: z.number(),
         wrongAnswerCount: z.number(),
     }),

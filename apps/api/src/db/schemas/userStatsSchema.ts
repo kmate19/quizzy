@@ -26,7 +26,6 @@ export const userStatsTable = pgTable(
     }
 );
 
-export type UserStatsInsert = typeof userStatsTable.$inferInsert;
 export type UserStats = typeof userStatsTable.$inferSelect;
 export const UserStatsInferSelectRaw = userStatsTable.$inferSelect;
 

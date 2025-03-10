@@ -3,6 +3,6 @@ import { Hono } from "hono";
 
 const events = new Hono()
     .basePath("/events")
-    .get("/quiz-finished", ...quizFinishedHandlers);
+    .post("/quiz-finished", ...quizFinishedHandlers);
 
 export default events;

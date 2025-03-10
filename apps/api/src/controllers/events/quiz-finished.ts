@@ -52,6 +52,8 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
             updatedValues = {
                 plays: sql`${userStatsTable.plays} + 1`,
             };
+            updatedValues.wrong_answers = sql`${userStatsTable.wrong_answers} + ${meta.wrongAnswerCount}`;
+            updatedValues.correct_answers = sql`${userStatsTable.correct_answers} + ${meta.correctAnswerCount}`;
         }
 
         const userStatUpdateResult = await tryCatchAsyncClosure(async () => {
