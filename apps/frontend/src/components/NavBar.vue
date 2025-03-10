@@ -104,7 +104,7 @@ const joinLobby = async (code: string) => {
 </script>
 
 <template>
-  <nav class="transition-all duration-300 ease-in-out relative bg-transparent">
+  <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div

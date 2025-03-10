@@ -2,8 +2,6 @@
 import { ref, watch, computed } from 'vue'
 import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2 } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
-import NavBar from '@/components/NavBar.vue'
-import MistBackground from '@/components/MistBackground.vue'
 import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
@@ -256,12 +254,10 @@ watch(
 
 </script>
 <template>
-  <MistBackground/>
   <Transition appear enter-active-class="transition ease-in-out duration-1000"
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
-        <NavBar/>
         <div :class="isOtherUser?'flex flex-col lg:flex-row items-center justify-center gap-4 lg:mt-42':''">
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 w-fit">
             <div v-if="isLoadingPage" class="w-full flex justify-center items-center">

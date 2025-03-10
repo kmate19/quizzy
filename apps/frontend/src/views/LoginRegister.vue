@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/vue-query'
 import * as zod from 'zod'
 import router from '@/router'
 import { clientv1 } from '@/lib/apiClient'
-import MistBackground from '@/components/MistBackground.vue'
 import { baseRegisterSchema } from '@/schemas/RegistrationSchema'
 import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
@@ -163,7 +162,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <MistBackground />
   <div class="wrapper">
     <div
       class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly relative overflow-hidden text-white"

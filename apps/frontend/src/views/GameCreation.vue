@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import MistBackground from '@/components/MistBackground.vue'
-import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { ref, watch, onMounted, computed } from 'vue'
 import { CloudUpload, CirclePlus } from 'lucide-vue-next'
@@ -533,8 +531,6 @@ const marqueeDuration = computed(() => {
 </script>
 
 <template>
-  <MistBackground />
-  <NavBar />
   <Transition
     appear
     enter-active-class="transition ease-in-out duration-1000"

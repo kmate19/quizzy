@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { Loader2Icon, Search } from 'lucide-vue-next'
-import NavBar from '@/components/NavBar.vue'
-import MistBackground from '@/components/MistBackground.vue'
 import CategoriesButton from '@/components/CategoriesBtn.vue'
 import QuizCard from '@/components/QuizCard.vue'
 import type { quizCardView } from '@/utils/type'
@@ -234,10 +232,8 @@ onMounted(async () => {
 
 <template>
   <div class="home-page">
-    <MistBackground />
-    <NavBar />
     <div
-      class="container mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer">
+      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer z-50">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
@@ -303,7 +299,7 @@ onMounted(async () => {
                   </div>
                 </div>
               </Transition>
-            </div>
+            </div>0
           </template>
         </div>
         <button @click="nextPage" :disabled="currentPage === totalPages"
@@ -316,15 +312,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.home-page {
-  min-height: 100vh;
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.container {
-  max-width: 1200px;
-}
 
 .glass-button {
   background: rgba(255, 255, 255, 0.1);

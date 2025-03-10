@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import NavBar from '../components/NavBar.vue';
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import { getGameQuiz } from '@/utils/functions/practiceFunctions';
 import type { Game } from '@/utils/type'
@@ -132,7 +131,6 @@ onUnmounted(() => {
             <div class="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] bg-[length:20px_20px]"></div>
         </div>
         <div class="relative z-10">
-            <NavBar />
         </div>
         <div class="absolute inset-0 flex justify-center items-center w-full pl-2 pr-2">
             <div class=" flex items-center justify-center flex-col gap-2">

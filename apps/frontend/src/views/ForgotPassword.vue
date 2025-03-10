@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
-import MistBackground from '@/components/MistBackground.vue'
 
 
 const email_or_username = ref('')
@@ -37,7 +36,6 @@ const handleSubmit = async () => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center px-4">
-    <MistBackground />
     <Transition appear enter-active-class="transition ease-in-out duration-300"
       enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
       <div class="w-full max-w-md p-8 rounded-xl

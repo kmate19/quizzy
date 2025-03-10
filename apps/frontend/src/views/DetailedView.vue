@@ -2,10 +2,8 @@
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { ref, onMounted } from 'vue'
-import NavBar from '@/components/NavBar.vue'
 import { Loader2Icon } from 'lucide-vue-next'
 import type { detailedQuiz } from '@/utils/type'
-import MistBackground from '@/components/MistBackground.vue'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
 import { userData } from '@/utils/functions/profileFunctions'
@@ -84,14 +82,12 @@ const createLobby = async () => {
 </script>
 
 <template>
-  <MistBackground />
   <div v-if="isLoading" class="min-h-screen flex justify-center items-center">
     <div class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
     </div>
   </div>
   <div v-else class="lg:overflow-hidden">
-    <NavBar />
     <div class="text-white md:p-6">
       <div class="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
         <!-- Left -->
