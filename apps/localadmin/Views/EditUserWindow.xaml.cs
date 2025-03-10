@@ -71,11 +71,16 @@ namespace localadmin.Views
 
             await UpdateUserStatus();
             await UpdateUserRole();
+
+            await ApiUsersService.GetUsersAsync();
         }
 
         private async Task UpdateUserStatus()
         {
             var selectedStatus = AllStatuses.FirstOrDefault(s => s.IsSelected)?.Value;
+            if(selectedStatus == null)
+                return;
+
             if (selectedStatus != null && Enum.TryParse(selectedStatus, out EAuthStatus newStatus))
             {   
                 if (CurrentUser.AuthStatus != newStatus)
@@ -95,7 +100,10 @@ namespace localadmin.Views
 
         private async Task UpdateUserRole()
         {
-            var selectedRole = AllRoles.FirstOrDefault(r => r.IsLocked==false)?.Value;   
+            var selectedRole = AllRoles.FirstOrDefault(r => r.IsLocked == false && r.IsSelected == true)?.Value;
+            if (selectedRole == null)
+                return;
+
             if (selectedRole != null)
             {
                 bool success = await ApiUsersService.UpdateUserRole(CurrentUser.UUID, selectedRole);

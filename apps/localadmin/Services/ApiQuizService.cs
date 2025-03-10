@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using localadmin.Models;
 using localadmin.Services;
+using static localadmin.Models.Quiz;
 
 public static class ApiQuizzesService
 {
@@ -28,7 +29,6 @@ public static class ApiQuizzesService
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string jsonResponse = await response.Content.ReadAsStringAsync();
-            //Debug.WriteLine($"Raw JSON Response: {jsonResponse}");
 
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {
@@ -56,7 +56,7 @@ public static class ApiQuizzesService
         }
     }
 
-    public static async Task<List<QuizCard>> GetQuizCardsByIdAsync(string quizId)
+    public static async Task<List<QuizCard>> GetQuizCardsByIdAsync(string quizId, ObservableCollection<Quiz> existingQuizzes)
     {
         string url = $"http://localhost:3000/api/v1/quizzes/{quizId}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
@@ -67,24 +67,42 @@ public static class ApiQuizzesService
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string jsonResponse = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine($"Raw JSON Response from quizcards: {jsonResponse}");
 
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {
                 JsonElement root = doc.RootElement;
 
-                if (root.TryGetProperty("data", out JsonElement dataElement) &&
-                    dataElement.TryGetProperty("cards", out JsonElement cardsElement) &&
-                    cardsElement.ValueKind == JsonValueKind.Array)
+                if (root.TryGetProperty("data", out JsonElement dataElement))
                 {
-                    var quizCards = JsonSerializer.Deserialize<List<QuizCard>>(cardsElement.GetRawText(), jsonSerializerOptions)
-                                     ?? new List<QuizCard>();
+                    List<QuizCard> quizCards = new List<QuizCard>();
+                    if (dataElement.TryGetProperty("cards", out JsonElement cardsElement) &&
+                        cardsElement.ValueKind == JsonValueKind.Array)
+                    {
+                        quizCards = JsonSerializer.Deserialize<List<QuizCard>>(cardsElement.GetRawText(), jsonSerializerOptions)
+                                    ?? new List<QuizCard>();
+                    }
+
+                    string username = "Unknown";
+                    if (dataElement.TryGetProperty("user", out JsonElement userElement) &&
+                        userElement.TryGetProperty("username", out JsonElement usernameElement))
+                    {
+                        username = usernameElement.GetString() ?? "Unknown";
+                    }
+
+                    Debug.WriteLine($"Fetched quiz creator: {username}");
+
+                    var existingQuiz = existingQuizzes.FirstOrDefault(q => q.UUID == quizId);
+                    if (existingQuiz != null)
+                    {
+                        if (existingQuiz.User == null)
+                            existingQuiz.User = new UserWrapper { Username = username };
+                        else
+                            existingQuiz.User.Username = username;
+                    }
+                    else
+                        Debug.WriteLine($"Quiz with ID {quizId} not found in existing collection.");
 
                     return quizCards;
-                }
-                else
-                {
-                    Debug.WriteLine("Error: 'data.cards' field missing or not an array.");
                 }
             }
 
@@ -96,4 +114,6 @@ public static class ApiQuizzesService
             return new List<QuizCard>();
         }
     }
+
+
 }

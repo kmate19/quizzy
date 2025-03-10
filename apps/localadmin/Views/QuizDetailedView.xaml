@@ -15,11 +15,11 @@
         </Grid.ColumnDefinitions>
         
         <StackPanel Grid.Column="0" Margin="10">
-            <Image Source="../icon.ico" Height="160"  />
+            <Image Source="{Binding Quiz.Banner}" Height="160"  />
             <Separator Margin="5"/>
             <TextBlock>
                 <Run Text="Készítette: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.Username}"/>
+                <Run Text="{Binding Quiz.User.Username}"/>
             </TextBlock>
             <TextBlock TextWrapping="Wrap">
                 <Run Text="Cím: " FontWeight="Bold"/>
@@ -51,16 +51,19 @@
             </TextBlock>
 
             <Separator Margin="5"/>
-            <TextBlock Text="Categories" FontSize="16" FontWeight="Bold" Margin="5"/>
-            <ListBox>
-                <ListBoxItem Content="Category 1"/>
-                <ListBoxItem Content="Category 2"/>
-                <ListBoxItem Content="Category 3"/>
+            <TextBlock Text="Kategóriák" FontSize="16" FontWeight="Bold" Margin="5"/>
+            <ListBox ItemsSource="{Binding Quiz.Tags}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Tag.Name}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
             </ListBox>
+
         </StackPanel>
 
         <StackPanel Grid.Column="1" Margin="10">
-            <Image Source="../icon.ico" Height="150"/>
+            <Image Source="{Binding CurrentQuitCard.Banner}" Height="150"/>
             <TextBlock Text="{Binding CurrentQuizCard.Question}" FontSize="18" FontWeight="Bold" TextAlignment="Center" Margin="10"/>
 
             <DockPanel Width="400">

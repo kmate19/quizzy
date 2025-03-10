@@ -4,12 +4,10 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using localadmin.Models;
 using localadmin.Services;
-using Microsoft.VisualBasic.Logging;
-using static localadmin.Models.User;
 
 namespace localadmin.ViewModels
 {
-    public class UserViewModel
+    public class UserViewModel : INotifyPropertyChanged
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
@@ -43,7 +41,6 @@ namespace localadmin.ViewModels
 
             OnPropertyChanged(nameof(Users));
             OnPropertyChanged(nameof(FilteredUsers));
-
             Debug.WriteLine($"Fetched {Users.Count} users.");
         }
 
@@ -58,10 +55,9 @@ namespace localadmin.ViewModels
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }

@@ -108,8 +108,8 @@ namespace localadmin.Models
 
         public static ImageSource ByteArrayToImage(byte[] imageData)
         {
-            if (imageData == null || imageData.Length == 0)
-                return GetDefaultProfileImage();
+            if (imageData == null)
+                return null;
 
             BitmapImage image = new BitmapImage();
             using (var ms = new MemoryStream(imageData))
@@ -121,26 +121,6 @@ namespace localadmin.Models
             }
             return image;
         }
-
-        //nem mukodik
-        public static ImageSource GetDefaultProfileImage()
-        {
-            try
-            {
-                BitmapImage defaultImage = new BitmapImage();
-                
-                defaultImage.BeginInit();
-                defaultImage.UriSource = new Uri("../icon.ico");
-                defaultImage.CacheOption = BitmapCacheOption.OnLoad;
-                defaultImage.EndInit();
-                return defaultImage;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private void EditUser(object parameter)
         {
             EditUserWindow editUserWindow = new(this);

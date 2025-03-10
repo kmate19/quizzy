@@ -10,9 +10,6 @@ using localadmin.Views;
 
 namespace localadmin
 {
-    /// <summary>
-    /// Interaction logic for QuizDetailedView.xaml
-    /// </summary>
     public partial class QuizDetailedView : Window, INotifyPropertyChanged
     {
         private Quiz _quiz;
@@ -106,10 +103,14 @@ namespace localadmin
         private void UpdateCurrentCard()
         {
             CurrentQuizCard = Quiz.QuizCards[CardIndex];
+            Answer1.Background = Brushes.White;
+            Answer2.Background = Brushes.White;
+            Answer3.Background = Brushes.White;
+            Answer4.Background = Brushes.White;
             Stars = new string('★', Quiz.Rating) + new string('☆', 5 - Quiz.Rating);
 
-            /*
-            if(CurrentQuizCard.Type==QuizCard.EQuizType.twochoise)
+            
+            if(CurrentQuizCard.Type==QuizCard.EQuizType.twochoice)
             {
                 Answer3.Visibility = Visibility.Collapsed;
                 Answer4.Visibility = Visibility.Collapsed;
@@ -118,7 +119,7 @@ namespace localadmin
             {
                 Answer3.Visibility = Visibility.Visible;
                 Answer4.Visibility = Visibility.Visible;
-            }*/
+            }
 
             switch (CurrentQuizCard.CorrectAnswerIndex) {
                 case 0:

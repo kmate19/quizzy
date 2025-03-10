@@ -20,7 +20,7 @@ namespace localadmin.Models
         }
         public class UserWrapper
         {
-            public string username { get; set; }
+            public string Username { get; set; }
         }
 
         public class PictureWrapper
@@ -37,6 +37,15 @@ namespace localadmin.Models
                 return Data.ToArray();
             }
         }
+        public class TagWrapper
+        {
+            public Tag Tag { get; set; }
+        }
+
+        public class Tag
+        {
+            public string Name { get; set; }
+        }
 
         private NavigationService NavigationService;
 
@@ -52,14 +61,19 @@ namespace localadmin.Models
         public EQuizStatus Status { get; set; }
         public int Rating { get; set; }
         public int Plays { get; set; }
+
+        [JsonPropertyName("created_at")]
         public DateTime CreatedAt { get; set; }
+        [JsonPropertyName("updated_at")]
         public DateTime UpdatedAt { get; set; }
         public List<QuizCard> QuizCards { get; set; }
-        public string Username { get; set; }
+        public UserWrapper User { get; set; }
 
         public ProfilePictureWrapper Banner { get; set; }
         public byte[] ProfilePictureArray => Banner?.GetByteArray();
         public ImageSource BannerImage => ByteArrayToImage(ProfilePictureArray);
+
+        public List<TagWrapper> Tags { get; set; } = new List<TagWrapper>();
 
         public Quiz()
         {
@@ -93,7 +107,7 @@ namespace localadmin.Models
         private void ViewUser(object parameter)
         {
             UserViewModel userView = new UserViewModel(NavigationService, SharedState);
-            SharedState.SearchText = Username;
+            SharedState.SearchText = User.Username;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
         }
@@ -101,7 +115,7 @@ namespace localadmin.Models
         private void ViewReview(object parameter)
         {
             ReviewViewModel reviewView = new ReviewViewModel(NavigationService, SharedState);
-            SharedState.SearchText = Username;
+            SharedState.SearchText = User.Username;
             NavigationService?.NavigateTo(reviewView);
             reviewView.SearchReviews(SharedState.SearchText);
         }
