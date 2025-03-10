@@ -1,14 +1,14 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
 import { quizzesTable } from "@/db/schemas";
-import checkJwt from "@/middlewares/check-jwt";
+import { apikey_or_jwt } from "@/middlewares/check-composite";
 import { zv } from "@/middlewares/zv";
 import { paginationSchema } from "@/utils/schemas/zod-schemas";
 import { eq, sql } from "drizzle-orm";
 import { ApiResponse } from "repo";
 
 const getHandlers = GLOBALS.CONTROLLER_FACTORY(
-    checkJwt(),
+    apikey_or_jwt(),
     zv("query", paginationSchema),
     async (c) => {
         const limit = c.req.valid("query").limit || 20;
