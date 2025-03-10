@@ -241,6 +241,7 @@ const onDelete = (uuid: string) => {
 const OnLogOut = async () => {
   await clientv1.auth.logout.$get()
   queryClient.clear()
+  localStorage.clear()
   router.push('/login')
 }
 
