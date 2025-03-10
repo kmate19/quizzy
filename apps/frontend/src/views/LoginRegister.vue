@@ -118,8 +118,7 @@ const onLogin = async () => {
     const res = await userData("")
     if (res !== null) {
       await queryClient.setQueryData(['userProfile', ''], res);
-      const verifyData = queryClient.getQueryData(['userProfile', '']);
-      console.log("Verification check:", verifyData);
+      localStorage.setItem('isAdmin', res?.roles?.some(role=>role.role.name === 'admin') ? "admin" : "default");
       router.push({ path: '/', query: { username: res?.username } })
     } else {
       toast('Hiba történt a felhasználó adatainak lekérdezése közben', {

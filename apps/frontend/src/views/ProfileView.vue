@@ -15,8 +15,8 @@ import {
   userData,
   getUserQuizzies,
   handleDelete,
-  getApiKey,
   handlePasswordChange,
+  getApiKey,
   deleteApiKey,
   listApiKeys,
 } from '@/utils/functions/profileFunctions'
@@ -81,12 +81,17 @@ watch(
   { immediate: true },
 )
 
+const isAdmin = computed(() => {
+  return localStorage.getItem('isAdmin') === "admin"
+})
+
 const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
   queryKey: ['apiKeys'],
   queryFn: listApiKeys,
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
   refetchOnMount: true,
+  enabled: isAdmin.value,
 })
 
 const genApiKey = async () => {
@@ -106,7 +111,7 @@ const genApiKey = async () => {
     const generatedApiKey = await getApiKey(expiration.value, description.value) as string;
     apiKey.value = generatedApiKey;
   } catch (error) {
-    console.error("Error generating API key:", error);
+    console.log("Error generating API key:", error);
   } finally {
     isLoadingKey.value = false;
     description.value = '';
