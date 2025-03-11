@@ -3,7 +3,9 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import { getGameQuiz } from '@/utils/functions/practiceFunctions';
 import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 
+const router = useRouter()
 const quiz = ref<Game>();
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
 watch(gamePhase, (newValue: string) => {
@@ -123,6 +125,27 @@ onMounted(async () => {
 onUnmounted(() => {
     stopTimer()
 })
+
+const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+    };
+};
+
+const describeArc = (x: number, y: number, radius: number, startAngle: number, endAngle: number) => {
+    const start = polarToCartesian(x, y, radius, endAngle);
+    const end = polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    const d = [
+        "M", start.x, start.y,
+        "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y,
+        "L", x, y,
+        "Z"
+    ].join(" ");
+    return d;
+};
 </script>
 
 <template>
@@ -143,71 +166,92 @@ onUnmounted(() => {
                     </div>
 
                     <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl" key="question">
-                        <div class="flex justify-between items-center m-4 px-4">
-                            <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
-                        </div>
+                        <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg">
+                            <div class="flex justify-between items-center m-4 px-4">
+                                <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
+                            </div>
 
-                        <div class="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
-                            <img v-if="currentQuestion?.picture" :src="currentQuestion.picture"
-                                :alt="currentQuestion.question" class="w-full max-h-64 object-contain mb-6 rounded" />
-                            <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
-                        </div>
+                            <div class="p-6 mb-4">
+                                <img v-if="currentQuestion?.picture" :src="currentQuestion.picture"
+                                    :alt="currentQuestion.question"
+                                    class="w-full max-h-64 object-contain mb-6 rounded" />
+                                <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
+                            </div>
 
-                        <transition-group name="fade-scale" tag="div" :class="[
-                            'grid gap-4',
-                            currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
-                        ]">
-                            <button v-for="(answer, index) in currentQuestion?.answers" :key="index" :class="[
-                                'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
-                                getBaseButtonColor(index),
-                            ]" :disabled="answerSelected" @click="selectAnswer(index)">
-                                {{ answer }}
-                            </button>
-                        </transition-group>
+                            <transition-group name="fade-scale" tag="div" :class="[
+                                'grid gap-4',
+                                currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
+                            ]">
+                                <button v-for="(answer, index) in currentQuestion?.answers" :key="index" :class="[
+                                    'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+                                    getBaseButtonColor(index),
+                                ]" :disabled="answerSelected" @click="selectAnswer(index)">
+                                    {{ answer }}
+                                </button>
+                            </transition-group>
+                        </div>
                     </div>
 
                     <div v-else-if="gamePhase === 'completed'"
-                        class="text-center space-y-6 text-white sm:w-[50vw] max-w-4xl md:max-w-5xl lg:max-w-6xl"
-                        key="completed">
-                        <div class="bg-white/20 backdrop-blur-lg rounded-lg shadow-lg p-6 mb-4">
-                            <h2 class="text-5xl font-bold mb-4">Játék vége!</h2>
-                            <p class="text-3xl mb-6">Eredmény: {{ score }}/{{ quiz?.cards.length }}</p>
-                            <!-- Legend -->
-                            <div class="flex justify-center mb-4">
-                                <div class="flex items-center mr-4">
-                                    <div class="w-4 h-4 bg-green-600 rounded-full mr-2"></div>
-                                    <span class="text-white">Helyes válasz</span>
+                        class="text-center space-y-6 text-white w-full max-w-screen-xl mx-auto p-4">
+                        <div class="bg-white/10 rounded-3xl shadow-lg p-6 md:p-8 mb-4 flex flex-col items-center gap-2">
+                            <div class="relative inline-flex items-center justify-center">
+                                <svg class="w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="red" class="backdrop-blur-sm" />
+                                    <path :d="describeArc(50, 50, 45, 0, (score / (quiz?.cards.length || 1)) * 360)"
+                                        fill="green" />
+                                    <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" fill="white"
+                                        class="text-xl md:text-2xl lg:text-3xl font-bold">{{ score }}/{{
+                                        quiz?.cards.length }}</text>
+                                </svg>
+                            </div>
+                            <div class="flex justify-center mb-4 flex-wrap">
+                                <div class="flex items-center mr-2 md:mr-4 mb-1">
+                                    <div class="w-3 h-3 md:w-4 md:h-4 bg-green-600 rounded-full mr-1 md:mr-2"></div>
+                                    <span class="text-sm md:text-base text-white font-bold">Helyes válasz</span>
                                 </div>
-                                <div class="flex items-center mr-4">
-                                    <div class="w-4 h-4 bg-red-600 rounded-full mr-2"></div>
-                                    <span class="text-white">Rossz válasz</span>
+                                <div class="flex items-center mr-2 md:mr-4 mb-1">
+                                    <div class="w-3 h-3 md:w-4 md:h-4 bg-red-600 rounded-full mr-1 md:mr-2"></div>
+                                    <span class="text-sm md:text-base text-white font-bold">Rossz válasz</span>
                                 </div>
                             </div>
-                            <transition-group name="list" tag="div" class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
-                                <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex" class="p-4 rounded-lg backdrop-blur-md bg-white/10">
-                                    <p class="font-medium text-left mb-2 text-white">{{ qIndex + 1 }}. {{ card.question }}</p>
-                                    <ul class="text-left list-disc pl-5 space-y-1">
+                            <transition-group name="list" tag="div"
+                                class="space-y-2 md:space-y-4 max-h-64 md:max-h-96 overflow-y-auto custom-scrollbar w-full">
+                                <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex"
+                                    class="p-2 md:p-4 rounded-lg backdrop-blur-md bg-white/20">
+                                    <p class="font-medium text-left mb-1 md:mb-2 text-white text-sm md:text-base">{{
+                                        qIndex + 1 }}. {{ card.question
+                                        }}</p>
+                                    <ul class="text-left list-disc pl-5 space-y-0.5 md:space-y-1">
                                         <li v-for="(answer, aIndex) in card.answers" :key="aIndex" class="w-fit" :class="[
                                             aIndex === card.correct_answer_index
-                                                ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-1 rounded'
+                                                ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
                                                 : aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index
-                                                    ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-1 rounded'
+                                                    ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
                                                     : 'text-gray-200 font-bold'
                                         ]">
                                             {{ answer }}
-                                            <span v-if="aIndex === card.correct_answer_index" class="ml-1">✓</span>
-                                            <span v-if="aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index" class="ml-1">✗</span>
+                                            <span v-if="aIndex === card.correct_answer_index"
+                                                class="ml-0.5 md:ml-1">✓</span>
+                                            <span
+                                                v-if="aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index"
+                                                class="ml-0.5 md:ml-1">✗</span>
                                         </li>
                                     </ul>
-                                    <span v-if="userAnswers[qIndex] === -1" class="ml-1 text-red-600 font-bold">Nem válaszoltál</span>
+                                    <span v-if="userAnswers[qIndex] === -1"
+                                        class="ml-1 text-red-600 font-bold text-sm md:text-base">Nem
+                                        válaszoltál</span>
                                 </div>
                             </transition-group>
+                            <button @click="restartGame"
+                                class="bg-white text-gray-800 px-6 py-3 rounded-full font-bold hover:bg-gray-100 transition-all w-full mb-2">
+                                Újrakezdés
+                            </button>
+                            <button @click="router.back()"
+                                class="bg-transparent border border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white/10 transition-all w-full">
+                                Vissza
+                            </button>
                         </div>
-
-                        <button @click="restartGame"
-                            class="bg-green-600/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg font-bold hover:bg-green-700/80 transition-all">
-                            Újrakezdés
-                        </button>
                     </div>
                 </transition>
             </div>
