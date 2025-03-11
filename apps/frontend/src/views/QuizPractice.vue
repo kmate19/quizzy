@@ -164,8 +164,15 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                             {{ preGameTimer }}
                         </div>
                     </div>
-
                     <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl" key="question">
+                        <div class="w-full rounded-full h-4 mb-4 flex">
+                            <div v-for="(card, index) in quiz?.cards" :key="index" class="h-4 flex-1 rounded-full mr-1" :class="{
+                                'bg-green-500': index < currentQuestionIndex,
+                                'bg-blue-500': index === currentQuestionIndex,
+                                'bg-gray-300': index > currentQuestionIndex
+                            }">
+                            </div>
+                        </div>
                         <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg">
                             <div class="flex justify-between items-center m-4 px-4">
                                 <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
@@ -191,10 +198,11 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                             </transition-group>
                         </div>
                     </div>
-
                     <div v-else-if="gamePhase === 'completed'"
-                        class="text-center space-y-6 text-white w-full max-w-screen-xl mx-auto p-4">
-                        <div class="bg-white/10 rounded-3xl shadow-lg p-6 md:p-8 mb-4 flex flex-col items-center gap-2">
+                        class="text-center space-y-6 text-white w-full mx-auto p-4 min-h-[calc(100vh-10vh)] min-w-[calc(100vw-10vw)]
+                        lg:min-w-[calc(100vw-30vw)] lg:min-h-[calc(100vh-20vh)] flex items-center justify-center">
+                        <div class="bg-white/10 rounded-3xl shadow-lg p-6 md:p-8 mb-4 flex flex-col items-center gap-2 w-full max-w-[95%] md:max-w-[90%] lg:max-w-[85%]
+                        lg:max-h-[calc(100vh-20vh)]">
                             <div class="relative inline-flex items-center justify-center">
                                 <svg class="w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32" viewBox="0 0 100 100">
                                     <circle cx="50" cy="50" r="45" fill="red" class="backdrop-blur-sm" />
@@ -216,13 +224,14 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                                 </div>
                             </div>
                             <transition-group name="list" tag="div"
-                                class="space-y-2 md:space-y-4 max-h-64 md:max-h-96 overflow-y-auto custom-scrollbar w-full">
+                                class="space-y-2 md:space-y-4 max-h-[40vh] md:max-h-[50vh] lg:max-h-[60vh] overflow-y-auto custom-scrollbar w-full">
                                 <div v-for="(card, qIndex) in quiz?.cards" :key="qIndex"
                                     class="p-2 md:p-4 rounded-lg backdrop-blur-md bg-white/20">
-                                    <p class="font-medium text-left mb-1 md:mb-2 text-white text-sm md:text-base">{{
+                                    <p class="font-medium text-center mb-1 md:mb-2 text-white text-sm md:text-base">{{
                                         qIndex + 1 }}. {{ card.question
                                         }}</p>
-                                    <ul class="text-left list-disc pl-5 space-y-0.5 md:space-y-1">
+                                    <ul class="text-left list-disc pl-5 space-y-0.5 md:space-y-1 flex sm:flex-row sm:justify-evenly sm:flex-wrap 
+                                    flex-col items-center gap-2">
                                         <li v-for="(answer, aIndex) in card.answers" :key="aIndex" class="w-fit" :class="[
                                             aIndex === card.correct_answer_index
                                                 ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
@@ -243,14 +252,16 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                                         válaszoltál</span>
                                 </div>
                             </transition-group>
-                            <button @click="restartGame"
-                                class="bg-white text-gray-800 px-6 py-3 rounded-full font-bold hover:bg-gray-100 transition-all w-full mb-2">
-                                Újrakezdés
-                            </button>
-                            <button @click="router.back()"
-                                class="bg-transparent border border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white/10 transition-all w-full">
-                                Vissza
-                            </button>
+                            <div class="w-full mt-4 flex flex-col md:flex-row gap-3">
+                                <button @click="restartGame"
+                                    class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-700 transition-all flex-1">
+                                    Újrakezdés
+                                </button>
+                                <button @click="router.back()"
+                                    class="bg-transparent border border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white/10 transition-all flex-1">
+                                    Vissza
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </transition>
