@@ -9,6 +9,7 @@ import { arrayBufferToBase64 } from '@/utils/helpers'
 import { queryClient } from '@/lib/queryClient'
 import { useQuery } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
+import type { ApiKey } from '@/utils/type'
 import {
   userData,
   getUserQuizzies,
@@ -19,7 +20,7 @@ import {
   listApiKeys,
 } from '@/utils/functions/profileFunctions'
 
-const localPfp = ref('') 
+const localPfp = ref('')
 const keyId = ref(0)
 const isLoadingDelete = ref(false)
 const isLoadingKey = ref(false)
@@ -119,9 +120,12 @@ const genApiKey = async () => {
 
 const onDeleteApiKey = async (id: number) => {
   await deleteApiKey(id)
-  queryClient.refetchQueries({ queryKey: ['apiKeys'] })//TODO: if there is one than the ui does not refresh, also add animation when generating and deleting api key
   isDeleteApiKey.value = false
   isApiModal.value = true
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  queryClient.setQueryData<ApiKey[]>(['apiKeys'], oldData =>
+    oldData ? oldData.filter((key: ApiKey) => key.id_by_user !== id) : []);
+  queryClient.invalidateQueries({ queryKey: ['apiKeys'] })
 }
 
 const copyText = (copyValue: string) => {
@@ -249,7 +253,7 @@ watch(
   () => route.params.uuid,
   (newUserId, oldUserId) => {
     if (newUserId !== oldUserId) {
-      queryClient.refetchQueries({ queryKey: ['userQuizzies', userId]})
+      queryClient.refetchQueries({ queryKey: ['userQuizzies', userId] })
     }
   }
 );
@@ -260,15 +264,14 @@ watch(
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
-        <div :class="isOtherUser?'flex flex-col lg:flex-row items-center justify-center gap-4 lg:mt-42':''">
+        <div :class="isOtherUser ? 'flex flex-col lg:flex-row items-center justify-center gap-4 lg:mt-42' : ''">
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 w-fit">
             <div v-if="isLoadingPage" class="w-full flex justify-center items-center">
               <div class="flex justify-center items-center h-38">
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
               </div>
             </div>
-            <div v-else
-              class="flex flex-col md:justify-center w-full items-center gap-6 md:gap-8 p-4"
+            <div v-else class="flex flex-col md:justify-center w-full items-center gap-6 md:gap-8 p-4"
               :class="isOtherUser ? 'md:flex-col' : 'md:flex-row md:flex-wrap'">
               <div class="relative mx-auto md:mx-0">
                 <img :src="localPfp"
@@ -402,15 +405,13 @@ watch(
                   </span>
                 </h2>
                 <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
-                  <div v-for="quiz in userQuizzies" :key="quiz.id" 
-                    class="relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white 
+                  <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white 
                     hover:border-white border-2 border-transparent shadow-lg transition-all 
-                    duration-500 cursor-pointer bg-white/10" 
+                    duration-500 cursor-pointer bg-white/10"
                     @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
 
                     <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
-                      <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner"
-                        class="w-full h-full object-cover" />
+                      <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner" class="w-full h-full object-cover" />
                       <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
                     </div>
 
@@ -462,9 +463,8 @@ watch(
 
                         <div class="flex gap-1">
                           <span v-for="lang in quiz.languages" :key="lang.name"
-                            class="w-6 h-6 rounded-lg p-1 bg-white/10 flex items-center justify-center"
-                            :title="lang.name">
-                            {{ lang.iso_code }}
+                            class="w-fit h-fit rounded-lg p-1 bg-white/10 flex flex-row" :title="lang.name">
+                            {{ lang.icon }} {{ lang.name }}
                           </span>
                         </div>
 
@@ -483,169 +483,177 @@ watch(
           </div>
         </div>
       </div>
-      <div v-if="showPasswordModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
-          <div class="flex justify-between items-center mb-6">
-            <div class="flex justify-evenly flex-row">
-              <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
-              <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
+      <transition name="fade">
+        <div v-if="showPasswordModal"
+          class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex justify-evenly flex-row">
+                <h3 class="text-2xl font-bold text-white">Jelszó változtatás</h3>
+                <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
+              </div>
+              <XButton @click="closePasswordModal" />
             </div>
-            <XButton @click="closePasswordModal"/>
-          </div>
-          <form @submit.prevent="
-            handlePasswordChange(
-              userPw.new_password,
-              userPw.confirm_password,
-              userPw.current_password,
-            )
-            " class="space-y-4 text-white">
-            <div>
-              <input type="password" placeholder="Jelenlegi jelszó" v-model="userPw.current_password"
-                class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
-            </div>
-            <div>
-              <input type="password" placeholder="Új jelszó" v-model="userPw.new_password"
-                class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
-            </div>
-            <div>
-              <input type="password" placeholder="Új jelszó megerősítése" v-model="userPw.confirm_password"
-                class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
-            </div>
-            <button type="submit"
-              class="glass-button px-4 py-3 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-              Jelszó módosítása
-            </button>
-          </form>
-        </div>
-      </div>
-      <div v-if="isDeleteModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
-          <div class="flex justify-between items-center mb-6">
-            <div class="flex justify-evenly flex-row">
-              <h3 class="text-2xl font-bold text-white">Biztosan szeretnéd törölni a quizt?</h3>
-            </div>
-             <XButton @click="isDeleteModal = !isDeleteModal"/>
-          </div>
-          <form @submit.prevent="onDelete(selectedUuid)" class="flex text-white gap-2">
-            <button type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-              <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                    fill="none" />
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </span>
-              <span v-else> Igen </span>
-            </button>
-            <button type="button" @click="isDeleteModal = !isDeleteModal"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
-              Nem
-            </button>
-          </form>
-        </div>
-      </div>
-      <div v-if="isDeleteApiKey"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
-          <div class="flex justify-between items-center mb-6">
-            <div class="flex justify-evenly flex-row">
-              <h3 class="text-2xl font-bold text-white">
-                Biztosan szeretnéd törölni az API kulcsot?
-              </h3>
-            </div>
-            <XButton @click="isDeleteApiKey = !isDeleteApiKey"/>
-          </div>
-          <form @submit.prevent="onDeleteApiKey(keyId)" class="flex text-white gap-2">
-            <button type="submit"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-              <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                    fill="none" />
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </span>
-              <span v-else> Igen </span>
-            </button>
-            <button type="button" @click="(isDeleteApiKey = !isDeleteApiKey, isApiModal = true)"
-              class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
-              Nem
-            </button>
-          </form>
-        </div>
-      </div>
-      <div v-if="isApiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div v-if="isLoadingApiKeys" class="min-h-screen flex justify-center items-center">
-          <div class="flex justify-center items-center h-64">
-            <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+            <form @submit.prevent="
+              handlePasswordChange(
+                userPw.new_password,
+                userPw.confirm_password,
+                userPw.current_password,
+              )
+              " class="space-y-4 text-white">
+              <div>
+                <input type="password" placeholder="Jelenlegi jelszó" v-model="userPw.current_password"
+                  class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
+              </div>
+              <div>
+                <input type="password" placeholder="Új jelszó" v-model="userPw.new_password"
+                  class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
+              </div>
+              <div>
+                <input type="password" placeholder="Új jelszó megerősítése" v-model="userPw.confirm_password"
+                  class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
+              </div>
+              <button type="submit"
+                class="glass-button px-4 py-3 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+                Jelszó módosítása
+              </button>
+            </form>
           </div>
         </div>
-        <div v-else class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
-          <div class="flex justify-between items-center mb-6">
-            <div class="flex justify-evenly flex-row">
-              <h3 class="text-2xl font-bold text-white">API kulcs igénylés</h3>
+      </transition>
+      <transition name="fade">
+        <div v-if="isDeleteModal"
+          class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex justify-evenly flex-row">
+                <h3 class="text-2xl font-bold text-white">Biztosan szeretnéd törölni a quizt?</h3>
+              </div>
+              <XButton @click="isDeleteModal = !isDeleteModal" />
             </div>
-            <XButton @click="isApiModal = false"/>
+            <form @submit.prevent="onDelete(selectedUuid)" class="flex text-white gap-2">
+              <button type="submit"
+                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+                <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                      fill="none" />
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </span>
+                <span v-else> Igen </span>
+              </button>
+              <button type="button" @click="isDeleteModal = !isDeleteModal"
+                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+                Nem
+              </button>
+            </form>
           </div>
-          <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-4">
-            <input type="text" v-model="description" placeholder="Leírás" class="bg-white/10 p-2 rounded-md" />
-            <input type="datetime-local" v-model="expiration" :min="minDateTime" class="bg-white/10 p-2 rounded-md" />
-            <div v-if="apiKey" class="flex flex-row gap-2 justify-center items-center w-full">
-              <div class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent
+        </div>
+      </transition>
+      <transition name="fade">
+        <div v-if="isDeleteApiKey"
+          class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex justify-evenly flex-row">
+                <h3 class="text-2xl font-bold text-white">
+                  Biztosan szeretnéd törölni az API kulcsot?
+                </h3>
+              </div>
+              <XButton @click="isDeleteApiKey = !isDeleteApiKey" />
+            </div>
+            <form @submit.prevent="onDeleteApiKey(keyId)" class="flex text-white gap-2">
+              <button type="submit"
+                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+                <span v-if="isLoadingDelete" class="inline-block animate-spin mr-2">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                      fill="none" />
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </span>
+                <span v-else> Igen </span>
+              </button>
+              <button type="button" @click="(isDeleteApiKey = !isDeleteApiKey, isApiModal = true)"
+                class="glass-button px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-red-900">
+                Nem
+              </button>
+            </form>
+          </div>
+        </div>
+      </transition>
+      <transition name="fade">
+        <div v-if="isApiModal" class="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
+          <div v-if="isLoadingApiKeys" class="min-h-screen flex justify-center items-center">
+            <div class="flex justify-center items-center h-64">
+              <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+            </div>
+          </div>
+          <div v-else class="bg-white/10 backdrop-blur-md p-8 rounded-2xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex justify-evenly flex-row">
+                <h3 class="text-2xl font-bold text-white">API kulcs igénylés</h3>
+              </div>
+              <XButton @click="isApiModal = false" />
+            </div>
+            <form @submit.prevent="genApiKey" class="flex flex-col text-white gap-4">
+              <input type="text" v-model="description" placeholder="Leírás" class="bg-white/10 p-2 rounded-md" />
+              <input type="datetime-local" v-model="expiration" :min="minDateTime" class="bg-white/10 p-2 rounded-md" />
+              <div v-if="apiKey" class="flex flex-row gap-2 justify-center items-center w-full">
+                <div class="px-4 py-1 rounded-md bg-white/10 backdrop-blur-md border-2 border-transparent
                  hover:border-white text-white break-all shadow-lg transition-all duration-300
                   hover:bg-white/20 flex gap-2 items-center cursor-pointer" @click="copyText(apiKey)">
-                Generált kulcs másolása
-              </div>
-            </div>
-            <button type="submit" :disabled="apiKeys?.length === 10"
-              class="px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full bg-green-900 hover:bg-green-700"
-              :class="{ 'opacity-50 cursor-not-allowed hover:bg-green-900 hover:opacity-50 hover:cursor-not-allowed': apiKeys?.length === 10 }">
-              <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                    fill="none" />
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </span>
-              <span v-else>Generálás</span>
-            </button>
-          </form>
-
-          <div class="mt-8">
-            <h4 class="text-xl font-semibold text-white mb-4">
-              API Kulcsaid: {{ apiKeys?.length }}
-            </h4>
-            <div class="space-y-2 h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar p-2">
-              <div v-for="key in apiKeys" :key="key.key"
-                class="flex justify-between items-center bg-white/10 p-3 rounded-md">
-                <div>
-                  <p class="text-white font-medium">Leírás: {{ key.description }}</p>
-                  <div class="flex items-center">
-                    <p class="text-white text-sm">
-                      Kulcs:
-                      <span class="text-white">
-                        {{ key.key }}
-                      </span>
-                    </p>
-                  </div>
-                  <p class="text-white/70 text-sm">Lejár: {{ key.expires_at }}</p>
+                  Generált kulcs másolása
                 </div>
-                <span
-                  class="flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300 text-white cursor-pointer"
-                  @click="((isDeleteApiKey = true), (keyId = key.id_by_user), (isApiModal = false))">
-                  <Trash2 class="w-5 h-5" />
-                </span>
               </div>
+              <button type="submit" :disabled="apiKeys?.length === 10"
+                class="px-4 py-2 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full bg-green-900 hover:bg-green-700"
+                :class="{ 'opacity-50 cursor-not-allowed hover:bg-green-900 hover:opacity-50 hover:cursor-not-allowed': apiKeys?.length === 10 }">
+                <span v-if="isLoadingKey" class="inline-block animate-spin mr-2">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                      fill="none" />
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </span>
+                <span v-else>Generálás</span>
+              </button>
+            </form>
+
+            <div class="mt-8" v-if="apiKeys && apiKeys.length > 0">
+              <h4 class="text-xl font-semibold text-white mb-4">
+                API Kulcsaid: {{ apiKeys.length }}
+              </h4>
+              <transition-group name="list" tag="div"
+                class="space-y-2 max-h-[calc(100vh-80vh)] h-fit overflow-y-auto custom-scrollbar p-2">
+                <div v-for="key in apiKeys" :key="key.key"
+                  class="flex justify-between items-center bg-white/10 p-3 rounded-md">
+                  <div>
+                    <p class="text-white font-medium">Leírás: {{ key.description }}</p>
+                    <div class="flex items-center">
+                      <p class="text-white text-sm">
+                        Kulcs:
+                        <span class="text-white">{{ key.key }}</span>
+                      </p>
+                    </div>
+                    <p class="text-white/70 text-sm">Lejár: {{ key.expires_at }}</p>
+                  </div>
+                  <span
+                    class="flex rounded-full text-xs bg-red-700 w-10 h-10 justify-center items-center border-2 border-transparent hover:border-white transition-all duration-300 text-white cursor-pointer"
+                    @click="((isDeleteApiKey = true), (keyId = key.id_by_user), (isApiModal = false))">
+                    <Trash2 class="w-5 h-5" />
+                  </span>
+                </div>
+              </transition-group>
             </div>
+
           </div>
         </div>
-      </div>
+      </transition>
     </div>
   </Transition>
 </template>
@@ -718,5 +726,30 @@ button {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.list-move {
+  transition: transform 0.3s ease;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

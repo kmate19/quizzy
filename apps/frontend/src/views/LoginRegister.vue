@@ -13,7 +13,7 @@ import { userData } from '@/utils/functions/profileFunctions'
 const queryClient = useQueryClient()
 
 const isLoginForm = ref(true)
-const cardHeight = ref(0)
+
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -145,6 +145,8 @@ const showPassword = ref(false)
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
+
+const cardHeight = ref(0)
 
 const updateCardHeight = () => {
   nextTick(() => {

@@ -133,3 +133,10 @@ export type Game = {
   cards: Question[];
 }
 
+export type ApiKey = {
+  id_by_user: number
+  key: string
+  created_at: string
+  expires_at: string
+}
+

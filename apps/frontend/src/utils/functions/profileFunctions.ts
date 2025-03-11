@@ -294,5 +294,7 @@ export const listApiKeys = async () => {
     return res.data.sort(
       (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
     )
+  }else {
+    return []
   }
 }

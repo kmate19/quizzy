@@ -23,8 +23,6 @@ router.afterEach(() => {
 const componentName = ref('');
 
 const handlePath = (routeName: string) => {
-  if (!routeName) return 'Kezdőlap';
-
   switch (routeName) {
     case 'home':
       return 'Kezdőlap';
@@ -213,7 +211,8 @@ const joinLobby = async (code: string) => {
 .fade-leave-to {
   opacity: 0;
 }
-/* existing style*/
+
+
 .outlined-text {
   text-shadow:
     -1px -1px 0 black,
