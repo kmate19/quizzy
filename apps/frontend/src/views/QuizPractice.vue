@@ -92,14 +92,6 @@ const showResultAndProceed = () => {
     }, 500)//meddig van a result elott ido
 }
 
-const restartGame = () => {
-    currentQuestionIndex.value = 0
-    score.value = 0
-    preGameTimer.value = 5
-    userAnswers.value = []
-    gamePhase.value = 'pre-game'
-    startPreGameTimer()
-}
 
 const getBaseButtonColor = (index: number) => {
     const colors = [
@@ -111,16 +103,7 @@ const getBaseButtonColor = (index: number) => {
     return colors[index]
 }
 
-onMounted(async () => {
-    const route = useRoute()
-    const quizId = route.params.uuid.toString()
-    const res = await getGameQuiz(quizId)
 
-    if (res)
-        quiz.value = res
-    gamePhase.value = 'pre-game'
-    startPreGameTimer()
-})
 
 onUnmounted(() => {
     stopTimer()
@@ -146,6 +129,55 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
     ].join(" ");
     return d;
 };
+
+const shuffleArray = <T>(array: T[]): T[] => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+};
+
+const shuffledAnswers = ref<Array<{ answer: string; originalIndex: number }[]>>([]);
+
+const shuffleAnswers = () => {
+    if (!quiz.value?.cards) return;
+
+    shuffledAnswers.value = quiz.value.cards.map(card => {
+        const answersWithIndices = card.answers.map((answer, index) => ({
+            answer,
+            originalIndex: index
+        }));
+
+        return shuffleArray([...answersWithIndices]);
+    });
+};
+
+const restartGame = () => {
+    currentQuestionIndex.value = 0
+    score.value = 0
+    preGameTimer.value = 5
+    userAnswers.value = []
+    gamePhase.value = 'pre-game'
+    shuffleAnswers()
+    startPreGameTimer()
+}
+
+onMounted(async () => {
+    const route = useRoute()
+    const quizId = route.params.uuid.toString()
+    const res = await getGameQuiz(quizId)
+
+    if (res)
+        quiz.value = res
+    gamePhase.value = 'pre-game'
+    shuffleAnswers()
+    console.log(shuffledAnswers.value)
+    startPreGameTimer()
+})
+
+
 </script>
 
 <template>
@@ -158,6 +190,22 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
         <div class="absolute inset-0 flex justify-center items-center w-full pl-2 pr-2">
             <div class=" flex items-center justify-center flex-col gap-2">
                 <transition name="fade-slide" mode="out-in" appear>
+                    <div v-if="gamePhase === 'question' || gamePhase === 'results'"
+                        class="w-1/4 rounded-full h-4 mb-4 flex fixed top-20 z-50 ">
+                        <div class="flex w-full space-x-1">
+                            <div v-for="index in quiz?.cards.length" :key="index"
+                                class="h-4 flex-1 rounded-full overflow-hidden">
+                                <div class="h-full transition-all duration-300 rounded-full" :class="{
+                                    'bg-green-500 border-1 border-gray-300': index - 1 < currentQuestionIndex,
+                                    'bg-blue-500 border-1 border-gray-300': index - 1 === currentQuestionIndex,
+                                    'bg-transparent border-1 border-gray-300': index - 1 > currentQuestionIndex
+                                }">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
+                <transition name="fade-slide" mode="out-in" appear>
                     <div v-if="gamePhase === 'pre-game'" class="text-center space-y-4" key="pre-game">
                         <h2 class="text-white text-3xl font-bold mb-4">A gyakorlás hamarosan kezdődik!</h2>
                         <div class="text-white text-6xl font-bold" :key="preGameTimer">
@@ -165,17 +213,18 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                         </div>
                     </div>
                     <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl" key="question">
-                        <div class="w-full rounded-full h-4 mb-4 flex">
-                            <div v-for="(card, index) in quiz?.cards" :key="index" class="h-4 flex-1 rounded-full mr-1" :class="{
-                                'bg-green-500': index < currentQuestionIndex,
-                                'bg-blue-500': index === currentQuestionIndex,
-                                'bg-gray-300': index > currentQuestionIndex
-                            }">
-                            </div>
-                        </div>
+
                         <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg">
-                            <div class="flex justify-between items-center m-4 px-4">
-                                <div class="text-2xl font-bold text-white">Idő: {{ timer }}mp</div>
+                            <div class="flex justify-center items-center m-4 px-4 top-4 right-0 absolute z-50">
+                                <svg class="w-12 h-12" viewBox="0 0 48 48">
+                                    <circle cx="24" cy="24" r="20" :fill="timer === 10 ? 'rgba(65, 105, 225, 0.9)' : 'white'" stroke="black" stroke-width="2" />
+
+                                    <path :d="'M24,24 L24,4 A20,20 0 ' + (timer <= 5 ? 0 : 1) + ',1 ' +
+                                        (24 + 20 * Math.sin(2 * Math.PI * timer / 10)) + ',' +
+                                        (24 - 20 * Math.cos(2 * Math.PI * timer / 10)) + ' Z'" fill="rgba(65, 105, 225, 0.9)" />
+                                    <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="24"
+                                        font-weight="bold" class="z-50">{{ timer }}</text>
+                                </svg>
                             </div>
 
                             <div class="p-6 mb-4">
@@ -189,17 +238,17 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                                 'grid gap-4',
                                 currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
                             ]">
-                                <button v-for="(answer, index) in currentQuestion?.answers" :key="index" :class="[
-                                    'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
-                                    getBaseButtonColor(index),
-                                ]" :disabled="answerSelected" @click="selectAnswer(index)">
-                                    {{ answer }}
+                                <button v-for="(answerObj, index) in shuffledAnswers[currentQuestionIndex]" :key="index"
+                                    :class="[
+                                        'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+                                        getBaseButtonColor(answerObj.originalIndex),
+                                    ]" :disabled="answerSelected" @click="selectAnswer(answerObj.originalIndex)">
+                                    {{ answerObj.answer }}
                                 </button>
                             </transition-group>
                         </div>
                     </div>
-                    <div v-else-if="gamePhase === 'completed'"
-                        class="text-center space-y-6 text-white w-full mx-auto p-4 min-h-[calc(100vh-10vh)] min-w-[calc(100vw-10vw)]
+                    <div v-else-if="gamePhase === 'completed'" class="text-center space-y-6 text-white w-full mx-auto p-4 min-h-[calc(100vh-10vh)] min-w-[calc(100vw-10vw)]
                         lg:min-w-[calc(100vw-30vw)] lg:min-h-[calc(100vh-20vh)] flex items-center justify-center">
                         <div class="bg-white/10 rounded-3xl shadow-lg p-6 md:p-8 mb-4 flex flex-col items-center gap-2 w-full max-w-[95%] md:max-w-[90%] lg:max-w-[85%]
                         lg:max-h-[calc(100vh-20vh)]">
@@ -210,7 +259,7 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                                         fill="green" />
                                     <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" fill="white"
                                         class="text-xl md:text-2xl lg:text-3xl font-bold">{{ score }}/{{
-                                        quiz?.cards.length }}</text>
+                                            quiz?.cards.length }}</text>
                                 </svg>
                             </div>
                             <div class="flex justify-center mb-4 flex-wrap">
@@ -232,18 +281,19 @@ const describeArc = (x: number, y: number, radius: number, startAngle: number, e
                                         }}</p>
                                     <ul class="text-left list-disc pl-5 space-y-0.5 md:space-y-1 flex sm:flex-row sm:justify-evenly sm:flex-wrap 
                                     flex-col items-center gap-2">
-                                        <li v-for="(answer, aIndex) in card.answers" :key="aIndex" class="w-fit" :class="[
-                                            aIndex === card.correct_answer_index
-                                                ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
-                                                : aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index
-                                                    ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
-                                                    : 'text-gray-200 font-bold'
-                                        ]">
-                                            {{ answer }}
-                                            <span v-if="aIndex === card.correct_answer_index"
+                                        <li v-for="(answerObj, aIndex) in shuffledAnswers[qIndex]" :key="aIndex"
+                                            class="w-fit" :class="[
+                                                answerObj.originalIndex === card.correct_answer_index
+                                                    ? 'text-white font-bold bg-green-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
+                                                    : answerObj.originalIndex === userAnswers[qIndex] && answerObj.originalIndex !== card.correct_answer_index
+                                                        ? 'text-white font-bold bg-red-600/80 backdrop-blur-sm p-0.5 md:p-1 rounded'
+                                                        : 'text-gray-200 font-bold'
+                                            ]">
+                                            {{ answerObj.answer }}
+                                            <span v-if="answerObj.originalIndex === card.correct_answer_index"
                                                 class="ml-0.5 md:ml-1">✓</span>
                                             <span
-                                                v-if="aIndex === userAnswers[qIndex] && aIndex !== card.correct_answer_index"
+                                                v-if="answerObj.originalIndex === userAnswers[qIndex] && answerObj.originalIndex !== card.correct_answer_index"
                                                 class="ml-0.5 md:ml-1">✗</span>
                                         </li>
                                     </ul>
