@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { Loader2Icon, Search } from 'lucide-vue-next'
+import { Loader2Icon, Search, ChevronDown } from 'lucide-vue-next'
 import CategoriesButton from '@/components/CategoriesBtn.vue'
 import QuizCard from '@/components/QuizCard.vue'
 import type { quizCardView } from '@/utils/type'
@@ -23,6 +23,41 @@ const currentPage = ref(1)
 const limit = ref(10) // minimum 10
 const totalPages = ref(0)
 const showFullPages = ref(false)
+
+
+const showDropdown = ref(false)
+const selectedLimit = ref(10)
+
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+
+}
+
+const selectOption = (value: number) => {
+  selectedLimit.value = value
+  limit.value = value
+  showDropdown.value = false
+  handleLimitChange()
+}
+
+const handleLimitChange = async () => {
+  console.log(selectedLimit.value)
+  console.log(limit.value)
+  loading.value = true
+  currentPage.value = 1
+  selectParams()
+  const res = await getQuizzes(
+    params.limit,
+    params.page,
+    params.strict,
+    params.tags,
+    params.languages,
+    params.searchText
+  );
+  quizzes.value = res.quizzes
+  totalPages.value = Math.ceil(res.totalPages / 10)
+  loading.value = false
+}
 
 interface FilterPayload {
   tags: string[]
@@ -78,7 +113,7 @@ const handleSave = async (payload: FilterPayload) => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages/10)
+  totalPages.value = Math.ceil(res.totalPages / 10)
   loading.value = false
 }
 
@@ -113,7 +148,7 @@ const doSearch = async () => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages/10)
+  totalPages.value = Math.ceil(res.totalPages / 10)
   loading.value = false
 }
 
@@ -132,16 +167,16 @@ const nextPage = async () => {
     loading.value = true
     currentPage.value++
     selectParams()
-  const res = await getQuizzes(
-    params.limit,
-    params.page,
-    params.strict,
-    params.tags,
-    params.languages,
-    params.searchText
-  );
+    const res = await getQuizzes(
+      params.limit,
+      params.page,
+      params.strict,
+      params.tags,
+      params.languages,
+      params.searchText
+    );
     quizzes.value = res.quizzes
-    totalPages.value = Math.ceil(res.totalPages/10)
+    totalPages.value = Math.ceil(res.totalPages / 10)
     loading.value = false
   }
 }
@@ -151,16 +186,16 @@ const prevPage = async () => {
     loading.value = true
     currentPage.value--
     selectParams()
-  const res = await getQuizzes(
-    params.limit,
-    params.page,
-    params.strict,
-    params.tags,
-    params.languages,
-    params.searchText
-  );
+    const res = await getQuizzes(
+      params.limit,
+      params.page,
+      params.strict,
+      params.tags,
+      params.languages,
+      params.searchText
+    );
     quizzes.value = res.quizzes
-    totalPages.value = Math.ceil(res.totalPages/10)
+    totalPages.value = Math.ceil(res.totalPages / 10)
     loading.value = true
   }
 }
@@ -170,19 +205,20 @@ const goToPage = async (page: number) => {
     loading.value = true
     currentPage.value = page
     selectParams()
-  const res = await getQuizzes(
-    params.limit,
-    params.page,
-    params.strict,
-    params.tags,
-    params.languages,
-    params.searchText
-  );
+    const res = await getQuizzes(
+      params.limit,
+      params.page,
+      params.strict,
+      params.tags,
+      params.languages,
+      params.searchText
+    );
     quizzes.value = res.quizzes
-    totalPages.value = Math.ceil(res.totalPages/10)
+    totalPages.value = Math.ceil(res.totalPages / 10)
     loading.value = false
   }
 }
+
 
 const displayedPages = computed<(number | 'ellipsis')[]>(() => {
   const total = totalPages.value
@@ -216,13 +252,13 @@ onMounted(async () => {
   totalPages.value = Math.ceil(res.totalPages / 10)
   const username = route.query.username
   if (username) {
-    toast(`Sikeres bejelentkezés!\nÜdvözöljük ${username}!`,{
+    toast(`Sikeres bejelentkezés!\nÜdvözöljük ${username}!`, {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'success',
       transition: 'zoom',
       pauseOnHover: false,
-    }as ToastContainerOptions)
+    } as ToastContainerOptions)
   }
   loading.value = false
 })
@@ -248,7 +284,33 @@ onMounted(async () => {
           </div>
           <CategoriesButton @save="handleSave" />
         </div>
+
+        <div class="mt-4 md:mt-0 relative" v-click-outside="toggleDropdown">
+          <div @click="toggleDropdown" class="glass-button px-4 py-2 rounded-full transition-all duration-300 cursor-pointer 
+          !bg-white/10 flex items-center justify-center">
+            <span class="text-white mr-2">Quiz / oldal: {{ selectedLimit }}</span>
+            <ChevronDown class="h-4 w-4 text-white transition-all duration-300"
+              :class="{ 'transform rotate-180': showDropdown }" />
+          </div>
+
+          <transition enter-active-class="transition ease-out duration-300" enter-from-class="opacity-0"
+            enter-to-class="opacity-100" leave-active-class="transition ease-in duration-300"
+            leave-from-class="opacity-100" leave-to-class="opacity-0">
+
+            <div v-if="showDropdown"
+              class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 rounded-lg shadow-lg z-50 overflow-hidden backdrop-blur-2xl bg-gray-500">
+              <div class="py-2 px-2">
+                <div v-for="option in [10, 20, 30, 50]" :key="option" @click="selectOption(option)"
+                  class="py-2 px-4 my-1 text-center text-white rounded-lg transition-all duration-300
+                  ease-in-out cursor-pointer bg-white/10 backdrop-blur-md hover:bg-opacity-20 hover:-translate-y-0.5 hover:shadow-md" :class="{ 'selected-option': selectedLimit === option }">
+                  {{ option }}
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
       </div>
+
       <div v-if="loading" class="flex justify-center items-center h-64">
         <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       </div>
@@ -286,8 +348,10 @@ onMounted(async () => {
                 enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0"
                 leave-active-class="transition ease-in-out duration-500" leave-from-class="opacity-100 translate-y-0"
                 leave-to-class="opacity-0 translate-y-4">
-                <div v-if="showFullPages" @mouseleave="showFullPages = false"
-                  class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar w-48 p-4 bg-white/10 shadow-lg rounded-lg z-10 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-white backdrop-blur-2xl">
+                <div v-if="showFullPages" @mouseleave="showFullPages = false" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar w-48 p-4
+                   bg-white/10 shadow-lg rounded-lg z-10
+                   after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 
+                   after:border-8 after:border-transparent after:border-t-white backdrop-blur-2xl">
                   <div class="grid grid-cols-5 gap-2">
                     <button v-for="page in totalPagesArray" :key="page"
                       @click="(goToPage(page), (showFullPages = false))"
@@ -310,7 +374,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-
 .glass-button {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -367,5 +430,12 @@ onMounted(async () => {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.5);
+}
+
+
+
+.selected-option {
+  background: rgba(59, 130, 246, 0.5);
+  border: 1px solid white;
 }
 </style>
