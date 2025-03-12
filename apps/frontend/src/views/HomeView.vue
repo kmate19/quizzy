@@ -285,7 +285,7 @@ onMounted(async () => {
           <CategoriesButton @save="handleSave" />
         </div>
 
-        <div class="mt-4 md:mt-0 relative" v-click-outside="toggleDropdown">
+        <div class="mt-4 md:mt-0 relative" v-click-outside="()=>{showDropdown = false}">
           <div @click="toggleDropdown" class="glass-button px-4 py-2 rounded-full transition-all duration-300 cursor-pointer 
           !bg-white/10 flex items-center justify-center">
             <span class="text-white mr-2">Quiz / oldal: {{ selectedLimit }}</span>

@@ -61,7 +61,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/quiz/multiplayer/:uuid',
+      path: '/quiz/multiplayer/:lobbyId',
       name: 'quiz_multiplayer',
       component: GameView,
       meta: {

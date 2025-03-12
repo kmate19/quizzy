@@ -6,8 +6,6 @@ import { Loader2Icon } from 'lucide-vue-next'
 import type { detailedQuiz } from '@/utils/type'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
-import { userData } from '@/utils/functions/profileFunctions'
-import { useQuery } from '@tanstack/vue-query'
 import { generateSessionHash } from '@/utils/helpers'
 
 const route = useRoute()
@@ -28,11 +26,6 @@ onMounted(async () => {
   }
 })
 
-const { data: creator } = useQuery({
-  queryKey: ['userProfile', ''],
-  queryFn: () => userData(''),
-})
-
 const toggleQuestion = (index: number) => {
   expandedQuestions.value[index] = !expandedQuestions.value[index]
 }
@@ -43,42 +36,51 @@ const handleTestPlay = () => {
   router.push(`/quiz/practice/${uuid}`)
 }
 
+const isCreatingLobby = ref(false)
+
 const createLobby = async () => {
-  console.log('creator username', creator.value?.username)
-  const first = await wsclient.reserve.session[':code?'].$post({
-    param: { code: '' },
-    query: { ts: Date.now().toString() },
-  })
-  console.log('first', first.status)
-  if (first.status === 200) {
-    const first_data = await first.json()
-    console.log('Received code:', first_data.code)
-    const hash = await generateSessionHash(first_data.code, 'asd')
-    console.log('Generated hash:', hash)
-    const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
-      param: { lobbyid: first_data.code, hash: hash },
-    })
-    if (ws.readyState === 1) {
-      console.log('WebSocket connection is open.')
+  try {
+    isCreatingLobby.value = true;
+    console.log('Creating new lobby');
+    
+    // Request a new lobby from the server
+    const sessionResponse = await wsclient.reserve.session[':code?'].$post({
+      param: { code: '' }, // empty = create new lobby
+      query: { ts: Date.now().toString() },
+    });
+    
+    console.log('Session response status:', sessionResponse.status);
+    
+    if (sessionResponse.status === 200) {
+      const sessionData = await sessionResponse.json();
+      
+      if (!sessionData.code) {
+        throw new Error('Failed to create lobby - no code returned');
+      }
+      
+      console.log('Lobby created with code:', sessionData.code);
+      const hash = await generateSessionHash(sessionData.code, 'asd');
+
+      const data ={
+        quizId: uuid,
+        lobbyId: sessionData.code,
+        hash: hash,
+        isHost: true
+      }
+
+      localStorage.setItem('quizzyWebSocket', JSON.stringify(data));
+
+      isCreatingLobby.value = false;
+      router.push(`/quiz/multiplayer/${sessionData.code}`);
     } else {
-      console.log('WebSocket connection not open, state:', ws.readyState)
+      throw new Error('Server returned an error when creating lobby');
     }
-    ws.addEventListener('open', () => {
-      console.log('WebSocket connection is open')
-    })
-    ws.addEventListener('message', (event) => {
-      console.log('Message from server:', event.data)
-    })
-    ws.addEventListener('error', (error) => {
-      console.error('WebSocket error:', error)
-    })
-    ws.addEventListener('close', (event) => {
-      console.log('WebSocket closed:', event)
-    })
-  } else {
-    console.log('Lobby creation process failed.')
+  } catch (error) {
+    console.error('Error creating lobby:', error);
+    isCreatingLobby.value = false;
+    console.log('Failed to create lobby. Please try again.');
   }
-}
+};
 </script>
 
 <template>
@@ -165,9 +167,10 @@ const createLobby = async () => {
             </button>
             <button
               @click="createLobby"
+              :disabled="isCreatingLobby"
               class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-2xl"
             >
-              Többjátékos
+              {{ isCreatingLobby ? 'Létrehozás...' : 'Többjátékos' }}
             </button>
           </div>
         </div>

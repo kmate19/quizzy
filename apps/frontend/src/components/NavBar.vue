@@ -65,40 +65,61 @@ onMounted(() => {
 })
 
 const joinLobby = async (code: string) => {
-  const first = await wsclient.reserve.session[':code?'].$post({
-    param: { code: code },
-    query: { ts: Date.now().toString() },
-  })
-  if (first.status === 200) {
-    const first_data = await first.json()
-    console.log('Received code:', first_data.code)
-    const hash = await generateSessionHash(first_data.code, 'asd')
-    console.log('Generated hash:', hash)
-    const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
-      param: { lobbyid: first_data.code, hash: hash },
-    })
-    if (ws.readyState === 1) {
-      console.log('WebSocket connection is open.')
+  if (!code || code.trim() === '') {
+    console.log('Please enter a valid lobby code');
+    return;
+  }
+  
+  try {
+    isLoading.value = true;
+    console.log('Attempting to join lobby with code:', code);
+    
+    const first = await wsclient.reserve.session[':code?'].$post({
+      param: { code: code.trim() },
+      query: { ts: Date.now().toString() },
+    });
+    
+    console.log('Session check response status:', first.status);
+    
+    if (first.status === 200) {
+      const first_data = await first.json();
+      
+      if (!first_data.code) {
+        isLoading.value = false;
+        console.log('Invalid lobby response from server');
+        return;
+      }
+      
+      console.log('Lobby exists with code:', first_data.code);
+      const hash = await generateSessionHash(first_data.code, 'asd');
+      
+      // Store connection info BEFORE establishing connection
+      // This is important so GameView can pick it up
+      localStorage.setItem('quizzyWebSocket', JSON.stringify({
+        lobbyId: first_data.code,
+        hash: hash,
+        timestamp: Date.now(),
+        heartbeatInterval: 30000
+      }));
+      
+      // Navigate to game view which will handle the actual connection
+      isCodeModal.value = false;
+      isLoading.value = false;
+      console.log("minden lement jol")
+      router.push(`/quiz/multiplayer/${first_data.code}`);
     } else {
-      console.log('WebSocket connection not open, state:', ws.readyState)
+      // The server returns 400 when lobby doesn't exist
+      const errorMsg = 'Lobby does not exist with this code';
+      console.error(errorMsg);
+      isLoading.value = false;
+      console.log(errorMsg);
     }
-    ws.addEventListener('open', () => {
-      console.log('WebSocket connection is open')
-    })
-    ws.addEventListener('message', (event) => {
-      console.log('Message from server:', event.data)
-    })
-    ws.addEventListener('error', (error) => {
-      console.error('WebSocket error:', error)
-    })
-    ws.addEventListener('close', (event) => {
-      console.log('WebSocket closed:', event)
-    })
-  } else {
-    console.log('Connecting process failed.')
+  } catch (error) {
+    console.error('Error joining lobby:', error);
+    isLoading.value = false;
+    console.log('Failed to join the lobby. Network error or server issue.');
   }
 }
-
 </script>
 
 <template>
@@ -190,7 +211,7 @@ const joinLobby = async (code: string) => {
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
-          <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
+          <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable" 
             class="w-full text-white"></v-text-field>
           <button @click="joinLobby(lobbyCode)" class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out
             cursor-pointer w-full !bg-green-900">
