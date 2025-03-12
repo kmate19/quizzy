@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Windows.Documents;
+using System.Windows.Input;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.Quiz;
@@ -13,6 +13,7 @@ namespace localadmin.ViewModels
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
+        private int _currentPage = 1;
 
         private Dictionary<Quiz.EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
         {
@@ -22,6 +23,22 @@ namespace localadmin.ViewModels
             {EQuizStatus.Private, 4 }
         };
 
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set { 
+                _currentPage = value; 
+                OnPropertyChanged();
+            }
+        }
+
+
+        public ICommand PreviousPageCommand { get; }
+        public ICommand NextPageCommand { get; }
+
+        public bool CanGoPrevious => CurrentPage > 1;
+        public bool CanGoNext => CurrentPage < 50;
+
         public ObservableCollection<Quiz> Quizzes { get; set; } = new();
         public ObservableCollection<Quiz> FiltredQuizzes { get; set; } = new();
 
@@ -30,18 +47,20 @@ namespace localadmin.ViewModels
         {
             NavigationService=Navigation;
             SharedState = State;
+            PreviousPageCommand = new RelayCommand(PreviousPage);
+            NextPageCommand = new RelayCommand(NextPage);
 
-            _= InitializeAsync();
+            _ = InitializeAsync();
 
         }
         public async Task InitializeAsync()
         {
-            await GetQuizes();
+            await GetQuizes(CurrentPage);
         }
 
-        public async Task GetQuizes()
+        public async Task GetQuizes(int page)
         {
-            var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync();
+            var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync(CurrentPage);
             Quizzes.Clear();
             FiltredQuizzes.Clear();
 
@@ -53,18 +72,17 @@ namespace localadmin.ViewModels
                 quiz.QuizCards = await LoadQuizCards(quiz.UUID);
             }
 
+            FiltredQuizzes.OrderBy(q => QuizOrder.ContainsKey(q.Status) ? QuizOrder[q.Status] : int.MaxValue);
+
             OnPropertyChanged(nameof(Quizzes));
             OnPropertyChanged(nameof(FiltredQuizzes));
-            Debug.WriteLine($"Fetched {Quizzes.Count} quizes.");
         }
 
         private async Task<List<QuizCard>> LoadQuizCards(string quizId)
         {
             var quizCards = await ApiQuizzesService.GetQuizCardsByIdAsync(quizId, Quizzes);
 
-            if (quizCards.Any())
-                Debug.WriteLine($"Loaded {quizCards.Count} Quiz Cards");
-            else
+            if (!quizCards.Any())
                 Debug.WriteLine("No quiz cards found.");
 
             return quizCards;
@@ -79,6 +97,28 @@ namespace localadmin.ViewModels
             {
                 FiltredQuizzes.Add(quiz);
             } 
+        }
+
+        private async void PreviousPage(object parameter)
+        {
+            if (CanGoPrevious)
+            {
+                CurrentPage--;
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CanGoNext));
+                await GetQuizes(CurrentPage);
+            }
+        }
+
+        private async void NextPage(object parameter)
+        {
+            if (CanGoNext)
+            {
+                CurrentPage++;
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CanGoPrevious));
+                await GetQuizes(CurrentPage);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:localadmin.Views"
         mc:Ignorable="d"
-        Title="APIKeyWindow" Height="250" Width="400"
+        Title="" Height="250" Width="400"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <StackPanel Margin="0, 50, 0, 0">

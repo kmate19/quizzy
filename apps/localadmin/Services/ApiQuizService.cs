@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
@@ -18,7 +17,7 @@ public static class ApiQuizzesService
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
-    public static async Task<ObservableCollection<Quiz>> GetQuizzesAsync(int page = 1, int limit = 20)
+    public static async Task<ObservableCollection<Quiz>> GetQuizzesAsync(int page, int limit = 20)
     {
         string url = $"http://localhost:3000/api/v1/quizzes?page={page}&limit={limit}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
@@ -82,6 +81,7 @@ public static class ApiQuizzesService
                                     ?? new List<QuizCard>();
                     }
 
+                    //username
                     string username = "Unknown";
                     if (dataElement.TryGetProperty("user", out JsonElement userElement) &&
                         userElement.TryGetProperty("username", out JsonElement usernameElement))
@@ -89,7 +89,14 @@ public static class ApiQuizzesService
                         username = usernameElement.GetString() ?? "Unknown";
                     }
 
-                    Debug.WriteLine($"Fetched quiz creator: {username}");
+                    //tags
+                    List<TagWrapper> tags = new List<TagWrapper>();
+                    if (dataElement.TryGetProperty("tags", out JsonElement tagsElement) &&
+                        tagsElement.ValueKind == JsonValueKind.Array)
+                    {
+                        tags = JsonSerializer.Deserialize<List<TagWrapper>>(tagsElement.GetRawText(), jsonSerializerOptions)
+                               ?? new List<TagWrapper>();
+                    }
 
                     var existingQuiz = existingQuizzes.FirstOrDefault(q => q.UUID == quizId);
                     if (existingQuiz != null)
@@ -98,6 +105,8 @@ public static class ApiQuizzesService
                             existingQuiz.User = new UserWrapper { Username = username };
                         else
                             existingQuiz.User.Username = username;
+
+                        existingQuiz.Tags = tags;
                     }
                     else
                         Debug.WriteLine($"Quiz with ID {quizId} not found in existing collection.");
@@ -114,6 +123,4 @@ public static class ApiQuizzesService
             return new List<QuizCard>();
         }
     }
-
-
 }

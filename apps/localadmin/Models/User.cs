@@ -2,6 +2,7 @@
 using localadmin.ViewModels;
 using localadmin.Views;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Windows.Input;
@@ -17,7 +18,7 @@ namespace localadmin.Models
     public class ProfilePictureWrapper
     {
         [JsonPropertyName("data")]
-        public List<byte> Data { get; set; }
+        public List<byte> ?Data { get; set; }
 
         public byte[] GetByteArray()
         {
@@ -67,8 +68,8 @@ namespace localadmin.Models
             ? string.Join(", ", Roles.Select(r => r.Role?.Name ?? "Unknown"))
             : "No Roles";
 
-        private NavigationService navigationService= new NavigationService();
-        private SharedStateService sharedState=new SharedStateService();
+        private NavigationService navigationService = new NavigationService();
+        private SharedStateService sharedState = new SharedStateService();
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand EditUserCommand { get; }
@@ -88,7 +89,7 @@ namespace localadmin.Models
 
         [JsonPropertyName("profile_picture")]
         public ProfilePictureWrapper ProfilePicture { get; set; }
-        public byte[] ProfilePictureArray => ProfilePicture?.GetByteArray();
+        public byte[]? ProfilePictureArray => ProfilePicture?.GetByteArray();
         public ImageSource ProfileImage => ByteArrayToImage(ProfilePictureArray);
 
         public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:localadmin"
         mc:Ignorable="d"
-        Title="QuizDetailedView" Height="500" Width="900"
+        Title="" Height="550" Width="900"
         WindowStartupLocation="CenterScreen">
     <Grid Background="White" Margin="10">
         <Grid.ColumnDefinitions>
@@ -13,64 +13,70 @@
             <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
-        
-        <StackPanel Grid.Column="0" Margin="10">
-            <Image Source="{Binding Quiz.Banner}" Height="160"  />
-            <Separator Margin="5"/>
-            <TextBlock>
-                <Run Text="Készítette: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.User.Username}"/>
-            </TextBlock>
-            <TextBlock TextWrapping="Wrap">
-                <Run Text="Cím: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.Title}"/>
-            </TextBlock>
-            <TextBlock TextWrapping="Wrap">
-                <Run Text="Leírás: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.Description}"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="{Binding Quiz.Plays}"/>
-                <Run Text="x játszott" FontWeight="Bold"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="Státusz: " FontWeight="Bold"/>
-                <Run x:Name="QuizStatus" Text="{Binding Status}"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="Készült: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.CreatedAt}"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="Módosítva: " FontWeight="Bold"/>
-                <Run Text="{Binding Quiz.UpdatedAt}"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="Értékelés: " FontWeight="Bold"/>
-                <Run Text="{Binding Stars}" Foreground="Gold" FontSize="16"/>
-            </TextBlock>
 
-            <Separator Margin="5"/>
-            <TextBlock Text="Kategóriák" FontSize="16" FontWeight="Bold" Margin="5"/>
-            <ListBox ItemsSource="{Binding Quiz.Tags}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Tag.Name}"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Grid.Column="0" Margin="10">
+                <Image Source="{Binding Quiz.BannerImage}" Height="160"  />
+                <Separator Margin="5"/>
+                <TextBlock>
+                    <Run Text="Készítette: " FontWeight="Bold"/>
+                    <Run Text="{Binding Quiz.User.Username}"/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="Cím: " FontWeight="Bold"/>
+                    <Run Text="{Binding Quiz.Title}"/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="Leírás: " FontWeight="Bold"/>
+                    <Run Text="{Binding Quiz.Description}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="{Binding Quiz.Plays}"/>
+                    <Run Text="x játszott" FontWeight="Bold"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Státusz: " FontWeight="Bold"/>
+                    <Run x:Name="QuizStatus" Text="{Binding Status}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Készült: " FontWeight="Bold"/>
+                    <Run Text="{Binding Quiz.CreatedAt}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Módosítva: " FontWeight="Bold"/>
+                    <Run Text="{Binding Quiz.UpdatedAt}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Értékelés: " FontWeight="Bold"/>
+                    <Run Text="{Binding Stars}" Foreground="Gold" FontSize="16"/>
+                </TextBlock>
 
-        </StackPanel>
+                <Separator Margin="5"/>
+                <TextBlock Text="Kategóriák" FontSize="16" FontWeight="Bold" Margin="5"/>
+                <ListBox ItemsSource="{Binding Quiz.Tags}" BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Tag.Name}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </ScrollViewer>
 
         <StackPanel Grid.Column="1" Margin="10">
-            <Image Source="{Binding CurrentQuitCard.Banner}" Height="150"/>
-            <TextBlock Text="{Binding CurrentQuizCard.Question}" FontSize="18" FontWeight="Bold" TextAlignment="Center" Margin="10"/>
+            <Image Source="{Binding CurrentQuizCard.BannerImage}" Height="150"/>
+            <ScrollViewer Height="30" VerticalScrollBarVisibility="Auto" Margin="0, 5, 0, 0">
+                <TextBlock Text="{Binding DisplayIndex, StringFormat='{}{0}. Kérdés'}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+            </ScrollViewer>
 
             <DockPanel Width="400">
                 <Button Width="30" Height="30" HorizontalAlignment="Left" FontFamily="Marlett" Content="3" Background="Transparent" FontWeight="Bold" FontSize="20" BorderThickness="1" Click="Previous_Card"/>
                 <Button Width="30" Height="30" HorizontalAlignment="Right" FontFamily="Marlett" Content="4" Background="Transparent" FontWeight="Bold" FontSize="20" BorderThickness="1" Click="Next_Card"/>
             </DockPanel>
-            <UniformGrid Columns="2" Rows="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+
+            <TextBlock Text="{Binding CurrentQuizCard.Question}" FontSize="18" FontWeight="Bold" TextAlignment="Center" Margin="0, 5, 0, 0" TextWrapping="Wrap"/>
+
+            <UniformGrid Columns="2" Rows="2" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Border x:Name="Answer1" BorderBrush="Black" BorderThickness="2" CornerRadius="10" Margin="10">
                     <TextBlock Text="{Binding CurrentQuizCard.Answers[0]}" Style="{StaticResource QuizViewAnswers}" />
                 </Border>

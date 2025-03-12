@@ -10,7 +10,7 @@ namespace localadmin.Models
         public class PictureWrapper
         {
             [JsonPropertyName("data")]
-            public List<byte> Data { get; set; }
+            public List<byte> ?Data { get; set; }
 
             public byte[] GetByteArray()
             {
@@ -39,12 +39,10 @@ namespace localadmin.Models
         [JsonPropertyName("correct_answer_index")]
         public int CorrectAnswerIndex { get; set; }
 
-        public ProfilePictureWrapper Banner { get; set; }
-        public byte[] ProfilePictureArray => Banner?.GetByteArray();
+        public ProfilePictureWrapper Picture { get; set; }
+        public byte[]? ProfilePictureArray => Picture?.GetByteArray();
         public ImageSource BannerImage => ByteArrayToImage(ProfilePictureArray);
-
         public QuizCard() { }
-
 
         public static ImageSource ByteArrayToImage(byte[] imageData)
         {

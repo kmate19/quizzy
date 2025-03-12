@@ -70,7 +70,7 @@ namespace localadmin.Models
         public UserWrapper User { get; set; }
 
         public ProfilePictureWrapper Banner { get; set; }
-        public byte[] ProfilePictureArray => Banner?.GetByteArray();
+        public byte[]? ProfilePictureArray => Banner?.GetByteArray();
         public ImageSource BannerImage => ByteArrayToImage(ProfilePictureArray);
 
         public List<TagWrapper> Tags { get; set; } = new List<TagWrapper>();

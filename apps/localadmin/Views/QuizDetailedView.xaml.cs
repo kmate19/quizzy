@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Net.Quic;
 using System.Security.Permissions;
 using System.Windows;
@@ -17,7 +18,7 @@ namespace localadmin
         private QuizCard _currentQuizCard;
         private string _stars;
         private string _status;
-
+        private int _DisplayIndex;
         private int NumberOfCards => Quiz.QuizCards.Count;
         public int CardIndex
         {
@@ -27,6 +28,16 @@ namespace localadmin
                 _cardIndex = value;
                 OnPropertyChanged(nameof(CardIndex));
                 UpdateCurrentCard();
+            }
+        }
+
+        public int DisplayIndex
+        {
+            get => _DisplayIndex;
+            set
+            {
+                _DisplayIndex = value;
+                OnPropertyChanged(nameof(DisplayIndex));
             }
         }
 
@@ -81,6 +92,8 @@ namespace localadmin
             DataContext = this;
         }
 
+        //meg szerintem a quiz status nem mukodik :))
+        //todo: arrows to navigate between cards
         private void Previous_Card(object sender, RoutedEventArgs e)
         {
             if (CardIndex == 0)
@@ -102,7 +115,11 @@ namespace localadmin
 
         private void UpdateCurrentCard()
         {
+            DisplayIndex=CardIndex + 1;
             CurrentQuizCard = Quiz.QuizCards[CardIndex];
+
+            Debug.WriteLine("bannerimg: "+CurrentQuizCard.BannerImage);
+
             Answer1.Background = Brushes.White;
             Answer2.Background = Brushes.White;
             Answer3.Background = Brushes.White;
