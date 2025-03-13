@@ -1,10 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using localadmin.Models;
+using localadmin.Services;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using localadmin.Models;
-using localadmin.Services;
 using static localadmin.Models.Quiz;
 
 namespace localadmin.ViewModels
@@ -14,6 +14,8 @@ namespace localadmin.ViewModels
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
         private int _currentPage = 1;
+        private int _PageSize = 10;
+        public ObservableCollection<int> PageSizeOptions { get; }
 
         private Dictionary<Quiz.EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
         {
@@ -32,6 +34,26 @@ namespace localadmin.ViewModels
             }
         }
 
+        public int PageSize
+        {
+            get => _PageSize;
+            set
+            {
+                if (_PageSize != value)
+                {
+                    _PageSize = value;
+                    OnPropertyChanged(nameof(PageSize));
+
+                    _ = PageSizeChanged();
+                }
+            }
+        }
+
+        private async Task PageSizeChanged()
+        {
+            Debug.WriteLine("size changed, refreshing");
+            await GetQuizes();
+        }
 
         public ICommand PreviousPageCommand { get; }
         public ICommand NextPageCommand { get; }
@@ -50,17 +72,20 @@ namespace localadmin.ViewModels
             PreviousPageCommand = new RelayCommand(PreviousPage);
             NextPageCommand = new RelayCommand(NextPage);
 
+            PageSizeOptions = new ObservableCollection<int> { 10, 20, 30, 40, 50 };
+            PageSize = PageSizeOptions[0];
+
             _ = InitializeAsync();
 
         }
         public async Task InitializeAsync()
         {
-            await GetQuizes(CurrentPage);
+            await GetQuizes();
         }
 
-        public async Task GetQuizes(int page)
+        public async Task GetQuizes()
         {
-            var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync(CurrentPage);
+            var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync(CurrentPage, PageSize);
             Quizzes.Clear();
             FiltredQuizzes.Clear();
 
@@ -70,6 +95,7 @@ namespace localadmin.ViewModels
                 FiltredQuizzes.Add(quiz);
                 quiz.Initialize(NavigationService, SharedState);
                 quiz.QuizCards = await LoadQuizCards(quiz.UUID);
+                Debug.WriteLine(quiz.toltalCount);
             }
 
             FiltredQuizzes.OrderBy(q => QuizOrder.ContainsKey(q.Status) ? QuizOrder[q.Status] : int.MaxValue);
@@ -106,7 +132,7 @@ namespace localadmin.ViewModels
                 CurrentPage--;
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CanGoNext));
-                await GetQuizes(CurrentPage);
+                await GetQuizes();
             }
         }
 
@@ -117,7 +143,7 @@ namespace localadmin.ViewModels
                 CurrentPage++;
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CanGoPrevious));
-                await GetQuizes(CurrentPage);
+                await GetQuizes();
             }
         }
 

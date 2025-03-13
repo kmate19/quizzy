@@ -53,6 +53,10 @@ namespace localadmin.Models
         public ICommand ViewUserCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand ViewQuizCommand { get; }
+
+        [JsonPropertyName("totalCount")]
+        public int toltalCount { get; set; }
+
         [JsonPropertyName("id")]
         public string UUID { get; set; }
         public string UserID { get; set; }

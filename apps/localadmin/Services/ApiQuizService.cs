@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using localadmin.Models;
@@ -17,9 +18,9 @@ public static class ApiQuizzesService
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
-    public static async Task<ObservableCollection<Quiz>> GetQuizzesAsync(int page, int limit = 20)
+    public static async Task<ObservableCollection<Quiz>> GetQuizzesAsync(int page, int pagesize)
     {
-        string url = $"http://localhost:3000/api/v1/quizzes?page={page}&limit={limit}";
+        string url = $"http://localhost:3000/api/v1/quizzes?page={page}&limit={pagesize}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -28,6 +29,7 @@ public static class ApiQuizzesService
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string jsonResponse = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine(jsonResponse);
 
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {
@@ -44,8 +46,13 @@ public static class ApiQuizzesService
                 }
                 else
                     Debug.WriteLine("Error: 'data.quizzes' field missing or not an array.");
-            }
 
+                if (root.TryGetProperty("data", out JsonElement jsonElement) &&
+                        jsonElement.ValueKind == JsonValueKind.Array)
+                {
+                    //kene a total count 
+                }
+            }
             return new ObservableCollection<Quiz>();
         }
         catch (Exception ex)

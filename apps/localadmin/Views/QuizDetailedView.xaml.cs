@@ -118,8 +118,6 @@ namespace localadmin
             DisplayIndex=CardIndex + 1;
             CurrentQuizCard = Quiz.QuizCards[CardIndex];
 
-            Debug.WriteLine("bannerimg: "+CurrentQuizCard.BannerImage);
-
             Answer1.Background = Brushes.White;
             Answer2.Background = Brushes.White;
             Answer3.Background = Brushes.White;
