@@ -32,7 +32,12 @@ const startHeartbeat = (ws: WebSocket) => {
   
   heartbeatInterval.value = window.setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+      ws.send(JSON.stringify({ 
+        type: 'ping', 
+        timestamp: Date.now(),
+        successful: true,
+        server: false,
+      }));
     } else if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
       clearInterval(heartbeatInterval.value!);
       heartbeatInterval.value = null;
@@ -114,8 +119,9 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       if (ws.readyState === WebSocket.OPEN) {
         console.log('Sending subscribe message for lobby:', lobbyId.value);
         ws.send(JSON.stringify({ 
-          type: 'subscribe', 
-          lobbyId: lobbyId.value 
+          type: 'subscribe',
+          successful: true,
+          server: false,
         }));//ez itt gatya
       } else {
         console.error('WebSocket is not open. Current state:', ws.readyState);
@@ -183,7 +189,8 @@ const leaveLobby = () => {
       console.log('Sending unsubscribe message');
       websocket.value.send(JSON.stringify({ 
         type: 'unsubscribe', 
-        lobbyId: lobbyId.value 
+        successful: true,
+        server: false,
       }));
       
       // Give server time to process the unsubscribe

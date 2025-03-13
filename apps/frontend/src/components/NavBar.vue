@@ -4,7 +4,6 @@ import { ref, watch, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import XButton from './XButton.vue'
 import { wsclient } from '@/lib/apiClient'
-import { generateSessionHash } from '@/utils/helpers'
 
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
@@ -91,13 +90,10 @@ const joinLobby = async (code: string) => {
       }
       
       console.log('Lobby exists with code:', first_data.code);
-      const hash = await generateSessionHash(first_data.code, 'asd');
       
       // Store connection info BEFORE establishing connection
       // This is important so GameView can pick it up
       localStorage.setItem('quizzyWebSocket', JSON.stringify({
-        lobbyId: first_data.code,
-        hash: hash,
         timestamp: Date.now(),
         heartbeatInterval: 30000
       }));
