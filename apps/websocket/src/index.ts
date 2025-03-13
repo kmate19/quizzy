@@ -3,15 +3,20 @@ import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { generateSessionHash, genLobbyId } from "./utils/utils";
+import { genLobbyId } from "./utils/utils";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
+import { extractJwtData } from "./utils/checkjwt";
+import { isInvalidConnection } from "./utils/checkWsError";
+import { LobbyUser, QuizzyJWTPAYLOAD } from "./types";
+import { handleWsMessage } from "./utils/handleWsMessage";
 
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
+const { upgradeWebSocket, websocket } =
+    createBunWebSocket<ServerWebSocket<LobbyUser>>();
 
-const lobbies: Map<string, Set<ServerWebSocket>> = new Map();
+const lobbies: Map<string, Set<ServerWebSocket<LobbyUser>>> = new Map();
 
 export const hono = new Hono()
     .basePath("/ws")
@@ -24,21 +29,29 @@ export const hono = new Hono()
             z.object({ lobbyid: z.string().length(8), hash: z.string() })
         ),
         upgradeWebSocket(async (c) => {
-            const lobbyid = c.req.param("lobbyid");
-            const hash = c.req.param("hash");
+            const { lobbyid, hash } = c.req.param();
+
+            const jwtdata = await extractJwtData(c);
+
             return {
                 onMessage: (event, ws) => {
-                    const validType = websocketMessageSchema.safeParse(
+                    if (!ws.raw) {
+                        ws.close();
+                        return;
+                    }
+
+                    const maybeClientMessage = websocketMessageSchema.safeParse(
                         event.data
                     );
-                    if (validType.error) {
+
+                    if (maybeClientMessage.error) {
                         const res = {
                             type: "error",
                             successful: false,
                             server: true,
                             error: {
                                 message: "Invalid message type",
-                                raw: validType.error,
+                                raw: maybeClientMessage.error,
                             },
                         } satisfies WebsocketMessage;
                         ws.send(JSON.stringify(res));
@@ -46,57 +59,41 @@ export const hono = new Hono()
                         ws.close(1003, "Invalid message type");
                         return;
                     }
-                    console.log(
-                        `client sent message ${event.data.toString()} to lobby ${lobbyid}`
-                    );
+
+                    const clientMessage: WebsocketMessage =
+                        maybeClientMessage.data;
+
+                    handleWsMessage(ws.raw, clientMessage, lobbyid);
+
                     lobbies.get(lobbyid)?.forEach((client) => {
                         if (client !== ws.raw) {
-                            client.send(event.data.toString());
+                            client.send(JSON.stringify(clientMessage));
                         }
                     });
                 },
                 onOpen: (_, ws) => {
                     if (!ws.raw) {
-                        return;
-                    }
-                    if (!lobbies.has(lobbyid)) {
-                        const res = {
-                            type: "error",
-                            successful: false,
-                            server: true,
-                            error: {
-                                message: "Lobby does not exist",
-                            },
-                        } satisfies WebsocketMessage;
-                        ws.send(JSON.stringify(res));
-                        ws.close(1003, "Lobby does not exist");
+                        ws.close();
                         return;
                     }
 
                     if (
-                        hash !==
-                        generateSessionHash(
-                            lobbyid,
-                            Bun.env.HASH_SECRET || "asd"
-                        )
+                        isInvalidConnection(ws, hash, lobbyid, lobbies, jwtdata)
                     ) {
-                        const res = {
-                            type: "error",
-                            successful: false,
-                            server: true,
-                            error: {
-                                message: "Hash mismatch",
-                            },
-                        } satisfies WebsocketMessage;
-                        ws.send(JSON.stringify(res));
-                        ws.close(1003, "Hash mismatch");
                         return;
                     }
 
-                    lobbies.get(lobbyid)?.add(ws.raw);
-                    console.log(`client joined lobby ${lobbyid}`);
+                    const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
-                    ws.raw?.ping();
+                    ws.raw.data.userId = jwtdataValid.userId;
+                    ws.raw.data.stats.wrongAnswerCount = 0;
+                    ws.raw.data.stats.correctAnswerCount = 0;
+
+                    lobbies.get(lobbyid)?.add(ws.raw);
+
+                    console.log(
+                        `client ${ws.raw.data.userId} joined lobby ${lobbyid}`
+                    );
 
                     const interval = setInterval(() => {
                         if (ws.raw?.readyState === 3) {
@@ -104,9 +101,10 @@ export const hono = new Hono()
                         } else {
                             ws.raw?.ping();
                         }
-                    }, 30000);
+                    }, 24000);
 
                     ws.raw.subscribe(lobbyid);
+
                     const res = {
                         type: "connect",
                         successful: true,
@@ -121,8 +119,13 @@ export const hono = new Hono()
                     if (!ws.raw) {
                         return;
                     }
-                    console.log(`client left lobby ${lobbyid}`);
+
+                    console.log(
+                        `client ${ws.raw.data.userId} left lobby ${lobbyid}`
+                    );
+
                     const lobby = lobbies.get(lobbyid);
+
                     if (lobby) {
                         lobby.delete(ws.raw);
                         if (lobby.size === 0) {

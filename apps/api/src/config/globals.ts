@@ -14,7 +14,7 @@ const GLOBALS = {
         domain: ENV.DOMAIN(),
         maxAge: 60 * 60 * 24 * 30,
     } satisfies CookieOptions,
-    ACCESS_COOKIE_NAME: "321vmnf",
+    ACCESS_COOKIE_NAME: ENV.ACCESS_COOKIE_NAME(),
     MAX_ACTIVE_API_KEYS: 10,
     CONTROLLER_FACTORY: controllerFactory,
     DB_ROLES: [

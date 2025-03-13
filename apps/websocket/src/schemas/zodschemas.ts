@@ -1,5 +1,5 @@
 import { Equal } from "hono/utils/types";
-import type { WebsocketMessage, WebsocketMessageType } from "repo";
+import type { LobbyUser, WebsocketMessage, WebsocketMessageType } from "repo";
 import { z } from "zod";
 
 const wsMessageTypeZEnum = z.enum([
@@ -9,6 +9,7 @@ const wsMessageTypeZEnum = z.enum([
     "ping",
     "pong",
     "ack",
+    "whoami",
     "connect",
     "disconnect",
     "handshake",
@@ -16,14 +17,19 @@ const wsMessageTypeZEnum = z.enum([
 ]);
 
 // ignore this, just doing typescript magic to check if the types are correct
-// eslint-disable-next-line
 function assertequal<T extends true>() {}
-// eslint-disable-next-line
 let _valid1: Equal<z.infer<typeof wsMessageTypeZEnum>, WebsocketMessageType>;
-// eslint-disable-next-line
 let _valid2: Equal<z.infer<typeof websocketMessageSchema>, WebsocketMessage>;
+let _valid3: Equal<z.infer<typeof UserDataSchema>, LobbyUser>;
+
 assertequal<typeof _valid1>();
 assertequal<typeof _valid2>();
+assertequal<typeof _valid3>();
+
+export const UserDataSchema = z.object({
+    username: z.string(),
+    pfp: z.string().base64(),
+});
 
 export const websocketMessageSchema = z.object({
     type: wsMessageTypeZEnum,
