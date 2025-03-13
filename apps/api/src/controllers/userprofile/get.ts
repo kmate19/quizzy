@@ -24,8 +24,8 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
                     first_places: true,
                     second_places: true,
                     third_places: true,
-                    wins: true,
-                    losses: true,
+                    correct_answers: true,
+                    wrong_answers: true,
                 },
             },
             sentFriendships: {
