@@ -1,7 +1,7 @@
 function assertEnvProd(
     env: string | undefined,
     name: string,
-    defval: string
+    defval: string = "asd"
 ): string {
     env = env === "" ? undefined : env;
     if (env === undefined && Bun.env.NODE_ENV === "production") {
@@ -36,19 +36,20 @@ function verify() {
 
 const ENV = {
     NODE_ENV: () => assertEnvProd(Bun.env.NODE_ENV, "NODE_ENV", "development"),
-    EMAIL_USER: () => assertEnvProd(Bun.env.EMAIL_USER, "EMAIL_USER", "asd"),
-    EMAIL_PASS: () => assertEnvProd(Bun.env.EMAIL_PASS, "EMAIL_PASS", "asd"),
+    EMAIL_USER: () => assertEnvProd(Bun.env.EMAIL_USER, "EMAIL_USER"),
+    EMAIL_PASS: () => assertEnvProd(Bun.env.EMAIL_PASS, "EMAIL_PASS"),
     DOMAIN: () => assertEnvProd(Bun.env.DOMAIN, "DOMAIN", "localhost"),
     REFRESH_JWT_SECRET: () =>
-        assertEnvProd(Bun.env.REFRESH_JWT_SECRET, "REFRESH_JWT_SECRET", "asd"),
+        assertEnvProd(Bun.env.REFRESH_JWT_SECRET, "REFRESH_JWT_SECRET"),
     ACCESS_JWT_SECRET: () =>
-        assertEnvProd(Bun.env.ACCESS_JWT_SECRET, "ACCESS_JWT_SECRET", "asdf"),
+        assertEnvProd(Bun.env.ACCESS_JWT_SECRET, "ACCESS_JWT_SECRET"),
     DATABASE_URL: () =>
         assertEnvProd(
             Bun.env.DATABASE_URL,
             "DATABASE_URL",
             "postgres://postgres:mypassword@localhost:5432/postgres"
         ),
+    WS_SECRET: () => assertEnvProd(Bun.env.WS_SECRET, "WS_SECRET"),
 } as const;
 
 verify();
