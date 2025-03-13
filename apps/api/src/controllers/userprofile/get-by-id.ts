@@ -28,8 +28,8 @@ const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(
                         first_places: true,
                         second_places: true,
                         third_places: true,
-                        wins: true,
-                        losses: true,
+                        correct_answers: true,
+                        wrong_answers: true,
                     },
                 },
                 roles: {
