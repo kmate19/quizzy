@@ -26,7 +26,7 @@ export async function handleWsMessage(
                 } satisfies WebsocketMessage;
 
                 ws.send(JSON.stringify(res));
-                ws.close(1003, "Lobby does not exist");
+                ws.close(1003, "Bad userdata");
                 return;
             }
 
@@ -52,12 +52,6 @@ export async function handleWsMessage(
 
             ws.publish(lobbyid, JSON.stringify(joinBroadcastMsg));
 
-            //lobbies.get(lobbyid)?.forEach((client) => {
-            //    if (client.data.userId !== ws.data.userId) {
-            //        client.send(JSON.stringify(joinBroadcastMsg));
-            //    }
-            //});
-
             return;
         case "disconnect":
             const disconnectBroadcastMsg = {
@@ -68,12 +62,6 @@ export async function handleWsMessage(
             } satisfies WebsocketMessage;
 
             ws.publish(lobbyid, JSON.stringify(disconnectBroadcastMsg));
-
-            //lobbies.get(lobbyid)?.forEach((client) => {
-            //    if (client.data.userId !== ws.data.userId) {
-            //        client.send(JSON.stringify(joinBroadcastMsg));
-            //    }
-            //});
 
             return;
         case "handshake":
