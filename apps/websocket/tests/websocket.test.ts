@@ -5,6 +5,7 @@ import type { Server } from "bun";
 import { generateSessionHash } from "@/utils/utils";
 import { WebsocketMessage } from "repo";
 import { createWebsocketEnv } from "./testUtils/helpers";
+import { LobbyUser } from "@/types";
 
 const client = hc<AppType>("http://localhost:3001").ws;
 
@@ -120,12 +121,13 @@ describe("websocket connection", () => {
         const ws = client.ws.server[":lobbyid"][":hash"].$ws({
             param: { lobbyid: code, hash },
         });
+
         await createWebsocketEnv(ws, {
             onmessage: (_, response: WebsocketMessage) => {
                 // not pretty but typescript moment
+                console.log(response);
                 expect(
-                    (response as WebsocketMessage<{ message: string }>).data
-                        ?.message
+                    (response as WebsocketMessage<LobbyUser>).data?.userId
                 ).toBe(`welcome to lobby ${code}`); // change this to a typed websocket response later
                 return { success: true, canResolve: true };
             },

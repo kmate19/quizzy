@@ -42,7 +42,39 @@ export async function handleWsMessage(
         case "pong":
         case "ack":
         case "connect":
+            const joinBroadcastMsg = {
+                type: "connect",
+                successful: true,
+                server: true,
+                data: ws.data,
+            } satisfies WebsocketMessage;
+
+            ws.publish(lobbyid, JSON.stringify(joinBroadcastMsg));
+
+            //lobbies.get(lobbyid)?.forEach((client) => {
+            //    if (client.data.userId !== ws.data.userId) {
+            //        client.send(JSON.stringify(joinBroadcastMsg));
+            //    }
+            //});
+
+            return;
         case "disconnect":
+            const disconnectBroadcastMsg = {
+                type: "disconnect",
+                successful: true,
+                server: true,
+                data: ws.data,
+            } satisfies WebsocketMessage;
+
+            ws.publish(lobbyid, JSON.stringify(disconnectBroadcastMsg));
+
+            //lobbies.get(lobbyid)?.forEach((client) => {
+            //    if (client.data.userId !== ws.data.userId) {
+            //        client.send(JSON.stringify(joinBroadcastMsg));
+            //    }
+            //});
+
+            return;
         case "handshake":
         case "error":
     }

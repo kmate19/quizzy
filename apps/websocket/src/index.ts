@@ -64,12 +64,6 @@ export const hono = new Hono()
                         maybeClientMessage.data;
 
                     handleWsMessage(ws.raw, clientMessage, lobbyid);
-
-                    lobbies.get(lobbyid)?.forEach((client) => {
-                        if (client !== ws.raw) {
-                            client.send(JSON.stringify(clientMessage));
-                        }
-                    });
                 },
                 onOpen: (_, ws) => {
                     if (!ws.raw) {
