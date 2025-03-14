@@ -7,11 +7,13 @@ export type QuizzyJWTPAYLOAD = {
     exp: number;
 } & JWTPayload;
 
-export type LobbyUser = Partial<lob> & {
-    userId: string;
-    stats: {
-        placement?: number;
-        correctAnswerCount: number;
-        wrongAnswerCount: number;
+export type LobbyUser = {
+    lobbyUserData: Partial<lob> & {
+        userId: string;
+        stats: {
+            placement?: number;
+            correctAnswerCount: number;
+            wrongAnswerCount: number;
+        };
     };
 };

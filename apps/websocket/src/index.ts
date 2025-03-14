@@ -40,9 +40,10 @@ export const hono = new Hono()
                         return;
                     }
 
-                    const maybeClientMessage = websocketMessageSchema.safeParse(
-                        event.data
-                    );
+                    const parsedJson = JSON.parse(event.data);
+
+                    const maybeClientMessage =
+                        websocketMessageSchema.safeParse(parsedJson);
 
                     if (maybeClientMessage.error) {
                         const res = {
@@ -79,14 +80,22 @@ export const hono = new Hono()
 
                     const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
-                    ws.raw.data.userId = jwtdataValid.userId;
-                    ws.raw.data.stats.wrongAnswerCount = 0;
-                    ws.raw.data.stats.correctAnswerCount = 0;
+                    console.log(ws.raw.data, "before setting");
+
+                    ws.raw.data.lobbyUserData = {
+                        userId: jwtdataValid.userId,
+                        stats: {
+                            wrongAnswerCount: 0,
+                            correctAnswerCount: 0,
+                        },
+                    };
+
+                    console.log(ws.raw.data, "after setting");
 
                     lobbies.get(lobbyid)?.add(ws.raw);
 
                     console.log(
-                        `client ${ws.raw.data.userId} joined lobby ${lobbyid}`
+                        `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
                     );
 
                     const interval = setInterval(() => {
@@ -115,7 +124,7 @@ export const hono = new Hono()
                     }
 
                     console.log(
-                        `client ${ws.raw.data.userId} left lobby ${lobbyid}`
+                        `client ${ws.raw.data.lobbyUserData} left lobby ${lobbyid}`
                     );
 
                     const lobby = lobbies.get(lobbyid);

@@ -8,7 +8,7 @@ export async function handleWsMessage(
     msg: WebsocketMessage,
     lobbyid: string
 ) {
-    console.log(`client sent message ${msg} {lobbyid}`);
+    console.log(`client sent message {} to ${lobbyid}`, msg);
 
     switch (msg.type) {
         case "message":
@@ -32,8 +32,8 @@ export async function handleWsMessage(
 
             const { username, pfp } = maybeUserData.data;
 
-            ws.data.pfp = pfp;
-            ws.data.username = username;
+            ws.data.lobbyUserData.pfp = pfp;
+            ws.data.lobbyUserData.username = username;
 
             return;
         case "subscribe":
@@ -42,11 +42,12 @@ export async function handleWsMessage(
         case "pong":
         case "ack":
         case "connect":
+            console.log("connectl", ws.data);
             const joinBroadcastMsg = {
                 type: "connect",
                 successful: true,
                 server: true,
-                data: ws.data,
+                data: ws.data.lobbyUserData,
             } satisfies WebsocketMessage;
 
             ws.publish(lobbyid, JSON.stringify(joinBroadcastMsg));
@@ -63,7 +64,7 @@ export async function handleWsMessage(
                 type: "disconnect",
                 successful: true,
                 server: true,
-                data: ws.data,
+                data: ws.data.lobbyUserData,
             } satisfies WebsocketMessage;
 
             ws.publish(lobbyid, JSON.stringify(disconnectBroadcastMsg));
