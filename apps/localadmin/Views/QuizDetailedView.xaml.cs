@@ -1,12 +1,8 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Net.Quic;
-using System.Security.Permissions;
 using System.Windows;
-using System.Windows.Markup.Localizer;
+using System.Windows.Input;
 using System.Windows.Media;
 using localadmin.Models;
-using localadmin.ViewModels;
 using localadmin.Views;
 
 namespace localadmin
@@ -93,7 +89,14 @@ namespace localadmin
         }
 
         //meg szerintem a quiz status nem mukodik :))
-        //todo: arrows to navigate between cards
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Left)
+                Previous_Card(null, null);
+            else if (e.Key == Key.Right)
+                Next_Card(null, null);
+        }
+
         private void Previous_Card(object sender, RoutedEventArgs e)
         {
             if (CardIndex == 0)

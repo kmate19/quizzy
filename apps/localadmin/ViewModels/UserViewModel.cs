@@ -7,7 +7,7 @@ using localadmin.Services;
 
 namespace localadmin.ViewModels
 {
-    public class UserViewModel : INotifyPropertyChanged
+    public class UserViewModel
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
@@ -36,12 +36,9 @@ namespace localadmin.ViewModels
             {
                 Users.Add(user);
                 FilteredUsers.Add(user);
+                user.UserUpdated += async () => await GetUsers();
                 user.Initialize(NavigationService, SharedState);
             }
-
-            OnPropertyChanged(nameof(Users));
-            OnPropertyChanged(nameof(FilteredUsers));
-            Debug.WriteLine($"Fetched {Users.Count} users.");
         }
 
         public void SearchUsers(string query)
@@ -52,12 +49,6 @@ namespace localadmin.ViewModels
             {
                 FilteredUsers.Add(user);
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

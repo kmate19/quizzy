@@ -41,9 +41,9 @@
 
             <!-- Pagination Controls -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-                <Button Content="◀ Előző" Command="{Binding PreviousPageCommand}" IsEnabled="{Binding CanGoPrevious}" Margin="5" Style="{StaticResource GridButtons}"/>
-                <TextBlock Text="{Binding CurrentPage, StringFormat='Oldal: {0}'}" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
-                <Button Content="Következő ▶" Command="{Binding NextPageCommand}" IsEnabled="{Binding CanGoNext}" Margin="5" Style="{StaticResource GridButtons}"/>
+                <Button Content="◀ Előző" Command="{Binding PreviousPageCommand}" Margin="5" Style="{StaticResource GridButtons}"/>
+                <TextBlock Text="{Binding CurrentPage, StringFormat='Oldal: {0}'}" FontSize="20" FontWeight="Bold"/>
+                <Button Content="Következő ▶" Command="{Binding NextPageCommand}" Margin="5" Style="{StaticResource GridButtons}"/>
                 <TextBlock Text="Oldal mérete: " FontSize="20" FontWeight="Bold"/>
                 <ComboBox ItemsSource="{Binding PageSizeOptions}" SelectedItem="{Binding PageSize, Mode=TwoWay}" Width="60" Margin="5"/>
             </StackPanel>

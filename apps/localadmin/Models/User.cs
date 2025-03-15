@@ -62,6 +62,8 @@ namespace localadmin.Models
             { EAuthStatus.blocked, "Blokkolva" }
         };
 
+        public event Action UserUpdated;
+
         public string TranslatedActivityStatus => ActivityStatusTranslations.TryGetValue(ActivityStatus, out var translation) ? translation : ActivityStatus.ToString();
         public string TranslatedAuthStatus => AuthStatusTranslations.TryGetValue(AuthStatus, out var translation) ? translation : AuthStatus.ToString();
         public string UserRoles => Roles != null
@@ -142,6 +144,11 @@ namespace localadmin.Models
             sharedState.SearchText = Username;
             navigationService.NavigateTo(reviewView);
             reviewView.SearchReviews(Username);
+        }
+
+        public void OnUserUpdated()
+        {
+            UserUpdated?.Invoke();
         }
     }
 }

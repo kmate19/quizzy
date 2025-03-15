@@ -47,6 +47,16 @@ namespace localadmin.Models
             public string Name { get; set; }
         }
 
+        public class LanguageWrapper
+        {
+            public Language Language { get; set; }
+        }
+
+        public class Language
+        {
+            public string Name { get; set; }
+        }
+
         private NavigationService NavigationService;
 
         private SharedStateService SharedState;
@@ -54,14 +64,13 @@ namespace localadmin.Models
         public ICommand ViewReviewCommand { get; }
         public ICommand ViewQuizCommand { get; }
 
-        [JsonPropertyName("totalCount")]
-        public int toltalCount { get; set; }
 
         [JsonPropertyName("id")]
         public string UUID { get; set; }
         public string UserID { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        [JsonPropertyName("status")]
         public EQuizStatus Status { get; set; }
         public int Rating { get; set; }
         public int Plays { get; set; }
@@ -76,8 +85,8 @@ namespace localadmin.Models
         public ProfilePictureWrapper Banner { get; set; }
         public byte[]? ProfilePictureArray => Banner?.GetByteArray();
         public ImageSource BannerImage => ByteArrayToImage(ProfilePictureArray);
-
         public List<TagWrapper> Tags { get; set; } = new List<TagWrapper>();
+        public List<LanguageWrapper> Languages { get; set; } = new List<LanguageWrapper>();
 
         public Quiz()
         {

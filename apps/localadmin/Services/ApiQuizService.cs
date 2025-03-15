@@ -18,7 +18,7 @@ public static class ApiQuizzesService
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
-    public static async Task<ObservableCollection<Quiz>> GetQuizzesAsync(int page, int pagesize)
+    public static async Task<(ObservableCollection<Quiz> Quizzes, int TotalCount)> GetQuizzesAsync(int page, int pagesize)
     {
         string url = $"http://localhost:3000/api/v1/quizzes?page={page}&limit={pagesize}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
@@ -34,33 +34,49 @@ public static class ApiQuizzesService
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {
                 JsonElement root = doc.RootElement;
+                int totalCount = 0;
+                ObservableCollection<Quiz> quizzes = new();
 
-                if (root.TryGetProperty("data", out JsonElement dataElement) &&
-                    dataElement.TryGetProperty("quizzes", out JsonElement quizzesElement) &&
-                    quizzesElement.ValueKind == JsonValueKind.Array)
+                if (root.TryGetProperty("data", out JsonElement dataElement))
                 {
-                    var quizzes = JsonSerializer.Deserialize<ObservableCollection<Quiz>>(quizzesElement.GetRawText(), jsonSerializerOptions)
-                                  ?? new ObservableCollection<Quiz>();
+                    // Get total count
+                    if (dataElement.TryGetProperty("totalCount", out JsonElement totalElement))
+                    {
 
-                    return quizzes;
-                }
-                else
-                    Debug.WriteLine("Error: 'data.quizzes' field missing or not an array.");
+                        string? totalCountStr = totalElement.GetString();
+                        if (int.TryParse(totalCountStr, out int parsedValue))
+                            totalCount = parsedValue;
+                    }
 
-                if (root.TryGetProperty("data", out JsonElement jsonElement) &&
-                        jsonElement.ValueKind == JsonValueKind.Array)
-                {
-                    //kene a total count 
+                    // Get quizzes
+                    if (dataElement.TryGetProperty("quizzes", out JsonElement quizzesElement) && quizzesElement.ValueKind == JsonValueKind.Array)
+                    {
+                        quizzes = JsonSerializer.Deserialize<ObservableCollection<Quiz>>(quizzesElement.GetRawText(), jsonSerializerOptions) ?? new();
+
+                        foreach (var quiz in quizzes)
+                        {
+                            if (dataElement.TryGetProperty("languages", out JsonElement languagesElement) && languagesElement.ValueKind == JsonValueKind.Array)
+                            {
+                                quiz.Languages = JsonSerializer.Deserialize<List<LanguageWrapper>>(languagesElement.GetRawText(), jsonSerializerOptions) ?? new();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Error: 'data.quizzes' field missing or not an array.");
+                    }
                 }
+
+                return (quizzes, totalCount);
             }
-            return new ObservableCollection<Quiz>();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error fetching quizzes: {ex.Message}");
-            return new ObservableCollection<Quiz>();
+            return (new ObservableCollection<Quiz>(), 0);
         }
     }
+
 
     public static async Task<List<QuizCard>> GetQuizCardsByIdAsync(string quizId, ObservableCollection<Quiz> existingQuizzes)
     {

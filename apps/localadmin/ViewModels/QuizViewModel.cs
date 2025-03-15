@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using static localadmin.Models.Quiz;
 
@@ -51,7 +52,6 @@ namespace localadmin.ViewModels
 
         private async Task PageSizeChanged()
         {
-            Debug.WriteLine("size changed, refreshing");
             await GetQuizes();
         }
 
@@ -59,7 +59,9 @@ namespace localadmin.ViewModels
         public ICommand NextPageCommand { get; }
 
         public bool CanGoPrevious => CurrentPage > 1;
-        public bool CanGoNext => CurrentPage < 50;
+        public bool CanGoNext => maxPage > CurrentPage;
+
+        public int maxPage;
 
         public ObservableCollection<Quiz> Quizzes { get; set; } = new();
         public ObservableCollection<Quiz> FiltredQuizzes { get; set; } = new();
@@ -89,16 +91,17 @@ namespace localadmin.ViewModels
             Quizzes.Clear();
             FiltredQuizzes.Clear();
 
-            foreach (var quiz in fetchedQuizes)
+            foreach (var quiz in fetchedQuizes.Quizzes)
             {
                 Quizzes.Add(quiz);
                 FiltredQuizzes.Add(quiz);
                 quiz.Initialize(NavigationService, SharedState);
                 quiz.QuizCards = await LoadQuizCards(quiz.UUID);
-                Debug.WriteLine(quiz.toltalCount);
             }
 
             FiltredQuizzes.OrderBy(q => QuizOrder.ContainsKey(q.Status) ? QuizOrder[q.Status] : int.MaxValue);
+
+            maxPage = (int)Math.Ceiling((double)fetchedQuizes.TotalCount / PageSize);
 
             OnPropertyChanged(nameof(Quizzes));
             OnPropertyChanged(nameof(FiltredQuizzes));
@@ -109,7 +112,10 @@ namespace localadmin.ViewModels
             var quizCards = await ApiQuizzesService.GetQuizCardsByIdAsync(quizId, Quizzes);
 
             if (!quizCards.Any())
+            {
                 Debug.WriteLine("No quiz cards found.");
+                return new();
+            }
 
             return quizCards;
         }
@@ -145,6 +151,8 @@ namespace localadmin.ViewModels
                 OnPropertyChanged(nameof(CanGoPrevious));
                 await GetQuizes();
             }
+            else
+                MessageBox.Show("Nincs további oldal.");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

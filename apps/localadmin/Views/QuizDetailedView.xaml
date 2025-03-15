@@ -6,8 +6,9 @@
         xmlns:local="clr-namespace:localadmin"
         mc:Ignorable="d"
         Title="" Height="550" Width="900"
-        WindowStartupLocation="CenterScreen">
-    <Grid Background="White" Margin="10">
+        WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown" FocusManager.FocusedElement="{Binding ElementName=MainGrid}">
+    <Grid Background="White" Margin="10" KeyboardNavigation.TabNavigation="None" KeyboardNavigation.DirectionalNavigation="None">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="3*" />
@@ -29,6 +30,10 @@
                 <TextBlock TextWrapping="Wrap">
                     <Run Text="Leírás: " FontWeight="Bold"/>
                     <Run Text="{Binding Quiz.Description}"/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="Nyelv: " FontWeight="Bold"/>
+                    <Run Text="{Binding Quiz.Languages[0].Language.Name}"/>
                 </TextBlock>
                 <TextBlock>
                     <Run Text="{Binding Quiz.Plays}"/>

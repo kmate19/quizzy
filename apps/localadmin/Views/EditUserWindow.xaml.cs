@@ -3,7 +3,6 @@ using System.Windows;
 using localadmin.Models;
 using static localadmin.Models.User;
 using localadmin.Services;
-using System.Linq;
 
 namespace localadmin.Views
 {
@@ -71,8 +70,6 @@ namespace localadmin.Views
 
             await UpdateUserStatus();
             await UpdateUserRole();
-
-            await ApiUsersService.GetUsersAsync();
         }
 
         private async Task UpdateUserStatus()
@@ -81,7 +78,7 @@ namespace localadmin.Views
             if(selectedStatus == null)
                 return;
 
-            if (selectedStatus != null && Enum.TryParse(selectedStatus, out EAuthStatus newStatus))
+            if (Enum.TryParse(selectedStatus, out EAuthStatus newStatus))
             {   
                 if (CurrentUser.AuthStatus != newStatus)
                 {
@@ -89,6 +86,8 @@ namespace localadmin.Views
                     if (success)
                     {
                         MessageBox.Show("Felhasználó státusza sikeresen módosítva!");
+                        CurrentUser.OnUserUpdated();
+                        Hide();
                     }
                 }
                 else
@@ -100,20 +99,28 @@ namespace localadmin.Views
 
         private async Task UpdateUserRole()
         {
-            var selectedRole = AllRoles.FirstOrDefault(r => r.IsLocked == false && r.IsSelected == true)?.Value;
-            if (selectedRole == null)
-                return;
+            var selectedRole = AllRoles.FirstOrDefault(r => !r.IsLocked && r.IsSelected)?.Value;
 
-            if (selectedRole != null)
+            if (selectedRole == null)
             {
-                bool success = await ApiUsersService.UpdateUserRole(CurrentUser.UUID, selectedRole);
-                if (success)
-                {
-                    MessageBox.Show("Felhasználó jogosultsága sikeresen módosítva!");
-                }
+                Debug.WriteLine("No valid role selected. Skipping API call.");
+                return;
             }
-            else
-                Debug.WriteLine("User already has all of the roles");
+
+            if (selectedRole == "admin")
+            {
+                PopUpModal dialog = new PopUpModal("Biztosan adminná szeretnéd tenni ezt a felhasználót?");
+                if (dialog.ShowDialog() == false)
+                    return;
+            }
+
+            bool success = await ApiUsersService.UpdateUserRole(CurrentUser.UUID, selectedRole);
+            if (success)
+            {
+                MessageBox.Show("Felhasználó jogosultsága sikeresen módosítva!");
+                CurrentUser.OnUserUpdated();
+                Hide();
+            }
         }
     }
 }

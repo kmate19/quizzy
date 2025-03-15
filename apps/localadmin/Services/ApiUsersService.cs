@@ -1,12 +1,10 @@
 ﻿using System.Collections.ObjectModel;
-using System.Data;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using localadmin.Models;
-using localadmin.Services;
 using static localadmin.Models.User;
 
 namespace localadmin.Services
@@ -97,8 +95,6 @@ namespace localadmin.Services
             }
         }
 
-
-        //todo: implement UpdateUserRole method
         public static async Task<bool> UpdateUserRole(string userUuid, string newRole)
         {
             string url = "http://localhost:3000/api/v1/admin/set/role";

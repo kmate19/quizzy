@@ -7,7 +7,7 @@
         xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp" 
         xmlns:services="clr-namespace:localadmin.Services" d:DataContext="{d:DesignInstance Type=services:SharedStateService}"
         mc:Ignorable="d" WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow"
-        Title="Quizzy" Height="650" Width="1100">
+        Title="Quizzy" Height="650" Width="1150">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
