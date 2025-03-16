@@ -114,7 +114,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
     isLoading.value = false;
     reconnectAttempts.value = 0;
 
-    //here is the problem|invalid message type
     setTimeout(() => {
       if (ws.readyState === WebSocket.OPEN) {
         console.log('Sending subscribe message for lobby:', lobbyId.value);
@@ -122,7 +121,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           type: 'subscribe',
           successful: true,
           server: false,
-        }));//ez itt gatya
+        }));
       } else {
         console.error('WebSocket is not open. Current state:', ws.readyState);
       }
@@ -133,15 +132,14 @@ const setupWebSocketListeners = (ws: WebSocket) => {
     try {
       const data = JSON.parse(event.data);
       console.log('Received WebSocket message:', data.type);
-      
-      // Handle server error messages
+
       if (data.type === 'error') {
         console.error('Server error:', data.error?.message || 'Unknown error');
         error.value = data.error?.message || 'Server reported an error';
         return;
       }
+
       
-      // Handle other message types
       if (data.type === 'participantList') {
         participants.value = data.participants;
       } else if (data.type === 'participantJoined') {
@@ -172,7 +170,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
     console.log('WebSocket closed:', event.code, event.reason);
     
     if (event.code === 1003) {
-      // This is the server's "Lobby does not exist" or "Hash mismatch" error
       error.value = event.reason || 'Server closed the connection';
       localStorage.removeItem('quizzyWebSocket');
     } else if (event.code !== 1000 && route.name === 'quiz_multiplayer') {
@@ -192,8 +189,7 @@ const leaveLobby = () => {
         successful: true,
         server: false,
       }));
-      
-      // Give server time to process the unsubscribe
+
       setTimeout(() => {
         if (websocket.value) {
           websocket.value.close(1000, "User left lobby");
@@ -222,7 +218,7 @@ onMounted(() => {
   console.log("minden pacek")
   
   setupWebSocket();
-});
+}); 
 
 
 </script>
