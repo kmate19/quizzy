@@ -60,15 +60,15 @@ const createLobby = async () => {
       
       console.log('Lobby created with code:', sessionData.code);
       const hash = await generateSessionHash(sessionData.code, 'asd');
-
-      const data ={
-        quizId: uuid,
+      
+      localStorage.setItem('quizzyWebSocket', JSON.stringify({
         lobbyId: sessionData.code,
         hash: hash,
-        isHost: true
-      }
-
-      localStorage.setItem('quizzyWebSocket', JSON.stringify(data));
+        isHost: true,
+        quizId: uuid,
+        timestamp: Date.now(),
+        heartbeatInterval: 30000
+      }));
 
       isCreatingLobby.value = false;
       router.push(`/quiz/multiplayer/${sessionData.code}`);

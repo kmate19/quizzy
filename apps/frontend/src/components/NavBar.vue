@@ -91,9 +91,9 @@ const joinLobby = async (code: string) => {
       
       console.log('Lobby exists with code:', first_data.code);
       
-      // Store connection info BEFORE establishing connection
-      // This is important so GameView can pick it up
+      // Store more complete connection info BEFORE establishing connection
       localStorage.setItem('quizzyWebSocket', JSON.stringify({
+        lobbyId: first_data.code,
         timestamp: Date.now(),
         heartbeatInterval: 30000
       }));

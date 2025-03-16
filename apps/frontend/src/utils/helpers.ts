@@ -1,4 +1,5 @@
 export const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
+  
   const bytes = new Uint8Array(buffer)
   let binary = ''
   for (let i = 0; i < bytes.byteLength; i++) {

@@ -31,7 +31,7 @@ defineProps<{ quiz: quizCardView }>()
         <div class="flex flex-wrap gap-2 mb-2">
           <span v-for="lang in quiz.languages" :key="lang.iso_code"
             class="inline-flex items-center bg-blue-500 bg-opacity-50 rounded-full px-2 py-1 text-xs text-white">
-            {{ lang.icon }} {{ lang.name }} 🥲😵‍💫 🫨 🤌 🫰 🐲 🐉 🦤 🪹 🪰  🪶 🐈‍⬛ 🪽 🐦‍🔥 🫘 🫔 🫖 🪃 🛻 🏳️‍⚧️  👩🏻‍🦯‍➡️ 🫳🏿 🫱🏽‍🫲🏾 🫱🏾‍🫲🏼 🫠 🫤 🧔🏻‍♂️ 🧑🏿‍❤️‍💋‍🧑🏾 🧑🏼‍❤️‍💋‍🧑🏽 😮‍💨
+            {{ lang.icon }} {{ lang.name }}
           </span>
         </div>
         <div class="flex flex-wrap gap-2 max-h-20 h-fit overflow-y-scroll custom-scrollbar">
