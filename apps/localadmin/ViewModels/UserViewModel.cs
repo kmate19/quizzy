@@ -1,9 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using localadmin.Models;
 using localadmin.Services;
+using System.Windows;
 
 namespace localadmin.ViewModels
 {
@@ -12,7 +10,7 @@ namespace localadmin.ViewModels
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
         public ObservableCollection<User> Users { get; set; } = new();
-        public ObservableCollection<User> FilteredUsers { get; private set; } = new();
+        public ObservableCollection<User> FilteredUsers { get; set; } = new();
 
         public UserViewModel(NavigationService Navigation, SharedStateService State)
         {
@@ -25,30 +23,56 @@ namespace localadmin.ViewModels
         public async Task InitializeAsync()
         {
             await GetUsers();
+            SearchUsers("");
         }
 
         public async Task GetUsers()
         {
             var fetchedUsers = await ApiUsersService.GetUsersAsync();
-            Users.Clear();
-            FilteredUsers.Clear();
+
+            var usersList = new List<User>();
+            var filteredList = new List<User>();
+
             foreach (var user in fetchedUsers)
             {
-                Users.Add(user);
-                FilteredUsers.Add(user);
-                user.UserUpdated += async () => await GetUsers();
                 user.Initialize(NavigationService, SharedState);
+                user.UserUpdated += async () => await GetUsers();
+
+                usersList.Add(user);
+                filteredList.Add(user);
             }
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                Users.Clear();
+                foreach (var user in usersList)
+                {
+                    Users.Add(user);
+                }
+
+                FilteredUsers.Clear();
+                foreach (var user in filteredList)
+                {
+                    FilteredUsers.Add(user);
+                }
+
+                SearchUsers("");
+            });
         }
 
         public void SearchUsers(string query)
         {
             var results = SearchService.FuzzySearch(Users, query, user => [user.Username, user.Email]);
-            FilteredUsers.Clear();
-            foreach (var user in results)
+
+            // Use the Dispatcher to ensure UI updates happen on the UI thread
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                FilteredUsers.Add(user);
-            }
+                FilteredUsers.Clear();
+                foreach (var user in results)
+                {
+                    FilteredUsers.Add(user);
+                }
+            });
         }
     }
 }

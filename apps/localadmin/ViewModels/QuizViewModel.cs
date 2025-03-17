@@ -43,6 +43,7 @@ namespace localadmin.ViewModels
                 if (_PageSize != value)
                 {
                     _PageSize = value;
+                    Debug.WriteLine($"IsLoading changed to: {value}");
                     OnPropertyChanged(nameof(PageSize));
 
                     _ = PageSizeChanged();
@@ -83,29 +84,55 @@ namespace localadmin.ViewModels
         public async Task InitializeAsync()
         {
             await GetQuizes();
+            SearchQuizes("");
         }
 
         public async Task GetQuizes()
         {
             var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync(CurrentPage, PageSize);
-            Quizzes.Clear();
-            FiltredQuizzes.Clear();
+
+            var quizzesList = new List<Quiz>();
+            var filteredList = new List<Quiz>();
 
             foreach (var quiz in fetchedQuizes.Quizzes)
             {
-                Quizzes.Add(quiz);
-                FiltredQuizzes.Add(quiz);
                 quiz.Initialize(NavigationService, SharedState);
                 quiz.QuizCards = await LoadQuizCards(quiz.UUID);
+
+                quizzesList.Add(quiz);
+                filteredList.Add(quiz);
             }
 
-            FiltredQuizzes.OrderBy(q => QuizOrder.ContainsKey(q.Status) ? QuizOrder[q.Status] : int.MaxValue);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                Quizzes.Clear();
+                foreach (var quiz in quizzesList)
+                {
+                    Quizzes.Add(quiz);
+                }
+
+                var orderedFilteredList = filteredList
+                    .OrderBy(q => QuizOrder.ContainsKey(q.Status) ? QuizOrder[q.Status] : int.MaxValue)
+                    .ToList();
+
+                FiltredQuizzes.Clear();
+                foreach (var quiz in orderedFilteredList)
+                {
+                    FiltredQuizzes.Add(quiz);
+                }
+
+                SearchQuizes(SharedState.SearchText);
+            });
+
+
+            SearchQuizes(SharedState.SearchText);
 
             maxPage = (int)Math.Ceiling((double)fetchedQuizes.TotalCount / PageSize);
 
             OnPropertyChanged(nameof(Quizzes));
             OnPropertyChanged(nameof(FiltredQuizzes));
         }
+
 
         private async Task<List<QuizCard>> LoadQuizCards(string quizId)
         {
@@ -121,14 +148,17 @@ namespace localadmin.ViewModels
         }
 
 
-        public void SearchQuizes(string query)
+        public  void SearchQuizes(string query)
         {   
             var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.User.Username, quiz.Title]);
-            FiltredQuizzes.Clear();
-            foreach (var quiz in results)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                FiltredQuizzes.Add(quiz);
-            } 
+                FiltredQuizzes.Clear();
+                foreach (var quiz in results)
+                {
+                    FiltredQuizzes.Add(quiz);
+                }
+            });
         }
 
         private async void PreviousPage(object parameter)

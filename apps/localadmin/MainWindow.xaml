@@ -10,6 +10,7 @@
         Title="Quizzy" Height="650" Width="1150">
     <Window.Resources>
         <ResourceDictionary>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Views\UserTemplate.xaml" />
                 <ResourceDictionary Source="Views\QuizTemplate.xaml"/>
@@ -17,6 +18,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
@@ -96,6 +98,14 @@
                       GotFocus="Searchbar_gotFocus" TextChanged="Searchbar_textChanged" Opacity="0.7" />
                     </Grid>
                 </Border>
+            </Grid>
+
+            <!--Loading template-->
+            <Grid Background="red" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="Loading..." Foreground="White" FontSize="20" HorizontalAlignment="Center"/>
+                    <ProgressBar IsIndeterminate="True" Width="200" Height="10"/>
+                </StackPanel>
             </Grid>
 
             <!-- ContentControl to Switch Views -->

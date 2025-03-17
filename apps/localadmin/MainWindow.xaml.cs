@@ -5,8 +5,9 @@ using localadmin.ViewModels;
 using System.Diagnostics;
 using localadmin.Services;
 using localadmin.Views;
-using System.Printing;
 using System.Formats.Asn1;
+using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace localadmin;
 
@@ -27,6 +28,20 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             _currentView = value;
             OnPropertyChanged(nameof(CurrentView));
+        }
+    }
+
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set
+        {
+            if (_isLoading != value)
+            {
+                _isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+            }
         }
     }
 
@@ -61,28 +76,33 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Loaded -= MainWindow_Loaded;
     }
 
-    private void OnViewModelChanged(object newViewModel)
+    private async void OnViewModelChanged(object newViewModel)
     {
-        CurrentView = newViewModel;
-        switch (CurrentView)
+        //no work
+
+        Application.Current.Dispatcher.Invoke(() => IsLoading = true);
+
+        switch (newViewModel)
         {
             case UserViewModel userViewModel:
                 userViewModel.SearchUsers(SharedState.SearchText);
                 break;
-            case ReviewViewModel reviewViewModel:
-                reviewViewModel.SearchReviews(SharedState.SearchText);
-                break;
-                /*
             case QuizViewModel quizViewModel:
                 quizViewModel.SearchQuizes(SharedState.SearchText);
                 break;
-                */
+                // Other cases...
         }
+
+        CurrentView = newViewModel;
+
+        await Application.Current.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+        Application.Current.Dispatcher.Invoke(() => IsLoading = false);
     }
+
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
     {
-        string url = "https://www.google.com";
+        string url = "http://localhost:5173";
         Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
     }
 
