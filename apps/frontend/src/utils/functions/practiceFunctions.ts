@@ -9,6 +9,7 @@ export const getGameQuiz = async (id: string) =>
     {
         const res = await get.json()
         const game : Game = {
+            id: res.data.id,
             title: res.data.title,
             banner: arrayBufferToBase64(res.data.banner.data),
             description: res.data.description,

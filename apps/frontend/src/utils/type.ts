@@ -127,6 +127,7 @@ export type userProfile = {
 }
 
 export type Game = {
+  id: string;
   title: string;
   banner: string;
   description: string;
