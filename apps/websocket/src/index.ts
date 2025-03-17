@@ -20,6 +20,8 @@ const { upgradeWebSocket, websocket } =
 
 const lobbies: LobbyMap = new Map();
 
+let interval;
+
 export const hono = new Hono()
     .basePath("/ws")
     .use(logger())

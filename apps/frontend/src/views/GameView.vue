@@ -17,7 +17,6 @@ const websocket = ref<WebSocket | null>(null);
 const copiedToClipboard = ref(false);
 const heartbeatInterval = ref<number | null>(null);
 const reconnectAttempts = ref(0);
-const maxReconnectAttempts = 5;
 
 const isHost = ref(false);
 
@@ -39,43 +38,7 @@ const copyLobbyCode = () => {
   copiedToClipboard.value = false;
 };
 
-const startHeartbeat = (ws: WebSocket) => {
-  if (heartbeatInterval.value) {
-    clearInterval(heartbeatInterval.value);
-  }
 
-  heartbeatInterval.value = window.setInterval(() => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'ping',
-        timestamp: Date.now(),
-        successful: true,
-        server: false,
-      }));
-    } else if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-      clearInterval(heartbeatInterval.value!);
-      heartbeatInterval.value = null;
-      reconnect();
-    }
-  }, 10000) as unknown as number; // Reduced interval to 10 seconds
-};
-
-const reconnect = async () => {
-  if (reconnectAttempts.value >= maxReconnectAttempts) {
-    error.value = 'Connection lost. Maximum reconnection attempts reached.';
-    return;
-  }
-
-  reconnectAttempts.value++;
-
-  try {
-    await setupWebSocket();
-  } catch {
-    setTimeout(() => {
-      reconnect();
-    }, 1000 * Math.pow(2, reconnectAttempts.value));
-  }
-};
 
 const setupWebSocket = async () => {
   try {
@@ -103,9 +66,8 @@ const setupWebSocket = async () => {
       param: { lobbyid: lobbyId.value, hash: wsHash },
     });
 
-    setupWebSocketListeners(ws);
-    startHeartbeat(ws);
     websocket.value = ws;
+    setupWebSocketListeners(websocket.value);
 
     localStorage.setItem('quizzyWebSocket', JSON.stringify({
       lobbyId: lobbyId.value,
@@ -131,6 +93,7 @@ const addParticipant = (username: string, pfp: string) => {
     username: username, 
     pfp: "data:image/png;base64," + pfp
    };
+   console.log(newUser)
   participants.value = [...participants.value, newUser];
 };
 
@@ -151,10 +114,12 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         successful: true,
         server: false,
         data: userData,
+      }));  
+      ws.send(JSON.stringify({
+        type: 'connect',
+        successful: true,
+        server: false,
       }));
-      if (userData.username && userData.pfp) {
-        addParticipant(userData.username, userData.pfp);
-      }
     } else {
       console.error('not open. state:', ws.readyState);
     }
@@ -168,13 +133,17 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       console.log('data', data.data)
       console.log("Participants count:", participants.value.length)
 
-      if (data.type === 'whoami') {
-        console.log("whoami response", data.data)
+      if (data.type === 'connect') {
         addParticipant(data.data.username, data.data.pfp);
       }
 
-      if (data.type === 'connect') {
-        addParticipant(data.data.username, data.data.pfp);
+      if(data.type === 'ping') {
+        console.log("Ping received");
+        ws.send(JSON.stringify({
+          type: 'pong',
+          successful: true,
+          server: false,
+        }));
       }
 
     } catch (err) {
@@ -194,7 +163,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       error.value = event.reason || 'Server closed the connection';
       localStorage.removeItem('quizzyWebSocket');
     } else if (event.code !== 1000 && route.name === 'quiz_multiplayer') {
-      reconnect();
     }
   });
 };
