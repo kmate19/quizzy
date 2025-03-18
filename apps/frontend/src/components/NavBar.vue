@@ -4,6 +4,9 @@ import { ref, watch, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import XButton from './XButton.vue'
 import { wsclient } from '@/lib/apiClient'
+import { useQuizzyStore } from '@/stores/quizzyStore'
+
+const quizzyStore = useQuizzyStore()
 
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
@@ -91,20 +94,20 @@ const joinLobby = async (code: string) => {
       
       console.log('Lobby exists with code:', first_data.code);
       
-      // Store more complete connection info BEFORE establishing connection
-      localStorage.setItem('quizzyWebSocket', JSON.stringify({
+      quizzyStore.setLobbyData({
         lobbyId: first_data.code,
+        hash: '',
+        quizId: '',
         timestamp: Date.now(),
-        heartbeatInterval: 30000
-      }));
+        heartbeatInterval: 30000,
+        isHost: false,
+      });
       
-      // Navigate to game view which will handle the actual connection
       isCodeModal.value = false;
       isLoading.value = false;
       console.log("minden lement jol")
       router.push(`/quiz/multiplayer/${first_data.code}`);
     } else {
-      // The server returns 400 when lobby doesn't exist
       const errorMsg = 'Lobby does not exist with this code';
       console.error(errorMsg);
       isLoading.value = false;

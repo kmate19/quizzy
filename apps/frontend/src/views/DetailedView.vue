@@ -7,6 +7,7 @@ import type { detailedQuiz } from '@/utils/type'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const route = useRoute()
 const uuid = route.params.uuid
@@ -37,6 +38,7 @@ const handleTestPlay = () => {
 }
 
 const isCreatingLobby = ref(false)
+const quizzyStore = useQuizzyStore()
 
 const createLobby = async () => {
   try {
@@ -61,14 +63,14 @@ const createLobby = async () => {
       console.log('Lobby created with code:', sessionData.code);
       const hash = await generateSessionHash(sessionData.code, 'asd');
       
-      localStorage.setItem('quizzyWebSocket', JSON.stringify({
+      quizzyStore.setLobbyData({
         lobbyId: sessionData.code,
-        hash: hash,
+        hash,
         isHost: true,
-        quizId: uuid,
+        quizId: uuid.toString(),
         timestamp: Date.now(),
         heartbeatInterval: 30000
-      }));
+      })
 
       isCreatingLobby.value = false;
       router.push(`/quiz/multiplayer/${sessionData.code}`);
