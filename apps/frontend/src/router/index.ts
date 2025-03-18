@@ -10,6 +10,7 @@ import ForgotPassword from '@/views/ForgotPassword.vue'
 import { queryClient } from '@/lib/queryClient'
 import QuizPractice from '@/views/QuizPractice.vue'
 import GameView from '@/views/GameView.vue'
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,11 +75,15 @@ const router = createRouter({
 const title = ref('Quizzy')
 
 router.beforeEach(async (toRoute, fromRoute, next) => {
+
   let newTitle = 'Quizzy'
 
   const requiresAuth = toRoute.meta.requiresAuth
   const isLoginPath = toRoute.path === '/login'
   const cachedUser = queryClient.getQueryData(['authUser'])
+
+  const quizzyStore = useQuizzyStore()
+  quizzyStore.fromLogin = fromRoute.path === '/login'
 
   if (cachedUser) {
     if (isLoginPath) {

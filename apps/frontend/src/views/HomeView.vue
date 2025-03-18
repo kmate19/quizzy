@@ -5,11 +5,12 @@ import CategoriesButton from '@/components/CategoriesBtn.vue'
 import QuizCard from '@/components/QuizCard.vue'
 import type { quizCardView } from '@/utils/type'
 import { getQuizzes } from '@/utils/functions/homeFuncitions'
+import { toast } from 'vue3-toastify'
 import { useRoute } from 'vue-router'
-import { toast, type ToastContainerOptions } from 'vue3-toastify'
-
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const route = useRoute()
+
 const quizzes = ref<quizCardView[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -237,8 +238,26 @@ const totalPagesArray = computed(() => {
   return Array.from({ length: totalPages.value }, (_, i) => i + 1)
 })
 
+const fromLogin = route.redirectedFrom?.path === '/login'
+
 onMounted(async () => {
   loading.value = true
+  await nextTick()
+  const quizzyStore = useQuizzyStore()
+
+  console.log("fasz",fromLogin)
+
+  if (quizzyStore.isFirstLogin && quizzyStore.fromLogin) {
+    toast(`Sikeres bejelentkezés!\nÜdvözöljük ${quizzyStore.userName}!`, {
+      autoClose: 3500,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    })
+    quizzyStore.isFirstLogin = false
+  }
+
   selectParams()
   const res = await getQuizzes(
     params.limit,
@@ -250,16 +269,6 @@ onMounted(async () => {
   );
   quizzes.value = res.quizzes
   totalPages.value = Math.ceil(res.totalPages / 10)
-  const username = route.query.username
-  if (username) {
-    toast(`Sikeres bejelentkezés!\nÜdvözöljük ${username}!`, {
-      autoClose: 3500,
-      position: toast.POSITION.TOP_CENTER,
-      type: 'success',
-      transition: 'zoom',
-      pauseOnHover: false,
-    } as ToastContainerOptions)
-  }
   loading.value = false
 })
 </script>

@@ -19,6 +19,7 @@ import {
   deleteApiKey,
   listApiKeys,
 } from '@/utils/functions/profileFunctions'
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const localPfp = ref('')
 const keyId = ref(0)
@@ -246,6 +247,8 @@ const OnLogOut = async () => {
   await clientv1.auth.logout.$get()
   queryClient.clear()
   localStorage.clear()
+  const quizzyStore = useQuizzyStore()
+  quizzyStore.$reset()
   router.push('/login')
 }
 

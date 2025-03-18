@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as zod from 'zod'
 import router from '@/router'
@@ -9,8 +9,10 @@ import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 import { userData } from '@/utils/functions/profileFunctions'
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const queryClient = useQueryClient()
+const quizzyStore = useQuizzyStore()
 
 const isLoginForm = ref(true)
 
@@ -116,9 +118,11 @@ const onLogin = async () => {
     queryClient.setQueryData(['authUser'], 'authed')
     const res = await userData("")
     if (res !== null) {
-      await queryClient.setQueryData(['userProfile', ''], res);
-      localStorage.setItem('isAdmin', res?.roles?.some(role => role.role.name === 'admin') ? "admin" : "default");
-      router.push({ path: '/', query: { username: res?.username } })
+      await queryClient.setQueryData(['userProfile', ''], res)
+      quizzyStore.isAdmin = res?.roles?.some(role => role.role.name === 'admin') || false
+      quizzyStore.userName = res?.username || ''
+      quizzyStore.fromLogin = true
+      router.push('/')
     } else {
       toast('Hiba történt a felhasználó adatainak lekérdezése közben', {
         autoClose: 5000,
