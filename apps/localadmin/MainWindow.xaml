@@ -101,7 +101,7 @@
             </Grid>
 
             <!--Loading template-->
-            <Grid Background="red" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+            <Grid Background="Transparent" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="Loading..." Foreground="White" FontSize="20" HorizontalAlignment="Center"/>
                     <ProgressBar IsIndeterminate="True" Width="200" Height="10"/>

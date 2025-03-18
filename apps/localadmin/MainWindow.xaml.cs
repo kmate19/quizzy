@@ -78,32 +78,35 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void OnViewModelChanged(object newViewModel)
     {
-        //no work
-
-        Application.Current.Dispatcher.Invoke(() => IsLoading = true);
-
-        switch (newViewModel)
+        try
         {
-            case UserViewModel userViewModel:
-                userViewModel.SearchUsers(SharedState.SearchText);
-                break;
-            case QuizViewModel quizViewModel:
-                quizViewModel.SearchQuizes(SharedState.SearchText);
-                break;
-                // Other cases...
+            IsLoading = true;
+
+            switch (newViewModel)
+            {
+                case UserViewModel userViewModel:
+                    await userViewModel.InitializeAsync();
+                    userViewModel.SearchUsers(SharedState.SearchText);
+                    break;
+                case QuizViewModel quizViewModel:
+                    await quizViewModel.InitializeAsync();
+                    quizViewModel.SearchQuizes(SharedState.SearchText);
+                    break;
+            }
+
+            CurrentView = newViewModel;
         }
-
-        CurrentView = newViewModel;
-
-        await Application.Current.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
-        Application.Current.Dispatcher.Invoke(() => IsLoading = false);
+        finally
+        {
+            IsLoading = false;
+        }
     }
-
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
     {
         string url = "http://localhost:5173";
-        Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+        Process.Start(new ProcessStartInfo("cmd", $"/c start {url}")
+        { CreateNoWindow = true });
     }
 
     private void Searchbar_gotFocus(object sender, RoutedEventArgs e)
