@@ -146,32 +146,39 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-const cardHeight = ref(0)
+const cardHeight = ref(500)
 
 const updateCardHeight = () => {
-  nextTick(() => {
-    const content = document.querySelector('.form-content') as HTMLDivElement | null
-    if (content) {
-      cardHeight.value = content.offsetHeight
+  const content = document.querySelector('.form-content') as HTMLElement
+  if (content) {
+    const height = content.offsetHeight || 0
+    if (height > 0) {
+      cardHeight.value = height + 100
+      console.log("Height updated:", cardHeight.value)
     }
-  })
+  }
 }
 
 onMounted(() => {
   updateCardHeight()
-  window.addEventListener('resize', updateCardHeight)
+  window.addEventListener('resize', () => {
+        updateCardHeight()
+  })
 })
 </script>
 
 <template>
   <div class="wrapper">
     <div
-      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly relative overflow-hidden text-white"
-      :style="{ height: `${cardHeight + 100}px` }">
+      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
+       backdrop-blur-md transition-all duration-1000 
+       !hover:bg-red-950 flex flex-col
+       justify-evenly relative text-white "
+      :style="{ height: `${cardHeight}px` }">
       <transition name="fade" enter-active-class="transition ease-out duration-300"
         leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
         @leave="updateCardHeight">
-        <div v-if="isLoginForm" class="form-content" key="login">
+        <div v-if="isLoginForm" class="form-content custom-scrollbar" key="login">
           <div class="flex justify-evenly flex-row mb-2">
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
@@ -207,7 +214,7 @@ onMounted(() => {
             </div>
           </form>
         </div>
-        <div v-else class="form-content" key="register">
+        <div v-else class="form-content custom-scrollbar" key="register">
           <div class="flex justify-evenly flex-row mb-2">
             <div class="flex items-center">
               <span class="font-weight-black text-3xl">Regisztráció</span>
@@ -263,6 +270,32 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.custom-scrollbar {
+  scrollbar-width: thin;
+  /*tuzroka miatt kell*/
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+  scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
 .wrapper {
   height: 100vh;
   width: 100vw;
@@ -305,7 +338,7 @@ v-text-field {
 
 @media only screen and (max-height: 835px){
   .form-content{
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 }
 
