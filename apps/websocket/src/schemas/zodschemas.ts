@@ -1,9 +1,18 @@
+import { publishQuizSchema } from "@repo/api/public-schemas";
 import { Equal } from "hono/utils/types";
 import type { LobbyUser, WebsocketMessage, WebsocketMessageType } from "repo";
 import { z } from "zod";
 
+// TODO: filter out system messages that can only be sent by the server
 const wsMessageTypeZEnum = z.enum([
-    "message",
+    "roundstarted",
+    "roundended",
+    "gamended",
+    "gamestarted",
+    "startgame",
+    "quizmeta",
+    "quizdata",
+    "members",
     "subscribe",
     "unsubscribe",
     "ping",
@@ -15,6 +24,11 @@ const wsMessageTypeZEnum = z.enum([
     "handshake",
     "error",
 ]);
+export const publishQuizSchemaWID = publishQuizSchema.extend({
+    quiz: publishQuizSchema.shape.quiz.extend({
+        id: z.string().uuid(),
+    }),
+});
 
 // ignore this, just doing typescript magic to check if the types are correct
 function assertequal<T extends true>() {}

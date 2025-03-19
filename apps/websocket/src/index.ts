@@ -10,13 +10,13 @@ import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
 import { extractJwtData } from "./utils/checkjwt";
 import { isInvalidConnection } from "./utils/checkWsError";
-import { LobbyUser, QuizzyJWTPAYLOAD } from "./types";
+import { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./utils/handleWsMessage";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
 
-const lobbies: Map<string, Set<ServerWebSocket<LobbyUser>>> = new Map();
+const lobbies: LobbyMap = new Map();
 
 export const hono = new Hono()
     .basePath("/ws")
@@ -64,7 +64,7 @@ export const hono = new Hono()
                     const clientMessage: WebsocketMessage =
                         maybeClientMessage.data;
 
-                    handleWsMessage(ws.raw, clientMessage, lobbyid);
+                    handleWsMessage(ws.raw, clientMessage, lobbyid, lobbies);
                 },
                 onOpen: (_, ws) => {
                     if (!ws.raw) {
@@ -92,7 +92,7 @@ export const hono = new Hono()
 
                     console.log(ws.raw.data, "after setting");
 
-                    lobbies.get(lobbyid)?.add(ws.raw);
+                    lobbies.get(lobbyid)?.members.add(ws.raw);
 
                     console.log(
                         `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
@@ -130,8 +130,8 @@ export const hono = new Hono()
                     const lobby = lobbies.get(lobbyid);
 
                     if (lobby) {
-                        lobby.delete(ws.raw);
-                        if (lobby.size === 0) {
+                        lobby.members.delete(ws.raw);
+                        if (lobby.members.size === 0) {
                             lobbies.delete(lobbyid);
                         }
                     }
@@ -169,7 +169,7 @@ export const hono = new Hono()
                 return c.json({}, 400);
             }
 
-            lobbies.set(lobbyid, new Set());
+            lobbies.set(lobbyid, { members: new Set() });
 
             return c.json({ code: lobbyid }, 200);
         }

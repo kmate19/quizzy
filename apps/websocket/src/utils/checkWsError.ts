@@ -2,13 +2,13 @@ import { ServerWebSocket } from "bun";
 import { WSContext } from "hono/ws";
 import type { WebsocketMessage } from "repo";
 import { generateSessionHash } from "./utils";
-import { LobbyUser } from "@/types";
+import { LobbyMap } from "@/types";
 
 export function isInvalidConnection(
     ws: WSContext<ServerWebSocket<unknown>>,
     hash: string,
     lobbyid: string,
-    lobbies: Map<string, Set<ServerWebSocket<LobbyUser>>>,
+    lobbies: LobbyMap,
     jwtdata: any
 ): boolean {
     const res = {

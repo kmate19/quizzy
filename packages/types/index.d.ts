@@ -36,7 +36,14 @@ export declare type LobbyUser = {
 };
 
 declare type WebsocketMessageType =
-    | "message"
+    | "roundstarted"
+    | "roundended"
+    | "gamended"
+    | "gamestarted"
+    | "startgame"
+    | "quizmeta"
+    | "quizdata"
+    | "members"
     | "whoami"
     | "subscribe"
     | "unsubscribe"
