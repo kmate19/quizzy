@@ -34,6 +34,7 @@ export async function handleWsMessage(
 
             return;
         case "quizdata":
+            // TODO: ensure only the host can send this message and the likes
             const maybeQuizData = publishQuizSchemaWID.safeParse(msg.data);
 
             if (maybeQuizData.error) {
@@ -93,7 +94,6 @@ export async function handleWsMessage(
 
             return;
         case "answered":
-            // TODO: race conditions
             if (
                 !lobby?.gameState.started ||
                 !lobby.gameState.currentRoundAnswers
@@ -112,11 +112,9 @@ export async function handleWsMessage(
                 return;
             }
 
-            if (
-                lobby.gameState.currentRoundAnswers.size + 1 <
-                lobby.members.size
-            ) {
-                lobby.gameState.currentRoundAnswers.set(
+            // prevent race conditions
+            setImmediate(() => {
+                lobby.gameState.currentRoundAnswers!.set(
                     ws.data.lobbyUserData.userId,
                     {
                         answerIndex: maybeAnswer.data.answerIndex,
@@ -125,7 +123,7 @@ export async function handleWsMessage(
                 );
 
                 if (
-                    lobby.gameState.currentRoundAnswers.size ===
+                    lobby.gameState.currentRoundAnswers!.size ===
                     lobby.members.size
                 ) {
                     if (!lobby.gameState.roundEndTrigger) {
@@ -137,7 +135,7 @@ export async function handleWsMessage(
                     }
                     lobby.gameState.roundEndTrigger();
                 }
-            }
+            });
 
             return;
         case "subscribe":

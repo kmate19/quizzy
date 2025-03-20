@@ -16,7 +16,6 @@ export function genLobbyId() {
     return result;
 }
 
-// TODO: put into shared to use with client
 export function generateSessionHash(
     lobbyCode: string,
     secretKey: string
