@@ -20,6 +20,7 @@ export type LobbyUser = {
             wrongAnswerCount: number;
             score: number;
         };
+        pongTimeout: Timer;
     };
 };
 

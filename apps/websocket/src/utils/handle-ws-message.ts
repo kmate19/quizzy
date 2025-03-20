@@ -43,6 +43,7 @@ export async function handleWsMessage(
             }
 
             lobby.quizData = maybeQuizData.data;
+
             return;
         case "quizmeta":
             const quizData = lobbies.get(lobbyid)?.quizData;
@@ -138,11 +139,17 @@ export async function handleWsMessage(
             });
 
             return;
-        case "subscribe":
-        case "unsubscribe":
         case "ping":
+            ws.pong();
+
+            return;
         case "pong":
-        case "ack":
+            clearTimeout(ws.data.lobbyUserData.pongTimeout);
+            ws.data.lobbyUserData.pongTimeout = setTimeout(() => {
+                ws.close();
+            }, 20000);
+
+            return;
         case "connect":
             publishWs(ws, lobbyid, "connect", ws.data.lobbyUserData);
 
@@ -151,7 +158,5 @@ export async function handleWsMessage(
             publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData);
 
             return;
-        case "handshake":
-        case "error":
     }
 }

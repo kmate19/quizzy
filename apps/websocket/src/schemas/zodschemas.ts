@@ -17,15 +17,11 @@ const wsMessageTypeZEnum = z.enum([
     "quizmeta",
     "quizdata",
     "members",
-    "subscribe",
-    "unsubscribe",
     "ping",
     "pong",
-    "ack",
     "whoami",
     "connect",
     "disconnect",
-    "handshake",
     "error",
 ]);
 export const publishQuizSchemaWID = publishQuizSchema.extend({

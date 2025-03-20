@@ -81,6 +81,9 @@ export const hono = new Hono()
                             correctAnswerCount: 0,
                             score: 0,
                         },
+                        pongTimeout: setTimeout(() => {
+                            ws.raw?.close();
+                        }, 20000),
                     };
 
                     lobbies.get(lobbyid)!.members.add(ws.raw);
@@ -97,7 +100,7 @@ export const hono = new Hono()
                         } else {
                             ws.raw?.ping();
                         }
-                    }, 24000);
+                    }, 10000);
 
                     ws.raw.subscribe(lobbyid);
                 },
@@ -109,6 +112,9 @@ export const hono = new Hono()
                     console.log(
                         `client ${ws.raw.data.lobbyUserData} left lobby ${lobbyid}`
                     );
+
+                    ws.raw.unsubscribe(lobbyid);
+                    clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
 
                     const lobby = lobbies.get(lobbyid);
 

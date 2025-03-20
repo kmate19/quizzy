@@ -46,14 +46,10 @@ declare type WebsocketMessageType =
     | "quizdata"
     | "members"
     | "whoami"
-    | "subscribe"
-    | "unsubscribe"
     | "ping"
     | "pong"
-    | "ack"
     | "connect"
     | "disconnect"
-    | "handshake"
     | "error";
 
 declare type WebsocketError = {
