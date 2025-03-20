@@ -4,6 +4,7 @@ import ENV from "./env";
 
 export function handleGameEnd(lobby: Lobby) {
     Object.keys(lobby.gameState).forEach(
+        // @ts-ignore
         (v) => (lobby.gameState[v as keyof typeof lobby.gameState] = undefined)
     );
 
@@ -39,4 +40,6 @@ export function handleGameEnd(lobby: Lobby) {
     });
 
     sendLobby(lobby.members, "gamended", sorted);
+
+    // TODO: think about how to close the lobby
 }
