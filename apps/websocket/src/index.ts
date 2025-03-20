@@ -169,7 +169,7 @@ export const hono = new Hono()
                 return c.json({}, 400);
             }
 
-            lobbies.set(lobbyid, { members: new Set() });
+            lobbies.set(lobbyid, { members: new Set(), gameState: {} });
 
             return c.json({ code: lobbyid }, 200);
         }

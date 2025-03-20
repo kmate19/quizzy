@@ -27,14 +27,14 @@ export type Lobby = {
     members: Set<ServerWebSocket<LobbyUser>>;
     quizData?: z.infer<typeof publishQuizSchema> & { quiz: { id: string } };
     gameState: {
-        started: boolean;
+        started?: boolean;
         // we will jumble the questions before sending them with an iterator
         // one by one
-        questionIndices: Iterator<number>;
-        currentQuestionIndex: number;
-        currentRoundAnswers: Map<string, number>;
+        questionIndices?: Iterator<number>;
+        currentQuestionIndex?: number;
+        currentRoundAnswers?: Map<string, number>;
         // handle round ending with a timeout and a cb
-        roundEndTimeout: Timer;
-        roundEndTrigger: () => void;
+        roundEndTimeout?: Timer;
+        roundEndTrigger?: () => void;
     };
 };

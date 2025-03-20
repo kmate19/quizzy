@@ -2,6 +2,10 @@ import { Lobby } from "@/types";
 import { WebsocketMessage } from "repo";
 
 export async function startGameLoop(lobby: Lobby): Promise<void> {
+    if (!lobby.gameState.questionIndices) {
+        // TODO: actually handle this case
+        throw new Error("question indices not set but game started");
+    }
     let index = lobby.gameState.questionIndices.next();
     while (!index.done) {
         lobby.gameState.currentQuestionIndex = index.value;
