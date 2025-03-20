@@ -8,9 +8,9 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
-import { extractJwtData } from "./utils/checkjwt";
+import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
-import { handleWsMessage } from "./utils/handleWsMessage";
+import { handleWsMessage } from "./utils/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./utils/close";
 
 const { upgradeWebSocket, websocket } =
