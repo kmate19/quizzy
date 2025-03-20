@@ -34,7 +34,11 @@ export async function handleWsMessage(
 
             return;
         case "quizdata":
-            // TODO: ensure only the host can send this message and the likes
+            if (lobby.gameState.hostId !== ws.data.lobbyUserData.userId) {
+                closeWithError(ws, "You are not the host");
+                return;
+            }
+
             const maybeQuizData = publishQuizSchemaWID.safeParse(msg.data);
 
             if (maybeQuizData.error) {
@@ -74,6 +78,10 @@ export async function handleWsMessage(
         case "startgame":
             // host sent message to start game, get ready to start game and
             // load quiz data setup up listeners etc then broadcast gamestarted msg
+            if (lobby.gameState.hostId !== ws.data.lobbyUserData.userId) {
+                closeWithError(ws, "You are not the host");
+                return;
+            }
 
             if (!lobby || !lobby.quizData) {
                 closeWithError(

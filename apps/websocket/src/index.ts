@@ -12,6 +12,7 @@ import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./utils/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./utils/close";
+import { jwt } from "hono/jwt";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -152,13 +153,23 @@ export const hono = new Hono()
                 }
             }
 
+            const jwtData = await extractJwtData(c);
+            if (jwtData.json) {
+                return jwtData as any;
+            }
+
+            const jwtDataValid = jwtData as QuizzyJWTPAYLOAD;
+
             const lobbyid = genLobbyId();
 
             if (lobbies.has(lobbyid)) {
                 return c.json({}, 400);
             }
 
-            lobbies.set(lobbyid, { members: new Set(), gameState: {} });
+            lobbies.set(lobbyid, {
+                members: new Set(),
+                gameState: { hostId: jwtDataValid.userId },
+            });
 
             return c.json({ code: lobbyid }, 200);
         }

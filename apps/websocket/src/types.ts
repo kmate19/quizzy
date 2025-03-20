@@ -30,6 +30,7 @@ export type Lobby = {
     members: Set<ServerWebSocket<LobbyUser>>;
     quizData?: z.infer<typeof publishQuizSchema> & { quiz: { id: string } };
     gameState: {
+        hostId: string;
         started?: boolean;
         // we will jumble the questions before sending them with an iterator
         // one by one
