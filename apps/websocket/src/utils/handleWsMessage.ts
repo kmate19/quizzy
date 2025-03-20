@@ -37,6 +37,7 @@ export async function handleWsMessage(
             const rest = members
                 .values()
                 .filter((m) => m !== ws)
+                .map((u) => u.data.lobbyUserData)
                 .toArray();
 
             const res1 = {
