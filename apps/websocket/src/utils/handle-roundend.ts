@@ -1,4 +1,4 @@
-import { Lobby, LobbyUser } from "@/types";
+import { Lobby } from "@/types";
 import { abortLobby } from "./close";
 import { sendLobby } from "./send";
 
@@ -45,9 +45,7 @@ export function handleRoundEnd(lobby: Lobby, correct_answer_index: number) {
 function calculateScore(answerTimeDiff: number) {
     const baseScore = 500;
 
-    const baseMult = 1.0;
+    const timeMultiplier = Math.max(0, 1 - answerTimeDiff / 15000);
 
-    const timeMult = answerTimeDiff / 10000;
-
-    return baseScore * (baseMult + timeMult);
+    return Math.round(baseScore * timeMultiplier);
 }

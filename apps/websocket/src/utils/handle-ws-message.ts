@@ -42,6 +42,7 @@ export async function handleWsMessage(
             }
 
             lobby.quizData = maybeQuizData.data;
+            return;
         case "quizmeta":
             const quizData = lobbies.get(lobbyid)?.quizData;
 
@@ -92,6 +93,7 @@ export async function handleWsMessage(
 
             return;
         case "answered":
+            // TODO: race conditions
             if (
                 !lobby?.gameState.started ||
                 !lobby.gameState.currentRoundAnswers

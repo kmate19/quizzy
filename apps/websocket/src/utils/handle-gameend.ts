@@ -15,7 +15,7 @@ export function handleGameEnd(lobby: Lobby) {
         .values()
         .map((u) => u.data.lobbyUserData)
         .toArray()
-        .sort((a, b) => a.stats.score - b.stats.score);
+        .sort((a, b) => b.stats.score - a.stats.score);
 
     sorted.forEach((u, i) => {
         u.stats.placement = i;
@@ -26,6 +26,7 @@ export function handleGameEnd(lobby: Lobby) {
         stats: u.stats,
     }));
 
+    // send to api for intra service messaging
     fetch("http://localhost:3000/api/v1/events/quiz-finished", {
         headers: {
             Authorization: `Bearer ${ENV.WS_SECRET()}`,
