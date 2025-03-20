@@ -4,8 +4,6 @@ import { ref, onMounted } from 'vue';
 import { wsclient } from '@/lib/apiClient';
 import { generateSessionHash } from '@/utils/helpers';
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
-import { useQuery } from '@tanstack/vue-query';
-import { userData } from '@/utils/functions/profileFunctions';
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const route = useRoute();
@@ -24,13 +22,6 @@ const reconnectAttempts = ref(0);
 if (route.path === `/quiz/${lobbyId.value}`) {
   isHost.value = true;
 }
-
-const { data: User } = useQuery({
-  queryKey: ['userProfile', ''],
-  queryFn: () => userData(''),
-})
-
-console.log("pfp", User.value?.profile_picture.split(';base64, ')[1],)
 
 
 const copyLobbyCode = () => {
@@ -107,12 +98,10 @@ const setupWebSocketListeners = (ws: WebSocket) => {
     isLoading.value = false;
     reconnectAttempts.value = 0;
     if (ws.readyState === WebSocket.OPEN) {
-      console.log('whoami message', lobbyId.value);
       const userData = {
-        username: User.value?.username || 'Guest',
-        pfp: (User.value?.profile_picture || '').replace('data:image/png;base64,', '')
+        username: quizzyStore.userName,
+        pfp: quizzyStore.pfp.replace('data:image/png;base64,', '')
       }
-      console.log("USERDATA", userData)
       ws.send(JSON.stringify({
         type: 'whoami',
         successful: true,
@@ -132,16 +121,19 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
   ws.addEventListener('message', (event) => {
     try {
-      console.log("Received message:", event.data)
       const data = JSON.parse(event.data)
-      console.log('type', data.type)
-      console.log('data', data.data)
-      console.log("Participants count:", participants.value.length)
 
       if (data.type === 'connect') {
-        addParticipant(data.data.username, data.data.pfp);
+        console.log("data connect",data.data)
+        if(data.data.username && data.data.pfp) {
+          addParticipant(data.data.username, data.data.pfp);
+        }
       }
 
+      if(data.type === 'members') {
+        console.log("data members",data.data)
+      }
+      
       if(data.type === 'ping') {
         console.log("Ping received");
         ws.send(JSON.stringify({
@@ -217,8 +209,6 @@ onMounted(() => {
     return;
   }
   console.log("minden pacek")
-  console.log(User.value?.profile_picture.replace('data:image/png;base64,', ''))
-
   setupWebSocket();
 });
 

@@ -98,9 +98,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
     isLoading.value = false;
     reconnectAttempts.value = 0;
     if (ws.readyState === WebSocket.OPEN) {
-      console.log('whoami message', lobbyId.value);
-      console.log("USERNAME", quizzyStore.userName)
-      console.log("PFP", quizzyStore.pfp)
       const userData = {
         username:  quizzyStore.userName,
         pfp: quizzyStore.pfp.replace('data:image/png;base64,', '')
@@ -125,16 +122,17 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
   ws.addEventListener('message', (event) => {
     try {
-      console.log("Received message:", event.data)
       const data = JSON.parse(event.data)
-      console.log('type', data.type)
-      console.log('data', data.data)
-
-      console.log("Participants count:", participants.value.length)
 
       if (data.type === 'connect') {
-        console.log("data",data.data)
-        addParticipant(data.data.username, data.data.pfp);
+        ws.send(JSON.stringify({
+        type: 'members',
+        successful: true,
+        server: false,
+        }));
+        if(data.data.username && data.data.pfp) {
+          addParticipant(data.data.username, data.data.pfp);
+        }
       }
 
       if(data.type === 'ping') {
