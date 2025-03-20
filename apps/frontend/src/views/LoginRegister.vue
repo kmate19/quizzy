@@ -122,6 +122,8 @@ const onLogin = async () => {
       quizzyStore.isAdmin = res?.roles?.some(role => role.role.name === 'admin') || false
       quizzyStore.userName = res?.username || ''
       quizzyStore.fromLogin = true
+      quizzyStore.pfp =  res?.profile_picture || ''
+      console.log("PFP:", quizzyStore.pfp)
       router.push('/')
     } else {
       toast('Hiba történt a felhasználó adatainak lekérdezése közben', {

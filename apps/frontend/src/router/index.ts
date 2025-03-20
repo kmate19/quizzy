@@ -11,6 +11,7 @@ import { queryClient } from '@/lib/queryClient'
 import QuizPractice from '@/views/QuizPractice.vue'
 import GameView from '@/views/GameView.vue'
 import { useQuizzyStore } from '@/stores/quizzyStore'
+import { userData } from '@/utils/functions/profileFunctions'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -75,14 +76,13 @@ const router = createRouter({
 const title = ref('Quizzy')
 
 router.beforeEach(async (toRoute, fromRoute, next) => {
-
   let newTitle = 'Quizzy'
 
   const requiresAuth = toRoute.meta.requiresAuth
   const isLoginPath = toRoute.path === '/login'
-  const cachedUser = queryClient.getQueryData(['authUser'])
-
+  const cachedUser = queryClient.getQueryData(['authUser', 'authed'])
   const quizzyStore = useQuizzyStore()
+
   quizzyStore.fromLogin = fromRoute.path === '/login'
 
   if (cachedUser) {
@@ -95,7 +95,18 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
       const isAuthenticated = auth.status === 200
 
       if (isAuthenticated) {
-        queryClient.setQueryData(['authUser'], auth)
+        queryClient.setQueryData(['authUser'], 'authed')
+        
+        const user = queryClient.getQueryData(['userProfile', ''])
+
+        if (!user) {
+          const data = await userData('')
+          if (data) {
+            queryClient.setQueryData(['userProfile', ''], data)
+            quizzyStore.userName = data.username
+            quizzyStore.pfp = data.profile_picture
+          }
+        }
 
         if (isLoginPath) {
           return next('/')

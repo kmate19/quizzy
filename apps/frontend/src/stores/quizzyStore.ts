@@ -12,6 +12,7 @@ export const useQuizzyStore = defineStore('quizzy', () => {
   const quizId = ref<string>('')
   const timestamp = ref<number>(0)
   const heartbeatInterval = ref<number>(0)
+  const pfp = ref<string>('')
 
   function reset() {
     isAdmin.value = false
@@ -24,6 +25,7 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     quizId.value = ''
     timestamp.value = 0
     heartbeatInterval.value = 0
+    pfp.value = ''
   }
 
   function setLobbyData(data: {
@@ -66,6 +68,7 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     heartbeatInterval,
     setLobbyData,
     $reset: reset,
-    getLobbyData
+    getLobbyData,
+    pfp
   }
 })

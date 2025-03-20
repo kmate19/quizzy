@@ -102,8 +102,6 @@ export type stats = {
     first_places: number,
     second_places: number,
     third_places: number,
-    wins: number,
-    losses: number,
 }
 
 type role = {
