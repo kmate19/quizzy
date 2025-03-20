@@ -112,7 +112,7 @@ export async function handleWsMessage(
                 data: quizData,
             } satisfies WebsocketMessage;
 
-            ws.publish(lobbyid, JSON.stringify(res2));
+            ws.send(JSON.stringify(res2));
             return;
         case "whoami":
             const maybeUserData = UserDataSchema.safeParse(msg.data);
@@ -222,6 +222,7 @@ export async function handleWsMessage(
                 }
             }
 
+            return;
         case "subscribe":
         case "unsubscribe":
         case "ping":
