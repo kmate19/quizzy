@@ -3,6 +3,7 @@ import type { ServerWebSocket } from "bun";
 import type { JWTPayload } from "hono/utils/jwt/types";
 import type { LobbyUser as lob } from "repo";
 import { z } from "zod";
+import { quizAnswerSchema } from "./schemas/zodschemas";
 
 export type QuizzyJWTPAYLOAD = {
     userId: string;
@@ -17,6 +18,7 @@ export type LobbyUser = {
             placement?: number;
             correctAnswerCount: number;
             wrongAnswerCount: number;
+            score: number;
         };
     };
 };
@@ -32,7 +34,7 @@ export type Lobby = {
         // one by one
         questionIndices?: Iterator<number>;
         currentQuestionIndex?: number;
-        currentRoundAnswers?: Map<string, number>;
+        currentRoundAnswers?: Map<string, z.infer<typeof quizAnswerSchema>>;
         // handle round ending with a timeout and a cb
         roundEndTimeout?: Timer;
         roundEndTrigger?: () => void;

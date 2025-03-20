@@ -13,7 +13,7 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
     check_ws,
     zv("json", quizFinishedSchema),
     async (c) => {
-        const { userId, quizId, type, meta } = c.req.valid("json");
+        const { members, quizId, type } = c.req.valid("json");
 
         const quizUpdateResult = await tryCatchAsyncClosure(async () => {
             await db
@@ -34,48 +34,68 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
             return c.json(res, 400);
         }
 
-        let updatedValues: PgUpdateSetSource<typeof userStatsTable>;
-        if (type === "multi") {
+        members.forEach(async (u) => {
+            let updatedValues: PgUpdateSetSource<typeof userStatsTable>;
             updatedValues = {
                 plays: sql`${userStatsTable.plays} + 1`,
             };
 
-            if (meta.placement === 1) {
+            if (u.stats.placement === 1) {
                 updatedValues.first_places = sql`${userStatsTable.first_places} + 1`;
-            } else if (meta.placement === 2) {
+            } else if (u.stats.placement === 2) {
                 updatedValues.second_places = sql`${userStatsTable.second_places} + 1`;
-            } else if (meta.placement === 3) {
+            } else if (u.stats.placement === 3) {
                 updatedValues.third_places = sql`${userStatsTable.third_places} + 1`;
             }
 
-            updatedValues.wrong_answers = sql`${userStatsTable.wrong_answers} + ${meta.wrongAnswerCount}`;
-            updatedValues.correct_answers = sql`${userStatsTable.correct_answers} + ${meta.correctAnswerCount}`;
-        } else {
-            updatedValues = {
-                plays: sql`${userStatsTable.plays} + 1`,
-            };
-            updatedValues.wrong_answers = sql`${userStatsTable.wrong_answers} + ${meta.wrongAnswerCount}`;
-            updatedValues.correct_answers = sql`${userStatsTable.correct_answers} + ${meta.correctAnswerCount}`;
-        }
+            updatedValues.wrong_answers = sql`${userStatsTable.wrong_answers} + ${u.stats.wrongAnswerCount}`;
+            updatedValues.correct_answers = sql`${userStatsTable.correct_answers} + ${u.stats.correctAnswerCount}`;
 
-        const userStatUpdateResult = await tryCatchAsyncClosure(async () => {
-            await db
-                .update(userStatsTable)
-                .set(updatedValues)
-                .where(eq(userStatsTable.user_id, userId));
+            const userStatUpdateResult = await tryCatchAsyncClosure(
+                async () => {
+                    await db
+                        .update(userStatsTable)
+                        .set(updatedValues)
+                        .where(eq(userStatsTable.user_id, u.userId));
+                }
+            );
+
+            if (userStatUpdateResult) {
+                const res = {
+                    message: "Error updating user stats",
+                    error: {
+                        message: "user stat update failed",
+                        case: "server",
+                    },
+                } satisfies ApiResponse;
+
+                return c.json(res, 400);
+            }
         });
 
-        if (userStatUpdateResult) {
-            const res = {
-                message: "Error updating user stats",
-                error: {
-                    message: "user stat update failed",
-                    case: "server",
-                },
-            } satisfies ApiResponse;
-
-            return c.json(res, 400);
-        }
+        // if (type === "multi") {
+        //     let updatedValues: PgUpdateSetSource<typeof userStatsTable>;
+        //     updatedValues = {
+        //         plays: sql`${userStatsTable.plays} + 1`,
+        //     };
+        //
+        //     if (meta.placement === 1) {
+        //         updatedValues.first_places = sql`${userStatsTable.first_places} + 1`;
+        //     } else if (meta.placement === 2) {
+        //         updatedValues.second_places = sql`${userStatsTable.second_places} + 1`;
+        //     } else if (meta.placement === 3) {
+        //         updatedValues.third_places = sql`${userStatsTable.third_places} + 1`;
+        //     }
+        //
+        //     updatedValues.wrong_answers = sql`${userStatsTable.wrong_answers} + ${meta.wrongAnswerCount}`;
+        //     updatedValues.correct_answers = sql`${userStatsTable.correct_answers} + ${meta.correctAnswerCount}`;
+        // } else {
+        //     updatedValues = {
+        //         plays: sql`${userStatsTable.plays} + 1`,
+        //     };
+        //     updatedValues.wrong_answers = sql`${userStatsTable.wrong_answers} + ${meta.wrongAnswerCount}`;
+        //     updatedValues.correct_answers = sql`${userStatsTable.correct_answers} + ${meta.correctAnswerCount}`;
+        // }
 
         const res = {
             message: "event successful",

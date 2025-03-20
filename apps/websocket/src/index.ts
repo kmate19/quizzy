@@ -9,9 +9,9 @@ import { z } from "zod";
 import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
 import { extractJwtData } from "./utils/checkjwt";
-import { isInvalidConnection } from "./utils/checkWsError";
-import { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
+import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./utils/handleWsMessage";
+import { closeIfInvalid, closeWithError } from "./utils/close";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -40,24 +40,18 @@ export const hono = new Hono()
                         return;
                     }
 
-                    const parsedJson = JSON.parse(event.data);
+                    const parsedMsg = JSON.parse(event.data);
 
                     const maybeClientMessage =
-                        websocketMessageSchema.safeParse(parsedJson);
+                        websocketMessageSchema.safeParse(parsedMsg);
 
                     if (maybeClientMessage.error) {
-                        const res = {
-                            type: "error",
-                            successful: false,
-                            server: true,
-                            error: {
-                                message: "Invalid message type",
-                                raw: maybeClientMessage.error,
-                            },
-                        } satisfies WebsocketMessage;
-                        ws.send(JSON.stringify(res));
-                        // need to send res as a regular message, since ws close frames reasons only accept 123 bytes
-                        ws.close(1003, "Invalid message type");
+                        closeWithError(
+                            ws.raw,
+                            "Invalid message type",
+                            1007,
+                            maybeClientMessage.error
+                        );
                         return;
                     }
 
@@ -73,30 +67,29 @@ export const hono = new Hono()
                     }
 
                     if (
-                        isInvalidConnection(ws, hash, lobbyid, lobbies, jwtdata)
+                        closeIfInvalid(ws.raw, hash, lobbyid, lobbies, jwtdata)
                     ) {
                         return;
                     }
 
                     const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
-                    console.log(ws.raw.data, "before setting");
-
                     ws.raw.data.lobbyUserData = {
                         userId: jwtdataValid.userId,
                         stats: {
                             wrongAnswerCount: 0,
                             correctAnswerCount: 0,
+                            score: 0,
                         },
                     };
 
-                    console.log(ws.raw.data, "after setting");
-
-                    lobbies.get(lobbyid)?.members.add(ws.raw);
+                    lobbies.get(lobbyid)!.members.add(ws.raw);
 
                     console.log(
                         `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
                     );
+
+                    ws.raw.ping();
 
                     const interval = setInterval(() => {
                         if (ws.raw?.readyState === 3) {
@@ -107,16 +100,6 @@ export const hono = new Hono()
                     }, 24000);
 
                     ws.raw.subscribe(lobbyid);
-
-                    const res = {
-                        type: "connect",
-                        successful: true,
-                        server: true,
-                        data: {
-                            message: `welcome to lobby ${lobbyid}`,
-                        },
-                    } satisfies WebsocketMessage;
-                    ws.send(JSON.stringify(res));
                 },
                 onClose: (_, ws) => {
                     if (!ws.raw) {
@@ -149,7 +132,7 @@ export const hono = new Hono()
         async (c) => {
             const timestamp = c.req.valid("query").ts;
             const timediff = Math.abs(Date.now() - timestamp);
-            console.log(`timediff: ${timediff}`);
+
             if (timediff > 1500) {
                 return c.json({}, 400);
             }

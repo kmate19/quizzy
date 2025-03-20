@@ -1,11 +1,39 @@
+import { Lobby, LobbyMap } from "@/types";
 import { ServerWebSocket } from "bun";
-import { WSContext } from "hono/ws";
-import type { WebsocketMessage } from "repo";
+import { WebsocketMessage } from "repo";
 import { generateSessionHash } from "./utils";
-import { LobbyMap } from "@/types";
 
-export function isInvalidConnection(
-    ws: WSContext<ServerWebSocket<unknown>>,
+export function closeWithError<E extends Error>(
+    ws: ServerWebSocket<unknown>,
+    message: string,
+    code: number = 1008,
+    error?: E
+) {
+    console.error(error);
+
+    const res = {
+        type: "error",
+        successful: false,
+        server: true,
+        error: {
+            message,
+        },
+    } satisfies WebsocketMessage;
+
+    ws.send(JSON.stringify(res));
+    ws.close(code, message);
+}
+
+export function abortLobby(lobby: Lobby, errMessage: string) {
+    console.error(`!!ABORTING LOBBY!!: ${errMessage}`);
+
+    lobby.members.values().forEach((m) => {
+        closeWithError(m, "Server error");
+    });
+}
+
+export function closeIfInvalid(
+    ws: ServerWebSocket<unknown>,
     hash: string,
     lobbyid: string,
     lobbies: LobbyMap,

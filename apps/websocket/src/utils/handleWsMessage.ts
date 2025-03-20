@@ -1,11 +1,15 @@
-import { publishQuizSchemaWID, UserDataSchema } from "@/schemas/zodschemas";
+import {
+    publishQuizSchemaWID,
+    quizAnswerSchema,
+    UserDataSchema,
+} from "@/schemas/zodschemas";
 import { LobbyMap, LobbyUser } from "@/types";
 import { ServerWebSocket } from "bun";
 import { WebsocketMessage } from "repo";
 import { jumbleIndicesIntoIter } from "./utils";
-import { startGameLoop } from "./startGame";
-import { z } from "zod";
-import { numericStringSchema } from "@repo/api/public-schemas";
+import { startGameLoop } from "./start-game";
+import { abortLobby, closeWithError } from "./close";
+import { publishWs, sendLobby, sendSingle } from "./send";
 
 export async function handleWsMessage(
     ws: ServerWebSocket<LobbyUser>,
@@ -15,147 +19,64 @@ export async function handleWsMessage(
 ) {
     console.log(`client sent message {} to ${lobbyid}`, msg);
 
+    const lobby = lobbies.get(lobbyid)!;
+    const members = lobby.members;
+
     switch (msg.type) {
         case "members":
-            const members = lobbies.get(lobbyid)?.members;
-
-            if (!members) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "Lobby not found",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "Lobby not found");
-                return;
-            }
-
             const rest = members
                 .values()
                 .filter((m) => m !== ws)
                 .map((u) => u.data.lobbyUserData)
                 .toArray();
 
-            const res1 = {
-                type: "members",
-                successful: true,
-                server: true,
-                data: rest,
-            } satisfies WebsocketMessage;
-
-            ws.send(JSON.stringify(res1));
+            sendSingle(ws, "members", rest);
 
             return;
         case "quizdata":
-            // VALSZEG ITT AZ ERROR
             const maybeQuizData = publishQuizSchemaWID.safeParse(msg.data);
 
             if (maybeQuizData.error) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "Bad data",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "Bad quizdata");
+                closeWithError(ws, "Bad data: quiz");
                 return;
             }
 
-            if (!lobbies.has(lobbyid)) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "Lobby not found",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "Lobby not found");
-                return;
-            }
-
-            lobbies.get(lobbyid)!.quizData = maybeQuizData.data;
+            lobby.quizData = maybeQuizData.data;
         case "quizmeta":
-            // send quizData to all members
-
             const quizData = lobbies.get(lobbyid)?.quizData;
 
             if (!quizData) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "Quiz data not found",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "Quiz data not found");
+                closeWithError(
+                    ws,
+                    "Quiz data was not provided to the server by the host"
+                );
                 return;
             }
 
-            const res2 = {
-                type: "quizmeta",
-                successful: true,
-                server: true,
-                data: quizData,
-            } satisfies WebsocketMessage;
+            sendSingle(ws, "quizmeta", quizData);
 
-            ws.send(JSON.stringify(res2));
             return;
         case "whoami":
             const maybeUserData = UserDataSchema.safeParse(msg.data);
 
             if (maybeUserData.error) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "Bad data",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "Bad userdata");
+                closeWithError(ws, "Bad data: user", 1007, maybeUserData.error);
                 return;
             }
 
-            const { username, pfp } = maybeUserData.data;
-
-            ws.data.lobbyUserData.pfp = pfp;
-            ws.data.lobbyUserData.username = username;
+            ws.data.lobbyUserData.pfp = maybeUserData.data.pfp;
+            ws.data.lobbyUserData.username = maybeUserData.data.username;
 
             return;
         case "startgame":
             // host sent message to start game, get ready to start game and
             // load quiz data setup up listeners etc then broadcast gamestarted msg
 
-            const lobby = lobbies.get(lobbyid);
-
             if (!lobby || !lobby.quizData) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "Lobby not found or incomplete to start game",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "Lobby not found or incomplete to start game");
+                closeWithError(
+                    ws,
+                    "Lobby not found or in an incomplete state to start game"
+                );
                 return;
             }
 
@@ -165,43 +86,27 @@ export async function handleWsMessage(
                 lobby.quizData.cards.length
             );
 
-            const res3 = {
-                type: "gamestarted",
-                successful: true,
-                server: true,
-            } satisfies WebsocketMessage;
-
-            ws.send(JSON.stringify(res3));
-            ws.publish(lobbyid, JSON.stringify(res3));
+            sendLobby(lobby.members, "gamestarted");
 
             startGameLoop(lobby);
 
             return;
         case "answered":
-            if (!lobby?.gameState.started) {
-                ws.close(1003, "invalid state");
+            if (
+                !lobby?.gameState.started ||
+                !lobby.gameState.currentRoundAnswers
+            ) {
+                abortLobby(
+                    lobby,
+                    "Game state invariant violated: answer before game started"
+                );
                 return;
             }
 
-            const maybeAnswer = numericStringSchema.safeParse(msg.data);
+            const maybeAnswer = quizAnswerSchema.safeParse(msg.data);
 
             if (maybeAnswer.error) {
-                const res = {
-                    type: "error",
-                    successful: false,
-                    server: true,
-                    error: {
-                        message: "invalid answer",
-                    },
-                } satisfies WebsocketMessage;
-
-                ws.send(JSON.stringify(res));
-                ws.close(1003, "invalid answer");
-                return;
-            }
-
-            if (!lobby.gameState.currentRoundAnswers) {
-                ws.close(1003, "invalid state");
+                closeWithError(ws, "Bad data: answer", 1007, maybeAnswer.error);
                 return;
             }
 
@@ -211,14 +116,24 @@ export async function handleWsMessage(
             ) {
                 lobby.gameState.currentRoundAnswers.set(
                     ws.data.lobbyUserData.userId,
-                    maybeAnswer.data
+                    {
+                        answerIndex: maybeAnswer.data.answerIndex,
+                        answerTime: maybeAnswer.data.answerTime,
+                    }
                 );
 
                 if (
                     lobby.gameState.currentRoundAnswers.size ===
                     lobby.members.size
                 ) {
-                    lobby.gameState.roundEndTrigger?.();
+                    if (!lobby.gameState.roundEndTrigger) {
+                        abortLobby(
+                            lobby,
+                            "Game state invariant violated: all answers are in but there's no round end trigger"
+                        );
+                        return;
+                    }
+                    lobby.gameState.roundEndTrigger();
                 }
             }
 
@@ -229,26 +144,11 @@ export async function handleWsMessage(
         case "pong":
         case "ack":
         case "connect":
-            console.log("connectl", ws.data);
-            const joinBroadcastMsg = {
-                type: "connect",
-                successful: true,
-                server: true,
-                data: ws.data.lobbyUserData,
-            } satisfies WebsocketMessage;
-
-            ws.publish(lobbyid, JSON.stringify(joinBroadcastMsg));
+            publishWs(ws, lobbyid, "connect", ws.data.lobbyUserData);
 
             return;
         case "disconnect":
-            const disconnectBroadcastMsg = {
-                type: "disconnect",
-                successful: true,
-                server: true,
-                data: ws.data.lobbyUserData,
-            } satisfies WebsocketMessage;
-
-            ws.publish(lobbyid, JSON.stringify(disconnectBroadcastMsg));
+            publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData);
 
             return;
         case "handshake":

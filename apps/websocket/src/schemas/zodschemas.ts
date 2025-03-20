@@ -1,4 +1,7 @@
-import { publishQuizSchema } from "@repo/api/public-schemas";
+import {
+    numericStringSchema,
+    publishQuizSchema,
+} from "@repo/api/public-schemas";
 import { Equal } from "hono/utils/types";
 import type { LobbyUser, WebsocketMessage, WebsocketMessageType } from "repo";
 import { z } from "zod";
@@ -40,6 +43,11 @@ let _valid3: Equal<z.infer<typeof UserDataSchema>, LobbyUser>;
 assertequal<typeof _valid1>();
 assertequal<typeof _valid2>();
 assertequal<typeof _valid3>();
+
+export const quizAnswerSchema = z.object({
+    answerTime: numericStringSchema,
+    answerIndex: numericStringSchema,
+});
 
 export const UserDataSchema = z.object({
     username: z.string(),
