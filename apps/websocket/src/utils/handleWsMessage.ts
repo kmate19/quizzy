@@ -4,6 +4,8 @@ import { ServerWebSocket } from "bun";
 import { WebsocketMessage } from "repo";
 import { jumbleIndicesIntoIter } from "./utils";
 import { startGameLoop } from "./startGame";
+import { z } from "zod";
+import { numericStringSchema } from "@repo/api/public-schemas";
 
 export async function handleWsMessage(
     ws: ServerWebSocket<LobbyUser>,
@@ -174,6 +176,51 @@ export async function handleWsMessage(
             startGameLoop(lobby);
 
             return;
+        case "answered":
+            if (!lobby?.gameState.started) {
+                ws.close(1003, "invalid state");
+                return;
+            }
+
+            const maybeAnswer = numericStringSchema.safeParse(msg.data);
+
+            if (maybeAnswer.error) {
+                const res = {
+                    type: "error",
+                    successful: false,
+                    server: true,
+                    error: {
+                        message: "invalid answer",
+                    },
+                } satisfies WebsocketMessage;
+
+                ws.send(JSON.stringify(res));
+                ws.close(1003, "invalid answer");
+                return;
+            }
+
+            if (!lobby.gameState.currentRoundAnswers) {
+                ws.close(1003, "invalid state");
+                return;
+            }
+
+            if (
+                lobby.gameState.currentRoundAnswers.size + 1 <
+                lobby.members.size
+            ) {
+                lobby.gameState.currentRoundAnswers.set(
+                    ws.data.lobbyUserData.userId,
+                    maybeAnswer.data
+                );
+
+                if (
+                    lobby.gameState.currentRoundAnswers.size ===
+                    lobby.members.size
+                ) {
+                    lobby.gameState.roundEndTrigger?.();
+                }
+            }
+
         case "subscribe":
         case "unsubscribe":
         case "ping":
