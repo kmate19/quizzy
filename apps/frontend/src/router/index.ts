@@ -9,9 +9,9 @@ import { clientv1 } from '@/lib/apiClient'
 import ForgotPassword from '@/views/ForgotPassword.vue'
 import { queryClient } from '@/lib/queryClient'
 import QuizPractice from '@/views/QuizPractice.vue'
-import GameView from '@/views/GameView.vue'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 import { userData } from '@/utils/functions/profileFunctions'
+import GameWrapper from '@/components/GameWrapper.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,11 +65,11 @@ const router = createRouter({
     {
       path: '/quiz/multiplayer/:lobbyId',
       name: 'quiz_multiplayer',
-      component: GameView,
+      component: GameWrapper,
       meta: {
         requiresAuth: true,
       },
-    },
+    }
   ],
 })
 

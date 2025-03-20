@@ -113,6 +113,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         successful: true,
         server: false,
       }));
+      ws.send(JSON.stringify({
+        type: 'members',
+        successful: true,
+        server: false,
+      }));
       addParticipant(userData.username, userData.pfp);
     } else {
       console.error('not open. state:', ws.readyState);
@@ -132,6 +137,9 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
       if(data.type === 'members') {
         console.log("data members",data.data)
+        for (const member of data.data) {
+          console.log("member",member.username, member.pfp)
+        }
       }
       
       if(data.type === 'ping') {

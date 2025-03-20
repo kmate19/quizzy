@@ -125,11 +125,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       const data = JSON.parse(event.data)
 
       if (data.type === 'connect') {
-        ws.send(JSON.stringify({
-        type: 'members',
-        successful: true,
-        server: false,
-        }));
         if(data.data.username && data.data.pfp) {
           addParticipant(data.data.username, data.data.pfp);
         }
