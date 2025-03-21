@@ -64,42 +64,24 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         DataContext = this;
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         UserViewModel = new UserViewModel(NavigationService, SharedState);
         ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
         QuizViewModel = new QuizViewModel(NavigationService, SharedState);
 
-        CurrentView = UserViewModel;
+        await UserViewModel.InitializeAsync();
+        await QuizViewModel.InitializeAsync();
+
+        OnViewModelChanged(QuizViewModel);
         OnPropertyChanged(nameof(CurrentView));
 
         Loaded -= MainWindow_Loaded;
     }
 
-    private async void OnViewModelChanged(object newViewModel)
+    private void OnViewModelChanged(object newViewModel)
     {
-        try
-        {
-            IsLoading = true;
-
-            switch (newViewModel)
-            {
-                case UserViewModel userViewModel:
-                    await userViewModel.InitializeAsync();
-                    userViewModel.SearchUsers(SharedState.SearchText);
-                    break;
-                case QuizViewModel quizViewModel:
-                    await quizViewModel.InitializeAsync();
-                    quizViewModel.SearchQuizes(SharedState.SearchText);
-                    break;
-            }
-
-            CurrentView = newViewModel;
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        CurrentView = newViewModel;
     }
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
@@ -138,21 +120,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void UsersButton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(UserViewModel);
-        QuizViewModel.SearchQuizes(SharedState.SearchText);
         SharedState.SearchText = "Keresés";
     }
 
     private void Quizbutton_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(QuizViewModel);
-        QuizViewModel.SearchQuizes(SharedState.SearchText);
         SharedState.SearchText = "Keresés";
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(ReviewViewModel);
-        QuizViewModel.SearchQuizes(SharedState.SearchText);
         SharedState.SearchText = "Keresés";
     }
 

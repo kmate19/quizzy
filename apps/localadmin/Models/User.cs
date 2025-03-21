@@ -130,11 +130,13 @@ namespace localadmin.Models
             editUserWindow.Show();
         }
 
-        private void ViewQuiz(object parameter)
+        private async void ViewQuiz(object parameter)
         {
             QuizViewModel quizView = new(navigationService, sharedState);
             sharedState.SearchText = Username;
             navigationService.NavigateTo(quizView);
+
+            await quizView.InitializeAsync();
             quizView.SearchQuizes(Username);
         }
 

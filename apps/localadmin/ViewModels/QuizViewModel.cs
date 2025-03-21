@@ -51,9 +51,15 @@ namespace localadmin.ViewModels
             }
         }
 
-        private async Task PageSizeChanged()
+        private bool _isLoading;
+        public bool IsLoading
         {
-            await GetQuizes();
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
         }
 
         public ICommand PreviousPageCommand { get; }
@@ -77,18 +83,20 @@ namespace localadmin.ViewModels
 
             PageSizeOptions = new ObservableCollection<int> { 10, 20, 30, 40, 50 };
             PageSize = PageSizeOptions[0];
-
-            _ = InitializeAsync();
-
         }
+        private async Task PageSizeChanged()
+        {
+            await GetQuizes();
+        }
+
         public async Task InitializeAsync()
         {
             await GetQuizes();
-            SearchQuizes("");
         }
 
         public async Task GetQuizes()
         {
+            IsLoading = true;
             var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync(CurrentPage, PageSize);
 
             var quizzesList = new List<Quiz>();
@@ -120,17 +128,11 @@ namespace localadmin.ViewModels
                 {
                     FiltredQuizzes.Add(quiz);
                 }
-
-                SearchQuizes(SharedState.SearchText);
             });
-
-
-            SearchQuizes(SharedState.SearchText);
 
             maxPage = (int)Math.Ceiling((double)fetchedQuizes.TotalCount / PageSize);
 
-            OnPropertyChanged(nameof(Quizzes));
-            OnPropertyChanged(nameof(FiltredQuizzes));
+            IsLoading = false;
         }
 
 
@@ -151,14 +153,11 @@ namespace localadmin.ViewModels
         public  void SearchQuizes(string query)
         {   
             var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.User.Username, quiz.Title]);
-            Application.Current.Dispatcher.Invoke(() =>
+            FiltredQuizzes.Clear();
+            foreach (var quiz in results)
             {
-                FiltredQuizzes.Clear();
-                foreach (var quiz in results)
-                {
-                    FiltredQuizzes.Add(quiz);
-                }
-            });
+                FiltredQuizzes.Add(quiz);
+            }
         }
 
         private async void PreviousPage(object parameter)
@@ -190,6 +189,5 @@ namespace localadmin.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }

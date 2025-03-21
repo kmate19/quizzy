@@ -117,11 +117,12 @@ namespace localadmin.Models
             return image;
         }
 
-        private void ViewUser(object parameter)
+        private async void ViewUser(object parameter)
         {
             UserViewModel userView = new UserViewModel(NavigationService, SharedState);
             SharedState.SearchText = User.Username;
             NavigationService?.NavigateTo(userView);
+            await userView.InitializeAsync();
             userView.SearchUsers(SharedState.SearchText);
         }
 

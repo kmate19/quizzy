@@ -2,32 +2,43 @@
 using localadmin.Models;
 using localadmin.Services;
 using System.Windows;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace localadmin.ViewModels
 {
-    public class UserViewModel
+    public class UserViewModel : INotifyPropertyChanged
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
         public ObservableCollection<User> Users { get; set; } = new();
         public ObservableCollection<User> FilteredUsers { get; set; } = new();
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
         public UserViewModel(NavigationService Navigation, SharedStateService State)
         {
             NavigationService = Navigation;
             SharedState = State;
-
-            _ = InitializeAsync();
-
         }
         public async Task InitializeAsync()
         {
             await GetUsers();
-            SearchUsers("");
         }
 
         public async Task GetUsers()
         {
+            IsLoading = true;
             var fetchedUsers = await ApiUsersService.GetUsersAsync();
 
             var usersList = new List<User>();
@@ -40,6 +51,7 @@ namespace localadmin.ViewModels
 
                 usersList.Add(user);
                 filteredList.Add(user);
+                Debug.WriteLine(user.Username);
             }
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -56,23 +68,26 @@ namespace localadmin.ViewModels
                     FilteredUsers.Add(user);
                 }
 
-                SearchUsers("");
             });
+
+            IsLoading = false;
         }
 
         public void SearchUsers(string query)
         {
             var results = SearchService.FuzzySearch(Users, query, user => [user.Username, user.Email]);
 
-            // Use the Dispatcher to ensure UI updates happen on the UI thread
-            Application.Current.Dispatcher.Invoke(() =>
+            FilteredUsers.Clear();
+            foreach (var user in results)
             {
-                FilteredUsers.Clear();
-                foreach (var user in results)
-                {
-                    FilteredUsers.Add(user);
-                }
-            });
+                FilteredUsers.Add(user);
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

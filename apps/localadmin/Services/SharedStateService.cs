@@ -7,7 +7,7 @@ namespace localadmin.Services
         private static readonly SharedStateService _instance = new();
         public static SharedStateService Instance => _instance;
 
-        private string _searchText = "Search";
+        private string _searchText = "Keresés";
         private string _apiKey = string.Empty;
         public string SearchText
         {
