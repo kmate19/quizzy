@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import type { QuizData, detailedQuiz } from '@/utils/type'
 
 export const useQuizzyStore = defineStore('quizzy', () => {
   const isAdmin = ref<boolean>(false)
@@ -13,6 +14,22 @@ export const useQuizzyStore = defineStore('quizzy', () => {
   const timestamp = ref<number>(0)
   const heartbeatInterval = ref<number>(0)
   const pfp = ref<string>('')
+  const currentQuiz = ref<QuizData | null>(null)
+
+  function setCurrentQuiz(quiz: detailedQuiz) {
+    currentQuiz.value = {
+      quiz: {
+        id: quiz.id,
+        title: quiz.title,
+        description: quiz.description,
+        status: quiz.status || 'published',
+        banner: quiz.banner,
+      },
+      cards: quiz.cards,
+      tagNames: quiz.tags,
+      languageISOCodes: quiz.languages.map(lang => lang.name) as string[],
+    }
+  }
 
   function reset() {
     isAdmin.value = false
@@ -69,6 +86,8 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     setLobbyData,
     $reset: reset,
     getLobbyData,
-    pfp
+    pfp,
+    currentQuiz,
+    setCurrentQuiz
   }
 })

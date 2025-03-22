@@ -45,7 +45,6 @@ const createLobby = async () => {
     isCreatingLobby.value = true;
     console.log('Creating new lobby');
     
-    // Request a new lobby from the server
     const sessionResponse = await wsclient.reserve.session[':code?'].$post({
       param: { code: '' }, // empty = create new lobby
       query: { ts: Date.now().toString() },
@@ -71,6 +70,10 @@ const createLobby = async () => {
         timestamp: Date.now(),
         heartbeatInterval: 30000
       })
+
+      if (data.value) {
+        quizzyStore.setCurrentQuiz(data.value)
+      }
 
       isCreatingLobby.value = false;
       router.push(`/quiz/multiplayer/${sessionData.code}`);

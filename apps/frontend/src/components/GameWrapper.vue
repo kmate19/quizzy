@@ -1,21 +1,20 @@
 <script lang="ts" setup>
-import { ref, shallowRef, onMounted, watchEffect } from 'vue';
-import GameView from '@/views/GameView.vue';
-import ParticipantGame from '@/views/ParticipantGame.vue';
+import { ref, shallowRef, onMounted, watchEffect, defineAsyncComponent } from 'vue';
 import { useQuizzyStore } from '@/stores/quizzyStore';
 
 const quizzyStore = useQuizzyStore();
 const userRole = ref<boolean>(false);
 
-// Use shallowRef to store the component without making it reactive
+const GameView = defineAsyncComponent(() => import('@/views/GameView.vue'));
+const ParticipantGame = defineAsyncComponent(() => import('@/views/ParticipantGame.vue'));
+
 const selectedComponent = shallowRef<typeof GameView | typeof ParticipantGame>(GameView);
 
 onMounted(() => {
-  userRole.value = quizzyStore.isHost; // Ensure this is reactive
+  userRole.value = quizzyStore.isHost;
   console.log('User Role:', userRole.value);
 });
 
-// Watch for changes in userRole and update selectedComponent
 watchEffect(() => {
   selectedComponent.value = userRole.value === true ? GameView : ParticipantGame;
   console.log('Selected Component:', selectedComponent.value);

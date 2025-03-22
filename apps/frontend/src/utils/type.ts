@@ -139,3 +139,15 @@ export type ApiKey = {
   expires_at: string
 }
 
+export type QuizData = {
+  quiz: {
+    id: string
+    title: string
+    description: string
+    status: string
+    banner: string
+  }
+  cards: Question[]
+  tagNames: Tag[]
+  languageISOCodes: string[]
+}
