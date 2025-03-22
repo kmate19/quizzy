@@ -26,7 +26,7 @@ export const useQuizzyStore = defineStore('quizzy', () => {
         banner: quiz.banner,
       },
       cards: quiz.cards,
-      tagNames: quiz.tags.map(tag => tag),//TODO: tsnek ezt fixelni
+      tagNames: quiz.tags.map(tag => tag),
       languageISOCodes: quiz.languages.map(lang => lang.iso_code) as string[],
     }
   }

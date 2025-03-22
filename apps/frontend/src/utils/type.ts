@@ -66,7 +66,7 @@ export type detailedQuiz = {
   plays: number
   banner: string
   languages: Language[]
-  tags: Tag[]
+  tags: string[]
 }
 
 export type sentFriendship = {

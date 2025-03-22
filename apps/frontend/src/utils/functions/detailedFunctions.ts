@@ -1,6 +1,6 @@
 import { clientv1 } from "@/lib/apiClient"
 import { arrayBufferToBase64 } from "@/utils/helpers"
-import type {  Tag, Language } from "@/utils/type"
+import type { Language } from "@/utils/type"
 import { toast, type ToastContainerOptions } from "vue3-toastify"
 import {type detailedQuiz } from "@/utils/type"
 
@@ -29,7 +29,7 @@ export const getQuiz = async (uuid: string) => {
         iso_code: lang.language.iso_code,
         icon: lang.language.icon,
       })),
-      tags: res.data.tags.map((tag) => tag.tag.name as unknown as Tag),
+      tags: res.data.tags.map((tag) => tag.tag.name as unknown as string),
       user_id: res.data.user_id,
       username: user,
       cards: res.data.cards.map((card) => ({

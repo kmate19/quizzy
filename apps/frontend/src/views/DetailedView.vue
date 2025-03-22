@@ -138,7 +138,7 @@ const createLobby = async () => {
             <div class="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
               <span
                 v-for="tag in data?.tags"
-                :key="tag.name"
+                :key="tag"
                 class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
               >
                 {{ tag }}

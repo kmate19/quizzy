@@ -324,13 +324,12 @@ const decrase = () => {
 }
 
 const restartGame = () => {
-  
   gameEnded.value = false
   gameStarted.value = true
   answerSelected.value = false
   currentCard.value = null
-  
-  if (websocket.value && websocket.value.readyState === WebSocket.OPEN && isHost.value) {
+
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
       JSON.stringify({
         type: 'startgame',
