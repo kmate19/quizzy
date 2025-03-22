@@ -17,7 +17,7 @@ defineProps<{ quiz: quizCardView }>()
       <v-img :src="quiz.banner || '/placeholder.svg?height=200&width=300'" fit="contain"></v-img>
       <div class="p-4">
         <h2 class="text-xl font-semibold text-white mb-2">{{ quiz.title }}</h2>
-        <p class="text-gray-300 text-sm mb-4 max-h-20 overflow-y-scroll custom-scrollbar">{{ quiz.description }}</p>
+        <p class="text-gray-300 text-sm mb-4 max-h-20 overflow-y-auto custom-scrollbar">{{ quiz.description }}</p>
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center">
             <StarIcon class="w-5 h-5 text-yellow-400 mr-1" />
@@ -34,7 +34,7 @@ defineProps<{ quiz: quizCardView }>()
             {{ lang.icon }} {{ lang.name }}
           </span>
         </div>
-        <div class="flex flex-wrap gap-2 max-h-20 h-fit overflow-y-scroll custom-scrollbar">
+        <div class="flex flex-wrap gap-2 max-h-20 h-fit overflow-y-auto custom-scrollbar">
           <span v-for="tag in quiz.tags" :key="tag.name"
             class="bg-gray-600 bg-opacity-50 rounded-full px-2 py-1 text-xs text-white">
             {{ tag.name }}

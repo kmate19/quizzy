@@ -5,8 +5,8 @@ import { useQuizzyStore } from '@/stores/quizzyStore';
 const quizzyStore = useQuizzyStore();
 const userRole = ref<boolean>(false);
 
-const GameView = defineAsyncComponent(() => import('@/views/GameView.vue'));
-const ParticipantGame = defineAsyncComponent(() => import('@/views/ParticipantGame.vue'));
+const GameView = defineAsyncComponent(() => import('@/views/game/GameView.vue'));
+const ParticipantGame = defineAsyncComponent(() => import('@/views/game/ParticipantGame.vue'));
 
 const selectedComponent = shallowRef<typeof GameView | typeof ParticipantGame>(GameView);
 

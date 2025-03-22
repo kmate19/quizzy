@@ -13,6 +13,7 @@ const lobbyCode = ref('')
 const route = useRoute()
 const isLoading = ref(false)
 const isMobileMenuOpen = ref(false)
+const errorMessage = ref('') // Add error message state
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -67,56 +68,49 @@ onMounted(() => {
 })
 
 const joinLobby = async (code: string) => {
+  errorMessage.value = ''; // Clear previous errors
+  
   if (!code || code.trim() === '') {
-    console.log('Please enter a valid lobby code');
+    errorMessage.value = 'Kérjük, adjon meg érvényes lobby kódot';
     return;
   }
   
   try {
     isLoading.value = true;
-    console.log('Attempting to join lobby with code:', code);
     
     const first = await wsclient.reserve.session[':code?'].$post({
       param: { code: code.trim() },
       query: { ts: Date.now().toString() },
     });
     
-    console.log('Session check response status:', first.status);
-    
     if (first.status === 200) {
-      const first_data = await first.json();
+      const first_data = await first.json() as { code?: string };
       
       if (!first_data.code) {
         isLoading.value = false;
-        console.log('Invalid lobby response from server');
+        errorMessage.value = 'Érvénytelen lobby válasz a szervertől';
         return;
       }
-      
-      console.log('Lobby exists with code:', first_data.code);
       
       quizzyStore.setLobbyData({
         lobbyId: first_data.code,
         hash: '',
         quizId: '',
         timestamp: Date.now(),
-        heartbeatInterval: 30000,
-        isHost: false,
+        isHost: false
       });
       
       isCodeModal.value = false;
       isLoading.value = false;
-      console.log("minden lement jol")
       router.push(`/quiz/multiplayer/${first_data.code}`);
     } else {
-      const errorMsg = 'Lobby does not exist with this code';
-      console.error(errorMsg);
+      errorMessage.value = 'A megadott kóddal nem létezik lobby';
       isLoading.value = false;
-      console.log(errorMsg);
     }
   } catch (error) {
     console.error('Error joining lobby:', error);
     isLoading.value = false;
-    console.log('Failed to join the lobby. Network error or server issue.');
+    errorMessage.value = 'Nem sikerült csatlakozni a lobbyhoz. Hálózati hiba vagy szerver probléma.';
   }
 }
 </script>
@@ -212,6 +206,8 @@ const joinLobby = async (code: string) => {
         <div class="flex flex-col gap-4">
           <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable" 
             class="w-full text-white"></v-text-field>
+          <!-- Show error message if present -->
+          <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
           <button @click="joinLobby(lobbyCode)" class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out
             cursor-pointer w-full !bg-green-900">
             {{isLoading ? 'Csatlakozás...' : 'Csatlakozás'}}

@@ -8,7 +8,6 @@ import router from '@/router'
 
 export const userData = async (id: string) => {
   console.log("beleptem")
-  //await new Promise(resolve => setTimeout(resolve, 2000))
   if (id !== '') {
     console.log("van id")
     const user = await clientv1.userprofile[':userId'].$get({ param: { userId: id } })
