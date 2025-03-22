@@ -54,7 +54,7 @@ const createLobby = async () => {
     console.log('Session response status:', sessionResponse.status);
     
     if (sessionResponse.status === 200) {
-      const sessionData = await sessionResponse.json();
+      const sessionData = await sessionResponse.json() as { code: string };
       
       if (!sessionData.code) {
         throw new Error('Failed to create lobby - no code returned');
@@ -93,22 +93,23 @@ const createLobby = async () => {
   </div>
   <div v-else class="lg:overflow-hidden w-screen h-screen overflow-y-auto fixed left-0 p-2">
     <div class="text-white md:p-6">
-      <div class="flex flex-col lg:flex-row gap-5 max-w-7xl mx-auto">
+      <div class="flex flex-col lg:flex-row max-w-7xl mx-auto">
         <!-- Left -->
-        <div class="lg:w-1/3 space-y-4 h-[calc(100vh-10vh)] overflow-y-auto p-1">
+        <div class="lg:w-1/3 md:space-y-4 flex-1 space-y-2 h-[calc(100vh-10vh)] overflow-y-auto p-1">
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <div class="h-48 bg-white/10 rounded-lg">
+            <div class="h-52 bg-white/10 rounded-lg">
               <v-img
                 :src="data?.banner || '/placeholder.svg?height=200&width=300'"
-                class="rounded-md"
-                fit
+                class="rounded-md justify-center items-center"
+                aspect-ratio="16/9"
+                cover
               />
             </div>
           </div>
 
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
             <h2 class="text-xl font-semibold">{{ data?.title }}<br /></h2>
-            <div class="max-h-20 overflow-y-scroll">
+            <div class="max-h-20 overflow-y-auto">
               {{ data?.description }}
             </div>
           </div>
@@ -131,7 +132,7 @@ const createLobby = async () => {
 
           <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
             <div class="mb-2">Kategóriák:</div>
-            <div class="flex flex-wrap gap-2 max-h-20 overflow-y-scroll">
+            <div class="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
               <span
                 v-for="tag in data?.tags"
                 :key="tag.name"
@@ -178,8 +179,9 @@ const createLobby = async () => {
         </div>
 
         <!-- Right -->
-        <div class="flex-1">
-          <div class="space-y-4 pl-2 pr-2 max-h-[calc(100vh-10vh)] overflow-y-auto">
+        <div class="lg:w-2/3">
+          <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[50vh] overflow-y-auto m-2
+          md:space-y-4 space-y-2">
             <div
               v-for="(card, index) in data?.cards"
               :key="card.picture"
@@ -190,16 +192,18 @@ const createLobby = async () => {
                 @click="toggleQuestion(index)"
               >
                 <div
-                  class="w-fit sm:w-1/4 aspect-video sm:aspect-square bg-white/10 rounded-md overflow-hidden"
+                  class="w-fit h-fit sm:w-1/4  bg-white/10 rounded-md overflow-hidden"
                 >
                   <img
                     :src="card.picture || '/placeholder.svg?height=200&width=300'"
-                    class="w-[20vh] h-[20vh] object-cover rounded-md"
+                    class="rounded-md"
                     alt="Question image"
+                    aspect-ratio="16/9"
+                    cover
                   />
                 </div>
                 <div class="flex flex-col gap-4 flex-1 p-2 sm:p-4">
-                  <span class="text-left text-sm sm:text-base">{{ card.question }}</span>
+                  <span class="sm:text-left text-center  text-sm sm:text-base">{{ card.question }}</span>
                   <div class="flex flex-wrap gap-2">
                     <div
                       v-for="(answer, i) in card.answers"
@@ -241,6 +245,7 @@ const createLobby = async () => {
                 </div>
               </div>
             </div>
+            <div class="h-10 lg:hidden"></div>
           </div>
         </div>
       </div>

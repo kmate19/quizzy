@@ -814,12 +814,19 @@ const marqueeDuration = computed(() => {
               label="Cím"
               variant="outlined"
               bg-color="rgba(255, 255, 255, 0.1)"
+              counter="24"
+              :rules="[(v) => v.length <= 24]"
+              @input="quiz.title = quiz.title.substring(0, 24)"
             />
             <v-textarea
               v-model="quiz.description"
               label="Leírás"
               variant="outlined"
               bg-color="rgba(255, 255, 255, 0.1)"
+              color="white"
+              counter="255"
+              :rules="[(v) => v.length <= 255]"
+              @input="quiz.description = quiz.description.substring(0, 255)"
             />
             <v-btn block color="success" class="mt-2" @click="uploadOrUpdate">
               <span v-if="isLoading" class="inline-block animate-spin mr-2">
