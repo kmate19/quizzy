@@ -1,63 +1,67 @@
 <script lang="ts" setup>
-import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted, toRaw } from 'vue';
-import { wsclient } from '@/lib/apiClient';
-import { generateSessionHash } from '@/utils/helpers';
-import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
+import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, toRaw } from 'vue'
+import { wsclient } from '@/lib/apiClient'
+import { generateSessionHash } from '@/utils/helpers'
+import { Loader2Icon, Copy } from 'lucide-vue-next'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 const quizzyStore = useQuizzyStore()
 const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
-const isLoading = ref(true);
-const error = ref<string | null>(null);
-const participants = ref<{ username: string, pfp: string }[]>([]);
-const websocket = ref<WebSocket | null>(null);
-const copiedToClipboard = ref(false);
-const heartbeatInterval = ref<number | null>(null);
-const reconnectAttempts = ref(0);
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+const participants = ref<{ username: string; pfp: string }[]>([])
+const websocket = ref<WebSocket | null>(null)
+const copiedToClipboard = ref(false)
+const heartbeatInterval = ref<number | null>(null)
+const reconnectAttempts = ref(0)
+const gameStarted = ref(false)
+const currentCard = ref()
+const time = ref(0)
+const answerSelected = ref(false)
+const gameEnded = ref(false)
+const stats = ref()
 
 if (route.path === `/quiz/${lobbyId.value}`) {
-  isHost.value = true;
+  isHost.value = true
 }
 
-
 const copyLobbyCode = () => {
-  navigator.clipboard.writeText(lobbyId.value);
-  copiedToClipboard.value = true;
-  copiedToClipboard.value = false;
-};
-
+  navigator.clipboard.writeText(lobbyId.value)
+  copiedToClipboard.value = true
+  copiedToClipboard.value = false
+}
 
 const setupWebSocket = async () => {
   try {
-    console.log('websocket setup', lobbyId.value);
+    console.log('websocket setup', lobbyId.value)
 
-    console.log(quizzyStore.getLobbyData());
+    console.log(quizzyStore.getLobbyData())
 
-    const storedWs = quizzyStore.getLobbyData();
-    let wsHash = quizzyStore.hash || await generateSessionHash(lobbyId.value, 'asd')
+    const storedWs = quizzyStore.getLobbyData()
+    let wsHash = quizzyStore.hash || (await generateSessionHash(lobbyId.value, 'asd'))
 
     if (storedWs) {
       if (storedWs.lobbyId === lobbyId.value) {
-        console.log('Using existing WebSocket connection data');
-        wsHash = storedWs.hash;
+        console.log('Using existing WebSocket connection data')
+        wsHash = storedWs.hash
       }
     }
 
     if (!wsHash) {
-      wsHash = await generateSessionHash(lobbyId.value, 'asd');
+      wsHash = await generateSessionHash(lobbyId.value, 'asd')
     }
 
-    console.log('connecting to...:', lobbyId.value);
+    console.log('connecting to...:', lobbyId.value)
     const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
       param: { lobbyid: lobbyId.value, hash: wsHash },
-    });
+    })
 
-    websocket.value = ws;
-    setupWebSocketListeners(websocket.value);
+    websocket.value = ws
+    setupWebSocketListeners(websocket.value)
 
     quizzyStore.setLobbyData({
       lobbyId: lobbyId.value,
@@ -65,134 +69,170 @@ const setupWebSocket = async () => {
       isHost: isHost.value,
       quizId: quizzyStore.quizId,
       timestamp: Date.now(),
-      heartbeatInterval: 30000
-    });
-
+      heartbeatInterval: 30000,
+    })
   } catch (err) {
-    console.error('WebSocket setup error:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to connect to the game lobby';
-    isLoading.value = false;
+    console.error('WebSocket setup error:', err)
+    error.value = err instanceof Error ? err.message : 'Failed to connect to the game lobby'
+    isLoading.value = false
   }
-};
+}
 
 const manualReconnect = async () => {
-  error.value = null;
-  isLoading.value = true;
-  reconnectAttempts.value = 0;
-  await setupWebSocket();
-};
+  error.value = null
+  isLoading.value = true
+  reconnectAttempts.value = 0
+  await setupWebSocket()
+}
 
 const addParticipant = (username: string, pfp: string) => {
-  const newUser = { 
-    username: username, 
-    pfp: "data:image/png;base64," + pfp
-   };
-   console.log(newUser)
-  participants.value = [...participants.value, newUser];
-};
+  const newUser = {
+    username: username,
+    pfp: 'data:image/png;base64,' + pfp,
+  }
+  console.log(newUser)
+  participants.value = [...participants.value, newUser]
+}
 
 const setupWebSocketListeners = (ws: WebSocket) => {
   ws.addEventListener('open', () => {
-    console.log('lobby open', lobbyId.value);
-    isLoading.value = false;
-    reconnectAttempts.value = 0;
+    console.log('lobby open', lobbyId.value)
+    isLoading.value = false
+    reconnectAttempts.value = 0
     if (ws.readyState === WebSocket.OPEN) {
       const userData = {
-        username:  quizzyStore.userName,
-        pfp: quizzyStore.pfp.replace('data:image/png;base64,', '')
+        username: quizzyStore.userName,
+        pfp: quizzyStore.pfp.replace('data:image/png;base64,', ''),
       }
-      console.log("USERDATA", userData)
-      ws.send(JSON.stringify({
-        type: 'whoami',
-        successful: true,
-        server: false,
-        data: userData,
-      }));  
-      ws.send(JSON.stringify({
-        type: 'connect',
-        successful: true,
-        server: false,
-      }));
-      console.log("quizdata", toRaw(quizzyStore.currentQuiz))
-      ws.send(JSON.stringify({
-        type: 'quizdata',
-        successful: true,
-        server: false,
-        data: toRaw(quizzyStore.currentQuiz),
-      }));
-      addParticipant(userData.username, userData.pfp);
+      console.log('USERDATA', userData)
+      ws.send(
+        JSON.stringify({
+          type: 'whoami',
+          successful: true,
+          server: false,
+          data: userData,
+        }),
+      )
+      ws.send(
+        JSON.stringify({
+          type: 'connect',
+          successful: true,
+          server: false,
+        }),
+      )
+      console.log('quizdata', toRaw(quizzyStore.currentQuiz))
+      ws.send(
+        JSON.stringify({
+          type: 'quizdata',
+          successful: true,
+          server: false,
+          data: toRaw(quizzyStore.currentQuiz),
+        }),
+      )
+      addParticipant(userData.username, userData.pfp)
     } else {
-      console.error('not open. state:', ws.readyState);
+      console.error('not open. state:', ws.readyState)
     }
-  });
+  })
 
   ws.addEventListener('message', (event) => {
     try {
       const data = JSON.parse(event.data)
 
       if (data.type === 'connect') {
-        if(data.data.username && data.data.pfp) {
-          addParticipant(data.data.username, data.data.pfp);
+        if (data.data.username && data.data.pfp) {
+          addParticipant(data.data.username, data.data.pfp)
         }
       }
 
-      if(data.type === 'ping') {
-        console.log("Ping received");
-        ws.send(JSON.stringify({
-          type: 'pong',
-          successful: true,
-          server: false,
-        }));
+      if (data.type === 'ping') {
+        console.log('Ping received')
+        ws.send(
+          JSON.stringify({
+            type: 'pong',
+            successful: true,
+            server: false,
+          }),
+        )
       }
 
-      
+      if (data.type === 'gamestarted') {
+        console.log('Game started')
+        gameStarted.value = true
+      }
+
+      if (data.type === 'roundstarted') {
+        console.log('Round started')
+        answerSelected.value = false
+        currentCard.value = data.data
+        time.value = data.data.roundTimeMs
+      }
+
+      if (data.type === 'roundended') {
+        console.log('Round ended')
+        console.log('Round ende data:', data.data)
+        stats.value = data.data
+        console.log('Stats:', stats.value)
+      }
+
+      if (data.type === 'gamended') {
+        console.log('Game ended')
+        console.log('Game ended data:', data.data)
+        gameStarted.value = false
+        gameEnded.value = true
+        console.log(stats.value)
+      }
 
     } catch (err) {
       console.error('Error parsing WebSocket message:', err)
     }
-  });
+  })
 
   ws.addEventListener('error', (event) => {
-    console.error('WebSocket error:', event);
-    error.value = 'Connection error occurred';
-  });
+    console.error('WebSocket error:', event)
+    error.value = 'Connection error occurred'
+  })
 
   ws.addEventListener('close', (event) => {
-    console.log('WebSocket closed:', event.code, event.reason);
+    console.log('WebSocket closed:', event.code, event.reason)
 
     if (event.code === 1003) {
-      error.value = event.reason || 'Server closed the connection';
-      quizzyStore.$reset();
+      error.value = event.reason || 'Server closed the connection'
+      quizzyStore.$reset()
     } else if (event.code !== 1000 && route.name === 'quiz_multiplayer') {
     }
-  });
-};
+  })
+}
+
+
 
 const leaveLobby = () => {
-  console.log('Leaving lobby:', lobbyId.value);
+  console.log('Leaving lobby:', lobbyId.value)
 
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     try {
-      console.log('Sending unsubscribe message');
-      websocket.value.send(JSON.stringify({
-        type: 'unsubscribe',
-        successful: true,
-        server: false,
-      }));
+      console.log('Sending unsubscribe message')
+      websocket.value.send(
+        JSON.stringify({
+          type: 'unsubscribe',
+          successful: true,
+          server: false,
+        }),
+      )
 
       setTimeout(() => {
         if (websocket.value) {
-          websocket.value.close(1000, "User left lobby");
+          websocket.value.close(1000, 'User left lobby')
         }
-      }, 200);
+      }, 200)
     } catch (err) {
-      console.error('Error leaving lobby:', err);
+      console.error('Error leaving lobby:', err)
     }
   }
 
   if (heartbeatInterval.value) {
-    clearInterval(heartbeatInterval.value);
-    heartbeatInterval.value = null;
+    clearInterval(heartbeatInterval.value)
+    heartbeatInterval.value = null
   }
 
   quizzyStore.setLobbyData({
@@ -201,23 +241,61 @@ const leaveLobby = () => {
     isHost: false,
     quizId: '',
     timestamp: 0,
-    heartbeatInterval: 0
+    heartbeatInterval: 0,
   })
-  router.push('/');
-};
+  router.push('/')
+}
+
+const getBaseButtonColor = (index: number) => {
+  const colors = [
+    'bg-red-500 hover:bg-red-600',
+    'bg-blue-500 hover:bg-blue-600',
+    'bg-yellow-500 hover:bg-yellow-600',
+    'bg-purple-500 hover:bg-purple-600'
+  ]
+  return colors[index]
+}
+
+const startGame = () => {
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.send(
+      JSON.stringify({
+        type: 'startgame',
+        successful: true,
+        server: false,
+      }),
+    )
+  }
+}
+
+const selectAnswer = (index: number) => {
+  answerSelected.value = true
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.send(
+      JSON.stringify({
+        type: 'answered',
+        successful: true,
+        server: false,
+        data: {
+          answerIndex: index.toString(),
+          answerTime: Date.now().toString()
+        }
+      })
+    )
+  }
+}
 
 onMounted(() => {
   if (!lobbyId.value) {
-    error.value = 'Invalid lobby ID';
-    isLoading.value = false;
-    return;
+    error.value = 'Invalid lobby ID'
+    isLoading.value = false
+    return
   }
-  console.log("minden pacek")
+  console.log('minden pacek')
+  console.log('wattutt', quizzyStore.currentQuiz)
 
-  setupWebSocket();
-});
-
-
+  setupWebSocket()
+})
 </script>
 
 <template>
@@ -238,11 +316,69 @@ onMounted(() => {
       </div>
     </div>
 
+    <div v-else-if="gameStarted && currentCard" class="text-white">
+      <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
+        <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
+          class="w-full max-h-64 object-contain mb-6 rounded" />
+        <h2 class="text-xl font-semibold text-white">{{ currentCard?.question }}</h2>
+      </div>
+
+      <div :class="[
+        'grid gap-4',
+        currentCard?.type === 'twochoice'
+          ? 'grid-cols-1 md:grid-cols-2'
+          : 'grid-cols-2 md:grid-cols-2',
+      ]">
+        <button v-for="(answer, index) in currentCard.answers" :key="index" :class="[
+          'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+          getBaseButtonColor(index),
+        ]" @click="selectAnswer(index)">
+          {{ answer }}
+        </button>
+      </div>
+    </div>
+    <div v-else-if="gameEnded" class="text-white">
+    <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg flex justify-center">
+      <h2 class="text-xl font-semibold text-white">Játék vége</h2>
+    </div>
+
+    <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
+      <h2 class="text-xl font-semibold text-white">Játékosok</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div v-for="playerStat in stats.scores" :key="playerStat"
+          class="p-4 glass-button rounded-lg  w-fit">
+          <div class="flex items-center space-x-4 flex-col justify-center">
+            <img :src="playerStat.pfp || '/placeholder.svg?height=40&width=40'"
+              class="w-10 h-10 rounded-full object-cover" /><!--nem kapok pfp-->
+            <span class="text-lg font-medium">{{ playerStat.username }}</span>
+            <span>Helytelen válaszok: {{ playerStat.stats.wrongAnswerCount }}</span>
+            <span>Helyes válaszok: {{ playerStat.stats.correctAnswerCount }}</span>
+            <span>Összes pont: {{ playerStat.stats.score }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center">
+      <button class="glass-button px-4 py-2 rounded-md bg-red-600/30">
+        Újraindítás
+      </button>
+    </div>
+  </div>
+
     <div v-else class="text-white">
       <div class="flex justify-between items-center mb-8">
         <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-md bg-red-600/30">
           Lobby elhagyása
         </button>
+      </div>
+
+      <div class="text-center relative z-50 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
+        <div v-if="!quizzyStore.currentQuiz" class="py-4 text-red-500">No Quiz Data</div>
+        <div v-else>
+          <img :src="quizzyStore.currentQuiz.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md" />
+          <h2 class="text-2xl font-semibold mb-2">{{ quizzyStore.currentQuiz.quiz.title }}</h2>
+          <p class="text-gray-300">{{ quizzyStore.currentQuiz.quiz.description }}</p>
+        </div>
       </div>
 
       <div class="mb-8 p-4 bg-white/10 backdrop-blur-sm rounded-lg">
@@ -259,28 +395,20 @@ onMounted(() => {
       </div>
 
       <div class="mb-8">
-        <div class="flex items-center mb-4">
-          <Users class="h-6 w-6 mr-2" />
-          <h2 class="text-2xl font-semibold">Résztvevők</h2>
-        </div>
-
-        <div v-if="participants.length === 0" class="text-center py-8 bg-white/5 rounded-lg">
-          <p class="text-gray-400">Még nincs aktív résztvevő</p>
-        </div>
-
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div v-for="participant in participants" :key="participant.username"
             class="p-4 glass-button rounded-lg flex items-center justify-between">
             <div class="flex items-center space-x-4">
-              <img :src="participant.pfp || '/placeholder.svg?height=40&width=40'" class="w-10 h-10 rounded-full object-cover" />
+              <img :src="participant.pfp || '/placeholder.svg?height=40&width=40'"
+                class="w-10 h-10 rounded-full object-cover" />
               <span class="text-lg font-medium">{{ participant.username }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="flex justify-center" v-if = "quizzyStore.isHost">
-        <button class="glass-button px-8 py-4 text-xl rounded-lg bg-green-600/30">
+      <div class="flex justify-center" v-if="quizzyStore.isHost">
+        <button class="glass-button px-8 py-4 text-xl rounded-lg bg-green-600/30" @click="startGame">
           Játék
         </button>
       </div>

@@ -5,6 +5,7 @@ import { wsclient } from '@/lib/apiClient';
 import { generateSessionHash } from '@/utils/helpers';
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
 import { useQuizzyStore } from '@/stores/quizzyStore'
+import type { QuizData } from '@/utils/type'
 
 const route = useRoute();
 const router = useRouter();
@@ -18,6 +19,13 @@ const websocket = ref<WebSocket | null>(null);
 const copiedToClipboard = ref(false);
 const heartbeatInterval = ref<number | null>(null);
 const reconnectAttempts = ref(0);
+const gameQuiz = ref<QuizData>();
+const gameStarted = ref(false)
+const currentCard = ref()
+const time = ref(0)
+const answerSelected = ref(false)
+const gameEnded = ref(false)
+const stats = ref()
 
 if (route.path === `/quiz/${lobbyId.value}`) {
   isHost.value = true;
@@ -118,6 +126,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         successful: true,
         server: false,
       }));
+      ws.send(JSON.stringify({
+        type: 'quizmeta',
+        successful: true,
+        server: false,
+      }));
       addParticipant(userData.username, userData.pfp);
     } else {
       console.error('not open. state:', ws.readyState);
@@ -149,6 +162,39 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           successful: true,
           server: false,
         }));
+      }
+
+      if(data.type === 'quizmeta') {
+        console.log("Quizmeta received", data.data)
+        gameQuiz.value = data.data
+        console.log("gameQuiz", gameQuiz.value)
+      }
+
+      if (data.type === 'gamestarted') {
+        console.log('Game started')
+        gameStarted.value = true
+      }
+
+      if (data.type === 'roundstarted') {
+        console.log('Round started')
+        answerSelected.value = false
+        currentCard.value = data.data
+        time.value = data.data.roundTimeMs
+      }
+
+      if (data.type === 'roundended') {
+        console.log('Round ended')
+        console.log('Round ende data:', data.data)
+        stats.value = data.data
+        console.log('Stats:', stats.value)
+      }
+
+      if (data.type === 'gamended') {
+        console.log('Game ended')
+        console.log('Game ended data:', data.data)
+        gameStarted.value = false
+        gameEnded.value = true
+        console.log(stats.value)
       }
 
     } catch (err) {
@@ -210,6 +256,34 @@ const leaveLobby = () => {
   router.push('/');
 };
 
+const getBaseButtonColor = (index: number) => {
+  const colors = [
+    'bg-red-500 hover:bg-red-600',
+    'bg-blue-500 hover:bg-blue-600',
+    'bg-yellow-500 hover:bg-yellow-600',
+    'bg-purple-500 hover:bg-purple-600'
+  ]
+  return colors[index]
+}
+
+const selectAnswer = (index: number) => {
+  answerSelected.value = true
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.send(
+      JSON.stringify({
+        type: 'answered',
+        successful: true,
+        server: false,
+        data: {
+          answerIndex: index.toString(),
+          answerTime: Date.now().toString()
+        }
+      })
+    )
+  }
+}
+
+
 onMounted(() => {
   if (!lobbyId.value) {
     error.value = 'Invalid lobby ID';
@@ -241,11 +315,71 @@ onMounted(() => {
       </div>
     </div>
 
+    <div v-else-if="gameStarted && currentCard" class="text-white">
+      <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
+        <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
+          class="w-full max-h-64 object-contain mb-6 rounded" />
+        <h2 class="text-xl font-semibold text-white">{{ currentCard?.question }}</h2>
+      </div>
+
+      <div :class="[
+        'grid gap-4',
+        currentCard?.type === 'twochoice'
+          ? 'grid-cols-1 md:grid-cols-2'
+          : 'grid-cols-2 md:grid-cols-2',
+      ]">
+        <button v-for="(answer, index) in currentCard.answers" :key="index" :class="[
+          'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+          getBaseButtonColor(index),
+        ]" @click="selectAnswer(index)">
+          {{ answer }}
+        </button>
+      </div>
+    </div>
+    <div v-else-if="gameEnded" class="text-white">
+    <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg flex justify-center">
+      <h2 class="text-xl font-semibold text-white">Játék vége</h2>
+    </div>
+
+    <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
+      <h2 class="text-xl font-semibold text-white">Játékosok</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div v-for="playerStat in stats.scores" :key="playerStat"
+          class="p-4 glass-button rounded-lg  w-fit">
+          <div class="flex items-center space-x-4 flex-col justify-center">
+            <img :src="playerStat.pfp || '/placeholder.svg?height=40&width=40'"
+              class="w-10 h-10 rounded-full object-cover" /><!--nem kapok pfp-->
+            <span class="text-lg font-medium">{{ playerStat.username }}</span>
+            <span>Helytelen válaszok: {{ playerStat.stats.wrongAnswerCount }}</span>
+            <span>Helyes válaszok: {{ playerStat.stats.correctAnswerCount }}</span>
+            <span>Összes pont: {{ playerStat.stats.score }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center">
+      <button class="glass-button px-4 py-2 rounded-md bg-red-600/30">
+        Újraindítás
+      </button>
+    </div>
+  </div>
+
     <div v-else class="text-white">
       <div class="flex justify-between items-center mb-8">
         <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-md bg-red-600/30">
           Lobby elhagyása
         </button>
+      </div>
+
+      <div class="text-center relative z-50 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
+        <div v-if="!gameQuiz" class="py-4 text-red-500">
+          No Quiz Data
+        </div>
+        <div v-else>
+          <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md"/>
+          <h2 class="text-2xl font-semibold mb-2">{{ gameQuiz?.quiz.title }}</h2>
+          <p class="text-gray-300">{{ gameQuiz?.quiz.description }}</p>
+        </div>
       </div>
 
       <div class="mb-8 p-4 bg-white/10 backdrop-blur-sm rounded-lg">
