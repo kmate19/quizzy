@@ -45,7 +45,7 @@ export async function handleWsMessage(
             const maybeQuizData = publishQuizSchemaWID.safeParse(msg.data);
 
             if (maybeQuizData.error) {
-                closeWithError(ws, "Bad data: quiz");
+                closeWithError(ws, "Bad data: quiz", 1007, maybeQuizData.error);
                 return;
             }
 
