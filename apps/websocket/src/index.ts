@@ -82,7 +82,7 @@ export const hono = new Hono()
                             score: 0,
                         },
                         pongTimeout: setTimeout(() => {
-                            ws.raw?.close();
+                            closeWithError(ws.raw!, "Pong timeout", 1001);
                         }, 20000),
                     };
 

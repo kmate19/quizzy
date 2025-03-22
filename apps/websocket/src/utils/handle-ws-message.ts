@@ -27,7 +27,10 @@ export async function handleWsMessage(
             const rest = members
                 .values()
                 .filter((m) => m !== ws)
-                .map((u) => u.data.lobbyUserData)
+                .map((u) => {
+                    const { pongTimeout, ...rest } = u.data.lobbyUserData;
+                    return rest;
+                })
                 .toArray();
 
             sendSingle(ws, "members", rest);
@@ -154,7 +157,7 @@ export async function handleWsMessage(
         case "pong":
             clearTimeout(ws.data.lobbyUserData.pongTimeout);
             ws.data.lobbyUserData.pongTimeout = setTimeout(() => {
-                ws.close();
+                closeWithError(ws, "Pong timeout", 1001);
             }, 20000);
 
             return;
