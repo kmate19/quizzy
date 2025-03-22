@@ -151,3 +151,18 @@ export type QuizData = {
   tagNames: string[]
   languageISOCodes: string[]
 }
+
+export type gameStats = {
+  answers: string[],
+  scores:{
+    pfp: string,
+    pongTimeout?: object,
+    stats: {
+      wrongAnswerCount: number,
+      correctAnswerCount: number,
+      score: number,
+    },
+    userId: string,
+    username: string,
+  }[]
+} 
