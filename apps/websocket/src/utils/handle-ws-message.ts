@@ -151,7 +151,7 @@ export async function handleWsMessage(
 
             return;
         case "ping":
-            ws.pong();
+            sendSingle(ws, "pong");
 
             return;
         case "pong":

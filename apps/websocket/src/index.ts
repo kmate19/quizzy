@@ -12,6 +12,7 @@ import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./utils/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./utils/close";
+import { sendSingle } from "./utils/send";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -95,10 +96,10 @@ export const hono = new Hono()
                     ws.raw.ping();
 
                     const interval = setInterval(() => {
-                        if (ws.raw?.readyState === 3) {
+                        if (ws.raw!.readyState === 3) {
                             clearInterval(interval);
                         } else {
-                            ws.raw?.ping();
+                            sendSingle(ws.raw!, "ping");
                         }
                     }, 10000);
 
