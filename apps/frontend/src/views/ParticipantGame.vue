@@ -118,6 +118,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         successful: true,
         server: false,
       }));
+      addParticipant(userData.username, userData.pfp);
     } else {
       console.error('not open. state:', ws.readyState);
     }

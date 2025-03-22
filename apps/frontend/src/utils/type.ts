@@ -148,6 +148,6 @@ export type QuizData = {
     banner: string
   }
   cards: Question[]
-  tagNames: Tag[]
+  tagNames: string[]
   languageISOCodes: string[]
 }

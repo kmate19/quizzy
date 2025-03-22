@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, toRaw } from 'vue'
 import { Loader2Icon } from 'lucide-vue-next'
 import type { detailedQuiz } from '@/utils/type'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
@@ -70,9 +70,9 @@ const createLobby = async () => {
         timestamp: Date.now(),
         heartbeatInterval: 30000
       })
-
       if (data.value) {
-        quizzyStore.setCurrentQuiz(data.value)
+        quizzyStore.setCurrentQuiz(toRaw(data.value))
+        console.log("quizzyStore currentQuiz after setting:", toRaw(quizzyStore.currentQuiz))
       }
 
       isCreatingLobby.value = false;

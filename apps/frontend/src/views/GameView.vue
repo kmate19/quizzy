@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, toRaw } from 'vue';
 import { wsclient } from '@/lib/apiClient';
 import { generateSessionHash } from '@/utils/helpers';
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
@@ -29,7 +29,6 @@ const copyLobbyCode = () => {
   copiedToClipboard.value = true;
   copiedToClipboard.value = false;
 };
-
 
 
 const setupWebSocket = async () => {
@@ -114,6 +113,13 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         successful: true,
         server: false,
       }));
+      console.log("quizdata", toRaw(quizzyStore.currentQuiz))
+      ws.send(JSON.stringify({
+        type: 'quizdata',
+        successful: true,
+        server: false,
+        data: toRaw(quizzyStore.currentQuiz),
+      }));
       addParticipant(userData.username, userData.pfp);
     } else {
       console.error('not open. state:', ws.readyState);
@@ -138,6 +144,8 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           server: false,
         }));
       }
+
+      
 
     } catch (err) {
       console.error('Error parsing WebSocket message:', err)
