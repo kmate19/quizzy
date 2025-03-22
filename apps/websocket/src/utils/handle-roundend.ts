@@ -28,8 +28,9 @@ export function handleRoundEnd(lobby: Lobby, correct_answer_index: number) {
             ? foundUser.data.lobbyUserData.stats.correctAnswerCount++
             : foundUser.data.lobbyUserData.stats.wrongAnswerCount++;
 
-        foundUser.data.lobbyUserData.stats.score =
-            calculateScore(answerTimeDiff);
+        foundUser.data.lobbyUserData.stats.score += isCorrect
+            ? calculateScore(answerTimeDiff)
+            : 0;
     });
 
     sendLobby(lobby.members, "roundended", {
