@@ -12,7 +12,6 @@ export const useQuizzyStore = defineStore('quizzy', () => {
   const hash = ref<string>('')
   const quizId = ref<string>('')
   const timestamp = ref<number>(0)
-  const heartbeatInterval = ref<number>(0)
   const pfp = ref<string>('')
   const currentQuiz = ref<QuizData | null>(null)
 
@@ -41,7 +40,6 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     hash.value = ''
     quizId.value = ''
     timestamp.value = 0
-    heartbeatInterval.value = 0
     pfp.value = ''
   }
 
@@ -50,14 +48,12 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     hash: string
     quizId: string
     timestamp: number
-    heartbeatInterval: number
     isHost: boolean
   }) {
     lobbyId.value = data.lobbyId
     hash.value = data.hash
     quizId.value = data.quizId
     timestamp.value = data.timestamp
-    heartbeatInterval.value = data.heartbeatInterval
     isHost.value = data.isHost
   }
 
@@ -67,7 +63,6 @@ export const useQuizzyStore = defineStore('quizzy', () => {
       hash: hash.value,
       quizId: quizId.value,
       timestamp: timestamp.value,
-      heartbeatInterval: heartbeatInterval.value,
       isHost: isHost.value
     }
   }
@@ -82,7 +77,6 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     hash,
     quizId,
     timestamp,
-    heartbeatInterval,
     setLobbyData,
     $reset: reset,
     getLobbyData,

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, toRaw } from 'vue'
+import { ref, onMounted, toRaw, onUnmounted } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
@@ -18,7 +18,6 @@ const error = ref<string | null>(null)
 const participants = ref<{ username: string; pfp: string }[]>([])
 const websocket = ref<WebSocket | null>(null)
 const copiedToClipboard = ref(false)
-const heartbeatInterval = ref<number | null>(null)
 const reconnectAttempts = ref(0)
 const gameStarted = ref(false)
 const currentCard = ref()
@@ -72,7 +71,6 @@ const setupWebSocket = async () => {
       isHost: isHost.value,
       quizId: quizzyStore.quizId,
       timestamp: Date.now(),
-      heartbeatInterval: 30000,
     })
   } catch (err) {
     console.error('WebSocket setup error:', err)
@@ -250,18 +248,12 @@ const leaveLobby = () => {
     }
   }
 
-  if (heartbeatInterval.value) {
-    clearInterval(heartbeatInterval.value)
-    heartbeatInterval.value = null
-  }
-
   quizzyStore.setLobbyData({
     lobbyId: '',
     hash: '',
     isHost: false,
     quizId: '',
     timestamp: 0,
-    heartbeatInterval: 0,
   })
   router.push('/')
 }
@@ -351,6 +343,14 @@ onMounted(() => {
 
   setupWebSocket()
 })
+
+onUnmounted(() => {
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.close(1000, 'User left lobby')
+  }
+})
+
+
 </script>
 
 <template>
@@ -372,9 +372,6 @@ onMounted(() => {
     </div>
 
     <div v-else-if="gameStarted && currentCard" class="text-white">
-      <div class="flex justify-between items-center mb-4">
-
-      </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2">
           <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
@@ -384,7 +381,11 @@ onMounted(() => {
             </div>
             <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
               class="w-full max-h-64 object-contain mb-6 rounded-lg" />
-            <h2 class="text-xl font-semibold text-white">{{ currentCard?.question }}</h2>
+            <h2 class="text-xl font-semibold text-white text-center">{{ currentCard?.question }}</h2>
+
+            <div v-if="answerSelected" class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+              <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
+            </div>
           </div>
 
           <div :class="[

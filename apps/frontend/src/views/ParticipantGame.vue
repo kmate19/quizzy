@@ -17,7 +17,6 @@ const error = ref<string | null>(null);
 const participants = ref<{ username: string, pfp: string }[]>([]);
 const websocket = ref<WebSocket | null>(null);
 const copiedToClipboard = ref(false);
-const heartbeatInterval = ref<number | null>(null);
 const reconnectAttempts = ref(0);
 const gameQuiz = ref<QuizData>();
 const gameStarted = ref(false)
@@ -28,19 +27,15 @@ const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 
-
 if (route.path === `/quiz/${lobbyId.value}`) {
   isHost.value = true;
 }
-
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value);
   copiedToClipboard.value = true;
   copiedToClipboard.value = false;
 };
-
-
 
 const setupWebSocket = async () => {
   try {
@@ -76,7 +71,6 @@ const setupWebSocket = async () => {
       isHost: isHost.value,
       quizId: quizzyStore.quizId,
       timestamp: Date.now(),
-      heartbeatInterval: 30000
     });
 
   } catch (err) {
@@ -259,10 +253,6 @@ const leaveLobby = () => {
     }
   }
 
-  if (heartbeatInterval.value) {
-    clearInterval(heartbeatInterval.value);
-    heartbeatInterval.value = null;
-  }
 
   quizzyStore.setLobbyData({
     lobbyId: '',
@@ -270,7 +260,6 @@ const leaveLobby = () => {
     isHost: false,
     quizId: '',
     timestamp: 0,
-    heartbeatInterval: 0
   })
   router.push('/');
 };
@@ -346,9 +335,6 @@ onMounted(() => {
       </div>
     </div>
     <div v-else-if="gameStarted && currentCard" class="text-white">
-      <div class="flex justify-between items-center mb-4">
-
-      </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2">
           <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
@@ -359,7 +345,11 @@ onMounted(() => {
             </div>
             <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
               class="w-full max-h-64 object-contain mb-6 rounded-lg" />
-            <h2 class="text-xl font-semibold text-white">{{ currentCard?.question }}</h2>
+            <h2 class="text-xl font-semibold text-white text-center">{{ currentCard?.question }}</h2>
+
+            <div v-if="answerSelected" class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+              <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
+            </div>
           </div>
 
           <div :class="[
@@ -386,7 +376,7 @@ onMounted(() => {
               <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-2">
                 #{{ index + 1 }}
               </div>
-              <img :src="player.pfp" class="w-8 h-8 rounded-lg mr-2" />
+              <img :src="player.pfp" class="w-8 h-8 rounded-full mr-2" />
               <span class="font-medium truncate flex-grow">{{ player.username }}</span>
               <span class="font-bold text-yellow-300">{{ player.stats.score }}</span>
             </div>
