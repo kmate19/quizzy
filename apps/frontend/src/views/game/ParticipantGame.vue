@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { wsclient } from '@/lib/apiClient';
 import { generateSessionHash } from '@/utils/helpers';
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
@@ -312,6 +312,27 @@ onMounted(() => {
   }
   console.log("minden pacek")
   setupWebSocket();
+});
+
+onUnmounted(() => {
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    try {
+      console.log('Sending unsubscribe message');
+      websocket.value.send(JSON.stringify({
+        type: 'unsubscribe',
+        successful: true,
+        server: false,
+      }));
+
+      setTimeout(() => {
+        if (websocket.value) {
+          websocket.value.close(1000, "User left lobby");
+        }
+      }, 200);
+    } catch (err) {
+      console.error('Error leaving lobby:', err);
+    }
+  }
 });
 
 
