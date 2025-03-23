@@ -23,6 +23,7 @@ export const quizStatusEnum = pgEnum("quiz_status", [
     "published",
     "requires_review",
     "private",
+    "rejected",
 ]);
 
 export const quizzesTable = pgTable(
