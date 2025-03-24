@@ -9,7 +9,7 @@ using static localadmin.Models.User;
 
 namespace localadmin.Services
 {
-    internal class ApiUsersService
+    public static class ApiUsersService
     {
         private static readonly HttpClient client = new HttpClient();
         private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions

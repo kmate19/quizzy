@@ -117,7 +117,7 @@ namespace localadmin.Models
             return image;
         }
 
-        private async void ViewUser(object parameter)
+        public async void ViewUser(object parameter)
         {
             UserViewModel userView = new UserViewModel(NavigationService, SharedState);
             SharedState.SearchText = User.Username;
@@ -126,14 +126,14 @@ namespace localadmin.Models
             userView.SearchUsers(SharedState.SearchText);
         }
 
-        private void ViewReview(object parameter)
+        public void ViewReview(object parameter)
         {
             ReviewViewModel reviewView = new ReviewViewModel(NavigationService, SharedState);
             SharedState.SearchText = User.Username;
             NavigationService?.NavigateTo(reviewView);
             reviewView.SearchReviews(SharedState.SearchText);
         }
-        private void ViewQuiz(object paramter)
+        public void ViewQuiz(object paramter)
         {
             Window window = new QuizDetailedView(this);
             window.Show();

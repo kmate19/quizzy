@@ -124,13 +124,13 @@ namespace localadmin.Models
             }
             return image;
         }
-        private void EditUser(object parameter)
+        public void EditUser(object parameter)
         {
             EditUserWindow editUserWindow = new(this);
             editUserWindow.Show();
         }
 
-        private async void ViewQuiz(object parameter)
+        public async void ViewQuiz(object parameter)
         {
             QuizViewModel quizView = new(navigationService, sharedState);
             sharedState.SearchText = Username;
@@ -140,7 +140,7 @@ namespace localadmin.Models
             quizView.SearchQuizes(Username);
         }
 
-        private void ViewReview(object parameter)
+        public void ViewReview(object parameter)
         {
             ReviewViewModel reviewView = new(navigationService, sharedState);
             sharedState.SearchText = Username;
