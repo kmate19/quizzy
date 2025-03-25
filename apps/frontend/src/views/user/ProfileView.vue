@@ -318,13 +318,13 @@ watch(
                     <div class="text-white/70 text-xs md:text-sm">Összes játék</div>
                   </div>
                   <div>
-                    <div class="text-3xl md:text-4xl font-bold text-white">
+                    <div class="text-3xl md:text-4xl font-bold text-green-400">
                       {{ realUser?.stats.first_places }}
                     </div>
-                    <div class="text-white/70 text-xs md:text-sm">1. helyezés</div>
+                    <div class=" text-xs md:text-sm text-green-400">1. helyezés</div>
                   </div>
                   <div>
-                    <div class="text-3xl md:text-4xl font-bold text-white">
+                    <div class="text-3xl md:text-4xl font-bold text-yellow-400">
                       {{
                         isNaN(
                           Math.round(
@@ -337,7 +337,7 @@ watch(
                           )
                       }}%
                     </div>
-                    <div class="text-white/70 text-xs md:text-sm">Nyerési arány</div>
+                    <div class="text-yellow-400 text-xs md:text-sm">Nyerési arány</div>
                   </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3" v-if="!isOtherUser">

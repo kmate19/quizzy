@@ -679,7 +679,7 @@ const marqueeDuration = computed(() => {
                 >
                   <div
                     v-if="isTagDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-auto "
                   >
                     <div class="py-1" v-click-outside="() => (isTagDropdownOpen = false)">
                       <input
@@ -763,7 +763,7 @@ const marqueeDuration = computed(() => {
                 >
                   <div
                     v-if="isLanguageDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-auto "
                   >
                     <div class="py-1" v-click-outside="() => (isLanguageDropdownOpen = false)">
                       <input
@@ -828,7 +828,7 @@ const marqueeDuration = computed(() => {
               :rules="[(v) => v.length <= 255]"
               @input="quiz.description = quiz.description.substring(0, 255)"
             />
-            <v-btn block color="success" class="mt-2" @click="uploadOrUpdate">
+            <v-btn block color="success" class="mt-2" @click="uploadOrUpdate" @disabled="isLoading">
               <span v-if="isLoading" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <circle
@@ -1018,7 +1018,7 @@ const marqueeDuration = computed(() => {
               class="p-6 rounded-lg backdrop-blur-lg bg-white/10 overflow-hidden h-[calc(100vh-15vh)] flex flex-col"
             >
               <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
-              <div class="space-y-4 overflow-y-scroll custom-scrollbar flex-1 p-2">
+              <div class="space-y-4 overflow-y-auto  flex-1 p-2">
                 <div
                   v-for="(c, index) in quiz.cards"
                   :key="index"
@@ -1057,23 +1057,30 @@ const marqueeDuration = computed(() => {
 </template>
 
 <style scoped>
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 20px;
-  border: transparent;
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-all,
+  .transition-transform {
+    transition: none;
+  }
 }
 
 @keyframes marquee {
@@ -1097,33 +1104,9 @@ const marqueeDuration = computed(() => {
   padding-right: 1em;
 }
 
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-  scroll-behavior: smooth;
-}
 
 .emoji-text {
   font-family: 'Segoe UI', 'Noto Color Emoji', sans-serif;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .height-fade-enter-active,

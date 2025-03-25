@@ -383,7 +383,7 @@ onUnmounted(() => {
               class="w-full max-h-64 object-contain mb-6 rounded-lg" />
             <h2 class="text-xl font-semibold text-white text-center">{{ currentCard?.question }}</h2>
 
-            <div v-if="answerSelected" class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+            <div v-if="answerSelected" class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-spin">
               <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
             </div>
           </div>

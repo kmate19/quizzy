@@ -114,7 +114,7 @@ const createLobby = async () => {
             </button>
           </div>
 
-          <div class="overflow-y-auto flex-1 md:space-y-4 space-y-2">
+          <div class="overflow-y-auto flex-1 md:space-y-4 space-y-2 p-2">
             <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
               <div class="h-52 bg-white/10 rounded-lg">
                 <v-img

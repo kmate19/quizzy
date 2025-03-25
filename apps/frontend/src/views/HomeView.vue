@@ -48,7 +48,7 @@ const handleLimitChange = async () => {
   currentPage.value = 1
   selectParams()
   const res = await getQuizzes(
-    params.limit,
+    params.limit.toString(),
     params.page,
     params.strict,
     params.tags,
@@ -56,7 +56,7 @@ const handleLimitChange = async () => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages / 10)
+  totalPages.value = Math.ceil(res.totalPages / params.limit)
   loading.value = false
 }
 
@@ -67,20 +67,22 @@ interface FilterPayload {
 }
 
 const params: {
-  limit?: string
+  limit: number
   page?: string
   strict?: string
   tags?: [string, ...string[]]
   languages?: [string, ...string[]]
   searchText?: string
-} = {}
+} = {
+  limit: 10,
+}
 
 const selectParams = () => {
   for (const key in params) {
     delete params[key as keyof typeof params];
   }
   if (limit.value) {
-    params.limit = limit.value.toString()
+    params.limit = limit.value
   }
   if (currentPage.value) {
     params.page = currentPage.value.toString()
@@ -106,7 +108,7 @@ const handleSave = async (payload: FilterPayload) => {
   strict.value = payload.strictSearch
   selectParams()
   const res = await getQuizzes(
-    params.limit,
+    params.limit.toString(),
     params.page,
     params.strict,
     params.tags,
@@ -114,7 +116,7 @@ const handleSave = async (payload: FilterPayload) => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages / 10)
+  totalPages.value = Math.ceil(res.totalPages / params.limit)
   loading.value = false
 }
 
@@ -141,7 +143,7 @@ const doSearch = async () => {
   loading.value = true
   selectParams()
   const res = await getQuizzes(
-    params.limit,
+    params.limit.toString(),
     params.page,
     params.strict,
     params.tags,
@@ -149,7 +151,7 @@ const doSearch = async () => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages / 10)
+  totalPages.value = Math.ceil(res.totalPages / params.limit)
   loading.value = false
 }
 
@@ -169,7 +171,7 @@ const nextPage = async () => {
     currentPage.value++
     selectParams()
     const res = await getQuizzes(
-      params.limit,
+      params.limit.toString(),
       params.page,
       params.strict,
       params.tags,
@@ -177,7 +179,7 @@ const nextPage = async () => {
       params.searchText
     );
     quizzes.value = res.quizzes
-    totalPages.value = Math.ceil(res.totalPages / 10)
+    totalPages.value = Math.ceil(res.totalPages / params.limit)
     loading.value = false
   }
 }
@@ -188,7 +190,7 @@ const prevPage = async () => {
     currentPage.value--
     selectParams()
     const res = await getQuizzes(
-      params.limit,
+      params.limit.toString(),
       params.page,
       params.strict,
       params.tags,
@@ -196,8 +198,8 @@ const prevPage = async () => {
       params.searchText
     );
     quizzes.value = res.quizzes
-    totalPages.value = Math.ceil(res.totalPages / 10)
-    loading.value = true
+    totalPages.value = Math.ceil(res.totalPages / params.limit)
+    loading.value = false
   }
 }
 
@@ -207,7 +209,7 @@ const goToPage = async (page: number) => {
     currentPage.value = page
     selectParams()
     const res = await getQuizzes(
-      params.limit,
+      params.limit.toString(),
       params.page,
       params.strict,
       params.tags,
@@ -215,7 +217,7 @@ const goToPage = async (page: number) => {
       params.searchText
     );
     quizzes.value = res.quizzes
-    totalPages.value = Math.ceil(res.totalPages / 10)
+    totalPages.value = Math.ceil(res.totalPages / params.limit)
     loading.value = false
   }
 }
@@ -260,7 +262,7 @@ onMounted(async () => {
 
   selectParams()
   const res = await getQuizzes(
-    params.limit,
+    params.limit.toString(),
     params.page,
     params.strict,
     params.tags,
@@ -268,16 +270,35 @@ onMounted(async () => {
     params.searchText
   );
   quizzes.value = res.quizzes
-  totalPages.value = Math.ceil(res.totalPages / 10)
+  totalPages.value = Math.ceil(res.totalPages / params.limit)
   loading.value = false
 })
+
+const tiltCard = (event: MouseEvent, element: HTMLElement) => {
+  const card = element;
+  const cardRect = card.getBoundingClientRect();
+  const cardCenterX = cardRect.left + cardRect.width / 2;
+  const cardCenterY = cardRect.top + cardRect.height / 2;
+  
+  const mouseX = event.clientX;
+  const mouseY = event.clientY;
+  
+  const rotateY = (mouseX - cardCenterX) / 30;
+  const rotateX = (cardCenterY - mouseY) / 30;
+  
+  card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+}
+
+const resetTilt = (element: HTMLElement) => {
+  element.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+}
 </script>
 
 <template>
   <div class="home-page">
     <div
-      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-gray-800 bg-opacity-80 rounded-md cursor-pointer z-10">
-      <div class="flex flex-col md:flex-row justify-between  mb-8">
+      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-white/90 rounded-md z-10 pointer-events-none">
+      <div class="flex flex-col md:flex-row justify-between mb-8 pointer-events-auto">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
             'relative flex items-center transition-all duration-700 ease-in-out rounded-full border border-gray-300 bg-white/10 text-white cursor-pointer glass-button',
@@ -320,19 +341,22 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="loading" class="flex justify-center items-center h-64">
-        <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+      <div v-if="loading" class="flex justify-center items-center h-64 pointer-events-auto">
+        <Loader2Icon class="w-12 h-12 text-gray-700 animate-spin" />
       </div>
-      <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
+      <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white pointer-events-auto">
         {{ error }}
       </div>
-      <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6" style="direction: ltr">
-        <div v-for="quiz in quizzes" :key="quiz.id" class="break-inside-avoid mb-6">
+      <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6 p-2" style="direction: ltr">
+        <div v-for="quiz in quizzes" :key="quiz.id" 
+            class="break-inside-avoid mb-6 card-container pointer-events-auto"
+            @mousemove="(e) => e.currentTarget && tiltCard(e, e.currentTarget as HTMLElement)" 
+            @mouseleave="(e) => e.currentTarget && resetTilt(e.currentTarget as HTMLElement)">
           <QuizCard :quiz="quiz" />
         </div>
       </div>
     </div>
-    <div v-if="!error" class="mt-8">
+    <div v-if="!error" class="mt-8 pointer-events-auto">
       <div class="flex flex-col-reverse gap-2 md:flex-row justify-center items-center space-x-2 text-white">
         <button @click="prevPage" :disabled="currentPage === 1"
           class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
@@ -427,21 +451,35 @@ onMounted(async () => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(200, 200, 200, 0.3);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(100, 100, 100, 0.5);
   border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(200, 200, 200, 0.3);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(80, 80, 80, 0.7);
 }
 
+.card-container {
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+  border-radius: inherit;
+  transform: perspective(1000px) rotateX(0) rotateY(0);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
 
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
+}
 
 .selected-option {
   background: rgba(59, 130, 246, 0.5);
