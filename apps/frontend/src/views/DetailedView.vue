@@ -68,7 +68,6 @@ const createLobby = async () => {
         isHost: true,
         quizId: uuid.toString(),
         timestamp: Date.now(),
-        heartbeatInterval: 30000
       })
       if (data.value) {
         quizzyStore.setCurrentQuiz(toRaw(data.value))
@@ -98,75 +97,10 @@ const createLobby = async () => {
     <div class="text-white md:p-6">
       <div class="flex flex-col lg:flex-row max-w-7xl mx-auto">
         <!-- Left -->
-        <div class="lg:w-1/3 md:space-y-4 flex-1 space-y-2 h-[calc(100vh-10vh)] overflow-y-auto p-1">
-          <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <div class="h-52 bg-white/10 rounded-lg">
-              <v-img
-                :src="data?.banner || '/placeholder.svg?height=200&width=300'"
-                class="rounded-md justify-center items-center"
-                aspect-ratio="16/9"
-                cover
-              />
-            </div>
-          </div>
-
-          <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <h2 class="text-xl font-semibold">{{ data?.title }}<br /></h2>
-            <div class="max-h-20 overflow-y-auto">
-              {{ data?.description }}
-            </div>
-          </div>
-
-          <div
-            class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg text-lg"
-          >
-            <div>
-              Készítette:
-              <span
-                @click="data?.user_id && handleViewUser(data.user_id)"
-                class="cursor-pointer font-bold relative before:absolute before:left-0
-                before:bottom-0 before:w-0 before:h-[2px] before:bg-white
-                before:transition-all before:duration-300 hover:before:w-full"
-              >
-                {{ data?.username }}
-              </span>
-            </div>
-          </div>
-
-          <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-            <div class="mb-2">Kategóriák:</div>
-            <div class="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-              <span
-                v-for="tag in data?.tags"
-                :key="tag"
-                class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
-              >
-                {{ tag }}
-              </span>
-            </div>
-            <div class="mb-2">Nyelvek:</div>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="lang in data?.languages"
-                :key="lang.iso_code"
-                class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
-              >
-                {{ lang.icon }} {{ lang.iso_code }}
-              </span>
-            </div>
-            <div class="mb-2">
-              Publikálás ideje:
-              <span class="font-bold text-blue-500">
-                {{ data?.created_at }}
-              </span>
-            </div>
-            <div class="mb-2">{{ data?.plays }}x játszották</div>
-            <div class="mb-2 flex gap-1">Értékelés: {{ data?.rating }}⭐</div>
-          </div>
-
-          <div class="flex gap-2 justify-center">
+        <div class="lg:w-1/3 flex-1 flex flex-col xs:h-[calc(100vh-10vh)] h-[calc(100vh-17vh)] p-1">
+          <div class="flex gap-2 justify-center md:mt-3 lg:order-last sticky top-0 z-10 p-1 rounded-xl">
             <button
-              class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-2xl"
+              class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl"
               @click="handleTestPlay"
             >
               Gyakorlás
@@ -174,16 +108,78 @@ const createLobby = async () => {
             <button
               @click="createLobby"
               :disabled="isCreatingLobby"
-              class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-2xl"
+              class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl"
             >
               {{ isCreatingLobby ? 'Létrehozás...' : 'Többjátékos' }}
             </button>
+          </div>
+
+          <div class="overflow-y-auto flex-1 md:space-y-4 space-y-2">
+            <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
+              <div class="h-52 bg-white/10 rounded-lg">
+                <v-img
+                  :src="data?.banner || '/placeholder.svg?height=200&width=300'"
+                  class="rounded-md justify-center items-center"
+                  aspect-ratio="16/9"
+                  cover
+                />
+              </div>
+            </div>
+
+            <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
+              <h2 class="text-xl font-semibold">{{ data?.title }}<br /></h2>
+              <div class="max-h-20 overflow-y-auto">
+                {{ data?.description }}
+              </div>
+            </div>
+
+            <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
+              <div>
+                Készítette:
+                <span
+                  @click="data?.user_id && handleViewUser(data.user_id)"
+                  class="cursor-pointer font-bold relative before:absolute before:left-0
+                  before:bottom-0 before:w-0 before:h-[2px] before:bg-white
+                  before:transition-all before:duration-300 hover:before:w-full"
+                >
+                  {{ data?.username }}
+                </span>
+              </div>
+              <div class="mb-2">Kategóriák:</div>
+              <div class="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                <span
+                  v-for="tag in data?.tags"
+                  :key="tag"
+                  class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
+                >
+                  {{ tag }}
+                </span>
+              </div>
+              <div class="mb-2">Nyelvek:</div>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="lang in data?.languages"
+                  :key="lang.iso_code"
+                  class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
+                >
+                  {{ lang.icon }} {{ lang.iso_code }}
+                </span>
+              </div>
+              <div class="mb-2">
+                Publikálás ideje:
+                <span class="font-bold text-blue-500">
+                  {{ data?.created_at }}
+                </span>
+              </div>
+              <div class="mb-2">{{ data?.plays }}x játszották</div>
+              <div class="mb-2 flex gap-1">Értékelés: {{ data?.rating }}⭐</div>
+            </div>
           </div>
         </div>
 
         <!-- Right -->
         <div class="lg:w-2/3">
-          <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[50vh] overflow-y-auto m-2
+          <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[calc(100vh-15vh)] overflow-y-auto m-2
           md:space-y-4 space-y-2">
             <div
               v-for="(card, index) in data?.cards"
@@ -191,29 +187,30 @@ const createLobby = async () => {
               class="rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border border-white/20 shadow-lg"
             >
               <button
-                class="w-full flex flex-col sm:flex-row sm:items-center gap-4 justify-center items-center"
+                class="w-full flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
                 @click="toggleQuestion(index)"
               >
-                <div
-                  class="w-fit h-fit sm:w-1/4  bg-white/10 rounded-md overflow-hidden"
-                >
-                  <img
-                    :src="card.picture || '/placeholder.svg?height=200&width=300'"
-                    class="rounded-md"
-                    alt="Question image"
-                    aspect-ratio="16/9"
-                    cover
-                  />
-                </div>
-                <div class="flex flex-col gap-4 flex-1 p-2 sm:p-4">
-                  <span class="sm:text-left text-center  text-sm sm:text-base">{{ card.question }}</span>
-                  <div class="flex flex-wrap gap-2">
-                    <div
-                      v-for="(answer, i) in card.answers"
-                      :key="i"
-                      class="p-2 text-xs sm:text-sm rounded-md border border-white/20 bg-white/10 flex items-center"
-                    >
-                      {{ answer }}
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
+                  <div
+                    class="w-full sm:w-1/4 bg-white/10 rounded-md overflow-hidden"
+                  >
+                    <img
+                      :src="card.picture || '/placeholder.svg?height=200&width=300'"
+                      class="rounded-md w-full object-cover"
+                      alt="Question image"
+                      aspect-ratio="16/9"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-4 flex-1 p-2 sm:p-4">
+                    <span class="text-left text-base sm:text-lg font-medium">{{ card.question }}</span>
+                    <div class="flex flex-wrap gap-2">
+                      <div
+                        v-for="(answer, i) in card.answers"
+                        :key="i"
+                        class="p-2 text-sm rounded-md border border-white/20 bg-white/10 flex items-center"
+                      >
+                        {{ answer }}
+                      </div>
                     </div>
                   </div>
                 </div>
