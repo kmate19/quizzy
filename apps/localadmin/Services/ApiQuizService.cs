@@ -1,7 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using localadmin.Models;
@@ -18,6 +16,12 @@ public static class ApiQuizzesService
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
+    /// <summary>
+    /// ez a függvény lekéri az összes quiz-t az adatbázisból
+    /// </summary>
+    /// <param name="page"></param>
+    /// <param name="pagesize"></param>
+    /// <returns>A quizek</returns>
     public static async Task<(ObservableCollection<Quiz> Quizzes, int TotalCount)> GetQuizzesAsync(int page, int pagesize)
     {
         string url = $"http://localhost:3000/api/v1/quizzes?page={page}&limit={pagesize}";
@@ -39,7 +43,7 @@ public static class ApiQuizzesService
 
                 if (root.TryGetProperty("data", out JsonElement dataElement))
                 {
-                    // Get total count
+                    //itt szedjük ki azt, hogy összesen hány quiz van
                     if (dataElement.TryGetProperty("totalCount", out JsonElement totalElement))
                     {
 
@@ -48,7 +52,7 @@ public static class ApiQuizzesService
                             totalCount = parsedValue;
                     }
 
-                    // Get quizzes
+                    //Itt a quizzes tömböt szedjük ki amiben a quiz-ek vannak
                     if (dataElement.TryGetProperty("quizzes", out JsonElement quizzesElement) && quizzesElement.ValueKind == JsonValueKind.Array)
                     {
                         quizzes = JsonSerializer.Deserialize<ObservableCollection<Quiz>>(quizzesElement.GetRawText(), jsonSerializerOptions) ?? new();
@@ -78,6 +82,12 @@ public static class ApiQuizzesService
     }
 
 
+    /// <summary>
+    /// mivel az e fölött lévő függvény nem ad vissza nekünk minden információt, ezért itt külön lekérjük a quizekhez tartozó kérdéseket. Ez a függvény minden quizen végig megy.
+    /// </summary>
+    /// <param name="quizId"></param>
+    /// <param name="existingQuizzes"></param>
+    /// <returns>A quiz kédései kártyákra szedve.</returns>
     public static async Task<List<QuizCard>> GetQuizCardsByIdAsync(string quizId, ObservableCollection<Quiz> existingQuizzes)
     {
         string url = $"http://localhost:3000/api/v1/quizzes/{quizId}";
@@ -104,7 +114,7 @@ public static class ApiQuizzesService
                                     ?? new List<QuizCard>();
                     }
 
-                    //username
+                    //Itt kapjuk meg azt is, hogy ki készítette a quizt
                     string username = "Unknown";
                     if (dataElement.TryGetProperty("user", out JsonElement userElement) &&
                         userElement.TryGetProperty("username", out JsonElement usernameElement))
@@ -112,7 +122,7 @@ public static class ApiQuizzesService
                         username = usernameElement.GetString() ?? "Unknown";
                     }
 
-                    //tags
+                    //Itt pedig azt, hogy milyen kategóriái vannak a quizhez
                     List<TagWrapper> tags = new List<TagWrapper>();
                     if (dataElement.TryGetProperty("tags", out JsonElement tagsElement) &&
                         tagsElement.ValueKind == JsonValueKind.Array)

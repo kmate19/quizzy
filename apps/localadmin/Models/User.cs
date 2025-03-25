@@ -2,8 +2,6 @@
 using localadmin.ViewModels;
 using localadmin.Views;
 using System.Data;
-using System.Diagnostics;
-using System.IO;
 using System.Text.Json.Serialization;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -11,16 +9,21 @@ using System.Windows.Media.Imaging;
 
 namespace localadmin.Models
 {
+    /// <summary>
+    /// Ez az osztály reprezentál 1 felhasználót az alkalmazásban.
+    /// A wrapper osztályok a JSON fájlban szereplő adatokat tárolják. 
+    /// Ezek az osztályok segítenek az adatok könnyebb kinyerésében és feldolgozásában.
+    /// </summary>
     public class RoleWrapper
     {
-        public Roles Role { get; set; }
+        public Roles ?Role { get; set; }
     }
     public class ProfilePictureWrapper
     {
         [JsonPropertyName("data")]
         public List<byte> ?Data { get; set; }
 
-        public byte[] GetByteArray()
+        public byte[]? GetByteArray()
         {
             if (Data == null || Data.Count == 0)
             {
@@ -32,6 +35,11 @@ namespace localadmin.Models
 
     public class User
     {
+        /// <summary>
+        /// A JsonPropertyName attribútumok a JSON fájlban szereplő neveket tárolják, mivel néhány adat neve az alkalmazásban eltér az adatbázisban tároltaktól.
+        /// A JsonConverter pedig a Enumok konvertálásához kell.
+        /// </summary>
+
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum EActivityStatus
         {
@@ -62,8 +70,10 @@ namespace localadmin.Models
             { EAuthStatus.blocked, "Blokkolva" }
         };
 
-        public event Action UserUpdated;
+        //ez az event meghívódik amikor egy felhasználó adatai megváltoznak, és újra tölti az felhasználókat.
+        public event Action UserUpdated = delegate { };
 
+        //ezek szimplán vissza adják a felhasználó Aktivitás és Authentikációs státuszát magyarul, így volt a legkönnyebb lefordítani.
         public string TranslatedActivityStatus => ActivityStatusTranslations.TryGetValue(ActivityStatus, out var translation) ? translation : ActivityStatus.ToString();
         public string TranslatedAuthStatus => AuthStatusTranslations.TryGetValue(AuthStatus, out var translation) ? translation : AuthStatus.ToString();
         public string UserRoles => Roles != null
@@ -72,14 +82,18 @@ namespace localadmin.Models
 
         private NavigationService navigationService = new NavigationService();
         private SharedStateService sharedState = new SharedStateService();
+
+        /// <summary>
+        /// Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
+        /// </summary>
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand EditUserCommand { get; }
 
         [JsonPropertyName("id")]
-        public string UUID { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
+        public string UUID { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         [JsonPropertyName("activity_status")]
         public EActivityStatus ActivityStatus { get; set; }
         [JsonPropertyName("auth_status")]
@@ -90,9 +104,9 @@ namespace localadmin.Models
         public DateTime UpdatedAt { get; set; }
 
         [JsonPropertyName("profile_picture")]
-        public ProfilePictureWrapper ProfilePicture { get; set; }
+        public ProfilePictureWrapper ProfilePicture { get; set; } = new ProfilePictureWrapper();
         public byte[]? ProfilePictureArray => ProfilePicture?.GetByteArray();
-        public ImageSource ProfileImage => ByteArrayToImage(ProfilePictureArray);
+        public ImageSource? ProfileImage => ByteArrayToImage(ProfilePictureArray);
 
         public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
 
@@ -109,7 +123,7 @@ namespace localadmin.Models
             this.sharedState = sharedState;
         }
 
-        public static ImageSource ByteArrayToImage(byte[] imageData)
+        public static ImageSource? ByteArrayToImage(byte[]? imageData)
         {
             if (imageData == null)
                 return null;
@@ -124,6 +138,12 @@ namespace localadmin.Models
             }
             return image;
         }
+
+
+        /// <summary>
+        /// Ezek a függvények a gombokhoz tartozó parancsokat hajtják végre.
+        /// </summary>
+        /// <param name="parameter"></param>
         public void EditUser(object parameter)
         {
             EditUserWindow editUserWindow = new(this);
@@ -135,7 +155,6 @@ namespace localadmin.Models
             QuizViewModel quizView = new(navigationService, sharedState);
             sharedState.SearchText = Username;
             navigationService.NavigateTo(quizView);
-
             await quizView.InitializeAsync();
             quizView.SearchQuizes(Username);
         }

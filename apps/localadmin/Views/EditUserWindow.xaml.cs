@@ -6,13 +6,16 @@ using localadmin.Services;
 
 namespace localadmin.Views
 {
+    /// <summary>
+    /// Ebben az ablakban lehet felhasználókat módosítani.
+    /// </summary>
     public partial class EditUserWindow : Window
     {
         public class SelectableItem<T>
         {
             public T Value { get; set; }
             public bool IsSelected { get; set; }
-            public string Description { get; set; }
+            public string Description { get; set; } = string.Empty;
             public bool IsLocked { get; set; }
         }
 
@@ -33,11 +36,15 @@ namespace localadmin.Views
                 new SelectableItem<string> { Value = "admin", Description="Minden it tud mokolni" ,IsSelected = false, IsLocked = false}
             };
 
-            for (int i = 0; i < user.Roles.Count; i++)
+            /// <summary>
+            /// Itt szükséges az InvertBooleanConverter, hogy ne tudjuk levenni a már meglévő jogosultságot.
+            /// </summary>
+
+            for (int i = 0; i < user?.Roles.Count; i++)
             {
                 for(int j=0; j < AllRoles.Count; j++)
                 {
-                    if (user.Roles[i].Role.Name == AllRoles[j].Value)
+                    if (user?.Roles[i]?.Role?.Name == AllRoles[j].Value)
                     {
                         AllRoles[j].IsSelected = true;
                         AllRoles[j].IsLocked = true;
@@ -49,7 +56,7 @@ namespace localadmin.Views
                 .Select(status => new SelectableItem<string>
                 {
                     Value = status,
-                    IsSelected = user.AuthStatus.ToString() == status
+                    IsSelected = user?.AuthStatus.ToString() == status
                 })
                 .ToList();
 
@@ -72,6 +79,9 @@ namespace localadmin.Views
             await UpdateUserRole();
         }
 
+        /// <summary>
+        /// Ez a függvény frissíti a felhasználó státuszát.
+        /// </summary>
         private async Task UpdateUserStatus()
         {
             var selectedStatus = AllStatuses.FirstOrDefault(s => s.IsSelected)?.Value;
@@ -97,6 +107,10 @@ namespace localadmin.Views
                 Debug.WriteLine("No valid status selected.");
         }
 
+        /// <summary>
+        /// Ez a függvény frissíti a felhasználó jogosultságát.
+        /// </summary>
+        /// <returns></returns>
         private async Task UpdateUserRole()
         {
             var selectedRole = AllRoles.FirstOrDefault(r => !r.IsLocked && r.IsSelected)?.Value;

@@ -10,6 +10,14 @@ using static localadmin.Models.Quiz;
 
 namespace localadmin.ViewModels
 {
+    /// <summary>
+    /// A UserViewModel a felhasználói adatok kezeléséért felelős.
+    /// Kapcsolatot biztosít a felhasználói felület és az adatok között az MVVM mintában.
+    /// </summary>
+    /// <remarks>
+    /// A ViewModel figyeli az adatok változását, és értesíti a felhasználói felületet az "INotifyPropertyChanged" interfészen keresztül.
+    /// Emellett parancsokat biztosít az UI műveleteihez.
+    /// </remarks>
     public class QuizViewModel : INotifyPropertyChanged
     {
         private readonly NavigationService NavigationService;
@@ -18,7 +26,7 @@ namespace localadmin.ViewModels
         private int _PageSize = 10;
         public ObservableCollection<int> PageSizeOptions { get; }
 
-        private Dictionary<Quiz.EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
+        private Dictionary<EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
         {
             {EQuizStatus.RequiresReview, 1 },
             {EQuizStatus.Published, 2 },
@@ -94,6 +102,11 @@ namespace localadmin.ViewModels
             await GetQuizes();
         }
 
+
+        /// <summary>
+        /// Ez a függvény lekéri az összes quiz-t az API-ról.
+        /// </summary>
+        /// <returns></returns>
         public async Task GetQuizes()
         {
             IsLoading = true;
@@ -130,12 +143,17 @@ namespace localadmin.ViewModels
                 }
             });
 
+            //ha nincs több oldal, akkor a gomb inaktív lesz
             maxPage = (int)Math.Ceiling((double)fetchedQuizes.TotalCount / PageSize);
 
             IsLoading = false;
         }
 
-
+        /// <summary>
+        /// Ez a függvény lekéri az összes quiz card-ot az adatbázisból amik a kérdéseket tartalmázzák.
+        /// </summary>
+        /// <param name="quizId"></param>
+        /// <returns></returns>
         private async Task<List<QuizCard>> LoadQuizCards(string quizId)
         {
             var quizCards = await ApiQuizzesService.GetQuizCardsByIdAsync(quizId, Quizzes);
@@ -149,8 +167,11 @@ namespace localadmin.ViewModels
             return quizCards;
         }
 
-
-        public  void SearchQuizes(string query)
+        /// <summary>
+        /// Ez a függvény felelős a keresésért a quiz-ek között, akár felhasználó név, akár quiz cím alapján.
+        /// </summary>
+        /// <param name="query"></param>
+        public void SearchQuizes(string query)
         {   
             var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.User.Username, quiz.Title]);
             FiltredQuizzes.Clear();
@@ -184,7 +205,7 @@ namespace localadmin.ViewModels
                 MessageBox.Show("Nincs további oldal.");
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler ?PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

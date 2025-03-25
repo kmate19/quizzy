@@ -2,6 +2,9 @@
 
 namespace localadmin.Services
 {
+    /// <summary>
+    /// Ez az osztály felelős a keresési mező és az API kulcs megosztásáért. Ez az osztály minden felhasználó és quiz esetében ugyanazt az.
+    /// </summary>
     public class SharedStateService : INotifyPropertyChanged
     {
         private static readonly SharedStateService _instance = new();

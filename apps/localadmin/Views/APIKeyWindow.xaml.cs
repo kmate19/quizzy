@@ -7,6 +7,9 @@ using localadmin.Services;
 
 namespace localadmin.Views
 {
+    /// <summary>
+    /// Ez az ablak jelenik meg először, amikor a program elindul. Itt lehet megadni az API kulcsot, és csak akkor tudsz belépni az alkalmazásba, ha helyes kulcsot adsz meg.
+    /// </summary>
     public partial class APIKeyWindow : Window
     {
         private MainWindow MainWindow;
@@ -40,6 +43,11 @@ namespace localadmin.Views
                 button.IsEnabled = true;
         }
 
+        /// <summary>
+        /// Az API kulcs ellenőrzése.
+        /// </summary>
+        /// <param name="apiKey"></param>
+        /// <returns></returns>
         private async Task<bool> AuthenticateApiKey(string apiKey)
         {
             string url = "http://localhost:3000/api/v1/admin/authenticate";

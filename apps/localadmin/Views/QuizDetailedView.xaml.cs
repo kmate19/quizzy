@@ -7,6 +7,9 @@ using localadmin.Views;
 
 namespace localadmin
 {
+    /// <summary>
+    /// Ez az ablak a quiz részletes nézetét jeleníti meg.
+    /// </summary>
     public partial class QuizDetailedView : Window, INotifyPropertyChanged
     {
         private Quiz _quiz;
@@ -56,7 +59,7 @@ namespace localadmin
                 OnPropertyChanged(nameof(CurrentQuizCard));
             }
         }
-        
+
         public string Stars
         {
             get => _stars;
@@ -69,7 +72,7 @@ namespace localadmin
 
         public string Status
         {
-            get=> _status;
+            get => _status;
             set
             {
                 _status = value;
@@ -84,11 +87,18 @@ namespace localadmin
 
             Quiz = quiz;
             CardIndex = 0;
+            _stars = string.Empty;
+            _status = string.Empty;
+            _currentQuizCard = new QuizCard();
             UpdateCurrentCard();
             DataContext = this;
         }
 
-        //meg szerintem a quiz status nem mukodik :))
+        /// <summary>
+        /// A bal és jobb nyíl billentyűkkel lehet lapozni a quiz kártyák között.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Left)
@@ -100,7 +110,7 @@ namespace localadmin
         private void Previous_Card(object sender, RoutedEventArgs e)
         {
             if (CardIndex == 0)
-                CardIndex = NumberOfCards-1;
+                CardIndex = NumberOfCards - 1;
             else
                 CardIndex--;
 
@@ -108,7 +118,7 @@ namespace localadmin
         }
         private void Next_Card(object sender, RoutedEventArgs e)
         {
-            if(CardIndex == NumberOfCards - 1)
+            if (CardIndex == NumberOfCards - 1)
                 CardIndex = 0;
             else
                 CardIndex++;
@@ -116,9 +126,12 @@ namespace localadmin
             UpdateCurrentCard();
         }
 
+        /// <summary>
+        /// Frissíti a jelenlegi kártyát.
+        /// </summary>
         private void UpdateCurrentCard()
         {
-            DisplayIndex=CardIndex + 1;
+            DisplayIndex = CardIndex + 1;
             CurrentQuizCard = Quiz.QuizCards[CardIndex];
 
             Answer1.Background = Brushes.White;
@@ -127,8 +140,8 @@ namespace localadmin
             Answer4.Background = Brushes.White;
             Stars = new string('★', Quiz.Rating) + new string('☆', 5 - Quiz.Rating);
 
-            
-            if(CurrentQuizCard.Type==QuizCard.EQuizType.twochoice)
+
+            if (CurrentQuizCard.Type == QuizCard.EQuizType.twochoice)
             {
                 Answer3.Visibility = Visibility.Collapsed;
                 Answer4.Visibility = Visibility.Collapsed;
@@ -139,18 +152,19 @@ namespace localadmin
                 Answer4.Visibility = Visibility.Visible;
             }
 
-            switch (CurrentQuizCard.CorrectAnswerIndex) {
+            switch (CurrentQuizCard.CorrectAnswerIndex)
+            {
                 case 0:
-                    Answer1.Background=Brushes.Green;
+                    Answer1.Background = Brushes.Green;
                     break;
                 case 1:
-                    Answer2.Background=Brushes.Green;
+                    Answer2.Background = Brushes.Green;
                     break;
                 case 2:
-                    Answer3.Background=Brushes.Green;
+                    Answer3.Background = Brushes.Green;
                     break;
                 case 3:
-                    Answer4.Background=Brushes.Green;
+                    Answer4.Background = Brushes.Green;
                     break;
             }
 
@@ -165,7 +179,7 @@ namespace localadmin
                     QuizStatus.Foreground = Brushes.Orange;
                     break;
                 case Quiz.EQuizStatus.Draft:
-                    Status= "Vázlat";
+                    Status = "Vázlat";
                     QuizStatus.Foreground = Brushes.Gray;
                     break;
                 case Quiz.EQuizStatus.Private:
@@ -178,7 +192,7 @@ namespace localadmin
         public void AcceptQuiz(object sender, RoutedEventArgs e)
         {
             PopUpModal dialog = new PopUpModal("Biztosan el szeretnéd fogadni ezt a quizt?");
-            if (dialog.ShowDialog()==true)
+            if (dialog.ShowDialog() == true)
                 MessageBox.Show("Quiz elfogadva");
         }
         public void DenyQuiz(object sender, RoutedEventArgs e)
@@ -194,7 +208,7 @@ namespace localadmin
                 MessageBox.Show("Quiz törölve");
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

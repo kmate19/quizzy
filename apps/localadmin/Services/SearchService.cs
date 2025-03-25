@@ -2,6 +2,17 @@
 
 namespace localadmin.Services
 {
+    /// <summary>
+    /// Ez a funkció felelős a keresésért. Az items maga a kollekció, ez lehet felhasználó vagy quiz. 
+    ///A query a keresési szöveg, a propertiesToSearch pedig azok a mezők amelyekben keresni szeretnénk. A threshold pedig a keresési pontosságot befolyásolja.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="items"></param>
+    /// <param name="query"></param>
+    /// <param name="propertiesToSearch"></param>
+    /// <param name="threshold"></param>
+    /// <returns></returns>
+
     public static class SearchService
     {
         public static IEnumerable<T> FuzzySearch<T>(
@@ -22,5 +33,4 @@ namespace localadmin.Services
             });
         }
     }
-
 }

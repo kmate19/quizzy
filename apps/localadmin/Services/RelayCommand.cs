@@ -1,5 +1,12 @@
 ﻿using System.Windows.Input;
 
+/// <summary>
+/// Egy általános parancsosztály, amely az MVVM mintában gombokhoz és más vezérlőkhöz tartozó műveleteket kezeli.
+/// </summary>
+/// <remarks>
+/// A RelayCommand lehetővé teszi a parancsok delegálását az UI és a ViewModel között.
+/// Használható gombok és más vezérlők engedélyezésére vagy tiltására is a "CanExecute" metódussal.
+/// </remarks>
 public class RelayCommand : ICommand
 {
     private readonly Action<object> _execute;

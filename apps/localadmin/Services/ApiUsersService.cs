@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,6 +18,10 @@ namespace localadmin.Services
             Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
 
+        /// <summary>
+        /// Ez a függvény lekéri az összes felhasználót az adatbázisból.
+        /// </summary>
+        /// <returns></returns>
         public static async Task<ObservableCollection<User>> GetUsersAsync()
         {
             string url = "http://localhost:3000/api/v1/admin/all-users";
@@ -56,6 +59,13 @@ namespace localadmin.Services
                 return new ObservableCollection<User>();
             }
         }
+
+        /// <summary>
+        /// Ez a függvény frissíti a felhasználó authentikációs státuszát.
+        /// </summary>
+        /// <param name="userUuid"></param>
+        /// <param name="newStatus"></param>
+        /// <returns></returns>
 
         public static async Task<bool> UpdateUserAuthStatus(string userUuid, EAuthStatus newStatus)
         {
@@ -95,6 +105,12 @@ namespace localadmin.Services
             }
         }
 
+        /// <summary>
+        /// Ez a függvény frissíti a felhasználó aktivitási státuszát.
+        /// </summary>
+        /// <param name="userUuid"></param>
+        /// <param name="newRole"></param>
+        /// <returns></returns>
         public static async Task<bool> UpdateUserRole(string userUuid, string newRole)
         {
             string url = "http://localhost:3000/api/v1/admin/set/role";

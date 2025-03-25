@@ -8,6 +8,9 @@ using System.Runtime.CompilerServices;
 
 namespace localadmin.ViewModels
 {
+    /// <summary>
+    /// A UserViewModel a felhasználói adatok kezeléséért felelős.
+    /// </summary>
     public class UserViewModel : INotifyPropertyChanged
     {
         private readonly NavigationService NavigationService;
@@ -36,6 +39,10 @@ namespace localadmin.ViewModels
             await GetUsers();
         }
 
+        /// <summary>
+        /// Ez a függvény lekéri az összes felhasználót az adatbázisból.
+        /// </summary>
+        /// <returns></returns>
         public async Task GetUsers()
         {
             IsLoading = true;
@@ -73,6 +80,10 @@ namespace localadmin.ViewModels
             IsLoading = false;
         }
 
+        /// <summary>
+        /// Ez a függvény keresi a felhasználókat a felhasználók között, felhasználónév vagy email cím alapján.
+        /// </summary>
+        /// <param name="query"></param>
         public void SearchUsers(string query)
         {
             var results = SearchService.FuzzySearch(Users, query, user => [user.Username, user.Email]);
@@ -84,7 +95,7 @@ namespace localadmin.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler ?PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

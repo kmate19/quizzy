@@ -10,8 +10,8 @@ namespace localadmin.Models
     {
         public int ID { get; set; }
 
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public bool IsSystemRole { get; set; }
 
         public static readonly List<Roles> AllRoles = new List<Roles>
