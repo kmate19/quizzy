@@ -26,6 +26,7 @@ const answerSelected = ref(false)
 const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
+const currentQuestionIndex = ref(0)
 
 if (route.path === `/quiz/${lobbyId.value}`) {
   isHost.value = true;
@@ -189,6 +190,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         console.log('Round ended')
         console.log('Round ende data:', data.data)
         stats.value = data.data
+        currentQuestionIndex.value++
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
           timerRef.value = null
@@ -269,7 +271,7 @@ const getBaseButtonColor = (index: number) => {
     'bg-red-500 hover:bg-red-600',
     'bg-blue-500 hover:bg-blue-600',
     'bg-yellow-500 hover:bg-yellow-600',
-    'bg-purple-500 hover:bg-purple-600'
+    'bg-green-500 hover:bg-green-600'
   ]
   return colors[index]
 }
@@ -355,54 +357,79 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
+    
     <div v-else-if="gameStarted && currentCard" class="text-white">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="md:col-span-2">
-          <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg">
-            <div
-              class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
-              :class="time < 5000 ? 'text-red-500' : 'text-white'">
-              {{ Math.ceil(time / 1000) }}
-            </div>
-            <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
-              class="w-full max-h-64 object-contain mb-6 rounded-lg" />
-            <h2 class="text-xl font-semibold text-white text-center">{{ currentCard?.question }}</h2>
-
-            <div v-if="answerSelected" class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
-              <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
+        <div class="w-full rounded-full h-4 mb-4 flex z-20">
+          <div class="flex w-full space-x-2">
+            <div v-for="index in quizzyStore.currentQuiz?.cards.length" :key="index"
+              class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter">
+              <div class="h-full transition-all duration-300 rounded-full glass-progress" :class="{
+                'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30': index - 1 < currentQuestionIndex,
+                'bg-blue-500/70 backdrop-blur-sm border border-blue-300/50 shadow-blue-500/30 animate-pulse': index - 1 === currentQuestionIndex,
+                'bg-white/10 backdrop-blur-sm border border-white/20': index - 1 > currentQuestionIndex
+              }">
+              </div>
             </div>
           </div>
+        </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="md:col-span-2">
+          <transition name="fade-slide" mode="out-in">
+            <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex">
+              <div
+                class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
+                :class="time < 5000 ? 'text-red-500' : 'text-white'">
+                <transition name="bounce" mode="out-in">
+                  <span :key="Math.ceil(time / 1000)">{{ Math.ceil(time / 1000) }}</span>
+                </transition>
+              </div>
+              <transition name="fade" mode="out-in">
+                <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
+                  class="w-full max-h-64 object-contain mb-6 rounded-lg" :key="'img-'+currentQuestionIndex" />
+              </transition>
+              <transition name="fade-up" mode="out-in">
+                <h2 class="text-xl font-semibold text-white text-center" :key="'q-'+currentQuestionIndex">{{ currentCard?.question }}</h2>
+              </transition>
 
-          <div :class="[
-            'grid gap-4',
-            currentCard?.type === 'twochoice'
-              ? 'grid-cols-1 md:grid-cols-2'
-              : 'grid-cols-2 md:grid-cols-2',
-          ]">
-            <button v-for="(answer, index) in currentCard.answers" :key="index" :class="[
+              <div v-if="answerSelected && participants.length != 1"
+                class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+                <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
+              </div>
+            </div>
+          </transition>
+
+          <transition-group name="answer-pop" tag="div" :class="[
+              'grid gap-4',
+              currentCard?.type === 'twochoice'
+                ? 'grid-cols-1 md:grid-cols-2'
+                : 'grid-cols-2 md:grid-cols-2',
+            ]">
+            <button v-for="(answer, index) in currentCard.answers" :key="`${currentQuestionIndex}-${index}`" :class="[
               'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
               getBaseButtonColor(index),
               answerSelected ? 'opacity-70 cursor-not-allowed' : '',
             ]" @click="selectAnswer(index)" :disabled="answerSelected">
               {{ answer }}
             </button>
-          </div>
+          </transition-group>
         </div>
 
         <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
           <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
-          <div v-if="stats && stats.scores && stats.scores.length > 0" class="space-y-2">
-            <div v-for="(player, index) in stats.scores" :key="player.userId"
+          <transition-group name="list" tag="div" class="space-y-2">
+            <div v-for="(player, index) in stats?.scores" :key="player.userId"
               class="flex items-center p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all">
               <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-2">
                 #{{ index + 1 }}
               </div>
               <img :src="player.pfp" class="w-8 h-8 rounded-full mr-2" />
               <span class="font-medium truncate flex-grow">{{ player.username }}</span>
-              <span class="font-bold text-yellow-300">{{ player.stats.score }}</span>
+              <transition name="score" mode="out-in">
+                <span class="font-bold text-yellow-300" :key="player.stats.score">{{ player.stats.score }}</span>
+              </transition>
             </div>
-          </div>
-          <div v-else class="text-center py-4 text-gray-400">
+          </transition-group>
+          <div v-if="!stats || !stats.scores || stats.scores.length === 0" class="text-center py-4 text-gray-400">
             Még nincsenek eredmények
           </div>
         </div>
@@ -524,5 +551,93 @@ onUnmounted(() => {
 .glass-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.fade-up-enter-active,
+.fade-up-leave-active {
+  transition: all 0.4s ease;
+}
+.fade-up-enter-from {
+  opacity: 0;
+  transform: translateY(15px);
+}
+.fade-up-leave-to {
+  opacity: 0;
+  transform: translateY(-15px);
+}
+
+.answer-pop-enter-active,
+.answer-pop-leave-active {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.answer-pop-enter-from {
+  opacity: 0;
+  transform: scale(0.6);
+}
+.answer-pop-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
+}
+.answer-pop-move {
+  transition: transform 0.4s ease;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+.list-move {
+  transition: transform 0.5s ease;
+}
+
+.score-enter-active {
+  animation: bounce 0.5s;
+}
+.score-leave-active {
+  animation: fadeOut 0.3s;
+}
+@keyframes bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.bounce-enter-active {
+  animation: bounce 0.5s;
+}
+.bounce-leave-active {
+  animation: fadeOut 0.3s;
 }
 </style>

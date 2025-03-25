@@ -297,8 +297,8 @@ const resetTilt = (element: HTMLElement) => {
 <template>
   <div class="home-page">
     <div
-      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll custom-scrollbar bg-white/90 rounded-md z-10 pointer-events-none">
-      <div class="flex flex-col md:flex-row justify-between mb-8 pointer-events-auto">
+      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll  bg-white/90 rounded-md z-10 pointer-events-none">
+      <div class="flex flex-col md:flex-row justify-between mb-2 pointer-events-auto">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
             'relative flex items-center transition-all duration-700 ease-in-out rounded-full border border-gray-300 bg-white/10 text-white cursor-pointer glass-button',
@@ -317,7 +317,7 @@ const resetTilt = (element: HTMLElement) => {
 
         <div class="mt-4 md:mt-0 relative" v-click-outside="()=>{showDropdown = false}">
           <div @click="toggleDropdown" class="glass-button px-4 py-2 rounded-full transition-all duration-300 cursor-pointer 
-          !bg-white/10 flex items-center justify-center">
+          !bg-white/10 flex items-center justify-center ">
             <span class="text-white mr-2">Quiz / oldal: {{ selectedLimit }}</span>
             <ChevronDown class="h-4 w-4 text-white transition-all duration-300"
               :class="{ 'transform rotate-180': showDropdown }" />
@@ -332,7 +332,8 @@ const resetTilt = (element: HTMLElement) => {
               <div class="py-2 px-2">
                 <div v-for="option in [10, 20, 30, 50]" :key="option" @click="selectOption(option)"
                   class="py-2 px-4 my-1 text-center text-white rounded-lg transition-all duration-300
-                  ease-in-out cursor-pointer bg-white/10 backdrop-blur-md hover:bg-opacity-20 hover:-translate-y-0.5 hover:shadow-md" :class="{ 'selected-option': selectedLimit === option }">
+                  ease-in-out cursor-pointer bg-white/10 backdrop-blur-md hover:bg-opacity-20 hover:-translate-y-0.5 hover:shadow-md"
+                   :class="{ 'selected-option': selectedLimit === option }">
                   {{ option }}
                 </div>
               </div>
@@ -347,6 +348,9 @@ const resetTilt = (element: HTMLElement) => {
       <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white pointer-events-auto">
         {{ error }}
       </div>
+      <div v-else-if="quizzes.length === 0" class="bg-gray-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white pointer-events-auto">
+        Nincs találat
+      </div>
       <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6 p-2" style="direction: ltr">
         <div v-for="quiz in quizzes" :key="quiz.id" 
             class="break-inside-avoid mb-6 card-container pointer-events-auto"
@@ -356,16 +360,16 @@ const resetTilt = (element: HTMLElement) => {
         </div>
       </div>
     </div>
-    <div v-if="!error" class="mt-8 pointer-events-auto">
-      <div class="flex flex-col-reverse gap-2 md:flex-row justify-center items-center space-x-2 text-white">
+    <div v-if="!error" class="mt-2 pointer-events-auto flex items-center justify-center">
+      <div class="flex sm:gap-2 justify-center items-center space-x-2 text-white">
         <button @click="prevPage" :disabled="currentPage === 1"
-          class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
+          class="glass-button sm:px-4 px-2 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300  w-fit h-12 cursor-pointer">
           Vissza
         </button>
         <div class="flex space-x-1">
           <template v-for="item in displayedPages" :key="item">
             <button v-if="item !== 'ellipsis'" @click="(goToPage(item as number), (showFullPages = false))" :class="[
-              'glass-button px-4 py-2 rounded-2xl transition-all duration-300',
+              'glass-button sm:px-4 px-2 py-2 rounded-2xl transition-all duration-300 cursor-pointer',
               item === currentPage
                 ? 'bg-white/20 text-white'
                 : 'bg-transparent text-black hover:bg-white',
@@ -373,7 +377,7 @@ const resetTilt = (element: HTMLElement) => {
               {{ item }}
             </button>
             <div v-else class="relative inline-block">
-              <button class="glass-button px-4 py-2 rounded-2xl transition-all duration-300 cursor-pointer"
+              <button class="glass-button sm:px-4 px-2 py-2 rounded-2xl transition-all duration-300 cursor-pointer"
                 @click="showFullPages = !showFullPages">
                 &hellip;
               </button>
@@ -381,24 +385,26 @@ const resetTilt = (element: HTMLElement) => {
                 enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0"
                 leave-active-class="transition ease-in-out duration-500" leave-from-class="opacity-100 translate-y-0"
                 leave-to-class="opacity-0 translate-y-4">
-                <div v-if="showFullPages" @mouseleave="showFullPages = false" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 max-h-[calc(100vh-80vh)] overflow-y-scroll custom-scrollbar w-48 p-4
+                <div v-if="showFullPages" @mouseleave="showFullPages = false" class="absolute bottom-full left-1/2 transform
+                 -translate-x-1/2 mb-3 max-h-[calc(100vh-80vh)] overflow-y-scroll  w-48 p-4
                    bg-white/10 shadow-lg rounded-lg z-10
                    after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 
                    after:border-8 after:border-transparent after:border-t-white backdrop-blur-2xl">
                   <div class="grid grid-cols-5 gap-2">
                     <button v-for="page in totalPagesArray" :key="page"
                       @click="(goToPage(page), (showFullPages = false))"
-                      class="px-2 py-1 rounded transition-all duration-300 hover:bg-black/20 text-white border-2 border-transparent hover:border-white flex justify-center items-center">
+                      class="sm:px-4 py-1 px-2 rounded transition-all duration-300 hover:bg-black/20 text-white border-2
+                       border-transparent hover:border-white flex justify-center items-center">
                       {{ page }}
                     </button>
                   </div>
                 </div>
               </Transition>
-            </div>0
+            </div>
           </template>
         </div>
         <button @click="nextPage" :disabled="currentPage === totalPages"
-          class="glass-button px-4 py-2 disabled:opacity-50 rounded-2xl transition-all duration-300 !bg-blue-700 w-56 h-12">
+          class="glass-button sm:px-4 py-2 px-2 disabled:opacity-50 rounded-2xl transition-all duration-300 w-fit h-12 cursor-pointer">
           Következő
         </button>
       </div>
@@ -439,29 +445,30 @@ const resetTilt = (element: HTMLElement) => {
   pointer-events: none;
 }
 
-.custom-scrollbar {
-  scrollbar-width: thin;
-  /*tuzroka miatt kell*/
-  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-  scroll-behavior: smooth;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(200, 200, 200, 0.3);
+::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 100, 100, 0.5);
-  border-radius: 4px;
-  border: 2px solid rgba(200, 200, 200, 0.3);
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(80, 80, 80, 0.7);
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-all,
+  .transition-transform {
+    transition: none;
+  }
 }
 
 .card-container {
@@ -473,13 +480,7 @@ const resetTilt = (element: HTMLElement) => {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-.pointer-events-none {
-  pointer-events: none;
-}
 
-.pointer-events-auto {
-  pointer-events: auto;
-}
 
 .selected-option {
   background: rgba(59, 130, 246, 0.5);

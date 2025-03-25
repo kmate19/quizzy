@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { getGameQuiz } from '@/utils/functions/practiceFunctions';
 import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
@@ -8,16 +8,10 @@ import { useRouter } from 'vue-router';
 const router = useRouter()
 const quiz = ref<Game>();
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
-watch(gamePhase, (newValue: string) => {
-    console.log('Game phase:', newValue)
-    if (gamePhase.value === 'completed') {
-        console.log(userAnswers)
-    }
-})
 const currentQuestionIndex = ref(0)
 const score = ref(0)
 const timer = ref(0)
-const preGameTimer = ref(5)
+const preGameTimer = ref(3)
 const answerSelected = ref(false)
 const lastAnswerCorrect = ref(false)
 let timerInterval: number | undefined
@@ -89,7 +83,7 @@ const showResultAndProceed = () => {
             currentQuestionIndex.value++
             startQuestion()
         }
-    }, 500)//meddig van a result elott ido
+    }, 500)
 }
 
 
@@ -98,7 +92,7 @@ const getBaseButtonColor = (index: number) => {
         'bg-red-500 hover:bg-red-600',
         'bg-blue-500 hover:bg-blue-600',
         'bg-yellow-500 hover:bg-yellow-600',
-        'bg-purple-500 hover:bg-purple-600'
+        'bg-green-500 hover:bg-green-600'
     ]
     return colors[index]
 }
@@ -157,7 +151,7 @@ const shuffleAnswers = () => {
 const restartGame = () => {
     currentQuestionIndex.value = 0
     score.value = 0
-    preGameTimer.value = 5
+    preGameTimer.value = 3
     userAnswers.value = []
     gamePhase.value = 'pre-game'
     shuffleAnswers()
@@ -192,14 +186,16 @@ onMounted(async () => {
                 <transition name="fade-slide" mode="out-in" appear>
                     <div v-if="gamePhase === 'question' || gamePhase === 'results'"
                         class="w-1/4 rounded-full h-4 mb-4 flex fixed top-20 z-50 ">
-                        <div class="flex w-full space-x-1">
-                            <div v-for="index in quiz?.cards.length" :key="index"
-                                class="h-4 flex-1 rounded-full overflow-hidden">
-                                <div class="h-full transition-all duration-300 rounded-full" :class="{
-                                    'bg-green-500 border-1 border-gray-300': index - 1 < currentQuestionIndex,
-                                    'bg-blue-500 border-1 border-gray-300': index - 1 === currentQuestionIndex,
-                                    'bg-transparent border-1 border-gray-300': index - 1 > currentQuestionIndex
-                                }">
+                        <div class="w-full rounded-full h-4 mb-4 flex z-20">
+                            <div class="flex w-full space-x-2">
+                                <div v-for="index in quiz?.cards.length" :key="index"
+                                    class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter">
+                                    <div class="h-full transition-all duration-300 rounded-full glass-progress" :class="{
+                                        'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30': index - 1 < currentQuestionIndex,
+                                        'bg-blue-500/70 backdrop-blur-sm border border-blue-300/50 shadow-blue-500/30 animate-pulse': index - 1 === currentQuestionIndex,
+                                        'bg-white/10 backdrop-blur-sm border border-white/20': index - 1 > currentQuestionIndex
+                                    }">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -217,11 +213,14 @@ onMounted(async () => {
                         <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg">
                             <div class="flex justify-center items-center m-4 px-4 top-4 right-0 absolute z-50">
                                 <svg class="w-12 h-12" viewBox="0 0 48 48">
-                                    <circle cx="24" cy="24" r="20" :fill="timer === 10 ? 'rgba(65, 105, 225, 0.9)' : 'white'" stroke="black" stroke-width="2" />
+                                    <circle cx="24" cy="24" r="20"
+                                        :fill="timer === 10 ? 'rgba(65, 105, 225, 0.9)' : 'white'" stroke="black"
+                                        stroke-width="2" />
 
                                     <path :d="'M24,24 L24,4 A20,20 0 ' + (timer <= 5 ? 0 : 1) + ',1 ' +
                                         (24 + 20 * Math.sin(2 * Math.PI * timer / 10)) + ',' +
-                                        (24 - 20 * Math.cos(2 * Math.PI * timer / 10)) + ' Z'" fill="rgba(65, 105, 225, 0.9)" />
+                                        (24 - 20 * Math.cos(2 * Math.PI * timer / 10)) + ' Z'"
+                                        fill="rgba(65, 105, 225, 0.9)" />
                                     <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="24"
                                         font-weight="bold" class="z-50">{{ timer }}</text>
                                 </svg>
