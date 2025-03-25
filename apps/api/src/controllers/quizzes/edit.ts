@@ -159,7 +159,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         const newParsedCards: Omit<QuizCardInsert, "quiz_id">[] = [];
         if (newCards) {
-            if (newCards.length >= 10) {
+            if (newCards.length > 10) {
                 const res = {
                     message: "Quiz has too many cards Max 10",
                     error: {

@@ -33,7 +33,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             .select({ id: quizzesTable.id })
             .from(quizzesTable)
             .where(eq(quizzesTable.user_id, userId));
-        if (existingQuizzes.length >= 10) {
+        if (existingQuizzes.length > 10) {
             const res = {
                 message: "User has too many quizzes Max 10",
                 error: {
@@ -45,7 +45,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             return c.json(res, 400);
         }
 
-        if (cards.length >= 10) {
+        if (cards.length > 10) {
             const res = {
                 message: "Quiz has too many cards Max 10",
                 error: {
