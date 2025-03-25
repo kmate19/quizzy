@@ -1,10 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.Quiz;
+using static localadmin.Models.User;
 
 public static class ApiQuizzesService
 {
@@ -24,7 +27,7 @@ public static class ApiQuizzesService
     /// <returns>A quizek</returns>
     public static async Task<(ObservableCollection<Quiz> Quizzes, int TotalCount)> GetQuizzesAsync(int page, int pagesize)
     {
-        string url = $"http://localhost:3000/api/v1/quizzes?page={page}&limit={pagesize}";
+        string url = $"http://localhost:3000/api/v1/admin/all-quizzes"; //?page={page}&limit={pagesize}
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -154,6 +157,44 @@ public static class ApiQuizzesService
         {
             Debug.WriteLine($"Error fetching quiz cards for {quizId}: {ex.Message}");
             return new List<QuizCard>();
+        }
+    }
+
+    public static async Task<bool> UpdateQuizStatus(string quizId, EQuizStatus status)
+    {
+        string url = "http://localhost:3000/api/v1/admin/set/quiz";
+        client.DefaultRequestHeaders.Remove("X-Api-Key");
+        client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
+
+        var body = new
+        {
+            quizId = quizId,
+            approve = status
+        };
+
+        string jsonPayload = JsonSerializer.Serialize(body);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        try
+        {
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string responseText = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                Debug.WriteLine("Quiz status updated!");
+                return true;
+            }
+            else
+            {
+                Debug.WriteLine($"Failed to update quiz status: {response.StatusCode}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error updating quiz status: {ex.Message}");
+            return false;
         }
     }
 }

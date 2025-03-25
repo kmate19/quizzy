@@ -1,9 +1,12 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using localadmin.Models;
+using localadmin.Services;
 using localadmin.Views;
+using static localadmin.Models.User;
 
 namespace localadmin
 {
@@ -176,36 +179,62 @@ namespace localadmin
                     break;
                 case Quiz.EQuizStatus.RequiresReview:
                     Status = "Felülvizsgálatra vár";
-                    QuizStatus.Foreground = Brushes.Orange;
+                    QuizStatus.Foreground = Brushes.Yellow;
                     break;
                 case Quiz.EQuizStatus.Draft:
                     Status = "Vázlat";
                     QuizStatus.Foreground = Brushes.Gray;
                     break;
-                case Quiz.EQuizStatus.Private:
+                case Quiz.EQuizStatus.Rejected:
                     Status = "Privát";
                     QuizStatus.Foreground = Brushes.Red;
+                    break;
+                case Quiz.EQuizStatus.Private:
+                    Status = "Privát";
+                    QuizStatus.Foreground = Brushes.Orange;
                     break;
             }
         }
 
-        public void AcceptQuiz(object sender, RoutedEventArgs e)
+        public async Task HandleQuizAction(string message, Quiz.EQuizStatus newStatus)
         {
-            PopUpModal dialog = new PopUpModal("Biztosan el szeretnéd fogadni ezt a quizt?");
-            if (dialog.ShowDialog() == true)
-                MessageBox.Show("Quiz elfogadva");
+            PopUpModal dialog = new PopUpModal(message);
+            bool? result = dialog.ShowDialog();
+            if(newStatus != Quiz.EQuizStatus.RequiresReview)
+            {
+                MessageBox.Show("Ez a quiz nem fogadható el.");
+                return;
+            }
+
+            if (result == true)
+            {
+                bool success = await ApiQuizzesService.UpdateQuizStatus(Quiz.UUID, newStatus);
+
+                if (success)
+                {
+                    MessageBox.Show(newStatus == Quiz.EQuizStatus.Published ? "Quiz elfogadva" : "Quiz elutasítva");
+                    Hide();
+                }
+                else
+                {
+                    MessageBox.Show("Hiba történt a státusz frissítése során.");
+                }
+            }
         }
-        public void DenyQuiz(object sender, RoutedEventArgs e)
+
+        /// <summary>
+        /// Ez a függvény kezeli a quiz elfogadását. Amelyik gombra nyom, azt a státuszt fogja tovább küldeni és azt fogja beállítani.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public async void AcceptQuiz(object sender, RoutedEventArgs e)
         {
-            PopUpModal dialog = new PopUpModal("Biztosan el szeretnéd utasítani ezt a quizt?");
-            if (dialog.ShowDialog() == true)
-                MessageBox.Show("Quiz elutasítva");
+            await HandleQuizAction("Biztosan el szeretnéd fogadni ezt a quizt?", Quiz.EQuizStatus.Published);
         }
-        public void DeleteQuiz(object sender, RoutedEventArgs e)
+        public async void DenyQuiz(object sender, RoutedEventArgs e)
         {
-            PopUpModal dialog = new PopUpModal("Biztosan ki szeretnéd törölni ezt a quizt?");
-            if (dialog.ShowDialog() == true)
-                MessageBox.Show("Quiz törölve");
+            await HandleQuizAction("Biztosan el szeretnéd utasítani ezt a quizt?", Quiz.EQuizStatus.Rejected);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

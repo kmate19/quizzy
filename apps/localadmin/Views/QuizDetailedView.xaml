@@ -103,7 +103,6 @@
         <StackPanel Grid.Column="2" VerticalAlignment="Top" HorizontalAlignment="Center">
             <Button Content="Quiz elfogadása" Width="100" Margin="5" Style="{StaticResource GridButtons}" Click="AcceptQuiz"/>
             <Button Content="Quiz elutaítása" Width="100" Margin="5" Style="{StaticResource GridButtons}" Click="DenyQuiz" Background="Red"/>
-            <Button Content="Quiz törlése" Width="100" Margin="5" Style="{StaticResource GridButtons}" Click="DeleteQuiz" Background="Red"/>
         </StackPanel>
     </Grid>
 </Window>

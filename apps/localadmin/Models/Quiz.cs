@@ -5,6 +5,7 @@ using System.Windows;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.IO;
 
 namespace localadmin.Models
 {
@@ -21,7 +22,8 @@ namespace localadmin.Models
             Draft,
             Published,
             RequiresReview,
-            Private
+            Private,
+            Rejected
         }
 
         public class UserWrapper

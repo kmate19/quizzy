@@ -58,7 +58,6 @@ namespace localadmin.ViewModels
 
                 usersList.Add(user);
                 filteredList.Add(user);
-                Debug.WriteLine(user.Username);
             }
 
             await Application.Current.Dispatcher.InvokeAsync(() =>

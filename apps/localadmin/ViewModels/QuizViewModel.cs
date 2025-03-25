@@ -51,7 +51,6 @@ namespace localadmin.ViewModels
                 if (_PageSize != value)
                 {
                     _PageSize = value;
-                    Debug.WriteLine($"IsLoading changed to: {value}");
                     OnPropertyChanged(nameof(PageSize));
 
                     _ = PageSizeChanged();
@@ -122,6 +121,8 @@ namespace localadmin.ViewModels
 
                 quizzesList.Add(quiz);
                 filteredList.Add(quiz);
+
+                Debug.WriteLine(quiz.Status);
             }
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -162,6 +163,11 @@ namespace localadmin.ViewModels
             {
                 Debug.WriteLine("No quiz cards found.");
                 return new();
+            }
+
+            foreach (var quizCard in quizCards)
+            {
+                Debug.WriteLine(quizCard.QuizID);
             }
 
             return quizCards;
