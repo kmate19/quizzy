@@ -47,6 +47,8 @@ const handlePath = (routeName: string) => {
       return 'Megtekintés'
     case 'profile':
       return 'Profil'
+    case 'quiz_multiplayer':
+      return 'Játék'  
     default:
       if (typeof routeName === 'string') {
         const words = routeName.split('_')
