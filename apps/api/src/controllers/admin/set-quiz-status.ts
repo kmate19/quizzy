@@ -1,72 +1,47 @@
 import GLOBALS from "@/config/globals";
 import db from "@/db";
+import { quizzesTable } from "@/db/schemas";
 import check_apikey from "@/middlewares/check-apikey";
 import { zv } from "@/middlewares/zv";
-import { paginationSchema } from "@/utils/schemas/zod-schemas";
-import { sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { ApiResponse } from "repo";
+import { z } from "zod";
 
-const setQuizHandlers = GLOBALS.CONTROLLER_FACTORY(
+const setQuizStatusHandlers = GLOBALS.CONTROLLER_FACTORY(
     check_apikey,
-    zv("query", paginationSchema),
+    zv(
+        "json",
+        z.object({
+            quizId: z.string().uuid(),
+            approve: z.literal("published").or(z.literal("rejected")),
+        })
+    ),
     async (c) => {
-        const limit = c.req.valid("query").limit || 20;
-        const page = c.req.valid("query").page || 1;
+        const { approve, quizId } = c.req.valid("json");
 
-        const offset = limit * (page - 1);
-
-        const quizzesWCount = await db.query.quizzesTable.findMany({
-            extras: {
-                totalCount: sql<number>`COUNT(*) OVER()`.as("total_count"),
-            },
-            columns: {
-                status: false,
-            },
-            offset,
-            limit,
-            with: {
-                user: {
-                    columns: {
-                        username: true,
-                    },
+        try {
+            await db
+                .update(quizzesTable)
+                .set({ status: approve })
+                .where(
+                    and(
+                        eq(quizzesTable.id, quizId),
+                        eq(quizzesTable.status, "requires_review")
+                    )
+                );
+        } catch (e) {
+            const res = {
+                message: "Error updating quiz status",
+                error: {
+                    message: e instanceof Error ? e.message : "Unknown error",
+                    case: "conflict",
                 },
-                tags: {
-                    columns: {},
-                    with: {
-                        tag: {
-                            columns: {
-                                name: true,
-                            },
-                        },
-                    },
-                },
-                languages: {
-                    columns: {},
-                    with: {
-                        language: {
-                            columns: {
-                                name: true,
-                                iso_code: true,
-                                support: true,
-                                icon: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+            } satisfies ApiResponse;
+            return c.json(res, 400);
+        }
 
-        const totalCount = quizzesWCount[0]?.totalCount || 0;
-
-        const quizzes = quizzesWCount.map(({ totalCount, ...rest }) => rest);
-
-        const res = {
-            message: "Quizzes fetched",
-            data: { quizzes, totalCount },
-        } satisfies ApiResponse;
-
-        return c.json(res, 200);
+        return c.json({ message: "Status updated" });
     }
 );
 
-export default setQuizHandlers;
+export default setQuizStatusHandlers;
