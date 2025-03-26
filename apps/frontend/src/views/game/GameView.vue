@@ -27,10 +27,7 @@ const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
-
-if (route.path === `/quiz/${lobbyId.value}`) {
-  isHost.value = true
-}
+const hostId = ref('')
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -232,15 +229,6 @@ const leaveLobby = () => {
 
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     try {
-      console.log('Sending unsubscribe message')
-      websocket.value.send(
-        JSON.stringify({
-          type: 'unsubscribe',
-          successful: true,
-          server: false,
-        }),
-      )
-
       setTimeout(() => {
         if (websocket.value) {
           websocket.value.close(1000, 'User left lobby')
