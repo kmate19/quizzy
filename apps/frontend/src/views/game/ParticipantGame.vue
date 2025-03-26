@@ -14,7 +14,7 @@ const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = computed(() => quizzyStore.isHost)
 const isLoading = ref(true);
 const error = ref<string | null>(null);
-  const participants = ref<Participants>({ host: '',members: [] });
+const participants = ref<Participants>({ host: '',members: [] });
 const websocket = ref<WebSocket | null>(null);
 const copiedToClipboard = ref(false);
 const reconnectAttempts = ref(0);
@@ -217,8 +217,10 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         console.log('Host change')
         if(data.data.userId === quizzyStore.id) {
           quizzyStore.isHost = true;
-          hostId.value = data.data.userId
         }
+        hostId.value = data.data.userId
+        participants.value.host = data.data.userId
+        participants.value.members = participants.value.members.filter(member => member.userId !== data.data.userId)
       }
 
     } catch (err) {
