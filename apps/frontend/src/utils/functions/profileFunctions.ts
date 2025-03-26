@@ -41,6 +41,7 @@ export const userData = async (id: string) => {
     if (user.status === 200) {
       const res = await user.json()
       const userObj = {
+        id: res.data.id,
         email: res.data.email,
         username: res.data.username,
         created_at: new Date(res.data.created_at).toLocaleDateString(),

@@ -166,3 +166,12 @@ export type gameStats = {
     username: string,
   }[]
 } 
+
+export type Participants = {
+  host: string,
+  members: {
+     username: string,
+     pfp: string, 
+     userId: string 
+  }[]
+}

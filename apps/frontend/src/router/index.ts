@@ -105,6 +105,7 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
             queryClient.setQueryData(['userProfile', ''], data)
             quizzyStore.userName = data.username
             quizzyStore.pfp = data.profile_picture
+            quizzyStore.id = data.id || ''
           }
         }
 

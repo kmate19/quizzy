@@ -7,6 +7,7 @@ import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
 import { useQuizzyStore } from '@/stores/quizzyStore'
 import type { gameStats } from '@/utils/type'
 import XButton from '@/components/XButton.vue';
+import type { Participants } from '@/utils/type'; 
 
 const route = useRoute()
 const router = useRouter()
@@ -15,7 +16,7 @@ const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const participants = ref<{ username: string; pfp: string }[]>([])
+const participants = ref<Participants>({ host: '',members: [] });
 const websocket = ref<WebSocket | null>(null)
 const copiedToClipboard = ref(false)
 const reconnectAttempts = ref(0)
@@ -27,6 +28,7 @@ const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
+const hostId = quizzyStore.id
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -83,13 +85,14 @@ const manualReconnect = async () => {
   await setupWebSocket()
 }
 
-const addParticipant = (username: string, pfp: string) => {
+const addParticipant = (username: string, pfp: string, id: string) => {
   const newUser = {
     username: username,
     pfp: 'data:image/png;base64,' + pfp,
+    userId: id
   }
   console.log(newUser)
-  participants.value = [...participants.value, newUser]
+  participants.value!.members = [...participants.value!.members, newUser]
 }
 
 const setupWebSocketListeners = (ws: WebSocket) => {
@@ -101,6 +104,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       const userData = {
         username: quizzyStore.userName,
         pfp: quizzyStore.pfp.replace('data:image/png;base64,', ''),
+        id: quizzyStore.id
       }
       console.log('USERDATA', userData)
       ws.send(
@@ -127,7 +131,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           data: toRaw(quizzyStore.currentQuiz),
         }),
       )
-      addParticipant(userData.username, userData.pfp)
+      addParticipant(userData.username, userData.pfp, userData.id)
     } else {
       console.error('not open. state:', ws.readyState)
     }
@@ -138,8 +142,8 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       const data = JSON.parse(event.data)
 
       if (data.type === 'connect') {
-        if (data.data.username && data.data.pfp) {
-          addParticipant(data.data.username, data.data.pfp)
+        if (data.data.username && data.data.pfp && data.data.userId) {
+          addParticipant(data.data.username, data.data.pfp, data.data.userId)
         }
       }
 
@@ -322,6 +326,22 @@ const restartGame = () => {
   }
 }
 
+const kickUser = (userName: string) => {
+  console.log('Kick user')
+  if(websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.send(
+      JSON.stringify({
+        type: 'kick',
+        successful: true,
+        server: false,
+        data: {
+          username: userName
+        }
+      })
+    )
+  }
+}
+
 onMounted(() => {
   if (!lobbyId.value) {
     error.value = 'Invalid lobby ID'
@@ -394,7 +414,7 @@ onUnmounted(() => {
                 <h2 class="text-xl font-semibold text-white text-center" :key="'q-'+currentQuestionIndex">{{ currentCard?.question }}</h2>
               </transition>
 
-              <div v-if="answerSelected && participants.length != 1"
+              <div v-if="answerSelected && participants?.members.length != 1"
                 class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
                 <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
               </div>
@@ -525,15 +545,16 @@ onUnmounted(() => {
 
       <div class="mb-4 flex justify-center">
         <div class="flex gap-4 flex-wrap">
-          <div v-for="participant in participants" :key="participant.username"
+            <div v-for="participant in participants?.members" :key="participant.username"
             class="p-4 glass-button rounded-lg flex !w-fit">
             <div class="flex items-center space-x-4">
               <img :src="participant.pfp || '/placeholder.svg?height=40&width=40'"
-                class="w-10 h-10 rounded-full object-cover" />
+              class="w-10 h-10 rounded-full object-cover" />
               <span class="text-lg font-medium">{{ participant.username }}</span>
+              <span v-if="participant.userId === hostId" class="text-yellow-500">👑</span>
             </div>
-            <XButton class="ml-2" /> <!--ha lesz remove itt lesz-->
-          </div>
+            <XButton class="ml-2" v-if="quizzyStore.isHost" @click="kickUser(participant.username)"/>
+            </div>
         </div>
       </div>
 
