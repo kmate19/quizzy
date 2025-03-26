@@ -140,7 +140,7 @@ export const hono = new Hono()
             const timestamp = c.req.valid("query").ts;
             const timediff = Math.abs(Date.now() - timestamp);
 
-            if (timediff > 1500) {
+            if (timediff > 3500) {
                 return c.json({}, 400);
             }
 
