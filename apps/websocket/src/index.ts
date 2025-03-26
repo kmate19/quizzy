@@ -12,7 +12,8 @@ import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./utils/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./utils/close";
-import { sendSingle } from "./utils/send";
+import { publishWs, sendSingle } from "./utils/send";
+import { hostLeave } from "./utils/host-leave";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -114,10 +115,24 @@ export const hono = new Hono()
                         `client ${ws.raw.data.lobbyUserData} left lobby ${lobbyid}`
                     );
 
+                    const lobby = lobbies.get(lobbyid);
+
+                    if (
+                        lobby?.gameState.hostId ===
+                        ws.raw.data.lobbyUserData.userId
+                    ) {
+                        hostLeave(lobby.gameState, lobby.members);
+                    }
+
+                    publishWs(
+                        ws.raw,
+                        lobbyid,
+                        "disconnect",
+                        ws.raw.data.lobbyUserData
+                    );
+
                     ws.raw.unsubscribe(lobbyid);
                     clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
-
-                    const lobby = lobbies.get(lobbyid);
 
                     if (lobby) {
                         lobby.members.delete(ws.raw);

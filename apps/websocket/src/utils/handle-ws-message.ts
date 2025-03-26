@@ -33,7 +33,12 @@ export async function handleWsMessage(
                 })
                 .toArray();
 
-            sendSingle(ws, "members", rest);
+            const memb = {
+                host: lobby.gameState.hostId,
+                members: rest,
+            };
+
+            sendSingle(ws, "members", memb);
 
             return;
         case "quizdata":
@@ -214,10 +219,6 @@ export async function handleWsMessage(
             return;
         case "connect":
             publishWs(ws, lobbyid, "connect", ws.data.lobbyUserData);
-
-            return;
-        case "disconnect":
-            publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData);
 
             return;
     }
