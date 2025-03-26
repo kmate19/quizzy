@@ -48,7 +48,7 @@ const handlePath = (routeName: string) => {
     case 'profile':
       return 'Profil'
     case 'quiz_multiplayer':
-      return 'Játék'  
+      return 'Játék'
     default:
       if (typeof routeName === 'string') {
         const words = routeName.split('_')
@@ -133,9 +133,9 @@ const joinLobby = async (code: string) => {
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <div
-          class="items-center border-transparent border-2 hover:scale-105 hover:border-white px-4 py-1 text-3xl text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
-          Quizzy / {{ componentName }}
+        <div @click="router.push('/')"
+          class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
+          Quizzy <span class="text-white">| {{ componentName }}</span>
         </div>
         <div class="hidden md:block desktop-navbar">
           <div class="ml-10 flex items-baseline space-x-4">
