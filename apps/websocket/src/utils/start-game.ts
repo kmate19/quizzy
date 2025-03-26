@@ -16,8 +16,6 @@ export async function startGameLoop(lobby: Lobby): Promise<void> {
 
     let index = lobby.gameState.questionIndices.next();
 
-    lobby.gameState.currentRoundAnswers = new Map();
-
     while (!index.done) {
         await sleep(1500);
 
