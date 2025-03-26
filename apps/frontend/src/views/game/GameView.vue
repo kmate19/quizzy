@@ -29,6 +29,7 @@ const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
 const hostId = quizzyStore.id
+const preparingNextRound = ref(false)
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -157,14 +158,19 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           }),
         )
       }
-
+     
       if (data.type === 'gamestarted') {
         console.log('Game started')
         gameStarted.value = true
+        preparingNextRound.value = true
+        setTimeout(() => {
+          preparingNextRound.value = false
+        }, 1500)
       }
 
       if (data.type === 'roundstarted') {
         console.log('Round started')
+        preparingNextRound.value = false
         answerSelected.value = false
         currentCard.value = data.data
         time.value = data.data.roundTimeMs
@@ -193,6 +199,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           player.pfp = 'data:image/png;base64,' + player.pfp
         })
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
+        
+        preparingNextRound.value = true
+        setTimeout(() => {
+          preparingNextRound.value = false
+        }, 1500)
       }
 
       if (data.type === 'gamended') {
@@ -202,6 +213,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         gameEnded.value = true
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
         console.log(stats.value)
+      }
+
+      if(data.type === 'disconnect'){
+        console.log('User disconnected',data.data.userId)
+        participants.value.members = participants.value.members.filter(member => member.userId !== data.data.userId)
       }
 
     } catch (err) {
@@ -314,6 +330,8 @@ const restartGame = () => {
   gameStarted.value = true
   answerSelected.value = false
   currentCard.value = null
+  preparingNextRound.value = true
+  currentQuestionIndex.value = 0
 
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
@@ -398,7 +416,17 @@ onUnmounted(() => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2">
           <transition name="fade-slide" mode="out-in">
-            <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex">
+            <div v-if="preparingNextRound" class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg min-h-[200px] flex items-center justify-center" :key="'loading'">
+              <div class="text-center">
+                <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
+                <h2 class="text-2xl font-bold text-white">Következő kérdés betöltése...</h2>
+                <div class="mt-4 h-3 bg-white/20 rounded-full w-64 mx-auto overflow-hidden">
+                  <div class="h-full bg-blue-500 animate-loading-bar"></div>
+                </div>
+                <p class="text-white/70 mt-3">Készülj fel!</p>
+              </div>
+            </div>
+            <div v-else class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex">
               <div
                 class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
                 :class="time < 5000 ? 'text-red-500' : 'text-white'">
@@ -421,7 +449,8 @@ onUnmounted(() => {
             </div>
           </transition>
 
-          <transition-group name="answer-pop" tag="div" :class="[
+          <!-- Only show answers when not preparing for next round -->
+          <transition-group name="answer-pop" tag="div" v-if="!preparingNextRound" :class="[
               'grid gap-4',
               currentCard?.type === 'twochoice'
                 ? 'grid-cols-1 md:grid-cols-2'
@@ -675,5 +704,14 @@ onUnmounted(() => {
 }
 .bounce-leave-active {
   animation: fadeOut 0.3s;
+}
+
+@keyframes loadingBar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.animate-loading-bar {
+  animation: loadingBar 1.5s linear forwards;
 }
 </style>

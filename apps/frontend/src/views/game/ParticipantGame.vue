@@ -26,6 +26,7 @@ const answerSelected = ref(false)
 const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
+const preparingNextRound = ref(false);
 const currentQuestionIndex = ref(0)
 const hostId = ref('')
 
@@ -92,7 +93,7 @@ const addParticipant = (username: string, pfp: string, id: string) => {
     userId: id
   };
   console.log(newUser)
-  participants.value!.members =  [...participants.value!.members, newUser] //ez nem tul szep de mindig lesz xd
+  participants.value!.members =  [...participants.value!.members, newUser]
 };
 
 const setupWebSocketListeners = (ws: WebSocket) => {
@@ -171,10 +172,16 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       if (data.type === 'gamestarted') {
         console.log('Game started')
         gameStarted.value = true
+        preparingNextRound.value = true
+        currentQuestionIndex.value = 0
+        setTimeout(() => {
+          preparingNextRound.value = false
+        }, 1500)
       }
 
       if (data.type === 'roundstarted') {
         console.log('Round started')
+        preparingNextRound.value = false
         answerSelected.value = false
         currentCard.value = data.data
         time.value = data.data.roundTimeMs
@@ -202,6 +209,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           player.pfp = 'data:image/png;base64,' + player.pfp
         })
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
+
+        preparingNextRound.value = true
+        setTimeout(() => {
+          preparingNextRound.value = false
+        }, 1500)
       }
 
       if (data.type === 'gamended') {
@@ -214,13 +226,26 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
 
       if(data.type === 'hostchange') {
-        console.log('Host change')
+        console.log('Host change', quizzyStore.isHost)
         if(data.data.userId === quizzyStore.id) {
           quizzyStore.isHost = true;
         }
         hostId.value = data.data.userId
         participants.value.host = data.data.userId
+        console.log('Host ID updated:', quizzyStore.isHost);
+      }
+
+      if(data.type === 'disconnect'){
+        console.log('User disconnected',data.data.userId)
         participants.value.members = participants.value.members.filter(member => member.userId !== data.data.userId)
+      }
+
+      if(data.type === 'error'){
+        console.log('Error:', data.error.message)
+        if(data.error.message === 'You have been kicked'){
+          error.value = 'You have been kicked from the lobby'
+          quizzyStore.$reset()
+        }
       }
 
     } catch (err) {
@@ -370,6 +395,25 @@ const kickUser = (userName: string) => {
   }
 }
 
+const restartGame = () => {
+  gameEnded.value = false
+  gameStarted.value = true
+  answerSelected.value = false
+  currentCard.value = null
+  preparingNextRound.value = true
+  currentQuestionIndex.value = 0 
+
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.send(
+      JSON.stringify({
+        type: 'startgame',
+        successful: true,
+        server: false,
+      }),
+    )
+  }
+}
+
 </script>
 
 <template>
@@ -379,9 +423,9 @@ const kickUser = (userName: string) => {
       <p class="ml-4 text-white text-xl">Csatlakozás...</p>
     </div>
     <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
-      <p class="mb-4">{{ error }}</p>
+      <p class="mb-4 text-center">{{ error }}</p>
       <div class="flex gap-4 justify-center">
-        <button @click="manualReconnect" class="glass-button px-4 py-2 rounded-md bg-green-600/30">
+        <button v-if="error!=='You have been kicked from the lobby'" @click="manualReconnect" class="glass-button px-4 py-2 rounded-md bg-green-600/30">
           Újracsatlakozás
         </button>
         <button @click="router.push('/')" class="glass-button px-4 py-2 rounded-md">
@@ -393,7 +437,7 @@ const kickUser = (userName: string) => {
     <div v-else-if="gameStarted && currentCard" class="text-white">
         <div class="w-full rounded-full h-4 mb-4 flex z-20">
           <div class="flex w-full space-x-2">
-            <div v-for="index in quizzyStore.currentQuiz?.cards.length" :key="index"
+            <div v-for="index in (gameQuiz?.cards.length || quizzyStore.currentQuiz?.cards?.length)" :key="index"
               class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter">
               <div class="h-full transition-all duration-300 rounded-full glass-progress" :class="{
                 'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30': index - 1 < currentQuestionIndex,
@@ -404,10 +448,22 @@ const kickUser = (userName: string) => {
             </div>
           </div>
         </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2">
           <transition name="fade-slide" mode="out-in">
-            <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex">
+            <div v-if="preparingNextRound" class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm 
+            rounded-lg min-h-[200px] flex items-center justify-center" :key="'loading'">
+              <div class="text-center">
+                <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
+                <h2 class="text-2xl font-bold text-white">Következő kérdés...</h2>
+                <div class="mt-4 h-3 bg-white/20 rounded-full w-64 mx-auto overflow-hidden">
+                  <div class="h-full bg-blue-500 animate-loading-bar"></div>
+                </div>
+                <p class="text-white/70 mt-3">Készülj fel!</p>
+              </div>
+            </div>
+            <div v-else class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex">
               <div
                 class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
                 :class="time < 5000 ? 'text-red-500' : 'text-white'">
@@ -430,7 +486,7 @@ const kickUser = (userName: string) => {
             </div>
           </transition>
 
-          <transition-group name="answer-pop" tag="div" :class="[
+          <transition-group name="answer-pop" tag="div" v-if="!preparingNextRound" :class="[
               'grid gap-4',
               currentCard?.type === 'twochoice'
                 ? 'grid-cols-1 md:grid-cols-2'
@@ -446,7 +502,7 @@ const kickUser = (userName: string) => {
           </transition-group>
         </div>
 
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 ">
           <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
           <transition-group name="list" tag="div" class="space-y-2">
             <div v-for="(player, index) in stats?.scores" :key="player.userId"
@@ -467,7 +523,6 @@ const kickUser = (userName: string) => {
         </div>
       </div>
     </div>
-
 
     <div v-else-if="gameEnded" class="text-white">
       <div class="p-8 mb-6 relative bg-white/10 backdrop-blur-sm rounded-lg text-center">
@@ -513,6 +568,12 @@ const kickUser = (userName: string) => {
             </div>
           </div>
         </div>
+      </div>
+      <div class="flex justify-center mt-8" v-if="quizzyStore.isHost">
+        <button @click="restartGame"
+          class="glass-button px-8 py-3 rounded-full !bg-purple-500 text-lg font-bold flex items-center animate-bounce cursor-pointer">
+          Még egy kör?
+        </button>
       </div>
     </div>
 
@@ -679,5 +740,14 @@ const kickUser = (userName: string) => {
 }
 .bounce-leave-active {
   animation: fadeOut 0.3s;
+}
+
+@keyframes loadingBar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.animate-loading-bar {
+  animation: loadingBar 1.5s linear forwards;
 }
 </style>
