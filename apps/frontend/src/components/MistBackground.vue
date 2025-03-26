@@ -125,27 +125,31 @@
       )
     }
   }
-
   function drawQuizzyText() {
     if (!ctx || !canvas.value) return
     
     const text = "Quizzy"
-    ctx.font = "bold 15vw Montserrat, Arial, sans-serif"
-    ctx.textAlign = "center"
+    const fontSize = "10vw" // Smaller font for vertical layout
+    ctx.font = `bold ${fontSize} Montserrat, Arial, sans-serif`
+    ctx.textAlign = "center" // Change to center alignment
     ctx.textBaseline = "middle"
     
-    // Create glowing text effect
-    const centerX = canvas.value.width / 2
-    const centerY = canvas.value.height / 2
+    // Position all letters at the same horizontal center
+    const centerX = canvas.value.width * 0.1
+    const startY = canvas.value.height * 0.2
+    const letterSpacing = canvas.value.height * 0.12
     
     // Outer glow
     const glowColor = `rgba(148, 0, 211, ${0.3 + Math.sin(time * 0.05) * 0.1})`
     ctx.shadowColor = glowColor
     ctx.shadowBlur = 20 + Math.sin(time * 0.1) * 5
-    
-    // Constant purple color for text
     ctx.fillStyle = "rgba(148, 0, 211, 0.8)"
-    ctx.fillText(text, centerX, centerY)
+    
+    // Draw each letter vertically with the same center point
+    for (let i = 0; i < text.length; i++) {
+      const y = startY + i * letterSpacing
+      ctx.fillText(text[i], centerX, y)
+    }
     
     // Reset shadow
     ctx.shadowBlur = 0
