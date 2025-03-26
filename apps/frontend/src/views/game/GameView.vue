@@ -27,7 +27,6 @@ const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
-const hostId = ref('')
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)

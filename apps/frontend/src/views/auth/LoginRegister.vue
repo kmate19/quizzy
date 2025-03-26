@@ -123,7 +123,6 @@ const onLogin = async () => {
       quizzyStore.userName = res?.username || ''
       quizzyStore.fromLogin = true
       quizzyStore.pfp =  res?.profile_picture || ''
-      console.log("PFP:", quizzyStore.pfp)
       router.push('/')
     } else {
       toast('Hiba történt a felhasználó adatainak lekérdezése közben', {

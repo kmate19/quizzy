@@ -14,7 +14,7 @@ const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
 const isLoading = ref(true);
 const error = ref<string | null>(null);
-const participants = ref<{ username: string, pfp: string }[]>([]);
+const participants = ref<{ username: string, pfp: string, userId: string }[]>([]);
 const websocket = ref<WebSocket | null>(null);
 const copiedToClipboard = ref(false);
 const reconnectAttempts = ref(0);
@@ -27,7 +27,6 @@ const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
-const hostId = ref('')
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value);
@@ -85,10 +84,11 @@ const manualReconnect = async () => {
   await setupWebSocket();
 };
 
-const addParticipant = (username: string, pfp: string) => {
+const addParticipant = (username: string, pfp: string, id: string) => {
   const newUser = {
     username: username,
-    pfp: "data:image/png;base64," + pfp
+    pfp: "data:image/png;base64," + pfp,
+    userId: id
   };
   console.log(newUser)
   participants.value = [...participants.value, newUser];
@@ -102,7 +102,8 @@ const setupWebSocketListeners = (ws: WebSocket) => {
     if (ws.readyState === WebSocket.OPEN) {
       const userData = {
         username: quizzyStore.userName,
-        pfp: quizzyStore.pfp.replace('data:image/png;base64,', '')
+        pfp: quizzyStore.pfp.replace('data:image/png;base64,', ''),
+        userId: quizzyStore.id
       }
       ws.send(JSON.stringify({
         type: 'whoami',
@@ -125,7 +126,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         successful: true,
         server: false,
       }));
-      addParticipant(userData.username, userData.pfp);
+      addParticipant(userData.username, userData.pfp, userData.userId);
     } else {
       console.error('not open. state:', ws.readyState);
     }
@@ -137,15 +138,15 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
       if (data.type === 'connect') {
         console.log("data connect", data.data)
-        if (data.data.username && data.data.pfp) {
-          addParticipant(data.data.username, data.data.pfp);
+        if (data.data.username && data.data.pfp && data.data.userId) {
+          addParticipant(data.data.username, data.data.pfp, data.data.userId);
         }
       }
 
       if (data.type === 'members') {
         console.log("data members", data.data)
         for (const member of data.data) {
-          addParticipant(member.username, member.pfp);
+          addParticipant(member.username, member.pfp, member.userId);
         }
       }
 
@@ -207,6 +208,13 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         gameEnded.value = true
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
         console.log(stats.value)
+      }
+
+      if(data.type === 'hostchange') {
+        console.log('Host change')
+        if(data.data.userId === quizzyStore.$id)
+        quizzyStore.isHost = true;
+        isHost.value = true;
       }
 
     } catch (err) {
