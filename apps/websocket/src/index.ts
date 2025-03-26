@@ -117,25 +117,26 @@ export const hono = new Hono()
 
                     const lobby = lobbies.get(lobbyid);
 
-                    if (
-                        lobby?.gameState.hostId ===
-                        ws.raw.data.lobbyUserData.userId
-                    ) {
-                        hostLeave(lobby.gameState, lobby.members);
-                    }
-
-                    publishWs(
-                        ws.raw,
-                        lobbyid,
-                        "disconnect",
-                        ws.raw.data.lobbyUserData
-                    );
-
-                    ws.raw.unsubscribe(lobbyid);
-                    clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
-
                     if (lobby) {
                         lobby.members.delete(ws.raw);
+
+                        publishWs(
+                            ws.raw,
+                            lobbyid,
+                            "disconnect",
+                            ws.raw.data.lobbyUserData
+                        );
+
+                        ws.raw.unsubscribe(lobbyid);
+                        clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
+
+                        if (
+                            lobby.gameState.hostId ===
+                            ws.raw.data.lobbyUserData.userId
+                        ) {
+                            hostLeave(lobby.gameState, lobby.members);
+                        }
+
                         if (lobby.members.size === 0) {
                             lobbies.delete(lobbyid);
                         }
