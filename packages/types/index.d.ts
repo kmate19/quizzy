@@ -36,6 +36,7 @@ export declare type LobbyUser = {
 };
 
 declare type WebsocketMessageType =
+    | "kick"
     | "answered"
     | "roundstarted"
     | "roundended"

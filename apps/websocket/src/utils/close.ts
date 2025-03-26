@@ -62,6 +62,22 @@ export function closeIfInvalid(
         return true;
     }
 
+    if (
+        lobbies
+            .get(lobbyid)!
+            .members.values()
+            .toArray()
+            .some(
+                (u) =>
+                    u.data.lobbyUserData.userId === (jwtdata.userId as string)
+            )
+    ) {
+        res.error.message = "User already in lobby";
+        ws.send(JSON.stringify(res));
+        ws.close(1008, "User already in lobby");
+        return true;
+    }
+
     if (hash !== generateSessionHash(lobbyid, Bun.env.HASH_SECRET || "asd")) {
         res.error.message = "Hash mismatch";
         ws.send(JSON.stringify(res));

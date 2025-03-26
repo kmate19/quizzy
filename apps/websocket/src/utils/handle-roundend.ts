@@ -3,9 +3,29 @@ import { abortLobby } from "./close";
 import { sendLobby } from "./send";
 
 export function handleRoundEnd(lobby: Lobby, correct_answer_index: number) {
+    if (!lobby.gameState.started) {
+        abortLobby(
+            lobby,
+            "Game state invariant violated while running game loop: game is not started"
+        );
+        return;
+    }
+
     lobby.gameState.roundEndTrigger = undefined;
 
-    lobby.gameState.currentRoundAnswers!.forEach((v, k) => {
+    lobby.gameState.currentRoundAnswers.forEach((v, k) => {
+        if (
+            !lobby.gameState.started ||
+            !lobby.gameState.currentQuestionIndex ||
+            !lobby.quizData
+        ) {
+            abortLobby(
+                lobby,
+                "Game state invariant violated while running game loop: game is not started or there's no quiz data set or theres no question (foreach)"
+            );
+            return;
+        }
+
         const answerTimeDiff = Date.now() - v.answerTime;
 
         const foundUser = lobby.members
@@ -21,7 +41,7 @@ export function handleRoundEnd(lobby: Lobby, correct_answer_index: number) {
         }
 
         const isCorrect =
-            lobby.quizData?.cards[lobby.gameState.currentQuestionIndex!]
+            lobby.quizData.cards[lobby.gameState.currentQuestionIndex]
                 .correct_answer_index === v.answerIndex;
 
         isCorrect

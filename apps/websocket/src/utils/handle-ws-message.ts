@@ -94,11 +94,19 @@ export async function handleWsMessage(
                 return;
             }
 
-            lobby.gameState.started = true;
+            if (lobby.gameState.started) {
+                closeWithError(ws, "Game already started");
+                return;
+            }
 
-            lobby.gameState.questionIndices = jumbleIndicesIntoIter(
-                lobby.quizData.cards.length
-            );
+            lobby.gameState = {
+                hostId: lobby.gameState.hostId,
+                started: true,
+                questionIndices: jumbleIndicesIntoIter(
+                    lobby.quizData.cards.length
+                ),
+                currentRoundAnswers: new Map(),
+            };
 
             sendLobby(lobby.members, "gamestarted");
 
@@ -107,7 +115,7 @@ export async function handleWsMessage(
             return;
         case "answered":
             if (
-                !lobby?.gameState.started ||
+                !lobby.gameState.started ||
                 !lobby.gameState.currentRoundAnswers
             ) {
                 abortLobby(
@@ -126,28 +134,71 @@ export async function handleWsMessage(
 
             // prevent race conditions
             setImmediate(() => {
-                lobby.gameState.currentRoundAnswers!.set(
-                    ws.data.lobbyUserData.userId,
-                    {
-                        answerIndex: maybeAnswer.data.answerIndex,
-                        answerTime: maybeAnswer.data.answerTime,
-                    }
-                );
+                if (lobby.gameState.started) {
+                    lobby.gameState.currentRoundAnswers.set(
+                        ws.data.lobbyUserData.userId,
+                        {
+                            answerIndex: maybeAnswer.data.answerIndex,
+                            answerTime: maybeAnswer.data.answerTime,
+                        }
+                    );
 
-                if (
-                    lobby.gameState.currentRoundAnswers!.size ===
-                    lobby.members.size
-                ) {
-                    if (!lobby.gameState.roundEndTrigger) {
-                        abortLobby(
-                            lobby,
-                            "Game state invariant violated: all answers are in but there's no round end trigger"
-                        );
-                        return;
+                    if (
+                        lobby.gameState.currentRoundAnswers.size ===
+                        lobby.members.size
+                    ) {
+                        if (!lobby.gameState.roundEndTrigger) {
+                            abortLobby(
+                                lobby,
+                                "Game state invariant violated: all answers are in but there's no round end trigger"
+                            );
+                            return;
+                        }
+                        lobby.gameState.roundEndTrigger();
                     }
-                    lobby.gameState.roundEndTrigger();
+                } else {
+                    abortLobby(
+                        lobby,
+                        "Game state invariant violated: answer before game started"
+                    );
                 }
             });
+
+            return;
+        case "kick":
+            if (lobby.gameState.hostId !== ws.data.lobbyUserData.userId) {
+                closeWithError(ws, "You are not the host");
+                return;
+            }
+
+            const maybeKickedData = UserDataSchema.pick({
+                username: true,
+            }).safeParse(msg.data);
+
+            if (maybeKickedData.error) {
+                closeWithError(
+                    ws,
+                    "Bad data: user",
+                    1007,
+                    maybeKickedData.error
+                );
+                return;
+            }
+
+            const kickedUser = members
+                .values()
+                .find(
+                    (m) =>
+                        m.data.lobbyUserData.username ===
+                        maybeKickedData.data.username
+                );
+
+            if (!kickedUser) {
+                closeWithError(ws, "User not found");
+                return;
+            }
+
+            closeWithError(kickedUser, "You have been kicked");
 
             return;
         case "ping":

@@ -168,7 +168,7 @@ export const hono = new Hono()
 
             lobbies.set(lobbyid, {
                 members: new Set(),
-                gameState: { hostId: jwtDataValid.userId },
+                gameState: { hostId: jwtDataValid.userId, started: false },
             });
 
             return c.json({ code: lobbyid }, 200);
