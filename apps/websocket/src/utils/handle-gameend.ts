@@ -29,7 +29,9 @@ export function handleGameEnd(lobby: Lobby) {
 
     // send to api for intra service messaging
     fetch("http://localhost:3000/api/v1/events/quiz-finished", {
+        method: "POST",
         headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${ENV.WS_SECRET()}`,
         },
         body: JSON.stringify({

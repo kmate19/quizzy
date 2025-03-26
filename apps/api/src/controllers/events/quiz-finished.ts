@@ -22,7 +22,8 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
                 .where(eq(quizzesTable.id, quizId));
         });
 
-        if (quizUpdateResult) {
+        if (!quizUpdateResult.ok) {
+            console.error(quizUpdateResult);
             const res = {
                 message: "Error updating quiz play count",
                 error: {
@@ -60,7 +61,8 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
                 }
             );
 
-            if (userStatUpdateResult) {
+            if (!userStatUpdateResult.ok) {
+                console.error(userStatUpdateResult);
                 const res = {
                     message: "Error updating user stats",
                     error: {
