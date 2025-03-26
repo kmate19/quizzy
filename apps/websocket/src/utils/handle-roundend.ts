@@ -20,7 +20,7 @@ export function handleRoundEnd(lobby: Lobby, correct_answer_index: number) {
                 "Game state invariant violated while running game loop: game is not started (foreach)"
             );
             return;
-        } else if (!lobby.gameState.currentQuestionIndex) {
+        } else if (lobby.gameState.currentQuestionIndex === undefined) {
             abortLobby(
                 lobby,
                 "Game state invariant violated while running game loop: theres no question index (foreach)"
