@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, toRaw, onUnmounted } from 'vue'
+import { ref, onMounted, toRaw, onUnmounted, nextTick } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
 import { useQuizzyStore } from '@/stores/quizzyStore'
 import type { gameStats } from '@/utils/type'
 import XButton from '@/components/XButton.vue';
-import type { Participants } from '@/utils/type'; 
+import type { Participants } from '@/utils/type';
 
 const route = useRoute()
 const router = useRouter()
@@ -16,7 +16,7 @@ const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const participants = ref<Participants>({ host: '',members: [] });
+const participants = ref<Participants>({ host: '', members: [] });
 const websocket = ref<WebSocket | null>(null)
 const copiedToClipboard = ref(false)
 const reconnectAttempts = ref(0)
@@ -158,25 +158,23 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           }),
         )
       }
-     
+
       if (data.type === 'gamestarted') {
         console.log('Game started')
         gameStarted.value = true
         preparingNextRound.value = true
-        setTimeout(() => {
-          preparingNextRound.value = false
-        }, 1500)
+        nextTick(() => {
+          setTimeout(() => {
+            preparingNextRound.value = false
+          }, 1500)
+        })
       }
 
       if (data.type === 'roundstarted') {
         console.log('Round started')
         preparingNextRound.value = false
-        answerSelected.value = false
         currentCard.value = data.data
         time.value = data.data.roundTimeMs
-
-
-
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
           timerRef.value = null
@@ -186,8 +184,10 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
 
       if (data.type === 'roundended') {
+        answerSelected.value = false
         console.log('Round ended')
         console.log('Round ende data:', data.data)
+        stats.value = data.data
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
           timerRef.value = null
@@ -199,24 +199,26 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           player.pfp = 'data:image/png;base64,' + player.pfp
         })
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
-        
+        answerSelected.value = false
         preparingNextRound.value = true
         setTimeout(() => {
           preparingNextRound.value = false
         }, 1500)
       }
-
       if (data.type === 'gamended') {
         console.log('Game ended')
         console.log('Game ended data:', data.data)
         gameStarted.value = false
+        preparingNextRound.value = false
+        currentCard.value = null
+        answerSelected.value = false
         gameEnded.value = true
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
         console.log(stats.value)
       }
 
-      if(data.type === 'disconnect'){
-        console.log('User disconnected',data.data.userId)
+      if (data.type === 'disconnect') {
+        console.log('User disconnected', data.data.userId)
         participants.value.members = participants.value.members.filter(member => member.userId !== data.data.userId)
       }
 
@@ -331,6 +333,9 @@ const restartGame = () => {
   answerSelected.value = false
   currentCard.value = null
   preparingNextRound.value = true
+  setTimeout(() => {
+    preparingNextRound.value = false
+  }, 1500)
   currentQuestionIndex.value = 0
 
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
@@ -346,7 +351,7 @@ const restartGame = () => {
 
 const kickUser = (userName: string) => {
   console.log('Kick user')
-  if(websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
       JSON.stringify({
         type: 'kick',
@@ -398,35 +403,43 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
-
-    <div v-else-if="gameStarted && currentCard" class="text-white">
-        <div class="w-full rounded-full h-4 mb-4 flex z-20">
-          <div class="flex w-full space-x-2">
-            <div v-for="index in quizzyStore.currentQuiz?.cards.length" :key="index"
-              class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter">
-              <div class="h-full transition-all duration-300 rounded-full glass-progress" :class="{
-                'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30': index - 1 < currentQuestionIndex,
-                'bg-blue-500/70 backdrop-blur-sm border border-blue-300/50 shadow-blue-500/30 animate-pulse': index - 1 === currentQuestionIndex,
-                'bg-white/10 backdrop-blur-sm border border-white/20': index - 1 > currentQuestionIndex
-              }">
-              </div>
+    
+    <div v-else-if="gameStarted" class="text-white">
+      <div class="w-full rounded-full h-4 mb-4 flex z-20 flex-col gap-2">
+        <div class="flex w-full space-x-2">
+          <div v-for="index in quizzyStore.currentQuiz?.cards?.length" :key="index"
+            class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter">
+            <div class="h-full transition-all duration-300 rounded-full glass-progress" :class="{
+              'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30': index - 1 < currentQuestionIndex,
+              'bg-blue-500/70 backdrop-blur-sm border border-blue-300/50 shadow-blue-500/30 animate-pulse': index - 1 === currentQuestionIndex,
+              'bg-white/10 backdrop-blur-sm border border-white/20': index - 1 > currentQuestionIndex
+            }">
             </div>
           </div>
         </div>
+
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2">
-          <transition name="fade-slide" mode="out-in">
-            <div v-if="preparingNextRound" class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg min-h-[200px] flex items-center justify-center" :key="'loading'">
-              <div class="text-center">
-                <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
-                <h2 class="text-2xl font-bold text-white">Következő kérdés betöltése...</h2>
-                <div class="mt-4 h-3 bg-white/20 rounded-full w-64 mx-auto overflow-hidden">
-                  <div class="h-full bg-blue-500 animate-loading-bar"></div>
-                </div>
-                <p class="text-white/70 mt-3">Készülj fel!</p>
+          <div v-if="answerSelected && !preparingNextRound"
+            class="mt-8 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+            <p class="text-lg font-bold">Válaszod beküldve! Várakozás a többi játékosra...</p>
+          </div>
+          <div v-if="preparingNextRound" class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm 
+            rounded-lg min-h-[200px] flex items-center justify-center" :key="'loading'">
+            <div class="text-center">
+              <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
+              <h2 class="text-2xl font-bold text-white">Következő kérdés...</h2>
+              <div class="mt-4 h-3 bg-white/20 rounded-full w-64 mx-auto overflow-hidden">
+                <div class="h-full bg-blue-500 animate-loading-bar"></div>
               </div>
+              <p class="text-white/70 mt-3">Készülj fel!</p>
             </div>
-            <div v-else class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex">
+          </div>
+          <transition name="fade-slide" mode="in-out">
+            <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex"
+              v-if="!preparingNextRound && !answerSelected && currentCard">
               <div
                 class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
                 :class="time < 5000 ? 'text-red-500' : 'text-white'">
@@ -435,22 +448,18 @@ onUnmounted(() => {
                 </transition>
               </div>
               <transition name="fade" mode="out-in">
-                <img v-if="currentCard?.picture" :src="currentCard.picture" :alt="currentCard.question"
-                  class="w-full max-h-64 object-contain mb-6 rounded-lg" :key="'img-'+currentQuestionIndex" />
+                <img :src="currentCard.picture" :alt="currentCard.question"
+                  class="w-full max-h-64 object-contain mb-6 rounded-lg" :key="'img-' + currentQuestionIndex" />
               </transition>
               <transition name="fade-up" mode="out-in">
-                <h2 class="text-xl font-semibold text-white text-center" :key="'q-'+currentQuestionIndex">{{ currentCard?.question }}</h2>
+                <h2 class="text-xl font-semibold text-white text-center" :key="'q-' + currentQuestionIndex">{{
+                  currentCard?.question }}</h2>
               </transition>
-
-              <div v-if="answerSelected && participants?.members.length != 1"
-                class="mt-4 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
-                <p class="text-lg font-bold">Válaszod beküldve! Várakozás a következő kérdésre...</p>
-              </div>
             </div>
           </transition>
 
-          <!-- Only show answers when not preparing for next round -->
-          <transition-group name="answer-pop" tag="div" v-if="!preparingNextRound" :class="[
+          <transition-group name="answer-pop" mode="in-out" tag="div" v-if="!preparingNextRound && !answerSelected && currentCard"
+            :class="[
               'grid gap-4',
               currentCard?.type === 'twochoice'
                 ? 'grid-cols-1 md:grid-cols-2'
@@ -466,7 +475,7 @@ onUnmounted(() => {
           </transition-group>
         </div>
 
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 h-96 overflow-y-auto">
           <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
           <transition-group name="list" tag="div" class="space-y-2">
             <div v-for="(player, index) in stats?.scores" :key="player.userId"
@@ -574,16 +583,16 @@ onUnmounted(() => {
 
       <div class="mb-4 flex justify-center">
         <div class="flex gap-4 flex-wrap">
-            <div v-for="participant in participants?.members" :key="participant.username"
+          <div v-for="participant in participants?.members" :key="participant.username"
             class="p-4 glass-button rounded-lg flex !w-fit">
             <div class="flex items-center space-x-4">
               <img :src="participant.pfp || '/placeholder.svg?height=40&width=40'"
-              class="w-10 h-10 rounded-full object-cover" />
+                class="w-10 h-10 rounded-full object-cover" />
               <span class="text-lg font-medium">{{ participant.username }}</span>
               <span v-if="participant.userId === hostId" class="text-yellow-500">👑</span>
             </div>
-            <XButton class="ml-2" v-if="quizzyStore.isHost" @click="kickUser(participant.username)"/>
-            </div>
+            <XButton class="ml-2" v-if="quizzyStore.isHost" @click="kickUser(participant.username)" />
+          </div>
         </div>
       </div>
 
@@ -618,10 +627,13 @@ onUnmounted(() => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s ease;
 }
-.fade-enter-from, .fade-leave-to {
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -629,10 +641,12 @@ onUnmounted(() => {
 .fade-slide-leave-active {
   transition: all 0.5s ease;
 }
+
 .fade-slide-enter-from {
   opacity: 0;
   transform: translateY(20px);
 }
+
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(-20px);
@@ -642,10 +656,12 @@ onUnmounted(() => {
 .fade-up-leave-active {
   transition: all 0.4s ease;
 }
+
 .fade-up-enter-from {
   opacity: 0;
   transform: translateY(15px);
 }
+
 .fade-up-leave-to {
   opacity: 0;
   transform: translateY(-15px);
@@ -655,14 +671,17 @@ onUnmounted(() => {
 .answer-pop-leave-active {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .answer-pop-enter-from {
   opacity: 0;
   transform: scale(0.6);
 }
+
 .answer-pop-leave-to {
   opacity: 0;
   transform: scale(0.6);
 }
+
 .answer-pop-move {
   transition: transform 0.4s ease;
 }
@@ -671,14 +690,17 @@ onUnmounted(() => {
 .list-leave-active {
   transition: all 0.5s ease;
 }
+
 .list-enter-from {
   opacity: 0;
   transform: translateX(30px);
 }
+
 .list-leave-to {
   opacity: 0;
   transform: translateX(-30px);
 }
+
 .list-move {
   transition: transform 0.5s ease;
 }
@@ -686,29 +708,51 @@ onUnmounted(() => {
 .score-enter-active {
   animation: bounce 0.5s;
 }
+
 .score-leave-active {
   animation: fadeOut 0.3s;
 }
+
 @keyframes bounce {
-  0% { transform: scale(0); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
+
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 .bounce-enter-active {
   animation: bounce 0.5s;
 }
+
 .bounce-leave-active {
   animation: fadeOut 0.3s;
 }
 
 @keyframes loadingBar {
-  0% { width: 0%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
 }
 
 .animate-loading-bar {
