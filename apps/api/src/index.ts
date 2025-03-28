@@ -12,6 +12,7 @@ import type { ApiResponse } from "repo";
 import { openAPISpecs } from "hono-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import events from "./routes/events";
+import GLOBALS from "./config/globals";
 
 console.log(ENV.NODE_ENV());
 
@@ -40,15 +41,44 @@ export const app = new Hono()
     });
 
 if (ENV.NODE_ENV() === "development") {
-    // TODO: finish all the openapi stuff
     app.get(
         "/openapi",
         openAPISpecs(app, {
             documentation: {
                 info: {
                     title: "Quizzy API",
-                    description: "API for Quizzy",
+                    description: `## Documentation for the Quizzy API
+
+### Note on authentication
+Swagger UI 'Try it out' does not support sending cookies automatically.
+Obtain the cookie via the /login endpoint and use browser developer tools or,
+an external client (like Postman, curl) to include the cookie in requests.`,
                     version: "1.0.0",
+                },
+                components: {
+                    securitySchemes: {
+                        ApiKeyAuth: {
+                            // Matches the name used in 'security' array
+                            type: "apiKey",
+                            in: "header",
+                            name: "X-Api-Key", // The actual header name
+                            description: "API Key for administrative access.",
+                        },
+                        CookieAuth: {
+                            // For JWT cookie
+                            type: "apiKey", // Using apiKey type for cookie auth representation
+                            in: "cookie",
+                            name: GLOBALS.ACCESS_COOKIE_NAME, // Your cookie name
+                            description: "Session authentication cookie (JWT).",
+                        },
+                        BearerAuth: {
+                            // For WS secret
+                            type: "http",
+                            scheme: "bearer",
+                            description:
+                                "Bearer token for WebSocket/Event authentication (WS_SECRET).",
+                        },
+                    },
                 },
             },
         })
@@ -56,8 +86,8 @@ if (ENV.NODE_ENV() === "development") {
     app.get(
         "/reference",
         apiReference({
-            theme: "kepler",
-            layout: "classic",
+            theme: "deepSpace",
+            layout: "modern",
             spec: {
                 url: "/api/v1/openapi",
             },

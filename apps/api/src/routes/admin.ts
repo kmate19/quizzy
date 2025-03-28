@@ -6,15 +6,24 @@ import setRoleHandlers from "@/controllers/admin/set-role";
 import getByIdHandlers from "@/controllers/admin/get-by-id";
 import check_apikey from "@/middlewares/check-apikey";
 import { Hono } from "hono/tiny";
+import {
+    authenticateAdminDesc,
+    getAllQuizzesAdminDesc,
+    getAllUsersAdminDesc,
+    getQuizByIdAdminDesc,
+    setAuthStatusDesc,
+    setQuizStatusDesc,
+    setRoleDesc,
+} from "@/openapi/admin-openapi";
 
 const admin = new Hono()
     .basePath("/admin")
-    .post("/set/role", ...setRoleHandlers)
-    .post("/set/authstatus", ...setAuthStatusHandlers)
-    .post("/set/quiz", ...setQuizStatusHandlers)
-    .get("/all-quizzes", ...getAllQuizHandlers)
-    .get("/all-users", ...getAllUsersHandlers)
-    .get("/authenticate", async (c) => {
+    .post("/set/role", setRoleDesc, ...setRoleHandlers)
+    .post("/set/authstatus", setAuthStatusDesc, ...setAuthStatusHandlers)
+    .post("/set/quiz", setQuizStatusDesc, ...setQuizStatusHandlers)
+    .get("/all-quizzes", getAllQuizzesAdminDesc, ...getAllQuizHandlers)
+    .get("/all-users", getAllUsersAdminDesc, ...getAllUsersHandlers)
+    .get("/authenticate", authenticateAdminDesc, async (c) => {
         // @ts-expect-error not passing next
         const res = await check_apikey(c);
 
@@ -25,6 +34,6 @@ const admin = new Hono()
 
         return c.json({ message: "Authenticated" }, 200);
     })
-    .get("/:quizId", ...getByIdHandlers);
+    .get("/:quizId", getQuizByIdAdminDesc, ...getByIdHandlers);
 
 export default admin;

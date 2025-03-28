@@ -8,9 +8,15 @@ import publishHandlers from "@/controllers/quizzes/publish";
 import editHandlers from "@/controllers/quizzes/edit";
 import deleteHandlers from "@/controllers/quizzes/delete";
 import {
+    deleteQuizDesc,
+    editQuizDesc,
+    getOwnQuizByIdDesc,
     getOwnQuizzesDesc,
+    getQuizByIdDesc,
+    getQuizzesByUserIdDesc,
     getQuizzesDesc,
     publishQuizDesc,
+    searchQuizzesDesc,
 } from "@/openapi/quizzes-openapi";
 import searchHandlers from "@/controllers/quizzes/search";
 
@@ -24,11 +30,11 @@ const quizzes = new Hono()
     // gets max 50, default 20, minimum 10 limit quizzes at once
     .get("/", getQuizzesDesc, ...getHandlers)
     .get("/own", getOwnQuizzesDesc, ...getOwnHandlers)
-    .get("/by/:userId", ...getByUserIdHandlers)
-    .get("/own/:quizId", ...getOwnByIdHandlers)
-    .get("/search", ...searchHandlers)
-    .patch("/edit/:quizId", ...editHandlers)
-    .delete("/delete/:quizId", ...deleteHandlers)
-    .get("/:quizId", ...getByIdHandlers);
+    .get("/by/:userId", getQuizzesByUserIdDesc, ...getByUserIdHandlers)
+    .get("/own/:quizId", getOwnQuizByIdDesc, ...getOwnByIdHandlers)
+    .get("/search", searchQuizzesDesc, ...searchHandlers)
+    .patch("/edit/:quizId", editQuizDesc, ...editHandlers)
+    .delete("/delete/:quizId", deleteQuizDesc, ...deleteHandlers)
+    .get("/:quizId", getQuizByIdDesc, ...getByIdHandlers);
 
 export default quizzes;
