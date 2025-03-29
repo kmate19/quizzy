@@ -28,7 +28,7 @@ const gameEnded = ref(false)
 const stats = ref<gameStats>()
 const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
-const hostId = quizzyStore.id
+const hostId = ref(quizzyStore.id)
 const preparingNextRound = ref(false)
 
 const copyLobbyCode = () => {
@@ -108,6 +108,13 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           server: false,
         }),
       )
+      ws.send(
+        JSON.stringify({
+          type: 'members',
+          successful: true,
+          server: false,
+        }),
+      )
       console.log('quizdata', toRaw(quizzyStore.currentQuiz))
       ws.send(
         JSON.stringify({
@@ -142,6 +149,14 @@ const setupWebSocketListeners = (ws: WebSocket) => {
             server: false,
           }),
         )
+      }
+
+      if (data.type === 'members') {
+        console.log('data members', data.data)
+        for (const member of data.data.members) {
+          addParticipant(member.username, member.pfp, member.userId)
+        }
+        hostId.value = data.data.host
       }
 
       if (data.type === 'gamestarted') {
@@ -575,7 +590,7 @@ onUnmounted(() => {
               <span class="text-lg font-medium">{{ participant.username }}</span>
               <span v-if="participant.userId === hostId" class="text-yellow-500">👑</span>
             </div>
-            <XButton class="ml-2" v-if="quizzyStore.isHost" @click="kickUser(participant.username)" />
+            <XButton class="ml-2" v-if="quizzyStore.id === hostId" @click="kickUser(participant.username)" />
           </div>
         </div>
       </div>
