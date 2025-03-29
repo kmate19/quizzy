@@ -262,7 +262,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       if (data.type === 'error') {
         console.log('Error:', data.error.message)
         if (data.error.message === 'You have been kicked') {
-          error.value = 'You have been kicked from the lobby'
+          error.value = 'Ki lettél rúgva a játékból a játékvezető által!'
+          quizzyStore.$reset()
+        }
+        if (data.error.message === 'User already in lobby') {
+          error.value = 'Már ezzel a fiókkal bent vagy egy játékban!'
           quizzyStore.$reset()
         }
       }
