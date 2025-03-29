@@ -87,10 +87,13 @@ export const hono = new Hono()
                         );
 
                     if (reconn) {
+                        console.log("reconnecting user", jwtdataValid.userId);
                         const save = reconn.data.lobbyUserData;
+                        clearTimeout(save.deletionTimeout);
                         save.reconnecting = false;
                         ws.raw.data.lobbyUserData = save;
                         lobby.members.delete(reconn);
+                        ws.raw.subscribe(lobbyid);
                         lobby.members.add(ws.raw);
                         return;
                     }

@@ -12,13 +12,14 @@ export function scheduleDisconnect(
         `client ${ws.data.lobbyUserData.userId} left lobby ${lobbyid} scheduling for deletion, members left: ${lobby.members.size}}`
     );
 
-    publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData.username);
-
     if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
+        console.log("host left");
         hostLeave(lobby.gameState, lobby.members);
     }
 
     if (!ws.data.lobbyUserData.canRecconnect) {
+        console.log("client cannot reconnect");
+        publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData.username);
         ws.unsubscribe(lobbyid);
         clearTimeout(ws.data.lobbyUserData.pongTimeout);
         lobby.members.delete(ws);
@@ -32,6 +33,7 @@ export function scheduleDisconnect(
     ws.data.lobbyUserData.reconnecting = true;
 
     ws.data.lobbyUserData.deletionTimeout = setTimeout(() => {
+        publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData.username);
         ws.unsubscribe(lobbyid);
         clearTimeout(ws.data.lobbyUserData.pongTimeout);
         lobby.members.delete(ws);

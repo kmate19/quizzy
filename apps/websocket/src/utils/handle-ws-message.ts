@@ -17,8 +17,6 @@ export async function handleWsMessage(
     lobbyid: string,
     lobbies: LobbyMap
 ) {
-    console.log(`client sent message {} to ${lobbyid}`, msg);
-
     const lobby = lobbies.get(lobbyid)!;
     const members = lobby.members;
 
