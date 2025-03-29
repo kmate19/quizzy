@@ -595,7 +595,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="flex justify-center" v-if="quizzyStore.isHost">
+      <div class="flex justify-center" v-if="quizzyStore.id === hostId">
         <button class="glass-button px-8 py-4 text-xl rounded-lg bg-green-600/30" @click="startGame">
           Játék
         </button>
