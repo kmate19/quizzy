@@ -3,17 +3,17 @@ import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { genLobbyId } from "./utils/utils";
+import { genLobbyId } from "./utils/generate";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
 import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
-import { handleWsMessage } from "./utils/handle-ws-message";
-import { closeIfInvalid, closeWithError } from "./utils/close";
-import { sendSingle } from "./utils/send";
-import { scheduleDisconnect } from "./utils/handle-disconnect";
+import { handleWsMessage } from "./input/handle-ws-message";
+import { closeIfInvalid, closeWithError } from "./output/close";
+import { sendSingle } from "./output/send";
+import { scheduleDisconnect } from "./input/handle-disconnect";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();

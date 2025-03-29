@@ -1,6 +1,6 @@
 import { Lobby } from "@/types";
-import { abortLobby } from "./close";
-import { sendLobby } from "./send";
+import { abortLobby } from "@/output/close";
+import { sendLobby } from "@/output/send";
 import { handleRoundEnd } from "./handle-roundend";
 import { handleGameEnd } from "./handle-gameend";
 import { sleep } from "bun";
