@@ -108,7 +108,6 @@ const joinLobby = async (code: string) => {
 
       quizzyStore.setLobbyData({
         lobbyId: first_data.code,
-        hash: '',
         quizId: '',
         timestamp: Date.now(),
         isHost: false,
@@ -133,81 +132,124 @@ const joinLobby = async (code: string) => {
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <div @click="router.push('/')"
-          class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
+        <div
+          @click="router.push('/')"
+          class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
+        >
           Quizzy <span class="text-white">| {{ componentName }}</span>
         </div>
         <div class="hidden md:block desktop-navbar">
           <div class="ml-10 flex items-baseline space-x-4">
-            <a @click="router.push('/')" :class="[
-              'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
-              isActive('/')
-                ? 'border-white scale-105'
-                : 'border-transparent hover:scale-x-105 hover:border-white',
-            ]">
+            <a
+              @click="router.push('/')"
+              :class="[
+                'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
+                isActive('/')
+                  ? 'border-white scale-105'
+                  : 'border-transparent hover:scale-x-105 hover:border-white',
+              ]"
+            >
               Kezdőlap
             </a>
-            <a @click="isCodeModal = !isCodeModal"
-              class="px-4 py-1 text-lg border-2 border-transparent hover:scale-x-105 hover:border-white text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center">
+            <a
+              @click="isCodeModal = !isCodeModal"
+              class="px-4 py-1 text-lg border-2 border-transparent hover:scale-x-105 hover:border-white text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center"
+            >
               Közös játék
             </a>
-            <a @click="router.push('/game_creation')" :class="[
-              'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
-              isActive('/game_creation')
-                ? 'border-white scale-105'
-                : 'border-transparent hover:scale-x-105 hover:border-white',
-            ]">
+            <a
+              @click="router.push('/game_creation')"
+              :class="[
+                'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
+                isActive('/game_creation')
+                  ? 'border-white scale-105'
+                  : 'border-transparent hover:scale-x-105 hover:border-white',
+              ]"
+            >
               Játék készítés
             </a>
-            <div @click="router.push('/profil')" :class="[
-              'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit border-2 relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
-              isActive('/profil')
-                ? 'border-white scale-105'
-                : 'border-transparent hover:scale-x-105 hover:border-white',
-            ]">
+            <div
+              @click="router.push('/profil')"
+              :class="[
+                'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-fit border-2 relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
+                isActive('/profil')
+                  ? 'border-white scale-105'
+                  : 'border-transparent hover:scale-x-105 hover:border-white',
+              ]"
+            >
               Profil
             </div>
           </div>
         </div>
         <div class="block md:hidden mobile-navbar">
-          <button @click="toggleMobileMenu"
-            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300">
+          <button
+            @click="toggleMobileMenu"
+            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300"
+          >
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                v-if="!isMobileMenuOpen"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+              <path
+                v-else
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
       </div>
     </div>
-    <transition enter-active-class="transition duration-300 ease-out-in"
-      enter-from-class="transform -translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
-      leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
-      leave-to-class="transform -translate-y-full opacity-0">
-      <div v-if="isMobileMenuOpen"
-        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar">
+    <transition
+      enter-active-class="transition duration-300 ease-out-in"
+      enter-from-class="transform -translate-y-full opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-300 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform -translate-y-full opacity-0"
+    >
+      <div
+        v-if="isMobileMenuOpen"
+        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar"
+      >
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <a @click="router.push('/')" :class="[
-            'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
-            isActive('/') ? 'bg-gray-700' : 'hover:bg-gray-700',
-          ]">
+          <a
+            @click="router.push('/')"
+            :class="[
+              'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
+              isActive('/') ? 'bg-gray-700' : 'hover:bg-gray-700',
+            ]"
+          >
             Kezdőlap
           </a>
-          <a @click="isCodeModal = !isCodeModal"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text">
+          <a
+            @click="isCodeModal = !isCodeModal"
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text"
+          >
             Közös játék
           </a>
-          <a @click="router.push('/game_creation')" :class="[
-            'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
-            isActive('/game_creation') ? 'bg-gray-700' : 'hover:bg-gray-700',
-          ]">
+          <a
+            @click="router.push('/game_creation')"
+            :class="[
+              'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
+              isActive('/game_creation') ? 'bg-gray-700' : 'hover:bg-gray-700',
+            ]"
+          >
             Játék készítés
           </a>
-          <a @click="router.push('/profil')" :class="[
-            'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
-            isActive('/profil') ? 'bg-gray-700' : 'hover:bg-gray-700',
-          ]">
+          <a
+            @click="router.push('/profil')"
+            :class="[
+              'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
+              isActive('/profil') ? 'bg-gray-700' : 'hover:bg-gray-700',
+            ]"
+          >
             Profil
           </a>
         </div>
@@ -215,17 +257,28 @@ const joinLobby = async (code: string) => {
     </transition>
   </nav>
   <transition name="fade">
-    <div v-if="isCodeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+    <div
+      v-if="isCodeModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
+    >
       <div
-        class="relative w-full max-w-md p-6 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg">
+        class="relative w-full max-w-md p-6 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg"
+      >
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
-          <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
-            class="w-full text-white"></v-text-field>
+          <v-text-field
+            label="Lobby kód"
+            v-model="lobbyCode"
+            variant="outlined"
+            density="comfortable"
+            class="w-full text-white"
+          ></v-text-field>
           <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
-          <button @click="joinLobby(lobbyCode)"
-            class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+          <button
+            @click="joinLobby(lobbyCode)"
+            class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900"
+          >
             {{ isLoading ? 'Csatlakozás...' : 'Csatlakozás' }}
           </button>
         </div>

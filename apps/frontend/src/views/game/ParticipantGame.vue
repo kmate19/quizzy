@@ -42,21 +42,7 @@ const setupWebSocket = async () => {
   try {
     console.log('websocket setup', lobbyId.value)
 
-    console.log(quizzyStore.getLobbyData())
-
-    const storedWs = quizzyStore.getLobbyData()
-    let wsHash = quizzyStore.hash || (await generateSessionHash(lobbyId.value, 'asd'))
-
-    if (storedWs) {
-      if (storedWs.lobbyId === lobbyId.value) {
-        console.log('Using existing WebSocket connection data')
-        wsHash = storedWs.hash
-      }
-    }
-
-    if (!wsHash) {
-      wsHash = await generateSessionHash(lobbyId.value, 'asd')
-    }
+    const wsHash = await generateSessionHash(lobbyId.value, import.meta.env.VITE_HASH || 'asd')
 
     console.log('connecting to...:', lobbyId.value)
     const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
@@ -68,7 +54,6 @@ const setupWebSocket = async () => {
 
     quizzyStore.setLobbyData({
       lobbyId: lobbyId.value,
-      hash: wsHash,
       isHost: isHost.value,
       quizId: quizzyStore.quizId,
       timestamp: Date.now(),
@@ -319,7 +304,6 @@ const leaveLobby = () => {
 
   quizzyStore.setLobbyData({
     lobbyId: '',
-    hash: '',
     isHost: false,
     quizId: '',
     timestamp: 0,

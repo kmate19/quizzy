@@ -6,7 +6,6 @@ import { Loader2Icon } from 'lucide-vue-next'
 import type { detailedQuiz } from '@/utils/type'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
-import { generateSessionHash } from '@/utils/helpers'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const route = useRoute()
@@ -46,7 +45,7 @@ const createLobby = async () => {
     console.log('Creating new lobby');
     
     const sessionResponse = await wsclient.reserve.session[':code?'].$post({
-      param: { code: '' }, // empty = create new lobby
+      param: { code: '' },
       query: { ts: Date.now().toString() },
     });
     
@@ -60,11 +59,9 @@ const createLobby = async () => {
       }
       
       console.log('Lobby created with code:', sessionData.code);
-      const hash = await generateSessionHash(sessionData.code, 'asd');
       
       quizzyStore.setLobbyData({
         lobbyId: sessionData.code,
-        hash,
         isHost: true,
         quizId: uuid.toString(),
         timestamp: Date.now(),

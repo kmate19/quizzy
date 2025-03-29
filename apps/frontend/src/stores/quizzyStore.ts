@@ -10,7 +10,6 @@ export const useQuizzyStore = defineStore('quizzy', () => {
   const userName = ref<string>('')
   const fromLogin = ref<boolean>(false)
   const lobbyId = ref<string>('')
-  const hash = ref<string>('')
   const quizId = ref<string>('')
   const timestamp = ref<number>(0)
   const pfp = ref<string>('')
@@ -40,7 +39,6 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     userName.value = ''
     fromLogin.value = false
     lobbyId.value = ''
-    hash.value = ''
     quizId.value = ''
     timestamp.value = 0
     pfp.value = ''
@@ -48,26 +46,14 @@ export const useQuizzyStore = defineStore('quizzy', () => {
 
   function setLobbyData(data: {
     lobbyId: string
-    hash: string
     quizId: string
     timestamp: number
     isHost: boolean
   }) {
     lobbyId.value = data.lobbyId
-    hash.value = data.hash
     quizId.value = data.quizId
     timestamp.value = data.timestamp
     isHost.value = data.isHost
-  }
-
-  function getLobbyData() {
-    return {
-      lobbyId: lobbyId.value,
-      hash: hash.value,
-      quizId: quizId.value,
-      timestamp: timestamp.value,
-      isHost: isHost.value
-    }
   }
 
   return {
@@ -77,12 +63,10 @@ export const useQuizzyStore = defineStore('quizzy', () => {
     userName,
     fromLogin,
     lobbyId,
-    hash,
     quizId,
     timestamp,
     setLobbyData,
     $reset: reset,
-    getLobbyData,
     pfp,
     currentQuiz,
     setCurrentQuiz,

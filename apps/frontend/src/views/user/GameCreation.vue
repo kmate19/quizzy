@@ -137,7 +137,7 @@ watch(
   },
   {
     immediate: true,
-    flush: 'sync', // runs on every object reset
+    flush: 'sync',
   },
 )
 
@@ -277,14 +277,12 @@ const clearQuestionImage = () => {
 }
 
 const resetQuestion = () => {
-  // Store the current type
   const currentType = oneQuestion.value.type
 
   oneQuestion.value = resetObject(oneQuestion.value)
 
   oneQuestion.value.type = currentType
-
-  // Reset answers based on type
+  
   if (currentType === 'twochoice') {
     oneQuestion.value.answers = ['Igaz', 'Hamis']
   } else {

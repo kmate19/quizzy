@@ -40,24 +40,9 @@ const copyLobbyCode = () => {
 const setupWebSocket = async () => {
   try {
     console.log('websocket setup', lobbyId.value)
+    const wsHash = await generateSessionHash(lobbyId.value, import.meta.env.VITE_HASH || 'asd');
 
-    console.log(quizzyStore.getLobbyData())
-
-    const storedWs = quizzyStore.getLobbyData()
-    let wsHash = quizzyStore.hash || (await generateSessionHash(lobbyId.value, 'asd'))
-
-    if (storedWs) {
-      if (storedWs.lobbyId === lobbyId.value) {
-        console.log('Using existing WebSocket connection data')
-        wsHash = storedWs.hash
-      }
-    }
-
-    if (!wsHash) {
-      wsHash = await generateSessionHash(lobbyId.value, 'asd')
-    }
-
-    console.log('connecting to...:', lobbyId.value)
+    console.log('connecting to...:', lobbyId.value);
     const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
       param: { lobbyid: lobbyId.value, hash: wsHash },
     })
@@ -67,11 +52,11 @@ const setupWebSocket = async () => {
 
     quizzyStore.setLobbyData({
       lobbyId: lobbyId.value,
-      hash: wsHash,
       isHost: isHost.value,
       quizId: quizzyStore.quizId,
       timestamp: Date.now(),
     })
+
   } catch (err) {
     console.error('WebSocket setup error:', err)
     error.value = err instanceof Error ? err.message : 'Failed to connect to the game lobby'
@@ -262,7 +247,6 @@ const leaveLobby = () => {
 
   quizzyStore.setLobbyData({
     lobbyId: '',
-    hash: '',
     isHost: false,
     quizId: '',
     timestamp: 0,
@@ -403,7 +387,7 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
-    
+
     <div v-else-if="gameStarted" class="text-white">
       <div class="w-full rounded-full h-4 mb-4 flex z-20 flex-col gap-2">
         <div class="flex w-full space-x-2">
@@ -458,8 +442,8 @@ onUnmounted(() => {
             </div>
           </transition>
 
-          <transition-group name="answer-pop" mode="in-out" tag="div" v-if="!preparingNextRound && !answerSelected && currentCard"
-            :class="[
+          <transition-group name="answer-pop" mode="in-out" tag="div"
+            v-if="!preparingNextRound && !answerSelected && currentCard" :class="[
               'grid gap-4',
               currentCard?.type === 'twochoice'
                 ? 'grid-cols-1 md:grid-cols-2'
