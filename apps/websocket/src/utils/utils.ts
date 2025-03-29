@@ -16,7 +16,6 @@ export function genLobbyId() {
     return result;
 }
 
-// TODO: put into shared to use with client
 export function generateSessionHash(
     lobbyCode: string,
     secretKey: string
@@ -26,4 +25,14 @@ export function generateSessionHash(
 
     // Create HMAC
     return crypto.createHmac("sha256", secretKey).update(data).digest("hex");
+}
+
+export function jumbleIndicesIntoIter(length: number) {
+    const indices = new Set<number>();
+
+    while (indices.size < length) {
+        indices.add(Math.floor(Math.random() * length));
+    }
+
+    return Iterator.from(indices.values());
 }

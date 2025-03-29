@@ -12,14 +12,18 @@ import { z } from "zod";
 function assertequal<T extends true>() {}
 
 export const quizFinishedSchema = z.object({
-    userId: z.string().uuid(),
+    members: z
+        .object({
+            userId: z.string().uuid(),
+            stats: z.object({
+                placement: z.number(),
+                correctAnswerCount: z.number(),
+                wrongAnswerCount: z.number(),
+            }),
+        })
+        .array(),
     quizId: z.string().uuid(),
     type: z.literal("solo").or(z.literal("multi")),
-    meta: z.object({
-        placement: z.number().optional(),
-        correctAnswerCount: z.number(),
-        wrongAnswerCount: z.number(),
-    }),
 });
 
 export const numericStringSchema = z.string().regex(/^\d+$/).transform(Number);

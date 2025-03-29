@@ -11,6 +11,7 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     const userData = await db.query.usersTable.findFirst({
         where: eq(usersTable.id, userId),
         columns: {
+            id: true,
             email: true,
             username: true,
             created_at: true,

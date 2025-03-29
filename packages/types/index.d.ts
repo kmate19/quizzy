@@ -1,10 +1,18 @@
-declare type ApiErrorCase = 'validation' | 'auth' | 'server' | 'not_found' | 'forbidden' | 'conflict' | 'bad_request' | 'unauthorized';
+declare type ApiErrorCase =
+    | "validation"
+    | "auth"
+    | "server"
+    | "not_found"
+    | "forbidden"
+    | "conflict"
+    | "bad_request"
+    | "unauthorized";
 
 declare type ApiError = {
     message: string;
     case: ApiErrorCase;
     field?: string;
-}
+};
 
 export declare type ApiResponse<T = unknown> = {
     message: string;
@@ -18,23 +26,45 @@ export declare type ApiResponse<T = unknown> = {
             total: number;
             limit: number;
             offset: number;
-        }
-    }
-}
+        };
+    };
+};
 
-declare type WebsocketMessageType = "message" | "subscribe" | "unsubscribe" | "ping" | "pong" | "ack" | "connect" | "disconnect" | "handshake" | "error";
+export declare type LobbyUser = {
+    username: string;
+    pfp: string;
+};
+
+declare type WebsocketMessageType =
+    | "hostchange"
+    | "kick"
+    | "answered"
+    | "roundstarted"
+    | "roundended"
+    | "gamended"
+    | "gamestarted"
+    | "startgame"
+    | "quizmeta"
+    | "quizdata"
+    | "members"
+    | "whoami"
+    | "ping"
+    | "pong"
+    | "connect"
+    | "disconnect"
+    | "error";
 
 declare type WebsocketError = {
-    message: string,
+    message: string;
     raw?: string | Error;
-}
+};
 
 export declare type WebsocketMessage<T = unknown> = {
     type: WebsocketMessageType;
     successful: boolean;
     server: boolean;
     error?: WebsocketError;
-    data?: T,
+    data?: T;
     clientId?: string; // Unique client identifier assigned by the server
     ext?: {
         ack?: boolean; // Acknowledgment request
@@ -46,4 +76,4 @@ export declare type WebsocketMessage<T = unknown> = {
             p?: number; // Server processing time
         };
     };
-}
+};

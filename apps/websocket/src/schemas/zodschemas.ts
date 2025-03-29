@@ -1,29 +1,56 @@
+import {
+    numericStringSchema,
+    publishQuizSchema,
+} from "@repo/api/public-schemas";
 import { Equal } from "hono/utils/types";
-import type { WebsocketMessage, WebsocketMessageType } from "repo";
+import type { LobbyUser, WebsocketMessage, WebsocketMessageType } from "repo";
 import { z } from "zod";
 
+// TODO: filter out system messages that can only be sent by the server
 const wsMessageTypeZEnum = z.enum([
-    "message",
-    "subscribe",
-    "unsubscribe",
+    "hostchange",
+    "kick",
+    "answered",
+    "roundstarted",
+    "roundended",
+    "gamended",
+    "gamestarted",
+    "startgame",
+    "quizmeta",
+    "quizdata",
+    "members",
     "ping",
     "pong",
-    "ack",
+    "whoami",
     "connect",
     "disconnect",
-    "handshake",
     "error",
 ]);
+export const publishQuizSchemaWID = publishQuizSchema.extend({
+    quiz: publishQuizSchema.shape.quiz.extend({
+        id: z.string().uuid(),
+    }),
+});
 
 // ignore this, just doing typescript magic to check if the types are correct
-// eslint-disable-next-line
 function assertequal<T extends true>() {}
-// eslint-disable-next-line
 let _valid1: Equal<z.infer<typeof wsMessageTypeZEnum>, WebsocketMessageType>;
-// eslint-disable-next-line
 let _valid2: Equal<z.infer<typeof websocketMessageSchema>, WebsocketMessage>;
+let _valid3: Equal<z.infer<typeof UserDataSchema>, LobbyUser>;
+
 assertequal<typeof _valid1>();
 assertequal<typeof _valid2>();
+assertequal<typeof _valid3>();
+
+export const quizAnswerSchema = z.object({
+    answerTime: numericStringSchema,
+    answerIndex: numericStringSchema,
+});
+
+export const UserDataSchema = z.object({
+    username: z.string(),
+    pfp: z.string().base64(),
+});
 
 export const websocketMessageSchema = z.object({
     type: wsMessageTypeZEnum,

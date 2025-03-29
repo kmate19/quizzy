@@ -3,15 +3,22 @@ import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { generateSessionHash, genLobbyId } from "./utils/utils";
+import { genLobbyId } from "./utils/utils";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
+import { extractJwtData } from "./utils/check-jwt";
+import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
+import { handleWsMessage } from "./utils/handle-ws-message";
+import { closeIfInvalid, closeWithError } from "./utils/close";
+import { publishWs, sendSingle } from "./utils/send";
+import { hostLeave } from "./utils/host-leave";
 
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
+const { upgradeWebSocket, websocket } =
+    createBunWebSocket<ServerWebSocket<LobbyUser>>();
 
-const lobbies: Map<string, Set<ServerWebSocket>> = new Map();
+const lobbies: LobbyMap = new Map();
 
 export const hono = new Hono()
     .basePath("/ws")
@@ -24,108 +31,113 @@ export const hono = new Hono()
             z.object({ lobbyid: z.string().length(8), hash: z.string() })
         ),
         upgradeWebSocket(async (c) => {
-            const lobbyid = c.req.param("lobbyid");
-            const hash = c.req.param("hash");
+            const { lobbyid, hash } = c.req.param();
+
+            const jwtdata = await extractJwtData(c);
+
             return {
                 onMessage: (event, ws) => {
-                    const validType = websocketMessageSchema.safeParse(
-                        event.data
-                    );
-                    if (validType.error) {
-                        const res = {
-                            type: "error",
-                            successful: false,
-                            server: true,
-                            error: {
-                                message: "Invalid message type",
-                                raw: validType.error,
-                            },
-                        } satisfies WebsocketMessage;
-                        ws.send(JSON.stringify(res));
-                        // need to send res as a regular message, since ws close frames reasons only accept 123 bytes
-                        ws.close(1003, "Invalid message type");
+                    if (!ws.raw) {
+                        ws.close();
                         return;
                     }
-                    console.log(
-                        `client sent message ${event.data.toString()} to lobby ${lobbyid}`
-                    );
-                    lobbies.get(lobbyid)?.forEach((client) => {
-                        if (client !== ws.raw) {
-                            client.send(event.data.toString());
-                        }
-                    });
+
+                    const parsedMsg = JSON.parse(event.data);
+
+                    const maybeClientMessage =
+                        websocketMessageSchema.safeParse(parsedMsg);
+
+                    if (maybeClientMessage.error) {
+                        closeWithError(
+                            ws.raw,
+                            "Invalid message type",
+                            1007,
+                            maybeClientMessage.error
+                        );
+                        return;
+                    }
+
+                    const clientMessage: WebsocketMessage =
+                        maybeClientMessage.data;
+
+                    handleWsMessage(ws.raw, clientMessage, lobbyid, lobbies);
                 },
                 onOpen: (_, ws) => {
                     if (!ws.raw) {
-                        return;
-                    }
-                    if (!lobbies.has(lobbyid)) {
-                        const res = {
-                            type: "error",
-                            successful: false,
-                            server: true,
-                            error: {
-                                message: "Lobby does not exist",
-                            },
-                        } satisfies WebsocketMessage;
-                        ws.send(JSON.stringify(res));
-                        ws.close(1003, "Lobby does not exist");
+                        ws.close();
                         return;
                     }
 
                     if (
-                        hash !==
-                        generateSessionHash(
-                            lobbyid,
-                            Bun.env.HASH_SECRET || "asd"
-                        )
+                        closeIfInvalid(ws.raw, hash, lobbyid, lobbies, jwtdata)
                     ) {
-                        const res = {
-                            type: "error",
-                            successful: false,
-                            server: true,
-                            error: {
-                                message: "Hash mismatch",
-                            },
-                        } satisfies WebsocketMessage;
-                        ws.send(JSON.stringify(res));
-                        ws.close(1003, "Hash mismatch");
                         return;
                     }
 
-                    lobbies.get(lobbyid)?.add(ws.raw);
-                    console.log(`client joined lobby ${lobbyid}`);
+                    const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
-                    ws.raw?.ping();
+                    ws.raw.data.lobbyUserData = {
+                        userId: jwtdataValid.userId,
+                        stats: {
+                            wrongAnswerCount: 0,
+                            correctAnswerCount: 0,
+                            score: 0,
+                        },
+                        pongTimeout: setTimeout(() => {
+                            closeWithError(ws.raw!, "Pong timeout", 1001);
+                        }, 20000),
+                    };
+
+                    lobbies.get(lobbyid)!.members.add(ws.raw);
+
+                    console.log(
+                        `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
+                    );
+
+                    ws.raw.ping();
 
                     const interval = setInterval(() => {
-                        if (ws.raw?.readyState === 3) {
+                        if (ws.raw!.readyState === 3) {
                             clearInterval(interval);
                         } else {
-                            ws.raw?.ping();
+                            sendSingle(ws.raw!, "ping");
                         }
-                    }, 30000);
+                    }, 10000);
 
                     ws.raw.subscribe(lobbyid);
-                    const res = {
-                        type: "connect",
-                        successful: true,
-                        server: true,
-                        data: {
-                            message: `welcome to lobby ${lobbyid}`,
-                        },
-                    } satisfies WebsocketMessage;
-                    ws.send(JSON.stringify(res));
                 },
                 onClose: (_, ws) => {
                     if (!ws.raw) {
                         return;
                     }
-                    console.log(`client left lobby ${lobbyid}`);
+
+                    console.log(
+                        `client ${ws.raw.data.lobbyUserData} left lobby ${lobbyid}`
+                    );
+
                     const lobby = lobbies.get(lobbyid);
+
                     if (lobby) {
-                        lobby.delete(ws.raw);
-                        if (lobby.size === 0) {
+                        lobby.members.delete(ws.raw);
+
+                        publishWs(
+                            ws.raw,
+                            lobbyid,
+                            "disconnect",
+                            ws.raw.data.lobbyUserData
+                        );
+
+                        ws.raw.unsubscribe(lobbyid);
+                        clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
+
+                        if (
+                            lobby.gameState.hostId ===
+                            ws.raw.data.lobbyUserData.userId
+                        ) {
+                            hostLeave(lobby.gameState, lobby.members);
+                        }
+
+                        if (lobby.members.size === 0) {
                             lobbies.delete(lobbyid);
                         }
                     }
@@ -143,8 +155,8 @@ export const hono = new Hono()
         async (c) => {
             const timestamp = c.req.valid("query").ts;
             const timediff = Math.abs(Date.now() - timestamp);
-            console.log(`timediff: ${timediff}`);
-            if (timediff > 1500) {
+
+            if (timediff > 3500) {
                 return c.json({}, 400);
             }
 
@@ -157,13 +169,23 @@ export const hono = new Hono()
                 }
             }
 
+            const jwtData = await extractJwtData(c);
+            if (jwtData.json) {
+                return jwtData as any;
+            }
+
+            const jwtDataValid = jwtData as QuizzyJWTPAYLOAD;
+
             const lobbyid = genLobbyId();
 
             if (lobbies.has(lobbyid)) {
                 return c.json({}, 400);
             }
 
-            lobbies.set(lobbyid, new Set());
+            lobbies.set(lobbyid, {
+                members: new Set(),
+                gameState: { hostId: jwtDataValid.userId, started: false },
+            });
 
             return c.json({ code: lobbyid }, 200);
         }

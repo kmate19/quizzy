@@ -1,4 +1,5 @@
 import type { WebsocketMessage, WebsocketMessageType } from "repo";
+import { expect } from "bun:test";
 
 type wsEventHandlers = {
     onmessage?: (
