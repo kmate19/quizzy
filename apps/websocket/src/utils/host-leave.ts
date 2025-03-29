@@ -13,8 +13,10 @@ export function hostLeave(
         return;
     }
 
-    gameState.hostId = nextHost.data.lobbyUserData.userId;
+    setTimeout(() => {
+        gameState.hostId = nextHost.data.lobbyUserData.userId;
 
-    // send message to all members that the host has changed
-    sendLobby(members, "hostchange", { userId: gameState.hostId });
+        // send message to all members that the host has changed
+        sendLobby(members, "hostchange", { userId: gameState.hostId });
+    }, 3000);
 }

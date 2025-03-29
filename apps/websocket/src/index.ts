@@ -14,6 +14,7 @@ import { handleWsMessage } from "./utils/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./utils/close";
 import { publishWs, sendSingle } from "./utils/send";
 import { hostLeave } from "./utils/host-leave";
+import { scheduleDisconnect } from "./utils/handle-disconnect";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -76,8 +77,27 @@ export const hono = new Hono()
 
                     const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
+                    const reconn = lobbies
+                        .get(lobbyid)
+                        ?.members.values()
+                        .find(
+                            (u) =>
+                                u.data.lobbyUserData.userId ===
+                                jwtdataValid.userId
+                        );
+
+                    if (reconn) {
+                        const save = reconn.data.lobbyUserData;
+                        save.reconnecting = false;
+                        ws.raw.data.lobbyUserData = save;
+                        lobbies.get(lobbyid)!.members.delete(reconn);
+                        lobbies.get(lobbyid)!.members.add(ws.raw);
+                    }
+
                     ws.raw.data.lobbyUserData = {
                         userId: jwtdataValid.userId,
+                        canRecconnect: true,
+                        reconnecting: false,
                         stats: {
                             wrongAnswerCount: 0,
                             correctAnswerCount: 0,
@@ -113,39 +133,18 @@ export const hono = new Hono()
 
                     const lobby = lobbies.get(lobbyid);
 
-                    if (lobby && lobby.members.delete(ws.raw)) {
-                        console.log(
-                            `client ${ws.raw.data.lobbyUserData.userId} left lobby ${lobbyid} members left: ${lobby.members.size}}`
-                        );
-
-                        publishWs(
-                            ws.raw,
-                            lobbyid,
-                            "disconnect",
-                            ws.raw.data.lobbyUserData.username
-                        );
-
-                        ws.raw.unsubscribe(lobbyid);
-                        clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
-
-                        if (
-                            lobby.gameState.hostId ===
-                            ws.raw.data.lobbyUserData.userId
-                        ) {
-                            hostLeave(lobby.gameState, lobby.members);
-                        }
+                    if (lobby && lobby.members.has(ws.raw)) {
+                        scheduleDisconnect(ws.raw, lobby, lobbyid);
 
                         if (lobby.members.size === 0) {
-                            console.log("scheduling timeout");
-                            setTimeout(() => {
-                                console.log("running timeout");
+                            lobby.deletionTimeout = setTimeout(() => {
                                 if (lobby.members.size === 0) {
                                     console.log(
                                         `lobby ${lobbyid} is empty, deleting lobby`
                                     );
                                     lobbies.delete(lobbyid);
                                 }
-                            }, 5000);
+                            }, 3000);
                         }
                     }
                 },

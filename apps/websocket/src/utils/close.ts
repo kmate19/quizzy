@@ -69,7 +69,9 @@ export function closeIfInvalid(
             .toArray()
             .some(
                 (u) =>
-                    u.data.lobbyUserData.userId === (jwtdata.userId as string)
+                    u.data.lobbyUserData.userId ===
+                        (jwtdata.userId as string) &&
+                    !u.data.lobbyUserData.reconnecting
             )
     ) {
         res.error.message = "User already in lobby";
