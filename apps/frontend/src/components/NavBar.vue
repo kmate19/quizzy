@@ -109,7 +109,6 @@ const joinLobby = async (code: string) => {
       quizzyStore.setLobbyData({
         lobbyId: first_data.code,
         quizId: '',
-        timestamp: Date.now(),
         isHost: false,
       })
 

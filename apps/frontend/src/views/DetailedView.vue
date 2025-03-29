@@ -64,7 +64,7 @@ const createLobby = async () => {
         lobbyId: sessionData.code,
         isHost: true,
         quizId: uuid.toString(),
-        timestamp: Date.now(),
+        canReconnect: false,
       })
       if (data.value) {
         quizzyStore.setCurrentQuiz(toRaw(data.value))

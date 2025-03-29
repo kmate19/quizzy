@@ -12,10 +12,10 @@ export const useQuizzyStore = defineStore(
     const fromLogin = ref<boolean>(false)
     const lobbyId = ref<string>('')
     const quizId = ref<string>('')
-    const timestamp = ref<number>(0)
     const pfp = ref<string>('')
     const currentQuiz = ref<QuizData | null>(null)
     const id = ref<string>('')
+    const canReconnect = ref<boolean>(false)
 
     function setCurrentQuiz(quiz: detailedQuiz) {
       currentQuiz.value = {
@@ -31,6 +31,11 @@ export const useQuizzyStore = defineStore(
         languageISOCodes: quiz.languages.map((lang) => lang.iso_code) as string[],
       }
     }
+    function lobbyDataReset(){
+      lobbyId.value = ''
+      quizId.value = ''
+      isHost.value = false
+    }
 
     function reset() {
       isAdmin.value = false
@@ -40,19 +45,18 @@ export const useQuizzyStore = defineStore(
       fromLogin.value = false
       lobbyId.value = ''
       quizId.value = ''
-      timestamp.value = 0
       pfp.value = ''
     }
 
     function setLobbyData(data: {
       lobbyId: string
       quizId: string
-      timestamp: number
       isHost: boolean
+      canReconnect: boolean
     }) {
+      canReconnect.value = data.canReconnect
       lobbyId.value = data.lobbyId
       quizId.value = data.quizId
-      timestamp.value = data.timestamp
       isHost.value = data.isHost
     }
 
@@ -64,13 +68,14 @@ export const useQuizzyStore = defineStore(
       fromLogin,
       lobbyId,
       quizId,
-      timestamp,
       setLobbyData,
       $reset: reset,
       pfp,
       currentQuiz,
       setCurrentQuiz,
       id,
+      lobbyDataReset,
+      canReconnect,
     }
   },
   {

@@ -3,11 +3,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { ref, onMounted, toRaw, onUnmounted, nextTick } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
-import { Loader2Icon, Users, Copy } from 'lucide-vue-next';
+import { Loader2Icon, Users, Copy } from 'lucide-vue-next'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 import type { gameStats } from '@/utils/type'
-import XButton from '@/components/XButton.vue';
-import type { Participants } from '@/utils/type';
+import XButton from '@/components/XButton.vue'
+import type { Participants } from '@/utils/type'
+import { toast } from 'vue3-toastify'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,7 +17,7 @@ const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
-const participants = ref<Participants>({ host: '', members: [] });
+const participants = ref<Participants>({ host: '', members: [] })
 const websocket = ref<WebSocket | null>(null)
 const copiedToClipboard = ref(false)
 const reconnectAttempts = ref(0)
@@ -31,6 +32,7 @@ const currentQuestionIndex = ref(0)
 const hostId = ref(quizzyStore.id)
 const preparingNextRound = ref(false)
 const isReconnect = ref(false)
+const hasSomeReason = ref(false)
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -41,9 +43,9 @@ const copyLobbyCode = () => {
 const setupWebSocket = async () => {
   try {
     console.log('websocket setup', lobbyId.value)
-    const wsHash = await generateSessionHash(lobbyId.value, import.meta.env.VITE_HASH || 'asd');
+    const wsHash = await generateSessionHash(lobbyId.value, import.meta.env.VITE_HASH || 'asd')
 
-    console.log('connecting to...:', lobbyId.value);
+    console.log('connecting to...:', lobbyId.value)
     const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
       param: { lobbyid: lobbyId.value, hash: wsHash },
     })
@@ -55,9 +57,8 @@ const setupWebSocket = async () => {
       lobbyId: lobbyId.value,
       isHost: isHost.value,
       quizId: quizzyStore.quizId,
-      timestamp: Date.now(),
+      canReconnect: true,
     })
-
   } catch (err) {
     console.error('WebSocket setup error:', err)
     error.value = err instanceof Error ? err.message : 'Failed to connect to the game lobby'
@@ -70,13 +71,14 @@ const manualReconnect = async () => {
   isLoading.value = true
   reconnectAttempts.value = 0
   await setupWebSocket()
+  isLoading.value = false
 }
 
 const addParticipant = (username: string, pfp: string, id: string) => {
   const newUser = {
     username: username,
     pfp: 'data:image/png;base64,' + pfp,
-    userId: id
+    userId: id,
   }
   console.log(newUser)
   participants.value!.members = [...participants.value!.members, newUser]
@@ -91,40 +93,47 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       const userData = {
         username: quizzyStore.userName,
         pfp: quizzyStore.pfp.replace('data:image/png;base64,', ''),
-        id: quizzyStore.id
+        id: quizzyStore.id,
       }
       console.log('USERDATA', userData)
-      ws.send(
-        JSON.stringify({
-          type: 'whoami',
-          successful: true,
-          server: false,
-          data: userData,
-        }),
-      )
-      ws.send(
-        JSON.stringify({
-          type: 'connect',
-          successful: true,
-          server: false,
-        }),
-      )
-      ws.send(
-        JSON.stringify({
-          type: 'members',
-          successful: true,
-          server: false,
-        }),
-      )
+      
+      if (isReconnect.value === true) {
+        console.log("Reconnecting to existing session")
+        ws.send(
+          JSON.stringify({
+            type: 'members',
+            successful: true,
+            server: false,
+          }),
+        )
+      } else {
+        ws.send(
+          JSON.stringify({
+            type: 'whoami',
+            successful: true,
+            server: false,
+            data: userData,
+          }),
+        )
+        ws.send(
+          JSON.stringify({
+            type: 'connect',
+            successful: true,
+            server: false,
+          }),
+        )
+        ws.send(
+          JSON.stringify({
+            type: 'quizdata',
+            successful: true,
+            server: false,
+            data: toRaw(quizzyStore.currentQuiz),
+          }),
+        )
+      }
+
       console.log('quizdata', toRaw(quizzyStore.currentQuiz))
-      ws.send(
-        JSON.stringify({
-          type: 'quizdata',
-          successful: true,
-          server: false,
-          data: toRaw(quizzyStore.currentQuiz),
-        }),
-      )
+
       addParticipant(userData.username, userData.pfp, userData.id)
     } else {
       console.error('not open. state:', ws.readyState)
@@ -173,7 +182,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
       if (data.type === 'roundstarted') {
         console.log('Round started')
+        if(gameStarted.value === false) {
+          gameStarted.value = true
+        }
         preparingNextRound.value = false
+        gameStarted.value = true
         currentCard.value = data.data
         time.value = data.data.roundTimeMs
         if (timerRef.value !== null) {
@@ -185,6 +198,9 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
 
       if (data.type === 'roundended') {
+        if(gameStarted.value === false) {
+          gameStarted.value = true
+        }
         answerSelected.value = false
         console.log('Round ended')
         console.log('Round ende data:', data.data)
@@ -220,25 +236,66 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
       if (data.type === 'disconnect') {
         console.log('User disconnected', data.data.userId)
-        participants.value.members = participants.value.members.filter(member => member.userId !== data.data.userId)
+        participants.value.members = participants.value.members.filter(
+          (member) => member.userId !== data.data.userId,
+        )
+      }
+
+      if (data.type === 'hostchange') {
+        console.log('Host change', quizzyStore.isHost)
+        console.log('jo a host change',data.data.userId === quizzyStore.id)
+        if(data.data.userId !== quizzyStore.id) {
+          console.log('nem te vagy a host')
+          quizzyStore.isHost = false
+          isHost.value = false
+        }
+        if (data.data.userId === quizzyStore.id) {
+          quizzyStore.isHost = true
+          isHost.value = true
+          toast('Te lettél a játékvezető!', {
+            autoClose: 3500,
+            position: toast.POSITION.TOP_CENTER,
+            type: 'success',
+            transition: 'zoom',
+            pauseOnHover: false,
+          })
+        } else {
+          if(hostId.value !== data.data.userId){
+            const newHost = participants.value.members.find(
+              (member) => member.userId === data.data.userId,
+            )
+            toast(`Az új játévezető ${newHost?.username} lett!`, {
+              autoClose: 3500,
+              position: toast.POSITION.TOP_CENTER,
+              type: 'success',
+              transition: 'zoom',
+              pauseOnHover: false,
+            })
+          }
+        }
+        hostId.value = data.data.userId
+        participants.value.host = data.data.userId
       }
 
       if (data.type === 'error') {
         console.log('Error:', data.error.message)
         if (data.error.message === 'You have been kicked') {
           error.value = 'Ki lettél rúgva a játékból a játékvezető által!'
-          quizzyStore.$reset()
+          hasSomeReason.value = true
+          quizzyStore.lobbyDataReset()
         }
         if (data.error.message === 'User already in lobby') {
           error.value = 'Már ezzel a fiókkal bent vagy egy játékban!'
-          quizzyStore.$reset()
+          hasSomeReason.value = true
+          quizzyStore.lobbyDataReset()
         }
         if (data.error.message === 'Lobby does not exist') {
           error.value = 'A lobby már nem létezik!'
-          quizzyStore.$reset()
+          hasSomeReason.value = true
+          quizzyStore.lobbyDataReset()
         }
-      }
 
+      }
     } catch (err) {
       console.error('Error parsing WebSocket message:', err)
     }
@@ -246,7 +303,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
   ws.addEventListener('error', (event) => {
     console.error('WebSocket error:', event)
-    error.value = 'Connection error occurred'
+    error.value = 'Hiba lépett fel a kapcsolat létrehozásakor!'
   })
 
   ws.addEventListener('close', (event) => {
@@ -254,13 +311,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
     if (event.code === 1003) {
       error.value = event.reason || 'Server closed the connection'
-      quizzyStore.$reset()
+      quizzyStore.lobbyDataReset()
     } else if (event.code !== 1000 && route.name === 'quiz_multiplayer') {
     }
   })
 }
-
-
 
 const leaveLobby = () => {
   console.log('Leaving lobby:', lobbyId.value)
@@ -281,7 +336,7 @@ const leaveLobby = () => {
     lobbyId: '',
     isHost: false,
     quizId: '',
-    timestamp: 0,
+    canReconnect: false,
   })
   router.push('/')
 }
@@ -291,7 +346,7 @@ const getBaseButtonColor = (index: number) => {
     'bg-red-500 hover:bg-red-600',
     'bg-blue-500 hover:bg-blue-600',
     'bg-yellow-500 hover:bg-yellow-600',
-    'bg-green-500 hover:bg-green-600'
+    'bg-green-500 hover:bg-green-600',
   ]
   return colors[index]
 }
@@ -324,9 +379,9 @@ const selectAnswer = (index: number) => {
         server: false,
         data: {
           answerIndex: index.toString(),
-          answerTime: Date.now().toString()
-        }
-      })
+          answerTime: Date.now().toString(),
+        },
+      }),
     )
   }
 }
@@ -374,17 +429,17 @@ const kickUser = (userName: string) => {
         successful: true,
         server: false,
         data: {
-          username: userName
-        }
-      })
+          username: userName,
+        },
+      }),
     )
   }
 }
 
 onMounted(() => {
-  if(quizzyStore.lobbyId){
+  if (quizzyStore.canReconnect) {
     isReconnect.value = true
-    console.log('reconnect', quizzyStore.lobbyId)
+    console.log('reconnect', quizzyStore.currentQuiz)
   }
   if (!lobbyId.value) {
     error.value = 'Invalid lobby ID'
@@ -398,24 +453,32 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
-    websocket.value.close(1000, 'User left lobby')
-  }
+  quizzyStore.setLobbyData({
+    lobbyId: '',
+    isHost: false,
+    quizId: '',
+    canReconnect: false,
+  })
 })
-
-
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4  bg-gray-800 bg-opacity-80 rounded-md mt-8">
+  <div class="max-w-4xl mx-auto px-4 bg-gray-800 bg-opacity-80 rounded-md mt-8">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       <p class="ml-4 text-white text-xl">Csatlakozás...</p>
     </div>
-    <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
+    <div
+      v-else-if="error"
+      class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white"
+    >
       <p class="mb-4">{{ error }}</p>
       <div class="flex gap-4 justify-center">
-        <button @click="manualReconnect" class="glass-button px-4 py-2 rounded-md bg-green-600/30">
+        <button
+          @click="manualReconnect"
+          class="glass-button px-4 py-2 rounded-md bg-green-600/30"
+          v-if="!hasSomeReason"
+        >
           Újracsatlakozás
         </button>
         <button @click="router.push('/')" class="glass-button px-4 py-2 rounded-md">
@@ -427,27 +490,39 @@ onUnmounted(() => {
     <div v-else-if="gameStarted" class="text-white">
       <div class="w-full rounded-full h-4 mb-4 flex z-20 flex-col gap-2">
         <div class="flex w-full space-x-2">
-          <div v-for="index in quizzyStore.currentQuiz?.cards?.length" :key="index"
-            class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter">
-            <div class="h-full transition-all duration-300 rounded-full glass-progress" :class="{
-              'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30': index - 1 < currentQuestionIndex,
-              'bg-blue-500/70 backdrop-blur-sm border border-blue-300/50 shadow-blue-500/30 animate-pulse': index - 1 === currentQuestionIndex,
-              'bg-white/10 backdrop-blur-sm border border-white/20': index - 1 > currentQuestionIndex
-            }">
-            </div>
+          <div
+            v-for="index in quizzyStore.currentQuiz?.cards?.length"
+            :key="index"
+            class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter"
+          >
+            <div
+              class="h-full transition-all duration-300 rounded-full glass-progress"
+              :class="{
+                'bg-green-500/70 backdrop-blur-sm border border-green-300/50 shadow-green-500/30':
+                  index - 1 < currentQuestionIndex,
+                'bg-blue-500/70 backdrop-blur-sm border border-blue-300/50 shadow-blue-500/30 animate-pulse':
+                  index - 1 === currentQuestionIndex,
+                'bg-white/10 backdrop-blur-sm border border-white/20':
+                  index - 1 > currentQuestionIndex,
+              }"
+            ></div>
           </div>
         </div>
-
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="md:col-span-2">
-          <div v-if="answerSelected && !preparingNextRound"
-            class="mt-8 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+          <div
+            v-if="answerSelected && !preparingNextRound"
+            class="mt-8 p-3 bg-green-500/30 rounded-lg text-center animate-pulse"
+          >
             <p class="text-lg font-bold">Válaszod beküldve! Várakozás a többi játékosra...</p>
           </div>
-          <div v-if="preparingNextRound" class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm 
-            rounded-lg min-h-[200px] flex items-center justify-center" :key="'loading'">
+          <div
+            v-if="preparingNextRound"
+            class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg min-h-[200px] flex items-center justify-center"
+            :key="'loading'"
+          >
             <div class="text-center">
               <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
               <h2 class="text-2xl font-bold text-white">Következő kérdés...</h2>
@@ -458,38 +533,61 @@ onUnmounted(() => {
             </div>
           </div>
           <transition name="fade-slide" mode="in-out">
-            <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex"
-              v-if="!preparingNextRound && !answerSelected && currentCard">
+            <div
+              class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg"
+              :key="currentQuestionIndex"
+              v-if="!preparingNextRound && !answerSelected && currentCard"
+            >
               <div
                 class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
-                :class="time < 5000 ? 'text-red-500' : 'text-white'">
+                :class="time < 5000 ? 'text-red-500' : 'text-white'"
+              >
                 <transition name="bounce" mode="out-in">
                   <span :key="Math.ceil(time / 1000)">{{ Math.ceil(time / 1000) }}</span>
                 </transition>
               </div>
               <transition name="fade" mode="out-in">
-                <img :src="currentCard.picture" :alt="currentCard.question"
-                  class="w-full max-h-64 object-contain mb-6 rounded-lg" :key="'img-' + currentQuestionIndex" />
+                <img
+                  :src="currentCard.picture"
+                  :alt="currentCard.question"
+                  class="w-full max-h-64 object-contain mb-6 rounded-lg"
+                  :key="'img-' + currentQuestionIndex"
+                />
               </transition>
               <transition name="fade-up" mode="out-in">
-                <h2 class="text-xl font-semibold text-white text-center" :key="'q-' + currentQuestionIndex">{{
-                  currentCard?.question }}</h2>
+                <h2
+                  class="text-xl font-semibold text-white text-center"
+                  :key="'q-' + currentQuestionIndex"
+                >
+                  {{ currentCard?.question }}
+                </h2>
               </transition>
             </div>
           </transition>
 
-          <transition-group name="answer-pop" mode="in-out" tag="div"
-            v-if="!preparingNextRound && !answerSelected && currentCard" :class="[
+          <transition-group
+            name="answer-pop"
+            mode="in-out"
+            tag="div"
+            v-if="!preparingNextRound && !answerSelected && currentCard"
+            :class="[
               'grid gap-4',
               currentCard?.type === 'twochoice'
                 ? 'grid-cols-1 md:grid-cols-2'
                 : 'grid-cols-2 md:grid-cols-2',
-            ]">
-            <button v-for="(answer, index) in currentCard.answers" :key="`${currentQuestionIndex}-${index}`" :class="[
-              'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
-              getBaseButtonColor(index),
-              answerSelected ? 'opacity-70 cursor-not-allowed' : '',
-            ]" @click="selectAnswer(index)" :disabled="answerSelected">
+            ]"
+          >
+            <button
+              v-for="(answer, index) in currentCard.answers"
+              :key="`${currentQuestionIndex}-${index}`"
+              :class="[
+                'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+                getBaseButtonColor(index),
+                answerSelected ? 'opacity-70 cursor-not-allowed' : '',
+              ]"
+              @click="selectAnswer(index)"
+              :disabled="answerSelected"
+            >
               {{ answer }}
             </button>
           </transition-group>
@@ -498,25 +596,34 @@ onUnmounted(() => {
         <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 h-96 overflow-y-auto">
           <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
           <transition-group name="list" tag="div" class="space-y-2">
-            <div v-for="(player, index) in stats?.scores" :key="player.userId"
-              class="flex items-center p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all">
-              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-2">
+            <div
+              v-for="(player, index) in stats?.scores"
+              :key="player.userId"
+              class="flex items-center p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all"
+            >
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-2"
+              >
                 #{{ index + 1 }}
               </div>
               <img :src="player.pfp" class="w-8 h-8 rounded-full mr-2" />
               <span class="font-medium truncate flex-grow">{{ player.username }}</span>
               <transition name="score" mode="out-in">
-                <span class="font-bold text-yellow-300" :key="player.stats.score">{{ player.stats.score }}</span>
+                <span class="font-bold text-yellow-300" :key="player.stats.score">{{
+                  player.stats.score
+                }}</span>
               </transition>
             </div>
           </transition-group>
-          <div v-if="!stats || !stats.scores || stats.scores.length === 0" class="text-center py-4 text-gray-400">
+          <div
+            v-if="!stats || !stats.scores || stats.scores.length === 0"
+            class="text-center py-4 text-gray-400"
+          >
             Még nincsenek eredmények
           </div>
         </div>
       </div>
     </div>
-
 
     <div v-else-if="gameEnded" class="text-white">
       <div class="p-8 mb-6 relative bg-white/10 backdrop-blur-sm rounded-lg text-center">
@@ -531,33 +638,45 @@ onUnmounted(() => {
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="(playerStat, index) in stats?.scores" :key="playerStat.userId"
-            class="glass-button rounded-lg p-5 transition-all hover:scale-105">
+          <div
+            v-for="(playerStat, index) in stats?.scores"
+            :key="playerStat.userId"
+            class="glass-button rounded-lg p-5 transition-all hover:scale-105"
+          >
             <div class="flex flex-col items-center text-center">
               <div class="relative mb-3">
                 <div
-                  class="absolute -top-2 -right-2 bg-purple-600 text-white rounded-full w-7 h-7 flex items-center justify-center">
+                  class="absolute -top-2 -right-2 bg-purple-600 text-white rounded-full w-7 h-7 flex items-center justify-center"
+                >
                   #{{ index + 1 }}
                 </div>
-                <img :src="playerStat.pfp || '/placeholder.svg?height=60&width=60'"
-                  class="w-16 h-16 rounded-full object-cover border-2 border-white/50" />
+                <img
+                  :src="playerStat.pfp || '/placeholder.svg?height=60&width=60'"
+                  class="w-16 h-16 rounded-full object-cover border-2 border-white/50"
+                />
               </div>
               <span class="text-xl font-bold mb-3">{{ playerStat.username }}</span>
 
               <div class="grid grid-cols-2 gap-2 w-full mt-2">
                 <div class="bg-white/10 rounded p-2 text-center">
                   <span class="block text-sm text-gray-300">Helyes</span>
-                  <span class="block text-2xl font-bold text-green-400">{{ playerStat.stats.correctAnswerCount }}</span>
+                  <span class="block text-2xl font-bold text-green-400">{{
+                    playerStat.stats.correctAnswerCount
+                  }}</span>
                 </div>
                 <div class="bg-white/10 rounded p-2 text-center">
                   <span class="block text-sm text-gray-300">Helytelen</span>
-                  <span class="block text-2xl font-bold text-red-400">{{ playerStat.stats.wrongAnswerCount }}</span>
+                  <span class="block text-2xl font-bold text-red-400">{{
+                    playerStat.stats.wrongAnswerCount
+                  }}</span>
                 </div>
               </div>
 
               <div class="mt-4 w-full bg-white/10 rounded p-3 text-center">
                 <span class="block text-sm text-gray-300">Összpontszám</span>
-                <span class="block text-3xl font-bold text-yellow-300">{{ playerStat.stats.score }}</span>
+                <span class="block text-3xl font-bold text-yellow-300">{{
+                  playerStat.stats.score
+                }}</span>
               </div>
             </div>
           </div>
@@ -565,8 +684,11 @@ onUnmounted(() => {
       </div>
 
       <div class="flex justify-center mt-8">
-        <button @click="restartGame"
-          class="glass-button px-8 py-3 rounded-full !bg-purple-500 text-lg font-bold flex items-center animate-bounce cursor-pointer">
+        <button
+          @click="restartGame"
+          v-if="quizzyStore.isHost"
+          class="glass-button px-8 py-3 rounded-full !bg-purple-500 text-lg font-bold flex items-center animate-bounce cursor-pointer"
+        >
           Még egy kör?
         </button>
       </div>
@@ -579,10 +701,16 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <div class="text-center relative z-50 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
+      <div
+        class="text-center relative z-50 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8"
+        id="quiz"
+      >
         <div v-if="!quizzyStore.currentQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
-          <img :src="quizzyStore.currentQuiz.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md" />
+          <img
+            :src="quizzyStore.currentQuiz.quiz.banner"
+            class="mx-auto mb-4 max-w-full rounded-md"
+          />
           <h2 class="text-2xl font-semibold mb-2">{{ quizzyStore.currentQuiz.quiz.title }}</h2>
           <p class="text-gray-300">{{ quizzyStore.currentQuiz.quiz.description }}</p>
         </div>
@@ -603,21 +731,33 @@ onUnmounted(() => {
 
       <div class="mb-4 flex justify-center">
         <div class="flex gap-4 flex-wrap">
-          <div v-for="participant in participants?.members" :key="participant.username"
-            class="p-4 glass-button rounded-lg flex !w-fit">
+          <div
+            v-for="participant in participants?.members"
+            :key="participant.username"
+            class="p-4 glass-button rounded-lg flex !w-fit"
+          >
             <div class="flex items-center space-x-4">
-              <img :src="participant.pfp || '/placeholder.svg?height=40&width=40'"
-                class="w-10 h-10 rounded-full object-cover" />
+              <img
+                :src="participant.pfp || '/placeholder.svg?height=40&width=40'"
+                class="w-10 h-10 rounded-full object-cover"
+              />
               <span class="text-lg font-medium">{{ participant.username }}</span>
               <span v-if="participant.userId === hostId" class="text-yellow-500">👑</span>
             </div>
-            <XButton class="ml-2" v-if="quizzyStore.id === hostId" @click="kickUser(participant.username)" />
+            <XButton
+              class="ml-2"
+              v-if="quizzyStore.id === hostId && quizzyStore.userName !== participant.username"
+              @click="kickUser(participant.username)"
+            />
           </div>
         </div>
       </div>
 
       <div class="flex justify-center" v-if="quizzyStore.id === hostId">
-        <button class="glass-button px-8 py-4 text-xl rounded-lg bg-green-600/30" @click="startGame">
+        <button
+          class="glass-button px-8 py-4 text-xl rounded-lg bg-green-600/30"
+          @click="startGame"
+        >
           Játék
         </button>
       </div>
