@@ -14,6 +14,7 @@ COPY apps/websocket/tsconfig.json ./apps/websocket/
 COPY packages/ ./packages/
 
 # begin add bun
+RUN apk add --no-cache python3 build-base cairo-dev pkgconfig pixman-dev jpeg-dev giflib-dev pango-dev
 RUN apk add --no-cache bash curl
 RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.2.0"
 # ^ need to install bun like this as npm install is currently broken on musl

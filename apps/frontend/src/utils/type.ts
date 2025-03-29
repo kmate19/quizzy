@@ -3,8 +3,8 @@ export type quizUpload = {
   title: string
   status: 'draft' | 'published' | 'requires_review' | 'private'
   banner: string
-  languageISOCodes: [string,...string[]]
-  tags: [string,...string[]]
+  languageISOCodes: [string, ...string[]]
+  tags: [string, ...string[]]
   cards: nonemptyCardArray
 }
 
@@ -61,7 +61,7 @@ export type detailedQuiz = {
   description: string
   title: string
   cards: Question[]
-  status?: 'published' | 'draft' | 'requires_review' | 'private'
+  status?: 'published' | 'draft' | 'requires_review' | 'private' | 'rejected'
   rating: number
   plays: number
   banner: string
@@ -98,10 +98,10 @@ export type recievedFriendships = {
 }
 
 export type stats = {
-    plays: number,
-    first_places: number,
-    second_places: number,
-    third_places: number,
+  plays: number
+  first_places: number
+  second_places: number
+  third_places: number
 }
 
 type role = {
@@ -121,15 +121,15 @@ export type userProfile = {
   recievedFriendships?: recievedFriendships[]
   friends?: sentFriendship[]
   roles: role[]
-  stats: stats  
+  stats: stats
 }
 
 export type Game = {
-  id: string;
-  title: string;
-  banner: string;
-  description: string;
-  cards: Question[];
+  id: string
+  title: string
+  banner: string
+  description: string
+  cards: Question[]
 }
 
 export type ApiKey = {
@@ -153,25 +153,25 @@ export type QuizData = {
 }
 
 export type gameStats = {
-  answers: string[],
-  scores:{
-    pfp: string,
-    pongTimeout?: object,
+  answers: string[]
+  scores: {
+    pfp: string
+    pongTimeout?: object
     stats: {
-      wrongAnswerCount: number,
-      correctAnswerCount: number,
-      score: number,
-    },
-    userId: string,
-    username: string,
+      wrongAnswerCount: number
+      correctAnswerCount: number
+      score: number
+    }
+    userId: string
+    username: string
   }[]
-} 
+}
 
 export type Participants = {
-  host: string,
+  host: string
   members: {
-     username: string,
-     pfp: string, 
-     userId: string 
+    username: string
+    pfp: string
+    userId: string
   }[]
 }
