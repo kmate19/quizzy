@@ -12,8 +12,7 @@ import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./utils/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./utils/close";
-import { publishWs, sendSingle } from "./utils/send";
-import { hostLeave } from "./utils/host-leave";
+import { sendSingle } from "./utils/send";
 import { scheduleDisconnect } from "./utils/handle-disconnect";
 
 const { upgradeWebSocket, websocket } =
@@ -75,11 +74,12 @@ export const hono = new Hono()
                         return;
                     }
 
+                    const lobby = lobbies.get(lobbyid)!;
+
                     const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
-                    const reconn = lobbies
-                        .get(lobbyid)
-                        ?.members.values()
+                    const reconn = lobby.members
+                        .values()
                         .find(
                             (u) =>
                                 u.data.lobbyUserData.userId ===
@@ -90,8 +90,9 @@ export const hono = new Hono()
                         const save = reconn.data.lobbyUserData;
                         save.reconnecting = false;
                         ws.raw.data.lobbyUserData = save;
-                        lobbies.get(lobbyid)!.members.delete(reconn);
-                        lobbies.get(lobbyid)!.members.add(ws.raw);
+                        lobby.members.delete(reconn);
+                        lobby.members.add(ws.raw);
+                        return;
                     }
 
                     ws.raw.data.lobbyUserData = {
@@ -108,13 +109,11 @@ export const hono = new Hono()
                         }, 20000),
                     };
 
-                    lobbies.get(lobbyid)!.members.add(ws.raw);
+                    lobby.members.add(ws.raw);
 
                     console.log(
                         `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
                     );
-
-                    ws.raw.ping();
 
                     const interval = setInterval(() => {
                         if (ws.raw!.readyState === 3) {
@@ -136,7 +135,15 @@ export const hono = new Hono()
                     if (lobby && lobby.members.has(ws.raw)) {
                         scheduleDisconnect(ws.raw, lobby, lobbyid);
 
-                        if (lobby.members.size === 0) {
+                        const peopleReconnecting = lobby.members
+                            .values()
+                            .filter((u) => u.data.lobbyUserData.reconnecting)
+                            .toArray().length;
+
+                        if (lobby.members.size - peopleReconnecting === 0) {
+                            console.log(
+                                `scheduling lobby ${lobbyid} for deletion`
+                            );
                             lobby.deletionTimeout = setTimeout(() => {
                                 if (lobby.members.size === 0) {
                                     console.log(
@@ -144,7 +151,7 @@ export const hono = new Hono()
                                     );
                                     lobbies.delete(lobbyid);
                                 }
-                            }, 3000);
+                            }, 3500);
                         }
                     }
                 },

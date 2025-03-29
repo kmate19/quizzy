@@ -14,16 +14,26 @@ export function scheduleDisconnect(
 
     publishWs(ws, lobbyid, "disconnect", ws.data.lobbyUserData.username);
 
-    // ws.unsubscribe(lobbyid);
-    // clearTimeout(ws.data.lobbyUserData.pongTimeout);
-
     if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
         hostLeave(lobby.gameState, lobby.members);
+    }
+
+    if (!ws.data.lobbyUserData.canRecconnect) {
+        ws.unsubscribe(lobbyid);
+        clearTimeout(ws.data.lobbyUserData.pongTimeout);
+        lobby.members.delete(ws);
+
+        console.log(
+            `client ${ws.data.lobbyUserData.userId} deleted from lobby ${lobbyid} members left: ${lobby.members.size}}`
+        );
+        return;
     }
 
     ws.data.lobbyUserData.reconnecting = true;
 
     ws.data.lobbyUserData.deletionTimeout = setTimeout(() => {
+        ws.unsubscribe(lobbyid);
+        clearTimeout(ws.data.lobbyUserData.pongTimeout);
         lobby.members.delete(ws);
         console.log(
             `client ${ws.data.lobbyUserData.userId} deleted from lobby ${lobbyid} members left: ${lobby.members.size}}`
