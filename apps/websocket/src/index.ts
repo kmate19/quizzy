@@ -111,20 +111,18 @@ export const hono = new Hono()
                         return;
                     }
 
-                    console.log(
-                        `client ${ws.raw.data.lobbyUserData} left lobby ${lobbyid}`
-                    );
-
                     const lobby = lobbies.get(lobbyid);
 
-                    if (lobby) {
-                        lobby.members.delete(ws.raw);
+                    if (lobby && lobby.members.delete(ws.raw)) {
+                        console.log(
+                            `client ${ws.raw.data.lobbyUserData.userId} left lobby ${lobbyid} members left: ${lobby.members.size}}`
+                        );
 
                         publishWs(
                             ws.raw,
                             lobbyid,
                             "disconnect",
-                            ws.raw.data.lobbyUserData
+                            ws.raw.data.lobbyUserData.username
                         );
 
                         ws.raw.unsubscribe(lobbyid);
@@ -138,7 +136,16 @@ export const hono = new Hono()
                         }
 
                         if (lobby.members.size === 0) {
-                            lobbies.delete(lobbyid);
+                            console.log("scheduling timeout");
+                            setTimeout(() => {
+                                console.log("running timeout");
+                                if (lobby.members.size === 0) {
+                                    console.log(
+                                        `lobby ${lobbyid} is empty, deleting lobby`
+                                    );
+                                    lobbies.delete(lobbyid);
+                                }
+                            }, 5000);
                         }
                     }
                 },
