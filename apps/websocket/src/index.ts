@@ -165,6 +165,7 @@ export const hono = new Hono()
                 if (lobbies.has(code)) {
                     return c.json({ code }, 200);
                 } else {
+                    console.log(`lobby ${code} does not exist`);
                     return c.json({}, 400);
                 }
             }
@@ -179,6 +180,7 @@ export const hono = new Hono()
             const lobbyid = genLobbyId();
 
             if (lobbies.has(lobbyid)) {
+                console.log(`lobby ${lobbyid} already exists`);
                 return c.json({}, 400);
             }
 

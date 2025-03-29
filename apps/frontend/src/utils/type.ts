@@ -3,8 +3,8 @@ export type quizUpload = {
   title: string
   status: 'draft' | 'published' | 'requires_review' | 'private'
   banner: string
-  languageISOCodes: [string,...string[]] | undefined
-  tags: [string,...string[]] | undefined
+  languageISOCodes: [string,...string[]]
+  tags: [string,...string[]]
   cards: nonemptyCardArray
 }
 
@@ -66,7 +66,7 @@ export type detailedQuiz = {
   plays: number
   banner: string
   languages: Language[]
-  tags: Tag[]
+  tags: string[]
 }
 
 export type sentFriendship = {
@@ -102,8 +102,6 @@ export type stats = {
     first_places: number,
     second_places: number,
     third_places: number,
-    wins: number,
-    losses: number,
 }
 
 type role = {
@@ -113,6 +111,7 @@ type role = {
 }
 
 export type userProfile = {
+  id?: string
   email?: string
   username: string
   created_at: string
@@ -126,9 +125,53 @@ export type userProfile = {
 }
 
 export type Game = {
+  id: string;
   title: string;
   banner: string;
   description: string;
   cards: Question[];
 }
 
+export type ApiKey = {
+  id_by_user: number
+  key: string
+  created_at: string
+  expires_at: string
+}
+
+export type QuizData = {
+  quiz: {
+    id: string
+    title: string
+    description: string
+    status: string
+    banner: string
+  }
+  cards: Question[]
+  tagNames: string[]
+  languageISOCodes: string[]
+}
+
+export type gameStats = {
+  answers: string[],
+  scores:{
+    pfp: string,
+    pongTimeout?: object,
+    stats: {
+      wrongAnswerCount: number,
+      correctAnswerCount: number,
+      score: number,
+    },
+    userId: string,
+    username: string,
+  }[]
+} 
+
+export type Participants = {
+  host: string,
+  members: {
+     username: string,
+     pfp: string, 
+     userId: string 
+  }[]
+}

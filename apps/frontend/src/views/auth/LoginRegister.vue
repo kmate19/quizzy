@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import * as zod from 'zod'
 import router from '@/router'
 import { clientv1 } from '@/lib/apiClient'
-import MistBackground from '@/components/MistBackground.vue'
 import { baseRegisterSchema } from '@/schemas/RegistrationSchema'
 import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
+import { userData } from '@/utils/functions/profileFunctions'
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const queryClient = useQueryClient()
+const quizzyStore = useQuizzyStore()
 
 const isLoginForm = ref(true)
-const cardHeight = ref(0)
+
 
 const passwordRequirements = [
   '• Minimum 8 karakter',
@@ -80,7 +82,7 @@ const onRegistration = async () => {
   if (!valid.success) {
     regErrors.value = valid.error.format()
   } else {
-    regErrors.value = null;
+    regErrors.value = null
     const regRes = await clientv1.auth.register.$post({ json: regForm.value })
     console.log(regRes.status)
     if (regRes.status === 200) {
@@ -107,16 +109,31 @@ const onRegistration = async () => {
 }
 
 const onLogin = async () => {
-  (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
-      loginForm.value[key] = loginForm.value[key].trim()
-    })
+  ; (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
+    loginForm.value[key] = loginForm.value[key].trim()
+  })
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
   console.log(loginRes.status)
   if (loginRes.status === 200) {
-    const userData = await loginRes.json()
-    queryClient.setQueryData(['authUser'], userData)
-    localStorage.setItem('authUser', JSON.stringify(userData))
-    router.push('/')
+    queryClient.setQueryData(['authUser'], 'authed')
+    const res = await userData("")
+    if (res !== null) {
+      await queryClient.setQueryData(['userProfile', ''], res)
+      quizzyStore.isAdmin = res?.roles?.some(role => role.role.name === 'admin') || false
+      quizzyStore.userName = res?.username || ''
+      quizzyStore.fromLogin = true
+      quizzyStore.pfp =  res?.profile_picture || ''
+      quizzyStore.id = res?.id || ''
+      router.push('/')
+    } else {
+      toast('Hiba történt a felhasználó adatainak lekérdezése közben', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      } as ToastOptions)
+    }
   } else {
     const res = (await loginRes.json()) satisfies ApiResponse
     toast(res.error.message, {
@@ -135,36 +152,39 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
+const cardHeight = ref(500)
+
 const updateCardHeight = () => {
-  nextTick(() => {
-    const content = document.querySelector('.form-content') as HTMLDivElement | null
-    if (content) {
-      cardHeight.value = content.offsetHeight
+  const content = document.querySelector('.form-content') as HTMLElement
+  if (content) {
+    const height = content.offsetHeight || 0
+    if (height > 0) {
+      cardHeight.value = height + 100
+      console.log("Height updated:", cardHeight.value)
     }
-  })
+  }
 }
 
 onMounted(() => {
   updateCardHeight()
-
-  const storedUser = localStorage.getItem('authUser')
-  if (storedUser) {
-    const userData = JSON.parse(storedUser)
-    queryClient.setQueryData(['authUser'], userData)
-  }
+  window.addEventListener('resize', () => {
+        updateCardHeight()
+  })
 })
 </script>
 
 <template>
-  <MistBackground />
   <div class="wrapper">
     <div
-      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50 backdrop-blur-md transition-all duration-1000 !hover:bg-red-950 flex flex-col justify-evenly relative overflow-hidden text-white"
-      :style="{ height: `${cardHeight + 100}px` }">
+      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
+       backdrop-blur-md transition-all duration-1000 
+       !hover:bg-red-950 flex flex-col
+       justify-evenly relative text-white "
+      :style="{ height: `${cardHeight}px` }">
       <transition name="fade" enter-active-class="transition ease-out duration-300"
         leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
         @leave="updateCardHeight">
-        <div v-if="isLoginForm" class="form-content" key="login">
+        <div v-if="isLoginForm" class="form-content custom-scrollbar" key="login">
           <div class="flex justify-evenly flex-row mb-2">
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
@@ -200,7 +220,7 @@ onMounted(() => {
             </div>
           </form>
         </div>
-        <div v-else class="form-content" key="register">
+        <div v-else class="form-content custom-scrollbar" key="register">
           <div class="flex justify-evenly flex-row mb-2">
             <div class="flex items-center">
               <span class="font-weight-black text-3xl">Regisztráció</span>
@@ -208,14 +228,15 @@ onMounted(() => {
             </div>
           </div>
           <form @submit.prevent="onRegistration">
-            <v-text-field label="Email" name="email" v-model="regForm.email" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.email?._errors[0]" class="!mb-5"></v-text-field>
-
-            <v-text-field label="Felhasználónév" name="username" v-model="regForm.username" variant="outlined"
-              density="comfortable" :error-messages="regErrors?.username?._errors[0]" class="!mb-5"></v-text-field>
-
-            <v-text-field label="Jelszó" v-model="regForm.password" name="pw" variant="outlined" density="comfortable"
-              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative !mb-5"
+            <label for="email" class="text-white self-center">E-mail:</label>
+            <v-text-field name="email" v-model="regForm.email" variant="outlined" density="comfortable"
+              :error-messages="regErrors?.email?._errors[0]"  placeholder="pelda@pelda.com"></v-text-field>
+            <label for="username" class="text-white self-center">Felhasználónév:</label>
+            <v-text-field name="username" v-model="regForm.username" variant="outlined" density="comfortable"
+              :error-messages="regErrors?.username?._errors[0]"  placeholder="QuizzyUser43"></v-text-field>
+              <label for="pw" class="text-white self-center">Jelszó:</label>  
+            <v-text-field v-model="regForm.password" name="pw" variant="outlined" density="comfortable"
+              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative"
               :error-messages="regErrors?.password?._errors[0]">
               <button @click="togglePassword"
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 text-whitefocus:outline-none hover:text-gray-400"
@@ -224,11 +245,11 @@ onMounted(() => {
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
             </v-text-field>
-
-            <v-text-field label="Jelszó megerősítés" v-model="regForm.confirmPassword"
+            <label for="pw_again" class="text-white self-center">Jelszó megerősítése:</label>  
+            <v-text-field  v-model="regForm.confirmPassword"
               :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="togglePassword" name="pw" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-5">
+              @click:append-inner="togglePassword" name="pw_again" variant="outlined" density="comfortable"
+              :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-2">
             </v-text-field>
 
             <div class="w-full max-w-md space-y-6">
@@ -248,13 +269,39 @@ onMounted(() => {
     </div>
     <v-card
       class="headers !flex !flex-col !justify-center !items-center !text-center !bg-opacity-50 !backdrop-blur-md !rounded-2xl !bg-white/10">
-      <h1 class="title text-9xl text-white">Quizzy</h1>
+      <h1 class="title text-9xl text-purple-500">Quizzy</h1>
       <h3 class="quote text-5xl text-white">Fun way to learn haha</h3>
     </v-card>
   </div>
 </template>
 
 <style scoped>
+.custom-scrollbar {
+  scrollbar-width: thin;
+  /*tuzroka miatt kell*/
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+  scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
 .wrapper {
   height: 100vh;
   width: 100vw;
@@ -293,6 +340,12 @@ onMounted(() => {
 
 v-text-field {
   width: 80vh;
+}
+
+@media only screen and (max-height: 835px){
+  .form-content{
+    overflow-y: auto;
+  }
 }
 
 @media only screen and (max-width: 1440px) {
@@ -388,5 +441,17 @@ v-text-field {
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill:focus {
+  --webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important;
+  box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important;
+  --webkit-text-fill-color: #ffffff !important;
+  border-radius: 0.5rem !important;
 }
 </style>

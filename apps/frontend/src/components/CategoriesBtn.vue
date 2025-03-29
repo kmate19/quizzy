@@ -2,10 +2,26 @@
 import { ref, computed, onMounted } from 'vue'
 import { XIcon, Settings2, Search, Save, Check } from 'lucide-vue-next'
 import { getLanguages, getTags } from '@/utils/functions/metaFunctions'
-import type { Language, Tag } from '@/utils/type'
+import { useQuery } from '@tanstack/vue-query'
 
-const tags = ref<Tag[]>()
-const languages = ref<Language[]>()
+
+//set tags with useQuery
+const { data: tags } = useQuery({
+  queryKey: ['tags'],
+  queryFn: getTags,
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+})
+
+const { data: languages } = useQuery({
+  queryKey: ['languages'],
+  queryFn: getLanguages,
+  staleTime: Infinity,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+})
+
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedTagsData = ref<string[]>([])
@@ -59,8 +75,6 @@ const clearSelectedCategories = () => {
 const emit = defineEmits(['save'])
 
 onMounted(async () => {
-  tags.value = await getTags()
-  languages.value = await getLanguages()
   console.log(tags.value, languages.value)
 })
 </script>
@@ -181,7 +195,8 @@ onMounted(async () => {
           </div>
           <button
             @click="saveParams"
-            class="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            class="w-full !bg-green-900 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center gap-2 cursor-pointer glass-button
+            transition-all duration-300 ease-in-out"
           >
             <Save class="w-5 h-5" />
             Kategóriák mentése
@@ -239,5 +254,37 @@ onMounted(async () => {
   .transition-transform {
     transition: none;
   }
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 </style>

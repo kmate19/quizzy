@@ -12,8 +12,8 @@ export const getQuizzes = async (limit: string | undefined, currentPage: string 
         strict: isStrict !== undefined ? isStrict : undefined, 
         limit: limit !== undefined ? limit : undefined, 
         page: currentPage !== undefined ? currentPage : undefined, 
-        tagNamesQuery: tags !== undefined ? tags : undefined,
-        languageISOCodesQuery: languages !== undefined ? languages : undefined,
+        tagNames: tags !== undefined ? tags : undefined,
+        languageISOCodes: languages !== undefined ? languages : undefined,
       }})
     }
     else{

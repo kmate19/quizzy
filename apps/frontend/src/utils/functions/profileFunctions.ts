@@ -7,8 +7,9 @@ import * as zod from 'zod'
 import router from '@/router'
 
 export const userData = async (id: string) => {
-  //await new Promise(resolve => setTimeout(resolve, 2000))
+  console.log("beleptem")
   if (id !== '') {
+    console.log("van id")
     const user = await clientv1.userprofile[':userId'].$get({ param: { userId: id } })
     if (user.status === 200) {
       const res = await user.json()
@@ -35,10 +36,12 @@ export const userData = async (id: string) => {
       })
     }
   } else {
+    console.log("nincs id")
     const user = await clientv1.userprofile.$get()
     if (user.status === 200) {
       const res = await user.json()
       const userObj = {
+        id: res.data.id,
         email: res.data.email,
         username: res.data.username,
         created_at: new Date(res.data.created_at).toLocaleDateString(),
@@ -291,5 +294,7 @@ export const listApiKeys = async () => {
     return res.data.sort(
       (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
     )
+  }else {
+    return []
   }
 }

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import MistBackground from '@/components/MistBackground.vue'
-import NavBar from '@/components/NavBar.vue'
 import XButton from '@/components/XButton.vue'
 import { ref, watch, onMounted, computed } from 'vue'
 import { CloudUpload, CirclePlus } from 'lucide-vue-next'
@@ -122,8 +120,8 @@ const quiz = ref<quizUpload>({
   description: '',
   status: <'draft' | 'published' | 'requires_review' | 'private'>'published',
   banner: '',
-  languageISOCodes: undefined,
-  tags: undefined,
+  languageISOCodes: [] as unknown as [string, ...string[]],
+  tags: [] as unknown as [string, ...string[]],
   cards: [] as unknown as nonemptyCardArray,
 })
 
@@ -169,8 +167,8 @@ onMounted(async () => {
         languageISOCodes:
           data.languageISOCodes && data.languageISOCodes.length > 0
             ? (data.languageISOCodes as [string, ...string[]])
-            : undefined,
-        tags: data.tags && data.tags.length > 0 ? (data.tags as [string, ...string[]]) : undefined,
+            : [] as unknown as [string, ...string[]],
+        tags: data.tags && data.tags.length > 0 ? (data.tags as [string, ...string[]]) : [] as unknown as [string, ...string[]],
         cards: data.cards as nonemptyCardArray,
       }
 
@@ -372,7 +370,7 @@ const validateCard = () => {
   if (oneQuestion.value.picture.trim() === '') {
     return { valid: false, msg: 'Kérlek adj egy képet a kérdéshez!' }
   }
-  
+
   if (!oneQuestion.value.question.trim()) {
     return { valid: false, msg: 'Kérlek adj kérdést a kártyához!' }
   }
@@ -440,6 +438,16 @@ const validateQuizFields = () => {
     return { valid: false, msg: error }
   }
 
+  if(!(selectedTags.value.length > 0)){
+    error = 'Kérlek, válassz legalább egy kategóriát!'
+    return { valid: false, msg: error }
+  }
+
+  if (!(selectedLanguages.value.length > 0)) {
+    error = 'Kérlek, válassz legalább egy nyelvet!'
+    return { valid: false, msg: error }
+  }
+
   if (quiz.value.cards.length === 0) {
     error = 'Minden quiznek legalább egy kérdést kell tartalmaznia!'
     return { valid: false, msg: error }
@@ -470,12 +478,11 @@ const uploadOrUpdate = async () => {
   console.log(quiz.value)
   const uuid = route.params.uuid?.toString()
   const mappedCodes = selectedLanguages.value.map((l) => l.iso_code)
-  quiz.value.languageISOCodes = mappedCodes.length
-    ? (mappedCodes as [string, ...string[]])
-    : undefined
+  quiz.value.languageISOCodes = mappedCodes as [string, ...string[]]
   const mappedTags = selectedTags.value.map((t) => t.name)
-  quiz.value.tags = mappedTags.length ? (mappedTags as [string, ...string[]]) : undefined
+  quiz.value.tags = mappedTags as [string, ...string[]]
   const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
+
   if (res === true) {
     resetInputValues()
     oneQuestion.value.type = 'normal'
@@ -520,11 +527,10 @@ const marqueeDuration = computed(() => {
 
   return `${calculatedDuration}s`
 })
+
 </script>
 
 <template>
-  <MistBackground />
-  <NavBar />
   <Transition
     appear
     enter-active-class="transition ease-in-out duration-1000"
@@ -628,7 +634,9 @@ const marqueeDuration = computed(() => {
               <div class="relative inline-block text-left w-full">
                 <button
                   @click="toggleTagDropdown"
-                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between border border-white/30 overflow-hidden whitespace-nowrap"
+                  class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3 
+                  py-2 inline-flex items-center justify-between border
+                   border-white/30 overflow-hidden whitespace-nowrap"
                 >
                   <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden max-w-full">
                     <div class="overflow-x-hidden">
@@ -671,7 +679,7 @@ const marqueeDuration = computed(() => {
                 >
                   <div
                     v-if="isTagDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-auto "
                   >
                     <div class="py-1" v-click-outside="() => (isTagDropdownOpen = false)">
                       <input
@@ -755,7 +763,7 @@ const marqueeDuration = computed(() => {
                 >
                   <div
                     v-if="isLanguageDropdownOpen"
-                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-scroll custom-scrollbar"
+                    class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300 max-h-72 h-fit overflow-y-auto "
                   >
                     <div class="py-1" v-click-outside="() => (isLanguageDropdownOpen = false)">
                       <input
@@ -806,14 +814,21 @@ const marqueeDuration = computed(() => {
               label="Cím"
               variant="outlined"
               bg-color="rgba(255, 255, 255, 0.1)"
+              counter="24"
+              :rules="[(v) => v.length <= 24]"
+              @input="quiz.title = quiz.title.substring(0, 24)"
             />
             <v-textarea
               v-model="quiz.description"
               label="Leírás"
               variant="outlined"
               bg-color="rgba(255, 255, 255, 0.1)"
+              color="white"
+              counter="255"
+              :rules="[(v) => v.length <= 255]"
+              @input="quiz.description = quiz.description.substring(0, 255)"
             />
-            <v-btn block color="success" class="mt-2" @click="uploadOrUpdate">
+            <v-btn block color="success" class="mt-2" @click="uploadOrUpdate" @disabled="isLoading">
               <span v-if="isLoading" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <circle
@@ -1003,7 +1018,7 @@ const marqueeDuration = computed(() => {
               class="p-6 rounded-lg backdrop-blur-lg bg-white/10 overflow-hidden h-[calc(100vh-15vh)] flex flex-col"
             >
               <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
-              <div class="space-y-4 overflow-y-scroll custom-scrollbar flex-1 p-2">
+              <div class="space-y-4 overflow-y-auto  flex-1 p-2">
                 <div
                   v-for="(c, index) in quiz.cards"
                   :key="index"
@@ -1042,23 +1057,30 @@ const marqueeDuration = computed(() => {
 </template>
 
 <style scoped>
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 20px;
-  border: transparent;
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-all,
+  .transition-transform {
+    transition: none;
+  }
 }
 
 @keyframes marquee {
@@ -1082,33 +1104,9 @@ const marqueeDuration = computed(() => {
   padding-right: 1em;
 }
 
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-  scroll-behavior: smooth;
-}
 
 .emoji-text {
   font-family: 'Segoe UI', 'Noto Color Emoji', sans-serif;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .height-fade-enter-active,

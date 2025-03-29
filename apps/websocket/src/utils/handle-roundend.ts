@@ -76,5 +76,5 @@ function calculateScore(answerTimeDiff: number) {
 
     const timeMultiplier = Math.max(0, 1 - answerTimeDiff / 15000);
 
-    return Math.round(baseScore * timeMultiplier);
+    return Math.round(baseScore * (timeMultiplier + 1));
 }
