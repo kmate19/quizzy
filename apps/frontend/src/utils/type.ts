@@ -1,7 +1,7 @@
 export type quizUpload = {
   description: string
   title: string
-  status: 'draft' | 'published' | 'requires_review' | 'private'
+  status: 'draft' | 'published' | 'requires_review' | 'private' | 'rejected'
   banner: string
   languageISOCodes: [string, ...string[]]
   tags: [string, ...string[]]
