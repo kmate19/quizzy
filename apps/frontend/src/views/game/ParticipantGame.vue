@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted , nextTick } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next'
@@ -31,6 +31,7 @@ const timerRef = ref<number | null>(null)
 const preparingNextRound = ref(false)
 const currentQuestionIndex = ref(0)
 const hostId = ref('')
+const isReconnect = ref(false)
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -258,7 +259,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           (member) => member.userId !== data.data.userId,
         )
       }
-
       if (data.type === 'error') {
         console.log('Error:', data.error.message)
         if (data.error.message === 'You have been kicked') {
@@ -267,6 +267,10 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         }
         if (data.error.message === 'User already in lobby') {
           error.value = 'Már ezzel a fiókkal bent vagy egy játékban!'
+          quizzyStore.$reset()
+        }
+        if (data.error.message === 'Lobby does not exist') {
+          error.value = 'A lobby már nem létezik!'
           quizzyStore.$reset()
         }
       }
@@ -355,6 +359,10 @@ const decrase = () => {
 }
 
 onMounted(() => {
+  if(quizzyStore.lobbyId){
+    isReconnect.value = true
+    console.log('reconnect', quizzyStore.lobbyId)
+  }
   if (!lobbyId.value) {
     error.value = 'Invalid lobby ID'
     isLoading.value = false
@@ -362,29 +370,6 @@ onMounted(() => {
   }
   console.log('minden pacek')
   setupWebSocket()
-})
-
-onUnmounted(() => {
-  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
-    try {
-      console.log('Sending unsubscribe message')
-      websocket.value.send(
-        JSON.stringify({
-          type: 'unsubscribe',
-          successful: true,
-          server: false,
-        }),
-      )
-
-      setTimeout(() => {
-        if (websocket.value) {
-          websocket.value.close(1000, 'User left lobby')
-        }
-      }, 200)
-    } catch (err) {
-      console.error('Error leaving lobby:', err)
-    }
-  }
 })
 
 const startGame = () => {

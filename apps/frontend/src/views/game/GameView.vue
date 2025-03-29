@@ -30,6 +30,7 @@ const timerRef = ref<number | null>(null)
 const currentQuestionIndex = ref(0)
 const hostId = ref(quizzyStore.id)
 const preparingNextRound = ref(false)
+const isReconnect = ref(false)
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -222,6 +223,22 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         participants.value.members = participants.value.members.filter(member => member.userId !== data.data.userId)
       }
 
+      if (data.type === 'error') {
+        console.log('Error:', data.error.message)
+        if (data.error.message === 'You have been kicked') {
+          error.value = 'Ki lettél rúgva a játékból a játékvezető által!'
+          quizzyStore.$reset()
+        }
+        if (data.error.message === 'User already in lobby') {
+          error.value = 'Már ezzel a fiókkal bent vagy egy játékban!'
+          quizzyStore.$reset()
+        }
+        if (data.error.message === 'Lobby does not exist') {
+          error.value = 'A lobby már nem létezik!'
+          quizzyStore.$reset()
+        }
+      }
+
     } catch (err) {
       console.error('Error parsing WebSocket message:', err)
     }
@@ -365,6 +382,10 @@ const kickUser = (userName: string) => {
 }
 
 onMounted(() => {
+  if(quizzyStore.lobbyId){
+    isReconnect.value = true
+    console.log('reconnect', quizzyStore.lobbyId)
+  }
   if (!lobbyId.value) {
     error.value = 'Invalid lobby ID'
     isLoading.value = false
