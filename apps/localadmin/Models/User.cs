@@ -44,9 +44,9 @@ namespace localadmin.Models
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum EActivityStatus
         {
-            Active,
-            Inactive,
-            Away
+            active,
+            inactive,
+            away
         }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -59,9 +59,9 @@ namespace localadmin.Models
 
         private static readonly Dictionary<EActivityStatus, string> ActivityStatusTranslations = new Dictionary<EActivityStatus, string>
         {
-            { EActivityStatus.Active, "Aktív" },
-            { EActivityStatus.Inactive, "Inaktív" },
-            { EActivityStatus.Away, "Távol" }
+            { EActivityStatus.active, "Aktív" },
+            { EActivityStatus.inactive, "Inaktív" },
+            { EActivityStatus.away, "Távol" }
         };
 
         private static readonly Dictionary<EAuthStatus, string> AuthStatusTranslations = new Dictionary<EAuthStatus, string>

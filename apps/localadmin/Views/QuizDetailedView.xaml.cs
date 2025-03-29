@@ -173,23 +173,23 @@ namespace localadmin
 
             switch (Quiz.Status)
             {
-                case Quiz.EQuizStatus.Published:
+                case Quiz.EQuizStatus.published:
                     Status = "Közzétéve";
                     QuizStatus.Foreground = Brushes.Green;
                     break;
-                case Quiz.EQuizStatus.RequiresReview:
+                case Quiz.EQuizStatus.requires_review:
                     Status = "Felülvizsgálatra vár";
                     QuizStatus.Foreground = Brushes.Yellow;
                     break;
-                case Quiz.EQuizStatus.Draft:
+                case Quiz.EQuizStatus.draft:
                     Status = "Vázlat";
                     QuizStatus.Foreground = Brushes.Gray;
                     break;
-                case Quiz.EQuizStatus.Rejected:
-                    Status = "Privát";
+                case Quiz.EQuizStatus.rejected:
+                    Status = "Elutasítva";
                     QuizStatus.Foreground = Brushes.Red;
                     break;
-                case Quiz.EQuizStatus.Private:
+                case Quiz.EQuizStatus.@private:
                     Status = "Privát";
                     QuizStatus.Foreground = Brushes.Orange;
                     break;
@@ -200,11 +200,6 @@ namespace localadmin
         {
             PopUpModal dialog = new PopUpModal(message);
             bool? result = dialog.ShowDialog();
-            if(newStatus != Quiz.EQuizStatus.RequiresReview)
-            {
-                MessageBox.Show("Ez a quiz nem fogadható el.");
-                return;
-            }
 
             if (result == true)
             {
@@ -212,7 +207,8 @@ namespace localadmin
 
                 if (success)
                 {
-                    MessageBox.Show(newStatus == Quiz.EQuizStatus.Published ? "Quiz elfogadva" : "Quiz elutasítva");
+                    MessageBox.Show(newStatus == Quiz.EQuizStatus.published ? "Quiz elfogadva" : "Quiz elutasítva");
+                    Quiz.OnQuizUpdated();
                     Hide();
                 }
                 else
@@ -230,11 +226,23 @@ namespace localadmin
         /// <returns></returns>
         public async void AcceptQuiz(object sender, RoutedEventArgs e)
         {
-            await HandleQuizAction("Biztosan el szeretnéd fogadni ezt a quizt?", Quiz.EQuizStatus.Published);
+            if(Quiz.Status != Quiz.EQuizStatus.requires_review)
+            {
+                MessageBox.Show("Ez a quiz nem fogadható el.");
+                return;
+            }
+
+            await HandleQuizAction("Biztosan el szeretnéd fogadni ezt a quizt?", Quiz.EQuizStatus.published);
         }
         public async void DenyQuiz(object sender, RoutedEventArgs e)
         {
-            await HandleQuizAction("Biztosan el szeretnéd utasítani ezt a quizt?", Quiz.EQuizStatus.Rejected);
+            if (Quiz.Status != Quiz.EQuizStatus.requires_review)
+            {
+                MessageBox.Show("Ez a quiz nem fogadható el.");
+                return;
+            }
+
+            await HandleQuizAction("Biztosan el szeretnéd utasítani ezt a quizt?", Quiz.EQuizStatus.rejected);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

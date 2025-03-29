@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Forms;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.Quiz;
@@ -11,6 +12,15 @@ using static localadmin.Models.User;
 
 public static class ApiQuizzesService
 {
+    public class DetailedQuizData
+    {
+        public List<QuizCard> Cards { get; set; } = new();
+        public string Username { get; set; } = "Unknown";
+        public string Status { get; set; } = "Unknown";
+        public List<TagWrapper> Tags { get; set; } = new();
+    }
+
+
     private static readonly HttpClient client = new HttpClient();
     private static readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
     {
@@ -89,11 +99,11 @@ public static class ApiQuizzesService
     /// mivel az e fölött lévő függvény nem ad vissza nekünk minden információt, ezért itt külön lekérjük a quizekhez tartozó kérdéseket. Ez a függvény minden quizen végig megy.
     /// </summary>
     /// <param name="quizId"></param>
-    /// <param name="existingQuizzes"></param>
+    /// <param name="quiz"></param>
     /// <returns>A quiz kédései kártyákra szedve.</returns>
-    public static async Task<List<QuizCard>> GetQuizCardsByIdAsync(string quizId, ObservableCollection<Quiz> existingQuizzes)
+    public static async Task<DetailedQuizData?> GetQuizCardsByIdAsync(string quizId)
     {
-        string url = $"http://localhost:3000/api/v1/quizzes/{quizId}";
+        string url = $"http://localhost:3000/api/v1/admin/{quizId}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -102,6 +112,7 @@ public static class ApiQuizzesService
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string jsonResponse = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine(jsonResponse);
 
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {
@@ -109,56 +120,50 @@ public static class ApiQuizzesService
 
                 if (root.TryGetProperty("data", out JsonElement dataElement))
                 {
-                    List<QuizCard> quizCards = new List<QuizCard>();
+                    DetailedQuizData detailedData = new DetailedQuizData();
+
+                    //kártyák, ebbe vannak a kérdések, válaszok, stb.
                     if (dataElement.TryGetProperty("cards", out JsonElement cardsElement) &&
                         cardsElement.ValueKind == JsonValueKind.Array)
                     {
-                        quizCards = JsonSerializer.Deserialize<List<QuizCard>>(cardsElement.GetRawText(), jsonSerializerOptions)
-                                    ?? new List<QuizCard>();
+                        detailedData.Cards = JsonSerializer.Deserialize<List<QuizCard>>(cardsElement.GetRawText(), jsonSerializerOptions)
+                                            ?? new List<QuizCard>();
                     }
 
-                    //Itt kapjuk meg azt is, hogy ki készítette a quizt
-                    string username = "Unknown";
+                    //felhasználó neve aki csinálta
                     if (dataElement.TryGetProperty("user", out JsonElement userElement) &&
                         userElement.TryGetProperty("username", out JsonElement usernameElement))
                     {
-                        username = usernameElement.GetString() ?? "Unknown";
+                        detailedData.Username = usernameElement.GetString() ?? "Unknown";
                     }
 
-                    //Itt pedig azt, hogy milyen kategóriái vannak a quizhez
-                    List<TagWrapper> tags = new List<TagWrapper>();
+                    //a quiz státusza
+                    if (dataElement.TryGetProperty("status", out JsonElement statusElement))
+                    {
+                        detailedData.Status = statusElement.GetString() ?? "Unknown";
+                    }
+
+                    //a quizhez tartozó tag-ek
                     if (dataElement.TryGetProperty("tags", out JsonElement tagsElement) &&
                         tagsElement.ValueKind == JsonValueKind.Array)
                     {
-                        tags = JsonSerializer.Deserialize<List<TagWrapper>>(tagsElement.GetRawText(), jsonSerializerOptions)
-                               ?? new List<TagWrapper>();
+                        detailedData.Tags = JsonSerializer.Deserialize<List<TagWrapper>>(tagsElement.GetRawText(), jsonSerializerOptions)
+                                           ?? new List<TagWrapper>();
                     }
 
-                    var existingQuiz = existingQuizzes.FirstOrDefault(q => q.UUID == quizId);
-                    if (existingQuiz != null)
-                    {
-                        if (existingQuiz.User == null)
-                            existingQuiz.User = new UserWrapper { Username = username };
-                        else
-                            existingQuiz.User.Username = username;
-
-                        existingQuiz.Tags = tags;
-                    }
-                    else
-                        Debug.WriteLine($"Quiz with ID {quizId} not found in existing collection.");
-
-                    return quizCards;
+                    return detailedData;
                 }
             }
 
-            return new List<QuizCard>();
+            return null;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error fetching quiz cards for {quizId}: {ex.Message}");
-            return new List<QuizCard>();
+            Debug.WriteLine($"Error fetching quiz details for {quizId}: {ex.Message}");
+            return null;
         }
     }
+
 
     public static async Task<bool> UpdateQuizStatus(string quizId, EQuizStatus status)
     {
@@ -169,8 +174,10 @@ public static class ApiQuizzesService
         var body = new
         {
             quizId = quizId,
-            approve = status
+            approve = status.ToString().ToLower()
         };
+
+        Debug.WriteLine(body);
 
         string jsonPayload = JsonSerializer.Serialize(body);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");

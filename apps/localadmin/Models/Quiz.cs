@@ -19,11 +19,11 @@ namespace localadmin.Models
 
         public enum EQuizStatus
         {
-            Draft,
-            Published,
-            RequiresReview,
-            Private,
-            Rejected
+            draft,
+            published,
+            requires_review,
+            @private,
+            rejected
         }
 
         public class UserWrapper
@@ -76,6 +76,8 @@ namespace localadmin.Models
         public ICommand ViewUserCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand ViewQuizCommand { get; }
+
+        public event Action QuizUpdated = delegate { };
 
         [JsonPropertyName("id")]
         public string UUID { get; set; } = string.Empty;
@@ -160,6 +162,11 @@ namespace localadmin.Models
         {
             Window window = new QuizDetailedView(this);
             window.Show();
+        }
+
+        public void OnQuizUpdated()
+        {
+            QuizUpdated?.Invoke();
         }
     }
 }

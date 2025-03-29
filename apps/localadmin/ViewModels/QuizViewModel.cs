@@ -1,5 +1,6 @@
 ﻿using localadmin.Models;
 using localadmin.Services;
+using Microsoft.VisualBasic.ApplicationServices;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -28,10 +29,10 @@ namespace localadmin.ViewModels
 
         private Dictionary<EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
         {
-            {EQuizStatus.RequiresReview, 1 },
-            {EQuizStatus.Published, 2 },
-            {EQuizStatus.Draft, 3 },
-            {EQuizStatus.Private, 4 }
+            {EQuizStatus.requires_review, 1 },
+            {EQuizStatus.published, 2 },
+            {EQuizStatus.draft, 3 },
+            {EQuizStatus.@private, 4 }
         };
 
         public int CurrentPage
@@ -101,9 +102,8 @@ namespace localadmin.ViewModels
             await GetQuizes();
         }
 
-
         /// <summary>
-        /// Ez a függvény lekéri az összes quiz-t az API-ról.
+        /// Ez a függvény lekéri az összes quiz-et az adatbázisból.
         /// </summary>
         /// <returns></returns>
         public async Task GetQuizes()
@@ -117,12 +117,27 @@ namespace localadmin.ViewModels
             foreach (var quiz in fetchedQuizes.Quizzes)
             {
                 quiz.Initialize(NavigationService, SharedState);
-                quiz.QuizCards = await LoadQuizCards(quiz.UUID);
+                quiz.QuizUpdated += async () => await GetQuizes();
 
                 quizzesList.Add(quiz);
                 filteredList.Add(quiz);
+            }
 
-                Debug.WriteLine(quiz.Status);
+            //itt hozzáadunk minden más adatot a quizhez, amit a QuizCardokban tárolunk, illetve a státuszt, és a tag-eket
+            foreach (var quiz in quizzesList)
+            {
+                var detailedData = await ApiQuizzesService.GetQuizCardsByIdAsync(quiz.UUID);
+                if (detailedData != null)
+                {
+                    quiz.QuizCards = detailedData.Cards;
+                    quiz.Tags = detailedData.Tags;
+                    quiz.User = new UserWrapper { Username = detailedData.Username };
+
+                    if (Enum.TryParse<EQuizStatus>(detailedData.Status, true, out var parsedStatus))
+                        quiz.Status = parsedStatus;
+
+                    Debug.WriteLine(quiz.Status);
+                }
             }
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -144,33 +159,9 @@ namespace localadmin.ViewModels
                 }
             });
 
-            //ha nincs több oldal, akkor a gomb inaktív lesz
             maxPage = (int)Math.Ceiling((double)fetchedQuizes.TotalCount / PageSize);
 
             IsLoading = false;
-        }
-
-        /// <summary>
-        /// Ez a függvény lekéri az összes quiz card-ot az adatbázisból amik a kérdéseket tartalmázzák.
-        /// </summary>
-        /// <param name="quizId"></param>
-        /// <returns></returns>
-        private async Task<List<QuizCard>> LoadQuizCards(string quizId)
-        {
-            var quizCards = await ApiQuizzesService.GetQuizCardsByIdAsync(quizId, Quizzes);
-
-            if (!quizCards.Any())
-            {
-                Debug.WriteLine("No quiz cards found.");
-                return new();
-            }
-
-            foreach (var quizCard in quizCards)
-            {
-                Debug.WriteLine(quizCard.QuizID);
-            }
-
-            return quizCards;
         }
 
         /// <summary>
