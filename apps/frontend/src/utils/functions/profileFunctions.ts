@@ -287,6 +287,7 @@ export const deleteApiKey = async (uuid: number) => {
 }
 
 export const listApiKeys = async () => {
+  console.log('listApiKeys')
   const get = await clientv1.apikey.list.$get()
   if (get.status === 200) {
     const res = await get.json()

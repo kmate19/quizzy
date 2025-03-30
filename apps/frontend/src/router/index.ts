@@ -106,6 +106,7 @@ router.beforeEach(async (toRoute, fromRoute, next) => {
             quizzyStore.userName = data.username
             quizzyStore.pfp = data.profile_picture
             quizzyStore.id = data.id || ''
+            quizzyStore.isAdmin = data.roles.some(role => role.role.name === 'admin') || false
           }
         }
 

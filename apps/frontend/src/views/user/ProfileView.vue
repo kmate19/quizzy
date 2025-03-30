@@ -21,6 +21,7 @@ import {
 } from '@/utils/functions/profileFunctions'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
+const quizzyStore = useQuizzyStore()
 const localPfp = ref('')
 const keyId = ref(0)
 const isLoadingDelete = ref(false)
@@ -82,7 +83,7 @@ watch(
 )
 
 const isAdmin = computed(() => {
-  return localStorage.getItem('isAdmin') === "admin"
+  return quizzyStore.isAdmin
 })
 
 const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
