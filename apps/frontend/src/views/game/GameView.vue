@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, toRaw, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, toRaw, nextTick } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next'
@@ -167,6 +167,14 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           addParticipant(member.username, member.pfp, member.userId)
         }
         hostId.value = data.data.host
+      }
+      
+      if(data.type === 'gamestate')
+      {
+        console.log(data.data)
+        gameStarted.value = true
+        currentCard.value = data.data.currentQuestion
+        time.value = data.data.roundTimeLeftMs
       }
 
       if (data.type === 'gamestarted') {
@@ -452,14 +460,6 @@ onMounted(() => {
   setupWebSocket()
 })
 
-onUnmounted(() => {
-  quizzyStore.setLobbyData({
-    lobbyId: '',
-    isHost: false,
-    quizId: '',
-    canReconnect: false,
-  })
-})
 </script>
 
 <template>
