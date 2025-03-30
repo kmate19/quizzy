@@ -104,6 +104,7 @@ export async function handleWsMessage(
             lobby.gameState = {
                 hostId: lobby.gameState.hostId,
                 started: true,
+                roundTimeMs: 15000,
                 questionIndices: jumbleIndicesIntoIter(
                     lobby.quizData.cards.length
                 ),

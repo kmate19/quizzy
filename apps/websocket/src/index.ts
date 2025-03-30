@@ -13,7 +13,12 @@ import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
 import { handleWsMessage } from "./input/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./output/close";
 import { sendSingle } from "./output/send";
-import { scheduleDisconnect } from "./input/handle-disconnect";
+import {
+    scheduleDisconnect,
+    scheduleLobbyDeletion,
+} from "./input/handle-disconnect";
+import { reconnect } from "./input/handle-reconnect";
+import { getReconnetingCount } from "./utils/get-reconnecting";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -78,7 +83,7 @@ export const hono = new Hono()
 
                     const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
 
-                    const reconn = lobby.members
+                    const reconnectingUser = lobby.members
                         .values()
                         .find(
                             (u) =>
@@ -86,15 +91,9 @@ export const hono = new Hono()
                                 jwtdataValid.userId
                         );
 
-                    if (reconn) {
+                    if (reconnectingUser) {
                         console.log("reconnecting user", jwtdataValid.userId);
-                        const save = reconn.data.lobbyUserData;
-                        clearTimeout(save.deletionTimeout);
-                        save.reconnecting = false;
-                        ws.raw.data.lobbyUserData = save;
-                        lobby.members.delete(reconn);
-                        ws.raw.subscribe(lobbyid);
-                        lobby.members.add(ws.raw);
+                        reconnect(reconnectingUser, ws.raw, lobby, lobbyid);
                         return;
                     }
 
@@ -112,14 +111,8 @@ export const hono = new Hono()
                         }, 20000),
                     };
 
-                    lobby.members.add(ws.raw);
-
-                    console.log(
-                        `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
-                    );
-
                     const interval = setInterval(() => {
-                        if (ws.raw!.readyState === 3) {
+                        if (ws.raw?.readyState === 3) {
                             clearInterval(interval);
                         } else {
                             sendSingle(ws.raw!, "ping");
@@ -127,6 +120,11 @@ export const hono = new Hono()
                     }, 10000);
 
                     ws.raw.subscribe(lobbyid);
+                    lobby.members.add(ws.raw);
+
+                    console.log(
+                        `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
+                    );
                 },
                 onClose: (_, ws) => {
                     if (!ws.raw) {
@@ -138,23 +136,11 @@ export const hono = new Hono()
                     if (lobby && lobby.members.has(ws.raw)) {
                         scheduleDisconnect(ws.raw, lobby, lobbyid);
 
-                        const peopleReconnecting = lobby.members
-                            .values()
-                            .filter((u) => u.data.lobbyUserData.reconnecting)
-                            .toArray().length;
-
-                        if (lobby.members.size - peopleReconnecting === 0) {
-                            console.log(
-                                `scheduling lobby ${lobbyid} for deletion`
-                            );
-                            lobby.deletionTimeout = setTimeout(() => {
-                                if (lobby.members.size === 0) {
-                                    console.log(
-                                        `lobby ${lobbyid} is empty, deleting lobby`
-                                    );
-                                    lobbies.delete(lobbyid);
-                                }
-                            }, 3500);
+                        if (
+                            lobby.members.size - getReconnetingCount(lobby) ===
+                            0
+                        ) {
+                            scheduleLobbyDeletion(lobbies, lobby, lobbyid);
                         }
                     }
                 },

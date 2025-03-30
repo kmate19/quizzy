@@ -8,6 +8,7 @@ import { z } from "zod";
 
 // TODO: filter out system messages that can only be sent by the server
 const wsMessageTypeZEnum = z.enum([
+    "gamestate",
     "hostchange",
     "kick",
     "answered",

@@ -1,4 +1,4 @@
-import { GameState, Lobby, LobbyUser } from "@/types";
+import { GameState, Lobby, LobbyMap, LobbyUser } from "@/types";
 import { ServerWebSocket } from "bun";
 import { publishWs, sendLobby } from "@/output/send";
 
@@ -8,11 +8,10 @@ export function scheduleDisconnect(
     lobbyid: string
 ) {
     console.log(
-        `client ${ws.data.lobbyUserData.userId} left lobby ${lobbyid} scheduling for deletion, members left: ${lobby.members.size}}`
+        `client ${ws.data.lobbyUserData.userId} left lobby ${lobbyid} scheduling for deletion, members left: ${lobby.members.size} (including reconnecting)`
     );
 
     if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
-        console.log("host left");
         scheduleHostChange(lobby.gameState, lobby.members);
     }
 
@@ -23,10 +22,23 @@ export function scheduleDisconnect(
     }
 
     ws.data.lobbyUserData.reconnecting = true;
-
     ws.data.lobbyUserData.deletionTimeout = setTimeout(() => {
         disconnect(ws, lobby, lobbyid);
     }, 3000);
+}
+
+export function scheduleLobbyDeletion(
+    lobbies: LobbyMap,
+    lobby: Lobby,
+    lobbyid: string
+) {
+    console.log(`scheduling lobby ${lobbyid} for deletion`);
+    lobby.deletionTimeout = setTimeout(() => {
+        if (lobby.members.size === 0) {
+            console.log(`lobby ${lobbyid} is empty, deleting lobby`);
+            lobbies.delete(lobbyid);
+        }
+    }, 3500);
 }
 
 function disconnect(
@@ -48,6 +60,7 @@ function scheduleHostChange(
     gameState: GameState,
     members: Set<ServerWebSocket<LobbyUser>>
 ) {
+    console.log("host left scheduling host change");
     setTimeout(() => {
         if (
             !members
