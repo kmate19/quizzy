@@ -54,6 +54,7 @@ namespace localadmin.Views
 
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+
             try
             {
                 HttpResponseMessage response = await client.GetAsync(url);
@@ -64,12 +65,23 @@ namespace localadmin.Views
                        responseData.TryGetValue("message", out string? success) &&
                        success.Equals("Authenticated", StringComparison.OrdinalIgnoreCase);
             }
+            catch (HttpRequestException ex)
+            {
+                MessageBox.Show($"Az API nem érhető el: {ex.Message}");
+                return false;
+            }
+            catch (TaskCanceledException ex)
+            {
+                MessageBox.Show("API request timed out.");
+                return false;
+            }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);    
+                MessageBox.Show($"Unexpected error: {ex.Message}");
                 return false;
             }
         }
+
 
         protected override void OnClosed(EventArgs e)
         {

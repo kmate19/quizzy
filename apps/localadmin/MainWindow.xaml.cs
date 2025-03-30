@@ -64,6 +64,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         DataContext = this;
     }
 
+    /// <summary>
+    /// Ez a funkció fut le, amikor az ablak betöltődik az api kulcs megadása után.
+    /// </summary>
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         UserViewModel = new UserViewModel(NavigationService, SharedState);
