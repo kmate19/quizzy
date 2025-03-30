@@ -15,7 +15,6 @@ namespace localadmin.Views
         private MainWindow MainWindow;
         private static readonly HttpClient client = new HttpClient();
 
-
         public APIKeyWindow(MainWindow mainWindow)
         {
             InitializeComponent();

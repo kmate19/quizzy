@@ -5,9 +5,6 @@ using localadmin.ViewModels;
 using System.Diagnostics;
 using localadmin.Services;
 using localadmin.Views;
-using System.Formats.Asn1;
-using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace localadmin;
 
@@ -76,7 +73,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await UserViewModel.InitializeAsync();
         await QuizViewModel.InitializeAsync();
 
-        OnViewModelChanged(QuizViewModel);
+        OnViewModelChanged(UserViewModel);
         OnPropertyChanged(nameof(CurrentView));
 
         Loaded -= MainWindow_Loaded;

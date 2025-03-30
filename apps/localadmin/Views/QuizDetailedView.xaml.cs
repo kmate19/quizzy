@@ -4,9 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using localadmin.Models;
-using localadmin.Services;
 using localadmin.Views;
-using static localadmin.Models.User;
 
 namespace localadmin
 {
@@ -82,7 +80,6 @@ namespace localadmin
                 OnPropertyChanged(nameof(Status));
             }
         }
-
 
         public QuizDetailedView(Quiz quiz)
         {

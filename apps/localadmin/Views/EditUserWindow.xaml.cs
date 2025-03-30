@@ -32,7 +32,7 @@ namespace localadmin.Views
 
             AllRoles = new List<SelectableItem<string>>
             {
-                new SelectableItem<string> { Value = "default", Description="Alap jogosultság",IsSelected = false, IsLocked=false},
+                new SelectableItem<string> { Value = "default", Description="Alap jogosultság", IsSelected = false, IsLocked=false},
                 new SelectableItem<string> { Value = "admin", Description="Minden it tud mokolni" ,IsSelected = false, IsLocked = false}
             };
 
