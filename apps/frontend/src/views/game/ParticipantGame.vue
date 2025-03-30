@@ -196,6 +196,12 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         gameStarted.value = true
         currentCard.value = data.data.currentQuestion
         time.value = data.data.roundTimeLeftMs
+        if (timerRef.value !== null) {
+          clearTimeout(timerRef.value)
+          timerRef.value = null
+        }
+
+        decrase()
       }
 
       if (data.type === 'gamestarted') {
