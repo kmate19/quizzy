@@ -24,8 +24,10 @@ export function reconnect(
             currentQuestion:
                 lobby.quizData?.cards[lobby.gameState.currentQuestionIndex!],
             currentRoundAnswers: lobby.gameState.currentRoundAnswers,
+            currentRoundIndex: lobby.gameState.currentQuestionIndex,
             roundTimeLeftMs:
-                lobby.gameState.roundTimeStartedEpoch! - Date.now(),
+                lobby.gameState.roundTimeMs -
+                (Date.now() - lobby.gameState.roundTimeStartedEpoch!),
         };
         sendSingle(newWs, "gamestate", reconnectData);
     }
