@@ -34,6 +34,13 @@ namespace localadmin.Models
         }
     }
 
+    public class StatWrapper
+    {
+        public int? Plays { get; set; }
+        [JsonPropertyName("first_places")]
+        public int? FirstPlaces { get; set; }
+    }
+
     public class User
     {
         /// <summary>
@@ -108,6 +115,8 @@ namespace localadmin.Models
         public ProfilePictureWrapper ProfilePicture { get; set; } = new ProfilePictureWrapper();
         public byte[]? ProfilePictureArray => ProfilePicture?.GetByteArray();
         public ImageSource? ProfileImage => ByteArrayToImage(ProfilePictureArray);
+
+        public StatWrapper Stats { get; set; } = new StatWrapper();
 
         public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
 

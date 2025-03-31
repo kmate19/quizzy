@@ -56,6 +56,9 @@ namespace localadmin.ViewModels
                 user.Initialize(NavigationService, SharedState);
                 user.UserUpdated += async () => await GetUsers();
 
+                Debug.WriteLine(user.Stats.FirstPlaces +" 1st");
+                Debug.WriteLine(user.Stats.Plays + " total");
+
                 usersList.Add(user);
                 filteredList.Add(user);
             }

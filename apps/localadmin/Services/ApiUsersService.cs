@@ -34,6 +34,7 @@ namespace localadmin.Services
                 HttpResponseMessage response = await client.GetAsync(url);
                 response.EnsureSuccessStatusCode();
                 string jsonResponse = await response.Content.ReadAsStringAsync();
+                Debug.Write(jsonResponse);
 
                 using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
                 {
