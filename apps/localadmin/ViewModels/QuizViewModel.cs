@@ -135,8 +135,6 @@ namespace localadmin.ViewModels
 
                     if (Enum.TryParse<EQuizStatus>(detailedData.Status, true, out var parsedStatus))
                         quiz.Status = parsedStatus;
-
-                    Debug.WriteLine(quiz.Status);
                 }
             }
 

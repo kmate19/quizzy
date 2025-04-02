@@ -55,9 +55,7 @@ namespace localadmin.ViewModels
             {
                 user.Initialize(NavigationService, SharedState);
                 user.UserUpdated += async () => await GetUsers();
-
-                Debug.WriteLine(user.Stats.FirstPlaces +" 1st");
-                Debug.WriteLine(user.Stats.Plays + " total");
+                user.Winrate = user.Stats.Plays == 0 || !user.Stats.Plays.HasValue || !user.Stats.FirstPlaces.HasValue ? 0 : ((double)user.Stats.FirstPlaces.Value / user.Stats.Plays.Value) * 100;
 
                 usersList.Add(user);
                 filteredList.Add(user);

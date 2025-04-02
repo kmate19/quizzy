@@ -4,6 +4,7 @@ using localadmin.Views;
 using System.Data;
 using System.IO;
 using System.Text.Json.Serialization;
+using System.Transactions;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -117,6 +118,7 @@ namespace localadmin.Models
         public ImageSource? ProfileImage => ByteArrayToImage(ProfilePictureArray);
 
         public StatWrapper Stats { get; set; } = new StatWrapper();
+        public double Winrate { get; set; }
 
         public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
 

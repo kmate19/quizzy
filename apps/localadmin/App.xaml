@@ -132,33 +132,30 @@
         <!--Expander Animation-->
         <Style x:Key="ExpanderAnimation" TargetType="Expander">
             <Style.Triggers>
-                <Trigger Property="IsExpanded" Value="True">
-                    <Trigger.EnterActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation 
-                                    Storyboard.TargetProperty="(Expander.Content).(FrameworkElement.Height)" 
-                                    From="0" To="130" Duration="0:0:0.3" />
-                                <DoubleAnimation 
-                                    Storyboard.TargetProperty="(Expander.Content).(UIElement.Opacity)" 
-                                    From="0" To="1" Duration="0:0:0.3" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </Trigger.EnterActions>
-
-                    <Trigger.ExitActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation 
-                                    Storyboard.TargetProperty="(Expander.Content).(FrameworkElement.Height)" 
-                                    From="130" To="0" Duration="0:0:0.3" />
-                                <DoubleAnimation 
-                                    Storyboard.TargetProperty="(Expander.Content).(UIElement.Opacity)" 
-                                    From="1" To="0" Duration="0:0:0.2" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </Trigger.ExitActions>
-                </Trigger>
+                <EventTrigger RoutedEvent="Expander.Expanded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation 
+                        Storyboard.TargetProperty="(Expander.Content).(FrameworkElement.Height)" 
+                        From="0" To="130" Duration="0:0:0.3" />
+                            <DoubleAnimation 
+                        Storyboard.TargetProperty="(Expander.Content).(UIElement.Opacity)" 
+                        From="0" To="1" Duration="0:0:0.3" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Expander.Collapsed">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation 
+                        Storyboard.TargetProperty="(Expander.Content).(FrameworkElement.Height)" 
+                        From="130" To="0" Duration="0:0:0.3" />
+                            <DoubleAnimation 
+                        Storyboard.TargetProperty="(Expander.Content).(UIElement.Opacity)" 
+                        From="1" To="0" Duration="0:0:0.3" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
             </Style.Triggers>
         </Style>
 

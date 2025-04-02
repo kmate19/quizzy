@@ -46,7 +46,6 @@ public static class ApiQuizzesService
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string jsonResponse = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine(jsonResponse);
 
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {
@@ -112,7 +111,6 @@ public static class ApiQuizzesService
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string jsonResponse = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine(jsonResponse);
 
             using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
             {

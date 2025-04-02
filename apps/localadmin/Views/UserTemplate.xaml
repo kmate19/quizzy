@@ -48,33 +48,36 @@
                                     <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0" Margin="20, 0, 30, 0">
+                                <StackPanel Grid.Column="0" Margin="10, 0, 20, 0">
+                                    <TextBlock Text="Összes játék: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
+                                    <TextBlock Text="{Binding Stats.Plays}" FontSize="20"/>
                                     <TextBlock Text="Regisztrálva: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding CreatedAt}" TextWrapping="Wrap" FontSize="20" Margin="0, 0, 0, 10"/>
+                                    <TextBlock Text="{Binding CreatedAt}" TextWrapping="Wrap" FontSize="20"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0, 0, 20, 0">
+                                    <TextBlock Text="1. helyezések: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
+                                    <TextBlock Text="{Binding Stats.FirstPlaces}" Foreground="Gold" FontSize="20" />
                                     <TextBlock Text="Módosítva: " Foreground="#33B6EF" FontSize="20" />
                                     <TextBlock Text="{Binding UpdatedAt}" TextWrapping="Wrap" FontSize="20" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="1" Margin="0, 0, 15, 0">
-                                    <TextBlock Text="Státusz: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding TranslatedActivityStatus}" Style="{StaticResource ActivityStatusStyle}" TextWrapping="Wrap" FontSize="20" Margin="0, 0, 0, 10"/>
+                                <StackPanel Grid.Column="2" Margin="0, 0, 20, 0">
+                                    <TextBlock Text="Nyerési Arány: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
+                                    <TextBlock>
+                                        <Run Text="{Binding Winrate}" FontSize="20"/>
+                                        <Run Text="%" FontSize="20"/>
+                                    </TextBlock>
                                     <TextBlock Text="Hitelesítési állapot: " Foreground="#33B6EF" FontSize="20" />
                                     <TextBlock Text="{Binding TranslatedAuthStatus}" Style="{StaticResource AuthStatusStyle}" TextWrapping="Wrap" FontSize="20" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Összes játék: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Stats.Plays}" FontSize="20" Margin="0, 0, 0, 10"/>
-                                    <TextBlock Text="1. helyezések: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding Stats.FirstPlaces}" Foreground="Gold" FontSize="20" />
-                                </StackPanel>
-
                                 <StackPanel Grid.Column="4">
                                     <Button Command="{Binding ViewQuizCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
-                                        <TextBlock Text="Quizei Megtekintése" TextWrapping="Wrap"></TextBlock>
+                                        <TextBlock Text="Quizei Megtekintése" TextWrapping="Wrap"/>
                                     </Button>
                                     <Button Command="{Binding ViewReviewCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
-                                        <TextBlock Text="Értékelései Megtekintése" TextWrapping="Wrap"></TextBlock>
+                                        <TextBlock Text="Értékelései Megtekintése" TextWrapping="Wrap"/>
                                     </Button>
                                 </StackPanel>
 
