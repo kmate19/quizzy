@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import testComp from '@/components/testComp.vue'
+import PreviewQuestion from '@/components/PreviewQuestion.vue'
 import XButton from '@/components/XButton.vue'
 import { ref, watch, onMounted, computed } from 'vue'
 import { CloudUpload, CirclePlus } from 'lucide-vue-next'
@@ -789,7 +789,7 @@ const marqueeDuration = computed(() => {
               <div class="space-y-4 overflow-y-auto  flex-1 p-2">
                 <draggable v-model="quiz.cards" item-key="id" class="gap-2 flex flex-col">
                   <template #item="{ element: card, index }">
-                    <testComp :question="card.question" :img="card.picture" :answers="card.answers" :index="index"
+                    <PreviewQuestion :question="card.question" :img="card.picture" :answers="card.answers" :index="index"
                       :type="card.type" :correct_answer_index="card.correct_answer_index" :handleQuestionRemove="handleQuestionRemove" 
                       :handleQuestionEdit="handleQuestionModify"/>
                   </template>
