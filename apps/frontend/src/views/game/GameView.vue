@@ -44,10 +44,7 @@ const copyLobbyCode = () => {
 
 const setupWebSocket = async () => {
   try {
-    console.log('websocket setup', lobbyId.value)
     const wsHash = await generateSessionHash(lobbyId.value, import.meta.env.VITE_HASH || 'asd')
-
-    console.log('connecting to...:', lobbyId.value)
     const ws = await wsclient.ws.server[':lobbyid'][':hash'].$ws({
       param: { lobbyid: lobbyId.value, hash: wsHash },
     })
@@ -82,13 +79,11 @@ const addParticipant = (username: string, pfp: string, id: string) => {
     pfp: 'data:image/png;base64,' + pfp,
     userId: id,
   }
-  console.log(newUser)
   participants.value!.members = [...participants.value!.members, newUser]
 }
 
 const setupWebSocketListeners = (ws: WebSocket) => {
   ws.addEventListener('open', () => {
-    console.log('lobby open', lobbyId.value)
     isLoading.value = false
     reconnectAttempts.value = 0
     if (ws.readyState === WebSocket.OPEN) {
@@ -97,10 +92,8 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         pfp: quizzyStore.pfp.replace('data:image/png;base64,', ''),
         id: quizzyStore.id,
       }
-      console.log('USERDATA', userData)
 
       if (isReconnect.value === true) {
-        console.log("Reconnecting to existing session")
         ws.send(
           JSON.stringify({
             type: 'members',
@@ -134,8 +127,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         )
       }
 
-      console.log('quizdata', toRaw(quizzyStore.currentQuiz))
-
       addParticipant(userData.username, userData.pfp, userData.id)
     } else {
       console.error('not open. state:', ws.readyState)
@@ -164,7 +155,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
 
       if (data.type === 'members') {
-        console.log('data members', data.data)
+      
         for (const member of data.data.members) {
           addParticipant(member.username, member.pfp, member.userId)
         }
@@ -172,11 +163,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
 
       if (data.type === 'gamestate') {
-        console.log('Game state received', data.data)
+        
         gameStarted.value = true
         currentCard.value = data.data.currentQuestion
         time.value = data.data.roundTimeLeftMs
-        currentQuestionIndex.value = data.data.currentRoundIndex
+        currentQuestionIndex.value = data.data.currentRoundIndex-1
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
           timerRef.value = null
@@ -219,7 +210,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         }
         answerSelected.value = false
         console.log('Round ended')
-        console.log('Round ende data:', data.data)
         stats.value = data.data
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
@@ -227,7 +217,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         }
         currentQuestionIndex.value++
         stats.value = data.data
-        console.log('Stats:', stats.value)
         stats.value?.scores.forEach((player) => {
           player.pfp = 'data:image/png;base64,' + player.pfp
         })
@@ -240,28 +229,27 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
       if (data.type === 'gamended') {
         console.log('Game ended')
-        console.log('Game ended data:', data.data)
         gameStarted.value = false
         preparingNextRound.value = false
         currentCard.value = null
         answerSelected.value = false
         gameEnded.value = true
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
-        console.log(stats.value)
       }
 
       if (data.type === 'disconnect') {
-        console.log('User disconnected', data.data.userId)
         participants.value.members = participants.value.members.filter(
-          (member) => member.userId !== data.data.userId,
+          (member) => member.username !== data.data,
         )
+        if (stats.value) {
+          stats.value.scores = stats.value.scores?.filter(
+            (member) => member.username !== data.data,
+          )
+        }
       }
 
       if (data.type === 'hostchange') {
-        console.log('Host change', quizzyStore.isHost)
-        console.log('jo a host change', data.data.userId === quizzyStore.id)
         if (data.data.userId !== quizzyStore.id) {
-          console.log('nem te vagy a host')
           quizzyStore.isHost = false
           isHost.value = false
         }
@@ -294,7 +282,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       }
 
       if (data.type === 'error') {
-        console.log('Error:', data.error.message)
         if (data.error.message === 'You have been kicked') {
           error.value = 'Ki lettél rúgva a játékból a játékvezető által!'
           hasSomeReason.value = true
@@ -323,7 +310,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
   })
 
   ws.addEventListener('close', (event) => {
-    console.log('WebSocket closed:', event.code, event.reason)
 
     if (event.code === 1003) {
       error.value = event.reason || 'Server closed the connection'
@@ -334,7 +320,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 }
 
 const leaveLobby = () => {
-  console.log('Leaving lobby:', lobbyId.value)
 
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     try {
@@ -437,7 +422,6 @@ const restartGame = () => {
 }
 
 const kickUser = (userName: string) => {
-  console.log('Kick user')
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
       JSON.stringify({
@@ -455,15 +439,12 @@ const kickUser = (userName: string) => {
 onMounted(() => {
   if (quizzyStore.canReconnect) {
     isReconnect.value = true
-    console.log('reconnect', quizzyStore.currentQuiz)
   }
   if (!lobbyId.value) {
     error.value = 'Invalid lobby ID'
     isLoading.value = false
     return
   }
-  console.log('minden pacek')
-  console.log('wattutt', quizzyStore.currentQuiz)
 
   setupWebSocket()
 })
@@ -476,8 +457,8 @@ onMounted(() => {
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       <p class="ml-4 text-white text-xl">Csatlakozás...</p>
     </div>
-    <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white">
-      <p class="mb-4">{{ error }}</p>
+    <div v-else-if="error" class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white flex text-center flex-col items-center">
+      <p class="mb-4 text-center">{{ error }}</p>
       <div class="flex gap-4 justify-center">
         <button @click="manualReconnect" class="glass-button px-4 py-2 rounded-md bg-green-600/30"
           v-if="!hasSomeReason">

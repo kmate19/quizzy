@@ -7,7 +7,6 @@ import { computed } from 'vue';
 const route = useRoute();
 const hide = ['/login', '/forgotPw'];
 const isNavbar = computed(() =>{
-  console.log("Route fullPath:", route.fullPath, "Show NavBar:", isNavbar.value);
   return !hide.includes(route.fullPath as string);
 }) 
 

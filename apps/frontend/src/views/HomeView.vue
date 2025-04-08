@@ -6,10 +6,9 @@ import QuizCard from '@/components/QuizCard.vue'
 import type { quizCardView } from '@/utils/type'
 import { getQuizzes } from '@/utils/functions/homeFuncitions'
 import { toast } from 'vue3-toastify'
-import { useRoute } from 'vue-router'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
-const route = useRoute()
+
 
 const quizzes = ref<quizCardView[]>([])
 const loading = ref(true)
@@ -42,8 +41,6 @@ const selectOption = (value: number) => {
 }
 
 const handleLimitChange = async () => {
-  console.log(selectedLimit.value)
-  console.log(limit.value)
   loading.value = true
   currentPage.value = 1
   selectParams()
@@ -240,14 +237,10 @@ const totalPagesArray = computed(() => {
   return Array.from({ length: totalPages.value }, (_, i) => i + 1)
 })
 
-const fromLogin = route.redirectedFrom?.path === '/login'
-
 onMounted(async () => {
   loading.value = true
   await nextTick()
   const quizzyStore = useQuizzyStore()
-
-  console.log("fasz",fromLogin)
 
   if (quizzyStore.isFirstLogin && quizzyStore.fromLogin) {
     toast(`Sikeres bejelentkezés!\nÜdvözöljük ${quizzyStore.userName}!`, {

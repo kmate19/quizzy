@@ -49,7 +49,7 @@ const createLobby = async () => {
       query: { ts: Date.now().toString() },
     });
     
-    console.log('Session response status:', sessionResponse.status);
+    
     
     if (sessionResponse.status === 200) {
       const sessionData = await sessionResponse.json() as { code: string };
@@ -57,8 +57,6 @@ const createLobby = async () => {
       if (!sessionData.code) {
         throw new Error('Failed to create lobby - no code returned');
       }
-      
-      console.log('Lobby created with code:', sessionData.code);
       
       quizzyStore.setLobbyData({
         lobbyId: sessionData.code,
@@ -68,7 +66,7 @@ const createLobby = async () => {
       })
       if (data.value) {
         quizzyStore.setCurrentQuiz(toRaw(data.value))
-        console.log("quizzyStore currentQuiz after setting:", toRaw(quizzyStore.currentQuiz))
+       
       }
 
       isCreatingLobby.value = false;
@@ -79,7 +77,7 @@ const createLobby = async () => {
   } catch (error) {
     console.error('Error creating lobby:', error);
     isCreatingLobby.value = false;
-    console.log('Failed to create lobby. Please try again.');
+    
   }
 };
 </script>

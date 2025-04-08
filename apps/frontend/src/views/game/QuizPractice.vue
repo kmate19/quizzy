@@ -58,7 +58,6 @@ const startQuestion = () => {
 }
 
 const selectAnswer = (index: number) => {
-    console.log(index)
     answerSelected.value = true
     stopTimer()
     const correct = index === currentQuestion.value?.correct_answer_index
@@ -167,7 +166,6 @@ onMounted(async () => {
         quiz.value = res
     gamePhase.value = 'pre-game'
     shuffleAnswers()
-    console.log(shuffledAnswers.value)
     startPreGameTimer()
 })
 

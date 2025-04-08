@@ -156,7 +156,6 @@ onMounted(async () => {
   localStorage.removeItem('quizEditSuccess')
   isLoading.value = true
   const uuid = route.params.uuid.toString()
-  console.log('isedit', isEdit.value)
   if (isEdit.value === true) {
     const result = await getQuiz(uuid)
     if (result && !Array.isArray(result) && typeof result === 'object') {
@@ -188,13 +187,11 @@ function toggleDropdown() {
 function selectItem(item: string) {
   quiz.value.status = item as 'draft' | 'published' | 'requires_review' | 'private'
   isOpen.value = false
-  console.log(quiz.value.status)
 }
 
 function selectType(item: string) {
   oneQuestion.value.type = item as 'twochoice' | 'normal'
   isQType.value = false
-  console.log(oneQuestion.value.type)
 }
 
 const handleGameImageUpload = (event: Event) => {
@@ -305,8 +302,6 @@ const addQuestion = async () => {
     })
 
     resetQuestion()
-
-    console.log(oneQuestion.value)
   } else {
     toast(msg, {
       autoClose: 5000,
@@ -469,7 +464,6 @@ const uploadOrUpdate = async () => {
   }
 
   isLoading.value = true
-  console.log(quiz.value)
   const uuid = route.params.uuid?.toString()
   const mappedCodes = selectedLanguages.value.map((l) => l.iso_code)
   quiz.value.languageISOCodes = mappedCodes as [string, ...string[]]
