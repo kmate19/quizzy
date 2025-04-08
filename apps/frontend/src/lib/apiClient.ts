@@ -1,6 +1,7 @@
 import { hcWithType } from '@repo/api/hc'
 import { wsHcWithType } from '@repo/websocket/hc'
 
+//re
 // TODO: change domain in prod
 
 const domain = import.meta.env.VITE_API_URL || 'http://localhost:5173/'
