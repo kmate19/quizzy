@@ -357,8 +357,8 @@ describe('CategoriesBtn', () => {
     await wrapper.find('button.glass-button').trigger('click')
 
     expect(wrapper.emitted().save.length).toBe(1)
-    expect(wrapper.emitted().save[0][0]).toBeDefined()
-    expect(wrapper.emitted().save[0][0] as unknown as FilterPayload).toEqual({
+    expect((wrapper.emitted().save[0] as any)[0]).toBeDefined()
+    expect((wrapper.emitted().save[0] as any[])[0] as unknown as FilterPayload).toEqual({
       tags: ['History'],
       strictSearch: true,
       languages: ['en'],
