@@ -89,6 +89,9 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/frontend:latest
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=https://quizzy.kmate.xyz/api/v1
+            VITE_HASH=${{ secrets.SHARED_HASH }}
 
   build-websocket:
     needs: changes

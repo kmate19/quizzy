@@ -10,7 +10,7 @@ export default function createEmailTemplate(
                 <h1>Verify your account!</h1>
                 <br><br>
                 <button>
-                    <a href="${domain}/api/v1/auth/verify/${token}">
+                    <a href="https://${domain}/api/v1/auth/verify/${token}">
                         <h2>Verify</h2>
                     </a>
                 </button>
