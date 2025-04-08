@@ -23,9 +23,9 @@ namespace localadmin.Services
         /// Ez a függvény lekéri az összes felhasználót az adatbázisból.
         /// </summary>
         /// <returns></returns>
-        public static async Task<ObservableCollection<User>> GetUsersAsync()
+        public static async Task<(ObservableCollection<User> Users, int TotalCount)> GetUsersAsync(int page, int pagesize)
         {
-            string url = "http://localhost:3000/api/v1/admin/all-users";
+            string url = $"http://localhost:3000/api/v1/admin/all-users?page={page}&limit={pagesize}";
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -34,33 +34,38 @@ namespace localadmin.Services
                 HttpResponseMessage response = await client.GetAsync(url);
                 response.EnsureSuccessStatusCode();
                 string jsonResponse = await response.Content.ReadAsStringAsync();
-                Debug.Write(jsonResponse);
 
                 using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
                 {
                     JsonElement root = doc.RootElement;
+                    int totalCount = 0;
+                    ObservableCollection<User> users = new();
 
-                    if (root.TryGetProperty("data", out JsonElement dataElement) &&
-                        dataElement.TryGetProperty("users", out JsonElement usersElement) &&
-                        usersElement.ValueKind == JsonValueKind.Array)
-                    {
-                        var users = JsonSerializer.Deserialize<ObservableCollection<User>>(usersElement.GetRawText(), jsonSerializerOptions)
-                                   ?? new ObservableCollection<User>();
+                    if (root.TryGetProperty("data", out JsonElement dataElement))
+                    { 
+                        if (dataElement.TryGetProperty("totalCount", out JsonElement totalElement))
+                        {
+                            string? totalCountStr = totalElement.GetString();
+                            if (int.TryParse(totalCountStr, out int parsedValue))
+                                totalCount = parsedValue;
+                        }
 
-                        return users;
+                        if (dataElement.TryGetProperty("users", out JsonElement usersElement) && usersElement.ValueKind == JsonValueKind.Array)
+                            users = JsonSerializer.Deserialize<ObservableCollection<User>>(usersElement.GetRawText(), jsonSerializerOptions) ?? new();
+                        else
+                            Debug.WriteLine("Error: 'data.users' field missing or not an array.");
                     }
-                    else
-                        Debug.WriteLine("Error: 'data.users' field missing or not an array.");
-                }
 
-                return new ObservableCollection<User>();
+                    return (users, totalCount);
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error fetching users: {ex.Message}");
-                return new ObservableCollection<User>();
+                return (new ObservableCollection<User>(), 0);
             }
         }
+
 
         /// <summary>
         /// Ez a függvény frissíti a felhasználó authentikációs státuszát.

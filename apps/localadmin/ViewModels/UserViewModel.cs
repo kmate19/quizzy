@@ -5,6 +5,7 @@ using System.Windows;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace localadmin.ViewModels
 {
@@ -17,6 +18,15 @@ namespace localadmin.ViewModels
         private readonly SharedStateService SharedState;
         public ObservableCollection<User> Users { get; set; } = new();
         public ObservableCollection<User> FilteredUsers { get; set; } = new();
+        public ObservableCollection<int> PageSizeOptions { get; }
+        public ICommand PreviousPageCommand { get; }
+        public ICommand NextPageCommand { get; }
+        public bool CanGoPrevious => CurrentPage > 1;
+        public bool CanGoNext => maxPage > CurrentPage;
+        public int maxPage;
+
+        private int _currentPage = 1;
+        private int _PageSize = 10;
 
         private bool _isLoading;
         public bool IsLoading
@@ -29,12 +39,48 @@ namespace localadmin.ViewModels
             }
         }
 
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set
+            {
+                _currentPage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int PageSize
+        {
+            get => _PageSize;
+            set
+            {
+                if (_PageSize != value)
+                {
+                    _PageSize = value;
+                    OnPropertyChanged(nameof(PageSize));
+
+                    _ = PageSizeChanged();
+                }
+            }
+        }
+
         public UserViewModel(NavigationService Navigation, SharedStateService State)
         {
             NavigationService = Navigation;
             SharedState = State;
+
+            PreviousPageCommand = new RelayCommand(PreviousPage);
+            NextPageCommand = new RelayCommand(NextPage);
+
+            PageSizeOptions = new ObservableCollection<int> { 10, 20, 30, 40, 50 };
+            PageSize = PageSizeOptions[0];
         }
         public async Task InitializeAsync()
+        {
+            await GetUsers();
+        }
+
+        private async Task PageSizeChanged()
         {
             await GetUsers();
         }
@@ -46,12 +92,11 @@ namespace localadmin.ViewModels
         public async Task GetUsers()
         {
             IsLoading = true;
-            var fetchedUsers = await ApiUsersService.GetUsersAsync();
-
+            var fetchedUsers = await ApiUsersService.GetUsersAsync(CurrentPage, PageSize);
             var usersList = new List<User>();
             var filteredList = new List<User>();
 
-            foreach (var user in fetchedUsers)
+            foreach (var user in fetchedUsers.Users)
             {
                 user.Initialize(NavigationService, SharedState);
                 user.UserUpdated += async () => await GetUsers();
@@ -77,6 +122,8 @@ namespace localadmin.ViewModels
 
             });
 
+            maxPage = (int)Math.Ceiling((double)fetchedUsers.TotalCount / PageSize);
+
             IsLoading = false;
         }
 
@@ -93,6 +140,30 @@ namespace localadmin.ViewModels
             {
                 FilteredUsers.Add(user);
             }
+        }
+
+        private async void PreviousPage(object parameter)
+        {
+            if (CanGoPrevious)
+            {
+                CurrentPage--;
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CanGoNext));
+                await GetUsers();
+            }
+        }
+
+        private async void NextPage(object parameter)
+        {
+            if (CanGoNext)
+            {
+                CurrentPage++;
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CanGoPrevious));
+                await GetUsers();
+            }
+            else
+                MessageBox.Show("Nincs további oldal.");
         }
 
         public event PropertyChangedEventHandler ?PropertyChanged;

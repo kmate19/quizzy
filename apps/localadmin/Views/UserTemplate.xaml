@@ -3,97 +3,107 @@
                     xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
                     xmlns:local="clr-namespace:localadmin.ViewModels">
     <DataTemplate DataType="{x:Type local:UserViewModel}">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <ItemsControl HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent" Margin="0, 0, 5, 0">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Expander Margin="0,3" Background="White" BorderBrush="Black" BorderThickness="0" Style="{StaticResource ExpanderAnimation}">
-                            <Expander.Header>
-                                <Grid Background="White" Margin="0,1" HorizontalAlignment="Stretch" Height="60">
+        <StackPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Height="300">
+                <ItemsControl HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent" Margin="0, 0, 5, 0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Expander Margin="0,3" Background="White" BorderBrush="Black" BorderThickness="0" Style="{StaticResource ExpanderAnimation}">
+                                <Expander.Header>
+                                    <Grid Background="White" Margin="0,1" HorizontalAlignment="Stretch" Height="60">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <Image Source="{Binding ProfileImage}" Width="50" Height="50" Margin="0, 5, 10, 0" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0, 0, 20, 0">
+                                            <TextBlock Text="Név" Foreground="#33B6EF" FontSize="20" />
+                                            <TextBlock Text="{Binding Username}" FontSize="20" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0, 0, 20, 0">
+                                            <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
+                                            <TextBlock Text="{Binding Email}" FontSize="20" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0, 0, 20, 0">
+                                            <TextBlock Text="Jogosultság:" Foreground="#33B6EF" FontSize="20" />
+                                            <TextBlock Text="{Binding UserRoles}" FontSize="20"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Expander.Header>
+
+                                <Grid Width="auto" Margin="0, 10, 0, 0">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto" />
-                                        <ColumnDefinition Width="auto" />
-                                        <ColumnDefinition Width="auto" />
-                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel>
-                                        <Image Source="{Binding ProfileImage}" Width="50" Height="50" Margin="0, 5, 10, 0" />
-                                    </StackPanel>
-                                    
-                                    <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0, 0, 20, 0">
-                                        <TextBlock Text="Név" Foreground="#33B6EF" FontSize="20" />
-                                        <TextBlock Text="{Binding Username}" FontSize="20" />
+                                    <StackPanel Grid.Column="0" Margin="10, 0, 20, 0">
+                                        <TextBlock Text="Összes játék: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
+                                        <TextBlock Text="{Binding Stats.Plays}" FontSize="20"/>
+                                        <TextBlock Text="Regisztrálva: " Foreground="#33B6EF" FontSize="20" />
+                                        <TextBlock Text="{Binding CreatedAt}" TextWrapping="Wrap" FontSize="20"/>
                                     </StackPanel>
 
-                                    <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0, 0, 20, 0">
-                                        <TextBlock Text="Email" Foreground="#33B6EF" FontSize="20" />
-                                        <TextBlock Text="{Binding Email}" FontSize="20" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Grid.Column="1" Margin="0, 0, 20, 0">
+                                        <TextBlock Text="1. helyezések: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
+                                        <TextBlock Text="{Binding Stats.FirstPlaces}" Foreground="Gold" FontSize="20" />
+                                        <TextBlock Text="Módosítva: " Foreground="#33B6EF" FontSize="20" />
+                                        <TextBlock Text="{Binding UpdatedAt}" TextWrapping="Wrap" FontSize="20" />
                                     </StackPanel>
 
-                                    <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0, 0, 20, 0">
-                                        <TextBlock Text="Jogosultság:" Foreground="#33B6EF" FontSize="20" />
-                                        <TextBlock Text="{Binding UserRoles}" FontSize="20"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Expander.Header>
-
-                            <Grid Width="auto" Margin="0, 10, 0, 0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" Margin="10, 0, 20, 0">
-                                    <TextBlock Text="Összes játék: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
-                                    <TextBlock Text="{Binding Stats.Plays}" FontSize="20"/>
-                                    <TextBlock Text="Regisztrálva: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding CreatedAt}" TextWrapping="Wrap" FontSize="20"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1" Margin="0, 0, 20, 0">
-                                    <TextBlock Text="1. helyezések: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
-                                    <TextBlock Text="{Binding Stats.FirstPlaces}" Foreground="Gold" FontSize="20" />
-                                    <TextBlock Text="Módosítva: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding UpdatedAt}" TextWrapping="Wrap" FontSize="20" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Margin="0, 0, 20, 0">
-                                    <TextBlock Text="Nyerési Arány: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
-                                    <TextBlock>
+                                    <StackPanel Grid.Column="2" Margin="0, 0, 20, 0">
+                                        <TextBlock Text="Nyerési Arány: " Foreground="#33B6EF" FontSize="20" Margin="0, 0, 0, 5"/>
+                                        <TextBlock>
                                         <Run Text="{Binding Winrate}" FontSize="20"/>
                                         <Run Text="%" FontSize="20"/>
-                                    </TextBlock>
-                                    <TextBlock Text="Hitelesítési állapot: " Foreground="#33B6EF" FontSize="20" />
-                                    <TextBlock Text="{Binding TranslatedAuthStatus}" Style="{StaticResource AuthStatusStyle}" TextWrapping="Wrap" FontSize="20" />
-                                </StackPanel>
+                                        </TextBlock>
+                                        <TextBlock Text="Hitelesítési állapot: " Foreground="#33B6EF" FontSize="20" />
+                                        <TextBlock Text="{Binding TranslatedAuthStatus}" Style="{StaticResource AuthStatusStyle}" TextWrapping="Wrap" FontSize="20" />
+                                    </StackPanel>
 
-                                <StackPanel Grid.Column="4">
-                                    <Button Command="{Binding ViewQuizCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
-                                        <TextBlock Text="Quizei Megtekintése" TextWrapping="Wrap"/>
-                                    </Button>
-                                    <Button Command="{Binding ViewReviewCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
-                                        <TextBlock Text="Értékelései Megtekintése" TextWrapping="Wrap"/>
-                                    </Button>
-                                </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <Button Command="{Binding ViewQuizCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
+                                            <TextBlock Text="Quizei Megtekintése" TextWrapping="Wrap"/>
+                                        </Button>
+                                        <Button Command="{Binding ViewReviewCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
+                                            <TextBlock Text="Értékelései Megtekintése" TextWrapping="Wrap"/>
+                                        </Button>
+                                    </StackPanel>
 
-                                <StackPanel Grid.Column="5" Margin="20, 0, 40, 10">
-                                    <Button Content="Módosítás" Command="{Binding EditUserCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
-                                </StackPanel>
-                            </Grid>
-                        
-                            <Expander.Effect>
-                                <DropShadowEffect BlurRadius="5" ShadowDepth="3" />
-                            </Expander.Effect>
-                        
-                        </Expander>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                                    <StackPanel Grid.Column="5" Margin="20, 0, 40, 10">
+                                        <Button Content="Módosítás" Command="{Binding EditUserCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Expander.Effect>
+                                    <DropShadowEffect BlurRadius="5" ShadowDepth="3" />
+                                </Expander.Effect>
+
+                            </Expander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <Button Content="◀ Előző" Command="{Binding PreviousPageCommand}" Margin="5" Style="{StaticResource GridButtons}"/>
+                <TextBlock Text="{Binding CurrentPage, StringFormat='Oldal: {0}'}" FontSize="20" FontWeight="Bold"/>
+                <Button Content="Következő ▶" Command="{Binding NextPageCommand}" Margin="5" Style="{StaticResource GridButtons}"/>
+                <TextBlock Text="Oldal mérete: " FontSize="20" FontWeight="Bold"/>
+                <ComboBox ItemsSource="{Binding PageSizeOptions}" SelectedItem="{Binding PageSize, Mode=TwoWay}" Width="60" Margin="5"/>
+            </StackPanel>
+        </StackPanel>
     </DataTemplate>
 </ResourceDictionary>

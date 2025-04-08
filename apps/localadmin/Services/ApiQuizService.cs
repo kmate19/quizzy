@@ -37,7 +37,7 @@ public static class ApiQuizzesService
     /// <returns>A quizek</returns>
     public static async Task<(ObservableCollection<Quiz> Quizzes, int TotalCount)> GetQuizzesAsync(int page, int pagesize)
     {
-        string url = $"http://localhost:3000/api/v1/admin/all-quizzes"; //?page={page}&limit={pagesize}
+        string url = $"http://localhost:3000/api/v1/admin/all-quizzes?page={page}&limit={pagesize}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -72,15 +72,11 @@ public static class ApiQuizzesService
                         foreach (var quiz in quizzes)
                         {
                             if (dataElement.TryGetProperty("languages", out JsonElement languagesElement) && languagesElement.ValueKind == JsonValueKind.Array)
-                            {
                                 quiz.Languages = JsonSerializer.Deserialize<List<LanguageWrapper>>(languagesElement.GetRawText(), jsonSerializerOptions) ?? new();
-                            }
                         }
                     }
                     else
-                    {
                         Debug.WriteLine("Error: 'data.quizzes' field missing or not an array.");
-                    }
                 }
 
                 return (quizzes, totalCount);

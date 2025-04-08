@@ -123,6 +123,7 @@ namespace localadmin.ViewModels
                 filteredList.Add(quiz);
             }
 
+
             //itt hozzáadunk minden más adatot a quizhez, amit a QuizCardokban tárolunk, illetve a státuszt, és a tag-eket
             foreach (var quiz in quizzesList)
             {
