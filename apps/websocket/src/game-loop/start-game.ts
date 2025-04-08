@@ -1,6 +1,6 @@
 import { Lobby } from "@/types";
-import { abortLobby } from "./close";
-import { sendLobby } from "./send";
+import { abortLobby } from "@/output/close";
+import { sendLobby } from "@/output/send";
 import { handleRoundEnd } from "./handle-roundend";
 import { handleGameEnd } from "./handle-gameend";
 import { sleep } from "bun";
@@ -27,8 +27,10 @@ export async function startGameLoop(lobby: Lobby): Promise<void> {
         sendLobby(
             lobby.members,
             "roundstarted",
-            Object.assign(rest, { roundTimeMs: 15000 })
+            Object.assign(rest, { roundTimeMs: lobby.gameState.roundTimeMs })
         );
+
+        lobby.gameState.roundTimeStartedEpoch = Date.now();
 
         await new Promise<void>((resolve, reject) => {
             if (lobby.gameState.started) {

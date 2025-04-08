@@ -35,6 +35,8 @@ export function publishWs(
         data,
     } satisfies WebsocketMessage;
 
+    console.log("sending to topic", topic, res.type);
+
     ws.publish(topic, JSON.stringify(res));
 }
 

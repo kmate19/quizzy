@@ -3,17 +3,22 @@ import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { genLobbyId } from "./utils/utils";
+import { genLobbyId } from "./utils/generate";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { websocketMessageSchema } from "@/schemas/zodschemas";
 import type { WebsocketMessage } from "repo";
 import { extractJwtData } from "./utils/check-jwt";
 import type { LobbyMap, LobbyUser, QuizzyJWTPAYLOAD } from "./types";
-import { handleWsMessage } from "./utils/handle-ws-message";
-import { closeIfInvalid, closeWithError } from "./utils/close";
-import { publishWs, sendSingle } from "./utils/send";
-import { hostLeave } from "./utils/host-leave";
+import { handleWsMessage } from "./input/handle-ws-message";
+import { closeIfInvalid, closeWithError } from "./output/close";
+import { sendSingle } from "./output/send";
+import {
+    scheduleDisconnect,
+    scheduleLobbyDeletion,
+} from "./input/handle-disconnect";
+import { reconnect } from "./input/handle-reconnect";
+import { getReconnetingCount } from "./utils/get-reconnecting";
 
 const { upgradeWebSocket, websocket } =
     createBunWebSocket<ServerWebSocket<LobbyUser>>();
@@ -74,10 +79,28 @@ export const hono = new Hono()
                         return;
                     }
 
+                    const lobby = lobbies.get(lobbyid)!;
+
                     const jwtdataValid = jwtdata as QuizzyJWTPAYLOAD;
+
+                    const reconnectingUser = lobby.members
+                        .values()
+                        .find(
+                            (u) =>
+                                u.data.lobbyUserData.userId ===
+                                jwtdataValid.userId
+                        );
+
+                    if (reconnectingUser) {
+                        console.log("reconnecting user", jwtdataValid.userId);
+                        reconnect(reconnectingUser, ws.raw, lobby, lobbyid);
+                        return;
+                    }
 
                     ws.raw.data.lobbyUserData = {
                         userId: jwtdataValid.userId,
+                        canRecconnect: true,
+                        reconnecting: false,
                         stats: {
                             wrongAnswerCount: 0,
                             correctAnswerCount: 0,
@@ -88,16 +111,8 @@ export const hono = new Hono()
                         }, 20000),
                     };
 
-                    lobbies.get(lobbyid)!.members.add(ws.raw);
-
-                    console.log(
-                        `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
-                    );
-
-                    ws.raw.ping();
-
                     const interval = setInterval(() => {
-                        if (ws.raw!.readyState === 3) {
+                        if (ws.raw?.readyState === 3) {
                             clearInterval(interval);
                         } else {
                             sendSingle(ws.raw!, "ping");
@@ -105,6 +120,11 @@ export const hono = new Hono()
                     }, 10000);
 
                     ws.raw.subscribe(lobbyid);
+                    lobby.members.add(ws.raw);
+
+                    console.log(
+                        `client ${ws.raw.data.lobbyUserData.userId} joined lobby ${lobbyid}`
+                    );
                 },
                 onClose: (_, ws) => {
                     if (!ws.raw) {
@@ -113,39 +133,14 @@ export const hono = new Hono()
 
                     const lobby = lobbies.get(lobbyid);
 
-                    if (lobby && lobby.members.delete(ws.raw)) {
-                        console.log(
-                            `client ${ws.raw.data.lobbyUserData.userId} left lobby ${lobbyid} members left: ${lobby.members.size}}`
-                        );
-
-                        publishWs(
-                            ws.raw,
-                            lobbyid,
-                            "disconnect",
-                            ws.raw.data.lobbyUserData.username
-                        );
-
-                        ws.raw.unsubscribe(lobbyid);
-                        clearTimeout(ws.raw.data.lobbyUserData.pongTimeout);
+                    if (lobby && lobby.members.has(ws.raw)) {
+                        scheduleDisconnect(ws.raw, lobby, lobbyid);
 
                         if (
-                            lobby.gameState.hostId ===
-                            ws.raw.data.lobbyUserData.userId
+                            lobby.members.size - getReconnetingCount(lobby) ===
+                            0
                         ) {
-                            hostLeave(lobby.gameState, lobby.members);
-                        }
-
-                        if (lobby.members.size === 0) {
-                            console.log("scheduling timeout");
-                            setTimeout(() => {
-                                console.log("running timeout");
-                                if (lobby.members.size === 0) {
-                                    console.log(
-                                        `lobby ${lobbyid} is empty, deleting lobby`
-                                    );
-                                    lobbies.delete(lobbyid);
-                                }
-                            }, 5000);
+                            scheduleLobbyDeletion(lobbies, lobby, lobbyid);
                         }
                     }
                 },

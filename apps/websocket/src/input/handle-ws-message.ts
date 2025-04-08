@@ -6,10 +6,9 @@ import {
 import { LobbyMap, LobbyUser } from "@/types";
 import { ServerWebSocket } from "bun";
 import { WebsocketMessage } from "repo";
-import { jumbleIndicesIntoIter } from "./utils";
-import { startGameLoop } from "./start-game";
-import { abortLobby, closeWithError } from "./close";
-import { publishWs, sendLobby, sendSingle } from "./send";
+import { startGameLoop } from "@/game-loop/start-game";
+import { abortLobby, closeWithError } from "@/output/close";
+import { publishWs, sendLobby, sendSingle } from "@/output/send";
 
 export async function handleWsMessage(
     ws: ServerWebSocket<LobbyUser>,
@@ -17,8 +16,6 @@ export async function handleWsMessage(
     lobbyid: string,
     lobbies: LobbyMap
 ) {
-    console.log(`client sent message {} to ${lobbyid}`, msg);
-
     const lobby = lobbies.get(lobbyid)!;
     const members = lobby.members;
 
@@ -107,6 +104,7 @@ export async function handleWsMessage(
             lobby.gameState = {
                 hostId: lobby.gameState.hostId,
                 started: true,
+                roundTimeMs: 15000,
                 questionIndices: jumbleIndicesIntoIter(
                     lobby.quizData.cards.length
                 ),
@@ -222,4 +220,14 @@ export async function handleWsMessage(
 
             return;
     }
+}
+
+function jumbleIndicesIntoIter(length: number) {
+    const indices = new Set<number>();
+
+    while (indices.size < length) {
+        indices.add(Math.floor(Math.random() * length));
+    }
+
+    return Iterator.from(indices.values());
 }

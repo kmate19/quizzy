@@ -1,7 +1,7 @@
 import { Lobby } from "@/types";
-import { sendLobby } from "./send";
-import ENV from "./env";
-import { abortLobby } from "./close";
+import { sendLobby } from "@/output/send";
+import ENV from "@/utils/env";
+import { abortLobby } from "@/output/close";
 
 export function handleGameEnd(lobby: Lobby) {
     if (!lobby.gameState.started) {
