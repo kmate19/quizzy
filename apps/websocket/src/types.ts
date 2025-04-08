@@ -48,6 +48,7 @@ export type GameState =
           // one by one
           questionIndices: Iterator<number>;
           currentQuestionIndex?: number;
+          roundNum: number;
           currentRoundAnswers: Map<string, z.infer<typeof quizAnswerSchema>>;
           // handle round ending with a timeout and a cb
           roundTimeMs: number;

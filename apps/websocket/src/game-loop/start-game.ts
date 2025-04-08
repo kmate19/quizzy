@@ -19,6 +19,8 @@ export async function startGameLoop(lobby: Lobby): Promise<void> {
     while (!index.done) {
         await sleep(1500);
 
+        lobby.gameState.roundNum++;
+
         lobby.gameState.currentQuestionIndex = index.value;
 
         const { correct_answer_index, ...rest } =

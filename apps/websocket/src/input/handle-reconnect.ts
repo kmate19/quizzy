@@ -24,7 +24,7 @@ export function reconnect(
             currentQuestion:
                 lobby.quizData?.cards[lobby.gameState.currentQuestionIndex!],
             currentRoundAnswers: lobby.gameState.currentRoundAnswers,
-            currentRoundIndex: lobby.gameState.currentQuestionIndex,
+            currentRoundIndex: lobby.gameState.roundNum,
             roundTimeLeftMs:
                 lobby.gameState.roundTimeMs -
                 (Date.now() - lobby.gameState.roundTimeStartedEpoch!),
