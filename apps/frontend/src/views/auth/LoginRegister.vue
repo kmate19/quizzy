@@ -84,7 +84,6 @@ const onRegistration = async () => {
   } else {
     regErrors.value = null
     const regRes = await clientv1.auth.register.$post({ json: regForm.value })
-    console.log(regRes.status)
     if (regRes.status === 200) {
       toast('Sikeres regisztráció, ellenőrizze email fiókját!', {
         autoClose: 5000,
@@ -113,7 +112,6 @@ const onLogin = async () => {
     loginForm.value[key] = loginForm.value[key].trim()
   })
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
-  console.log(loginRes.status)
   if (loginRes.status === 200) {
     queryClient.setQueryData(['authUser'], 'authed')
     const res = await userData("")
@@ -160,7 +158,6 @@ const updateCardHeight = () => {
     const height = content.offsetHeight || 0
     if (height > 0) {
       cardHeight.value = height + 100
-      console.log("Height updated:", cardHeight.value)
     }
   }
 }

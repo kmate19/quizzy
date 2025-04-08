@@ -14,34 +14,28 @@
   const PARTICLE_VARIANCE = 40
   const PARTICLE_SPEED = 0.3
 
-  // Brighter, more vibrant colors
   const COLORS: [number, number, number][] = [
-    [220, 20, 60],    // Crimson Red
-    [65, 105, 225],   // Royal Blue
-    [255, 215, 0],    // Gold Yellow
-    [0, 200, 80]     // Vibrant Green
+    [220, 20, 60],
+    [65, 105, 225],
+    [255, 215, 0],
+    [0, 200, 80]
   ]
 
-  // Function to determine color based on position
   function getColorForPosition(x: number, y: number): [number, number, number] {
     const screenWidth = window.innerWidth
     const screenHeight = window.innerHeight
     
-    // Top-left: Blue
     if (x <= screenWidth / 2 && y <= screenHeight / 2) {
-      return COLORS[0]; // Royal Blue
+      return COLORS[0];
     } 
-    // Top-right: Red
     else if (x > screenWidth / 2 && y <= screenHeight / 2) {
-      return COLORS[1]; // Crimson Red
+      return COLORS[1];
     } 
-    // Bottom-left: Yellow
     else if (x <= screenWidth / 2 && y > screenHeight / 2) {
-      return COLORS[2]; // Gold Yellow
+      return COLORS[2];
     } 
-    // Bottom-right: Purple
     else {
-      return COLORS[3]; // Purple
+      return COLORS[3];
     }
   }
 
@@ -78,7 +72,6 @@
       this.x += this.vx
       this.y += this.vy
 
-      // Pulse effect
       this.radius = this.initialRadius + Math.sin(time * this.pulseSpeed) * (this.initialRadius * this.pulseSize)
 
       const homeX = this.baseX - this.x
@@ -97,7 +90,6 @@
       this.alpha += (Math.random() - 0.5) * 0.01
       this.alpha = Math.max(0.1, Math.min(0.3, this.alpha))
       
-      // Update color based on current position
       this.color = getColorForPosition(this.x, this.y)
     }
 
@@ -129,29 +121,25 @@
     if (!ctx || !canvas.value) return
     
     const text = "Quizzy"
-    const fontSize = "10vw" // Smaller font for vertical layout
+    const fontSize = "10vw"
     ctx.font = `bold ${fontSize} Montserrat, Arial, sans-serif`
-    ctx.textAlign = "center" // Change to center alignment
+    ctx.textAlign = "center"
     ctx.textBaseline = "middle"
     
-    // Position all letters at the same horizontal center
     const centerX = canvas.value.width * 0.1
     const startY = canvas.value.height * 0.2
     const letterSpacing = canvas.value.height * 0.12
     
-    // Outer glow
     const glowColor = `rgba(148, 0, 211, ${0.3 + Math.sin(time * 0.05) * 0.1})`
     ctx.shadowColor = glowColor
     ctx.shadowBlur = 20 + Math.sin(time * 0.1) * 5
     ctx.fillStyle = "rgba(148, 0, 211, 0.8)"
     
-    // Draw each letter vertically with the same center point
     for (let i = 0; i < text.length; i++) {
       const y = startY + i * letterSpacing
       ctx.fillText(text[i], centerX, y)
     }
     
-    // Reset shadow
     ctx.shadowBlur = 0
   }
 
@@ -160,17 +148,14 @@
     
     time += 0.01
     
-    // Create a semi-transparent background that gradually fades
     ctx.fillStyle = 'rgba(15, 15, 30, 0.15)'
     ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
 
-    // Draw particles
     particles.forEach(particle => {
       particle.update()
       particle.draw()
     })
     
-    // Draw the Quizzy text
     drawQuizzyText()
 
     animationFrameId = requestAnimationFrame(animate)

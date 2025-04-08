@@ -6,7 +6,6 @@ import { Loader2Icon } from 'lucide-vue-next'
 import type { detailedQuiz } from '@/utils/type'
 import { getQuiz } from '@/utils/functions/detailedFunctions'
 import { wsclient } from '@/lib/apiClient'
-import { generateSessionHash } from '@/utils/helpers'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const route = useRoute()
@@ -46,11 +45,11 @@ const createLobby = async () => {
     console.log('Creating new lobby');
     
     const sessionResponse = await wsclient.reserve.session[':code?'].$post({
-      param: { code: '' }, // empty = create new lobby
+      param: { code: '' },
       query: { ts: Date.now().toString() },
     });
     
-    console.log('Session response status:', sessionResponse.status);
+    
     
     if (sessionResponse.status === 200) {
       const sessionData = await sessionResponse.json() as { code: string };
@@ -59,19 +58,15 @@ const createLobby = async () => {
         throw new Error('Failed to create lobby - no code returned');
       }
       
-      console.log('Lobby created with code:', sessionData.code);
-      const hash = await generateSessionHash(sessionData.code, 'asd');
-      
       quizzyStore.setLobbyData({
         lobbyId: sessionData.code,
-        hash,
         isHost: true,
         quizId: uuid.toString(),
-        timestamp: Date.now(),
+        canReconnect: false,
       })
       if (data.value) {
         quizzyStore.setCurrentQuiz(toRaw(data.value))
-        console.log("quizzyStore currentQuiz after setting:", toRaw(quizzyStore.currentQuiz))
+       
       }
 
       isCreatingLobby.value = false;
@@ -82,7 +77,7 @@ const createLobby = async () => {
   } catch (error) {
     console.error('Error creating lobby:', error);
     isCreatingLobby.value = false;
-    console.log('Failed to create lobby. Please try again.');
+    
   }
 };
 </script>
