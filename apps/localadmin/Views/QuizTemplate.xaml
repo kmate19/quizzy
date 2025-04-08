@@ -5,7 +5,6 @@
 
     <DataTemplate DataType="{x:Type local:QuizViewModel}">
         <StackPanel>
-            <!-- Quiz List -->
             <ScrollViewer VerticalScrollBarVisibility="Auto" Height="500">
                 <ItemsControl ItemsSource="{Binding FiltredQuizzes}" Background="Transparent">
                     <ItemsControl.ItemsPanel>
@@ -20,16 +19,11 @@
                                 <Border.InputBindings>
                                     <MouseBinding Gesture="LeftClick" Command="{Binding ViewQuizCommand}"/>
                                 </Border.InputBindings>
-                                <Border.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="View User" Command="{Binding ViewUserCommand}" />
-                                        <MenuItem Header="View Review" Command="{Binding ViewReviewCommand}"/>
-                                    </ContextMenu>
-                                </Border.ContextMenu>
 
                                 <StackPanel Margin="10">
                                     <Image Source="{Binding BannerImage}" Height="100" Stretch="Fill" Margin="0,0,0,10"/>
                                     <TextBlock Text="{Binding User.Username}" FontSize="18" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding TranslatedActivityStatus}" Style="{StaticResource QuizStatus}" FontSize="16" TextAlignment="Center" Margin="0,5,0,0" FontWeight="Bold"/>
                                     <TextBlock Text="{Binding Title}" FontSize="14" TextAlignment="Center" Foreground="Black" Margin="0,5,0,0" FontWeight="Bold"/>
                                     <TextBlock Text="{Binding Description}" FontSize="10" TextAlignment="Center" Foreground="Gray" Margin="0,5,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
@@ -39,7 +33,6 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- Pagination Controls -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
                 <Button Content="◀ Előző" Command="{Binding PreviousPageCommand}" Margin="5" Style="{StaticResource GridButtons}"/>
                 <TextBlock Text="{Binding CurrentPage, StringFormat='Oldal: {0}'}" FontSize="20" FontWeight="Bold"/>

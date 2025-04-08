@@ -1,12 +1,12 @@
 ﻿using localadmin.Models;
 using localadmin.Services;
-using Microsoft.VisualBasic.ApplicationServices;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using static localadmin.Models.Quiz;
 
 namespace localadmin.ViewModels
@@ -23,10 +23,15 @@ namespace localadmin.ViewModels
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
+        private DispatcherTimer _refreshTimer;
         private int _currentPage = 1;
         private int _PageSize = 10;
         public ObservableCollection<int> PageSizeOptions { get; }
 
+
+        /// <summary>
+        /// Ez azért szükséges, hogy a quiz-eket a státuszuk szerint rendezzük. Előre kerülnek azok, amelyek felülvizsgálásra várnak.
+        /// </summary>
         private Dictionary<EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
         {
             {EQuizStatus.requires_review, 1 },
@@ -91,6 +96,13 @@ namespace localadmin.ViewModels
 
             PageSizeOptions = new ObservableCollection<int> { 10, 20, 30, 40, 50 };
             PageSize = PageSizeOptions[0];
+
+            _refreshTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(30)
+            };
+            _refreshTimer.Tick += async (sender, e) => await GetQuizes();
+            _refreshTimer.Start();
         }
         private async Task PageSizeChanged()
         {
@@ -176,7 +188,10 @@ namespace localadmin.ViewModels
                 FiltredQuizzes.Add(quiz);
             }
         }
-
+        /// <summary>
+        /// Visszalép az elpőző oldalra és frissíti az adatokat.
+        /// </summary>
+        /// <param name="parameter"></param>
         private async void PreviousPage(object parameter)
         {
             if (CanGoPrevious)
@@ -188,6 +203,10 @@ namespace localadmin.ViewModels
             }
         }
 
+        /// <summary>
+        /// Átlép a következő oldalra és frissíti az adatokat.
+        /// </summary>
+        /// <param name="parameter"></param>
         private async void NextPage(object parameter)
         {
             if (CanGoNext)

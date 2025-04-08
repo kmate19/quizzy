@@ -5,6 +5,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using localadmin.Models;
 using localadmin.Views;
+using localadmin.ViewModels;
+using localadmin.Services;
+using System.Net.Http.Json;
 
 namespace localadmin
 {
@@ -19,6 +22,8 @@ namespace localadmin
         private string _stars;
         private string _status;
         private int _DisplayIndex;
+        private NavigationService NavigationService;
+        private SharedStateService SharedState;
         private int NumberOfCards => Quiz.QuizCards.Count;
         public int CardIndex
         {
@@ -81,11 +86,13 @@ namespace localadmin
             }
         }
 
-        public QuizDetailedView(Quiz quiz)
+        public QuizDetailedView(Quiz quiz, NavigationService navigation, SharedStateService stateService)
         {
             InitializeComponent();
 
             Quiz = quiz;
+            NavigationService = navigation;
+            SharedState = stateService;
             CardIndex = 0;
             _stars = string.Empty;
             _status = string.Empty;
@@ -176,7 +183,7 @@ namespace localadmin
                     break;
                 case Quiz.EQuizStatus.requires_review:
                     Status = "Felülvizsgálatra vár";
-                    QuizStatus.Foreground = Brushes.Yellow;
+                    QuizStatus.Foreground = Brushes.Orange;
                     break;
                 case Quiz.EQuizStatus.draft:
                     Status = "Vázlat";
@@ -188,7 +195,7 @@ namespace localadmin
                     break;
                 case Quiz.EQuizStatus.@private:
                     Status = "Privát";
-                    QuizStatus.Foreground = Brushes.Orange;
+                    QuizStatus.Foreground = Brushes.Red;
                     break;
             }
         }
@@ -235,11 +242,24 @@ namespace localadmin
         {
             if (Quiz.Status != Quiz.EQuizStatus.requires_review)
             {
-                MessageBox.Show("Ez a quiz nem fogadható el.");
+                MessageBox.Show("Ez a quiz nem utasítható el.");
                 return;
             }
 
             await HandleQuizAction("Biztosan el szeretnéd utasítani ezt a quizt?", Quiz.EQuizStatus.rejected);
+        }
+
+        public async void ViewUser(object sender, RoutedEventArgs e)
+        {
+            if (Quiz.User == null)
+                return;
+
+            UserViewModel userView = new UserViewModel(NavigationService, SharedState);
+            SharedState.SearchText = Quiz.User.Username;
+            NavigationService.NavigateTo(userView);
+            await userView.InitializeAsync();
+            userView.SearchUsers(SharedState.SearchText);
+            Hide();
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

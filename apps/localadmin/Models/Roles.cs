@@ -8,6 +8,9 @@ namespace localadmin.Models
 {
     public class Roles
     {
+        /// <summary>
+        /// Ez az osztály reprezentálja az összes szerepkört az alkalmazásban.
+        /// </summary>
         public int ID { get; set; }
 
         public string Name { get; set; } = string.Empty;

@@ -7,10 +7,18 @@ namespace localadmin.Models
 {
     public class QuizCard
     {
+        /*
+        általános információk
+
+        A JsonPropertyName attribútumok a JSON fájlban szereplő neveket tárolják, mivel néhány adat neve az alkalmazásban eltér az adatbázisban tároltaktól.
+        A JsonConverter pedig a Enumok konvertálásához kell.
+        A wrapper osztályok a JSON fájlban szereplő adatokat tárolják. 
+        Ezek az osztályok segítenek az adatok könnyebb kinyerésében és feldolgozásában.
+        Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
+        */
+
         /// <summary>
         /// Maga az osztály a kédéseket és a válaszokat tárolja minden quizhez.
-        /// A wrapper osztályok a JSON fájlban szereplő adatokat tárolják. 
-        /// Ezek az osztályok segítenek az adatok könnyebb kinyerésében és feldolgozásában.
         /// </summary>
 
         public class PictureWrapper
@@ -50,6 +58,11 @@ namespace localadmin.Models
         public ImageSource? BannerImage => ByteArrayToImage(ProfilePictureArray);
         public QuizCard() { }
 
+        /// <summary>
+        /// Ez a metódus konvertálja a byte[]-t ImageSource-ra.
+        /// </summary>
+        /// <param name="imageData"></param>
+        /// <returns></returns>
         public static ImageSource? ByteArrayToImage(byte[]? imageData)
         {
             if (imageData == null || imageData.Length == 0)

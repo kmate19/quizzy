@@ -4,14 +4,15 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Windows.Forms;
 using localadmin.Models;
 using localadmin.Services;
 using static localadmin.Models.Quiz;
-using static localadmin.Models.User;
 
 public static class ApiQuizzesService
 {
+    /// <summary>
+    /// Ez az osztály tartalmazza azokat az adatokat, amik a quiz kártyákhoz tartoznak.
+    /// </summary>
     public class DetailedQuizData
     {
         public List<QuizCard> Cards { get; set; } = new();
@@ -158,7 +159,12 @@ public static class ApiQuizzesService
         }
     }
 
-
+    /// <summary>
+    /// Amikor elfogadunk vagy elutasítunk egy quiz-t, ez a functió hívódik meg és frissíti a quiz státuszát az adatbázisban.
+    /// </summary>
+    /// <param name="quizId"></param>
+    /// <param name="status"></param>
+    /// <returns></returns>
     public static async Task<bool> UpdateQuizStatus(string quizId, EQuizStatus status)
     {
         string url = "http://localhost:3000/api/v1/admin/set/quiz";

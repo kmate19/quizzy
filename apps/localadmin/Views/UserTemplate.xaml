@@ -4,7 +4,7 @@
                     xmlns:local="clr-namespace:localadmin.ViewModels">
     <DataTemplate DataType="{x:Type local:UserViewModel}">
         <StackPanel>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Height="300">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Height="500">
                 <ItemsControl HorizontalContentAlignment="Stretch" BorderThickness="0" ItemsSource="{Binding FilteredUsers}" Background="Transparent" Margin="0, 0, 5, 0">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -77,9 +77,10 @@
                                         <Button Command="{Binding ViewQuizCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
                                             <TextBlock Text="Quizei Megtekintése" TextWrapping="Wrap"/>
                                         </Button>
+                                        <!--
                                         <Button Command="{Binding ViewReviewCommand}" Style="{StaticResource GridButtons}" Margin="0, 0, 0, 6">
                                             <TextBlock Text="Értékelései Megtekintése" TextWrapping="Wrap"/>
-                                        </Button>
+                                        </Button> -->
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="5" Margin="20, 0, 40, 10">

@@ -6,15 +6,26 @@ using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.IO;
+using static localadmin.Models.User;
 
 namespace localadmin.Models
 {
     public class Quiz
     {
+        /*
+        általános információk
+
+        A JsonPropertyName attribútumok a JSON fájlban szereplő neveket tárolják, mivel néhány adat neve az alkalmazásban eltér az adatbázisban tároltaktól.
+        A JsonConverter pedig a Enumok konvertálásához kell.
+        A wrapper osztályok a JSON fájlban szereplő adatokat tárolják. 
+        Ezek az osztályok segítenek az adatok könnyebb kinyerésében és feldolgozásában.
+        Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
+        */
+
+
+
         /// <summary>
         /// Ez az ostály reprezentál 1 quizt az alkalmazásban, de nem minden adatát hiszen azok a QuizCardokban vannak.
-        /// A JsonPropertyName attribútumok a JSON fájlban szereplő neveket tárolják, mivel néhány adat neve az alkalmazásban eltér az adatbázisban tároltaktól.
-        /// A JsonConverter pedig a Enumok konvertálásához kell.
         /// </summary>
 
         public enum EQuizStatus
@@ -25,6 +36,17 @@ namespace localadmin.Models
             @private,
             rejected
         }
+
+        private static readonly Dictionary<EQuizStatus, string> StatusTranslations = new Dictionary<EQuizStatus, string>
+        {
+            { EQuizStatus.draft, "Vázlat" },
+            { EQuizStatus.published, "Közzétéve" },
+            { EQuizStatus.requires_review, "Felülvizsgálatra vár" },
+            { EQuizStatus.@private, "Privát" },
+            { EQuizStatus.rejected, "Elutasítva" }
+        };
+
+        public string TranslatedActivityStatus => StatusTranslations.TryGetValue(Status, out var translation) ? translation : Status.ToString();
 
         public class UserWrapper
         {
@@ -69,10 +91,6 @@ namespace localadmin.Models
         private NavigationService? NavigationService;
 
         private SharedStateService? SharedState;
-
-        /// <summary>
-        /// Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
-        /// </summary>
         public ICommand ViewUserCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand ViewQuizCommand { get; }
@@ -158,9 +176,13 @@ namespace localadmin.Models
             reviewView.SearchReviews(SharedState.SearchText);
         }
 
+        /// <summary>
+        /// Ez megnyit egy új ablakot a quiz részletes nézetével.
+        /// </summary>
+        /// <param name="parameter"></param>
         public void ViewQuiz(object? parameter)
         {
-            Window window = new QuizDetailedView(this);
+            Window window = new QuizDetailedView(this, NavigationService, SharedState);
             window.Show();
         }
 

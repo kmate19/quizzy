@@ -95,25 +95,6 @@
             </Setter>
         </Style>
 
-
-        <!--User Acticvity Coloring-->
-        <Style x:Key="ActivityStatusStyle" TargetType="TextBlock">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding ActivityStatus}" Value="Active">
-                    <Setter Property="Foreground" Value="Green" />
-                    <Setter Property="Text" Value="Aktív"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding ActivityStatus}" Value="Inactive">
-                    <Setter Property="Foreground" Value="Gray" />
-                    <Setter Property="Text" Value="Inaktív"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding ActivityStatus}" Value="Away">
-                    <Setter Property="Foreground" Value="Orange" />
-                    <Setter Property="Text" Value="Távol"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        
         <!--User Status Coloring-->
         <Style x:Key="AuthStatusStyle" TargetType="TextBlock">
             <Style.Triggers>
@@ -124,6 +105,27 @@
                     <Setter Property="Foreground" Value="Green" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding AuthStatus}" Value="Blocked">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Quiz Status Coloring -->
+        <Style x:Key="QuizStatus" TargetType="TextBlock">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="draft">
+                    <Setter Property="Foreground" Value="Gray" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="published">
+                    <Setter Property="Foreground" Value="Green" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="requires_review">
+                    <Setter Property="Foreground" Value="Orange" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="private">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="rejected">
                     <Setter Property="Foreground" Value="Red" />
                 </DataTrigger>
             </Style.Triggers>

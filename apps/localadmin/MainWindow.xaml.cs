@@ -99,6 +99,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Attól függően, hogy melyik viewmodelen vagyunk, meghívja a megfelelő keresési funkciót.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Searchbar_textChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is not TextBox textBox) return;
@@ -127,12 +132,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         NavigationService.NavigateTo(QuizViewModel);
         SharedState.SearchText = "Keresés";
+        if(QuizViewModel.Quizzes.Count == 0)
+            MessageBox.Show("Nincsenek quiz-ek az adatbázisban.");
     }
 
     private void ReviewsButtons_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.NavigateTo(ReviewViewModel);
         SharedState.SearchText = "Keresés";
+        MessageBox.Show("Ez a funkció még nem elérhető.");
     }
 
     protected override void OnClosed(EventArgs e)
@@ -142,6 +150,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
 }
 
+/// <summary>
+/// Amikor elindul az alkalmazás, eltünik a főablak és megjelenik az API kulcs ablak.
+/// </summary>
 public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace localadmin.ViewModels
 {
@@ -18,6 +19,7 @@ namespace localadmin.ViewModels
         private readonly SharedStateService SharedState;
         public ObservableCollection<User> Users { get; set; } = new();
         public ObservableCollection<User> FilteredUsers { get; set; } = new();
+        private DispatcherTimer _refreshTimer;
         public ObservableCollection<int> PageSizeOptions { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand NextPageCommand { get; }
@@ -74,6 +76,13 @@ namespace localadmin.ViewModels
 
             PageSizeOptions = new ObservableCollection<int> { 10, 20, 30, 40, 50 };
             PageSize = PageSizeOptions[0];
+
+            _refreshTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(30)
+            };
+            _refreshTimer.Tick += async (sender, e) => await GetUsers();
+            _refreshTimer.Start();
         }
         public async Task InitializeAsync()
         {
@@ -142,6 +151,10 @@ namespace localadmin.ViewModels
             }
         }
 
+        /// <summary>
+        /// Visszalép az elpőző oldalra és frissíti az adatokat.
+        /// </summary>
+        /// <param name="parameter"></param>
         private async void PreviousPage(object parameter)
         {
             if (CanGoPrevious)
@@ -153,6 +166,10 @@ namespace localadmin.ViewModels
             }
         }
 
+        /// <summary>
+        /// Átlép a következő oldalra és frissíti az adatokat.
+        /// </summary>
+        /// <param name="parameter"></param>
         private async void NextPage(object parameter)
         {
             if (CanGoNext)

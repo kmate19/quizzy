@@ -103,6 +103,9 @@
         <StackPanel Grid.Column="2" VerticalAlignment="Top" HorizontalAlignment="Center">
             <Button Content="Quiz elfogadása" Width="100" Margin="5" Style="{StaticResource GridButtons}" Click="AcceptQuiz"/>
             <Button Content="Quiz elutaítása" Width="100" Margin="5" Style="{StaticResource GridButtons}" Click="DenyQuiz" Background="Red"/>
+            <Button Width="100" Margin="5" Style="{StaticResource GridButtons}" Click="ViewUser">
+                <TextBlock Text="Felhasználó megtekintése" TextWrapping="Wrap"/>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>
