@@ -35,21 +35,10 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(
             });
         } catch (e) {
             console.error("VERIFY ERROR", e);
-            // TEST: test this somehow (idk what could cause the fauilure here)
-            const res = {
-                message: "invalid",
-                error: {
-                    message: "invalid",
-                    case: "server",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
+            return c.redirect("/login?error=1", 302);
         }
 
-        const res = {
-            message: "user verified",
-        } satisfies ApiResponse;
-        return c.json(res, 200);
+        return c.redirect("/login", 302);
     }
 );
 
