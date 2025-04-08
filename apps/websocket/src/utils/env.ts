@@ -37,7 +37,7 @@ function verify() {
 const ENV = {
     NODE_ENV: () => assertEnvProd(Bun.env.NODE_ENV, "NODE_ENV", "development"),
     ACCESS_COOKIE_NAME: () =>
-        assertEnvProd(Bun.env.ACESS_COOKIE_NAME, "ACCESS_COOKIE_NAME"),
+        assertEnvProd(Bun.env.ACCESS_COOKIE_NAME, "ACCESS_COOKIE_NAME"),
     ACCESS_JWT_SECRET: () =>
         assertEnvProd(Bun.env.ACCESS_JWT_SECRET, "ACCESS_JWT_SECRET"),
     WS_SECRET: () => assertEnvProd(Bun.env.WS_SECRET, "WS_SECRET"),
