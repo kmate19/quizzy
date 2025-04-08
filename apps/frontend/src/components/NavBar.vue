@@ -194,13 +194,13 @@ const joinLobby = async (code: string) => {
             Kezdőlap
           </a>
           <a @click="isCodeModal = !isCodeModal"
-            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text">>>>>>
+            class="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text">
             Közös játék
           </a>
           <a @click="router.push('/game_creation')" :class="[
             'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
             isActive('/game_creation') ? 'bg-gray-700' : 'hover:bg-gray-700',
-          ]"> > > > > >
+          ]">
             Játék készítés
           </a>
           <a @click="router.push('/profil')" :class="[
@@ -214,29 +214,21 @@ const joinLobby = async (code: string) => {
     </transition>
   </nav>
   <transition name="fade">
-    <div v-if="isCodeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"> >
-      >
-      >
-      >
-      >
-      <div <div <div <div
+    <div v-if="isCodeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+      <div
         class="relative w-full max-w-md p-6 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg">
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
           <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
-            class="w-full text-white"></v-text-field> ></v-text-field> ></v-text-field> ></v-text-field>
-          ></v-text-field>
-          ></v-text-field>
-          <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>rorMessage"
-          class="text-red-500 text-sm mb-2">{{ errorMessage }}
+            class="w-full text-white"></v-text-field>
+          <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
+          <button @click="joinLobby(lobbyCode)"
+            class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+            {{ isLoading ? 'Csatlakozás...' : 'Csatlakozás' }}
+          </button>
         </div>
-        <button @click="joinLobby(lobbyCode)"
-          class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">>>>>>
-          {{ isLoading ? 'Csatlakozás...' : 'Csatlakozás' }}
-        </button>
       </div>
-    </div>
     </div>
   </transition>
 </template>
