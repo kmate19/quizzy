@@ -449,6 +449,7 @@ const kickUser = (userName: string) => {
 }
 
 onMounted(() => {
+  console.log(quizzyStore.lobbyId)
   if (quizzyStore.canReconnect === true) {
     isReconnect.value = true
   }

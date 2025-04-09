@@ -184,7 +184,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       if (data.type === 'gamestate') {
         gameStarted.value = true
         currentCard.value = data.data.currentQuestion
-        currentQuestionIndex.value = data.data.currentQuestionIndex-1
+        currentQuestionIndex.value = data.data.currentQuestionIndex - 1
         time.value = data.data.roundTimeLeftMs
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
@@ -395,6 +395,7 @@ const decrase = () => {
 }
 
 onMounted(() => {
+  console.log(quizzyStore.lobbyId)
   if (quizzyStore.canReconnect === true) {
     isReconnect.value = true
   }
