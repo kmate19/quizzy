@@ -6,6 +6,7 @@ import { zv } from "@/middlewares/zv";
 import { and, eq, or } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 import { randomBytes } from "node:crypto";
+import sendEmail from "@/utils/email/send-email";
 
 const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
     zv("json", LoginUserSchema.omit({ password: true })),
@@ -72,23 +73,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        const worker = new Worker(
-            new URL(
-                GLOBALS.WORKERCONF.workerRelativePath +
-                    "workers/email-worker" +
-                    GLOBALS.WORKERCONF.workerExtension,
-                import.meta.url
-            ).href
-        );
-        worker.onerror = (e) => {
-            console.error(e);
-        };
-        worker.postMessage({
-            email: user.email,
-            emailToken,
-            type: "forgot_password",
-            data: randomPassword,
-        });
+        sendEmail(user.email, emailToken, "forgot_password", randomPassword);
 
         const res = {
             message:

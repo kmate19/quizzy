@@ -58,10 +58,6 @@ const GLOBALS = {
         { name: "Utazás" },
         { name: "Divat" },
     ] satisfies TagInsert[],
-    WORKERCONF: {
-        workerExtension: ENV.NODE_ENV() === "production" ? ".js" : ".ts",
-        workerRelativePath: ENV.NODE_ENV() === "production" ? "./" : "../../",
-    },
 } as const;
 
 export default GLOBALS;

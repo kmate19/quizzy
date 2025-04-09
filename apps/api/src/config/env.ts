@@ -36,6 +36,8 @@ function verify() {
 
 const ENV = {
     NODE_ENV: () => assertEnvProd(Bun.env.NODE_ENV, "NODE_ENV", "development"),
+    MAILGUN_API_KEY: () =>
+        assertEnvProd(Bun.env.MAILGUN_API_KEY, "MAILGUN_API_KEY"),
     EMAIL_USER: () => assertEnvProd(Bun.env.EMAIL_USER, "EMAIL_USER"),
     EMAIL_PASS: () => assertEnvProd(Bun.env.EMAIL_PASS, "EMAIL_PASS"),
     ACCESS_COOKIE_NAME: () =>
