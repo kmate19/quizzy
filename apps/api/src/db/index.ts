@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { pushSchema } from "drizzle-kit/api";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import * as schema from "./schemas/index";
 import ENV from "@/config/env";
 import GLOBALS from "@/config/globals";
@@ -11,12 +11,7 @@ const db = drizzle(ENV.DATABASE_URL(), opts);
 
 if (ENV.NODE_ENV() === "production") {
     await Bun.sleep(4000);
-    // @ts-expect-error undocumented api
-    await pushSchema({ schema }, db);
-    // @ts-expect-error undocumented api
-    await pushSchema({ schema }, db);
-    // @ts-expect-error undocumented api
-    await pushSchema({ schema }, db);
+    await migrate(db, { migrationsFolder: "./migrations" });
 } else {
     await db.execute("SELECT 1");
 }
