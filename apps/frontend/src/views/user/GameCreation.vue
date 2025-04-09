@@ -13,7 +13,7 @@ import router from '@/router'
 import draggable from 'vuedraggable'
 
 const qTypes = ['twochoice', 'normal']
-const items = ['draft', 'requires_review', 'private']
+const items = ['draft', 'published', 'requires_review', 'private']
 
 const isTagDropdownOpen = ref(false)
 const tagSearchQuery = ref('')
@@ -119,7 +119,7 @@ const oneQuestion = ref<cardType>({
 const quiz = ref<quizUpload>({
   title: '',
   description: '',
-  status: <'draft' | 'requires_review' | 'private'> 'draft',
+  status: <'draft' | 'published' | 'requires_review' | 'private'>'published',
   banner: '',
   languageISOCodes: [] as unknown as [string, ...string[]],
   tags: [] as unknown as [string, ...string[]],
@@ -185,7 +185,7 @@ function toggleDropdown() {
 }
 
 function selectItem(item: string) {
-  quiz.value.status = item as 'draft' | 'requires_review' | 'private'
+  quiz.value.status = item as 'draft' | 'published' | 'requires_review' | 'private'
   isOpen.value = false
 }
 
@@ -351,7 +351,7 @@ const resetObject = <T extends object>(obj: T): T => {
       }
     }
   }
-  console.log(newObj)
+
   return newObj
 }
 
@@ -471,16 +471,8 @@ const uploadOrUpdate = async () => {
   quiz.value.tags = mappedTags as [string, ...string[]]
   const res = await handleQuizyUpload(quiz.value, isEdit.value, uuid)
 
-  console.log(res)
-
-  if (res == true) {
+  if (res === true) {
     oneQuestion.value.type = 'normal'
-    quiz.value = resetObject(quiz.value)
-    quiz.value.status = "draft"
-    resetQuestion()
-    console.log('Quiz successfully uploaded!')
-    console.log(quiz.value)
-    console.log(oneQuestion.value)
 
     if (isEdit.value) {
       localStorage.setItem('quizEditSuccess', 'true')

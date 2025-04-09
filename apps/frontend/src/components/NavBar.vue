@@ -111,7 +111,6 @@ const joinLobby = async (code: string) => {
         canReconnect: true,
         quizId: '',
         isHost: false,
-        canReconnect: false,
       })
 
       isCodeModal.value = false
@@ -221,7 +220,7 @@ const joinLobby = async (code: string) => {
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
-          <v-text-field id="lobbyCode" label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
+          <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
             class="w-full text-white"></v-text-field>
           <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
           <button @click="joinLobby(lobbyCode)"
