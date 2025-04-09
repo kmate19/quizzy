@@ -38,7 +38,7 @@ export const app = new Hono()
     .route("/", meta)
     .route("/", events)
     .onError((err, c) => {
-        // TEST: test this somehow (idk what could cause the fauilure here)
+        // TEST: test this somehow (idk what could cause the fauilure here).
         console.error(err);
         const res = {
             message: "Something went wrong",
