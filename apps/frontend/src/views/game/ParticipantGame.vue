@@ -395,7 +395,7 @@ const decrase = () => {
 }
 
 onMounted(() => {
-  if (quizzyStore.canReconnect) {
+  if (quizzyStore.canReconnect === true) {
     isReconnect.value = true
   }
   if (!lobbyId.value) {
