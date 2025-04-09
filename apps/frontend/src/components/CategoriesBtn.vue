@@ -164,6 +164,7 @@ onMounted(async () => {
             >
               <input type="checkbox" :value="t.name" v-model="selectedTagsData" class="hidden" />
               <div
+                id="tag"
                 class="flex-1 px-3 py-1 rounded-full border-2 border-transparent hover:border-white transition-all duration-300 cursor-pointer"
                 :class="isSelected(t.name)
                   ? 'bg-green-600 text-white'
@@ -183,6 +184,7 @@ onMounted(async () => {
               >
                 <input type="checkbox" :value="lang.iso_code" v-model="selectedLanguagesData" class="hidden" />
                 <div
+                id="lang"
                   class="flex-1 px-3 py-1 rounded-full border-2 border-transparent hover:border-white transition-all duration-300 cursor-pointer"
                   :class="selectedLanguagesData.includes(lang.iso_code ?? '')
                     ? 'bg-blue-600 text-white'

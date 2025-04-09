@@ -101,6 +101,13 @@ const setupWebSocketListeners = (ws: WebSocket) => {
             server: false,
           }),
         )
+        ws.send(
+          JSON.stringify({
+            type: 'quizmeta',
+            successful: true,
+            server: false,
+          }),
+        )
       } else {
         ws.send(
           JSON.stringify({
@@ -174,6 +181,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         }
 
         decrase()
+      }
+
+      
+      if (data.type === 'quizmeta') {
+        quizzyStore.currentQuiz = data.data
       }
 
       if (data.type === 'gamestarted') {
@@ -437,7 +449,7 @@ const kickUser = (userName: string) => {
 }
 
 onMounted(() => {
-  if (quizzyStore.canReconnect) {
+  if (quizzyStore.canReconnect === true) {
     isReconnect.value = true
   }
   if (!lobbyId.value) {
