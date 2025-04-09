@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, onUnmounted } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next'
@@ -184,13 +184,13 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       if (data.type === 'gamestate') {
         gameStarted.value = true
         currentCard.value = data.data.currentQuestion
-        currentQuestionIndex.value = data.data.currentQuestionIndex-1
-        time.value = data.data.roundTimeLeftMs
+        console.log(data.data)
+        currentQuestionIndex.value = data.data.currentRoundIndex 
+        time.value = Math.round(data.data.roundTimeLeftMs)
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
           timerRef.value = null
         }
-
         decrase()
       }
 
@@ -383,9 +383,10 @@ const selectAnswer = (index: number) => {
 }
 
 const decrase = () => {
+  console.log(time.value)
   if (time.value > 0 && !answerSelected.value) {
     timerRef.value = setTimeout(() => {
-      time.value -= 1000
+      time.value = Math.max(0, time.value - 1000)
       decrase()
     }, 1000) as unknown as number
   } else if (timerRef.value !== null) {
@@ -395,6 +396,7 @@ const decrase = () => {
 }
 
 onMounted(() => {
+  console.log(quizzyStore.lobbyId)
   if (quizzyStore.canReconnect === true) {
     isReconnect.value = true
   }
@@ -404,6 +406,17 @@ onMounted(() => {
     return
   }
   setupWebSocket()
+})
+
+onUnmounted(() => {
+  if (timerRef.value !== null) {
+    clearTimeout(timerRef.value)
+    timerRef.value = null
+  }
+  
+  if (websocket.value) {
+    websocket.value.close(1000, 'User left lobby')
+  }
 })
 
 const startGame = () => {
@@ -510,7 +523,7 @@ const restartGame = () => {
               <p class="text-white/70 mt-3">Készülj fel!</p>
             </div>
           </div>
-          <transition name="fade-slide" mode="in-out" v-if="currentCard">
+          <transition name="fade-slide" mode="out-in" v-if="currentCard">
             <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex"
               v-if="!preparingNextRound && !answerSelected">
               <div

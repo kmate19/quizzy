@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { shallowRef, watchEffect, defineAsyncComponent } from 'vue';
+import { shallowRef, defineAsyncComponent } from 'vue';
 import { useQuizzyStore } from '@/stores/quizzyStore';
 
 const quizzyStore = useQuizzyStore();
@@ -9,9 +9,7 @@ const ParticipantGame = defineAsyncComponent(() => import('@/views/game/Particip
 
 const selectedComponent = shallowRef<typeof GameView | typeof ParticipantGame>(GameView);
 
-watchEffect(() => {
-  selectedComponent.value = quizzyStore.isHost ? GameView : ParticipantGame;
-});
+selectedComponent.value = quizzyStore.isHost ? GameView : ParticipantGame;
 </script>
 
 <template>

@@ -116,6 +116,7 @@ const joinLobby = async (code: string) => {
       isCodeModal.value = false
       isLoading.value = false
       router.push(`/quiz/multiplayer/${first_data.code}`)
+      lobbyCode.value = ''
     } else {
       errorMessage.value = 'A megadott kóddal nem létezik lobby'
       isLoading.value = false
