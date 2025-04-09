@@ -108,7 +108,6 @@ const joinLobby = async (code: string) => {
 
       quizzyStore.setLobbyData({
         lobbyId: first_data.code!,
-        canReconnect: true,
         quizId: '',
         isHost: false,
         canReconnect: false,
@@ -221,14 +220,8 @@ const joinLobby = async (code: string) => {
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
-          <v-text-field
-            id="lobbyCode"
-            label="Lobby kód"
-            v-model="lobbyCode"
-            variant="outlined"
-            density="comfortable"
-            class="w-full text-white"
-          ></v-text-field>
+          <v-text-field id="lobbyCode" label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
+            class="w-full text-white"></v-text-field>
           <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
           <button @click="joinLobby(lobbyCode)"
             class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
