@@ -36,7 +36,8 @@ export function handleGameEnd(lobby: Lobby) {
 
     if (strippedMembers.length > 1) {
         // send to api for intra service messaging
-        fetch("http://localhost:3000/api/v1/events/quiz-finished", {
+        const dns = ENV.NODE_ENV() === "production" ? "api" : "localhost";
+        fetch(`http://${dns}:3000/api/v1/events/quiz-finished`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

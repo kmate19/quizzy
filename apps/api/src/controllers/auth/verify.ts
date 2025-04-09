@@ -4,7 +4,6 @@ import { usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
 import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
-import type { ApiResponse } from "repo";
 import { z } from "zod";
 
 const verifyHandler = GLOBALS.CONTROLLER_FACTORY(
@@ -22,13 +21,20 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(
                         eq(userTokensTable.user_id, usersTable.id)
                     )
                     .where(eq(userTokensTable.token, emailHash));
+
+                if (!userAndToken) {
+                    throw new Error("No user with this hash");
+                }
+
                 await tx
                     .update(usersTable)
                     .set({ auth_status: "active" })
                     .where(eq(usersTable.id, userAndToken.users.id));
+
                 if (!userAndToken.user_tokens) {
-                    throw new Error("invalid");
+                    throw new Error("User has no tokens");
                 }
+
                 await tx
                     .delete(userTokensTable)
                     .where(eq(userTokensTable.id, userAndToken.user_tokens.id));
