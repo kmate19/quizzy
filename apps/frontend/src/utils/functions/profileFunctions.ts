@@ -7,9 +7,7 @@ import * as zod from 'zod'
 import router from '@/router'
 
 export const userData = async (id: string) => {
-  console.log("beleptem")
   if (id !== '') {
-    console.log("van id")
     const user = await clientv1.userprofile[':userId'].$get({ param: { userId: id } })
     if (user.status === 200) {
       const res = await user.json()
@@ -36,7 +34,6 @@ export const userData = async (id: string) => {
       })
     }
   } else {
-    console.log("nincs id")
     const user = await clientv1.userprofile.$get()
     if (user.status === 200) {
       const res = await user.json()
@@ -156,7 +153,6 @@ export const handleDelete = async (uuid: string) => {
     queryClient.refetchQueries({ queryKey: ['userQuizzies'] })
   } else {
     const res = await del.json()
-    console.log('Delete error:', res.message)
     toast(res.message, {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
@@ -275,7 +271,6 @@ export const deleteApiKey = async (uuid: number) => {
     queryClient.refetchQueries({ queryKey: ['apiKeys'] })
   } else {
     const res = await del.json()
-    console.log(res)
     toast(res.error.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
@@ -287,11 +282,9 @@ export const deleteApiKey = async (uuid: number) => {
 }
 
 export const listApiKeys = async () => {
-  console.log('listApiKeys')
   const get = await clientv1.apikey.list.$get()
   if (get.status === 200) {
     const res = await get.json()
-    console.log(res.data)
     return res.data.sort(
       (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
     )
