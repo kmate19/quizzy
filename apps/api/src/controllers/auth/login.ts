@@ -7,12 +7,21 @@ import { zv } from "@/middlewares/zv";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import { makeDefaultPfp } from "@/utils/helpers";
 import { eq, or } from "drizzle-orm";
+import { rateLimiter } from "hono-rate-limiter";
+import { getConnInfo } from "hono/bun";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import type { ApiResponse } from "repo";
 
 const loginHandler = GLOBALS.CONTROLLER_FACTORY(
     zv("json", LoginUserSchema),
+    rateLimiter({
+        windowMs: 60 * 1000,
+        limit: 15,
+        standardHeaders: "draft-7",
+        keyGenerator: (c) => getConnInfo(c).remote.address!,
+        message: "Too many requests, please try again later.",
+    }),
     async (c) => {
         const loginUserData = c.req.valid("json");
 
