@@ -13,6 +13,10 @@ if (ENV.NODE_ENV() === "production") {
     await Bun.sleep(4000);
     // @ts-expect-error undocumented api
     await pushSchema({ schema }, db);
+    // @ts-expect-error undocumented api
+    await pushSchema({ schema }, db);
+    // @ts-expect-error undocumented api
+    await pushSchema({ schema }, db);
 } else {
     await db.execute("SELECT 1");
 }
