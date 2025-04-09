@@ -52,6 +52,7 @@ export const getQuiz = async (uuid: string) => {
 
 export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid: string) => {
   await nextTick()
+  console.log(quiz)
   if (isEdit) {
     const edit = await clientv1.quizzes.edit[':quizId'].$patch({
       param: { quizId: uuid },
