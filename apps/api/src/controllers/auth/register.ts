@@ -10,8 +10,18 @@ import { eq, or } from "drizzle-orm";
 import { zv } from "@/middlewares/zv";
 import { userStatsTable } from "@/db/schemas";
 import { randomBytes } from "node:crypto";
+import sendEmail from "@/utils/email/send-email";
+import { rateLimiter } from "hono-rate-limiter";
+import { getConnInfo } from "hono/bun";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(
+    rateLimiter({
+        windowMs: 15 * 60 * 1000,
+        limit: 5,
+        standardHeaders: "draft-7",
+        keyGenerator: (c) => getConnInfo(c).remote.address!,
+        message: "Too many requests, please try again later.",
+    }),
     zv("json", RegisterUserSchema),
     async (c) => {
         const registerUserData = c.req.valid("json");
@@ -94,28 +104,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        // NOTE: Worker paths need to be from the CWD of the running script, not relative to the f
-        // ile that imports it XD!
-        // also workers silently throw errors which dont get propogated to the main thread, so we need to event listener haha
-        // actually this still doesnt work since bun docs are wrong, after compiling the file extension becomes .js so thats why it cant find the file in prod
-        // ALSO THE RELATIVE PATHS NEED TO BE CHANGED SINCE FOLDER STRUCTURE CHANGES AFTER COMPILATION
-        // (why am i even compiling if theres one more issue because of this, im refactoring)
-        const worker = new Worker(
-            new URL(
-                GLOBALS.WORKERCONF.workerRelativePath +
-                    "workers/email-worker" +
-                    GLOBALS.WORKERCONF.workerExtension,
-                import.meta.url
-            ).href
-        );
-        worker.onerror = (e) => {
-            console.error(e);
-        };
-        worker.postMessage({
-            email: registerUserData.email,
-            emailToken,
-            type: "verify",
-        });
+        await sendEmail(registerUserData.email, emailToken, "verify");
 
         const res = {
             message: "user created",

@@ -39,22 +39,11 @@ const forgotPassActivateHandler = GLOBALS.CONTROLLER_FACTORY(
                     .where(eq(usersTable.id, userAndToken.users.id));
             });
         } catch (e) {
-            console.log(e);
-            // TEST: test this somehow (idk what could cause the fauilure here)
-            const res = {
-                message: "invalid",
-                error: {
-                    message: "invalid",
-                    case: "server",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
+            console.error("FORGOTPW ERROR", e);
+            return c.redirect("/login?error=1", 302);
         }
 
-        const res = {
-            message: "temp password assigned",
-        } satisfies ApiResponse;
-        return c.json(res, 200);
+        return c.redirect("/login", 302);
     }
 );
 
