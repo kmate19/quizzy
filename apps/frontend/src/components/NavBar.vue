@@ -110,6 +110,7 @@ const joinLobby = async (code: string) => {
         lobbyId: first_data.code,
         quizId: '',
         isHost: false,
+        canReconnect: false,
       })
 
       isCodeModal.value = false
@@ -267,6 +268,7 @@ const joinLobby = async (code: string) => {
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
           <v-text-field
+            id="lobbyCode"
             label="Lobby kód"
             v-model="lobbyCode"
             variant="outlined"
