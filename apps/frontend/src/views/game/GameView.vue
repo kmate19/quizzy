@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, toRaw, nextTick } from 'vue'
+import { ref, onMounted, toRaw, nextTick, onUnmounted } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy } from 'lucide-vue-next'
@@ -173,8 +173,8 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         
         gameStarted.value = true
         currentCard.value = data.data.currentQuestion
-        time.value = data.data.roundTimeLeftMs
-        currentQuestionIndex.value = data.data.currentRoundIndex-1
+        time.value = Math.round(data.data.roundTimeLeftMs)
+        currentQuestionIndex.value = data.data.currentRoundIndex
         if (timerRef.value !== null) {
           clearTimeout(timerRef.value)
           timerRef.value = null
@@ -400,9 +400,10 @@ const selectAnswer = (index: number) => {
 }
 
 const decrase = () => {
+  console.log(time.value)
   if (time.value > 0 && !answerSelected.value) {
     timerRef.value = setTimeout(() => {
-      time.value -= 1000
+      time.value = Math.max(0, time.value - 1000)
       decrase()
     }, 1000) as unknown as number
   } else if (timerRef.value !== null) {
@@ -462,6 +463,17 @@ onMounted(() => {
   setupWebSocket()
 })
 
+onUnmounted(() => {
+  if (timerRef.value !== null) {
+    clearTimeout(timerRef.value)
+    timerRef.value = null
+  }
+  
+  if (websocket.value) {
+    websocket.value.close(1000, 'User left lobby')
+  }
+})
+
 </script>
 
 <template>
@@ -518,9 +530,9 @@ onMounted(() => {
               <p class="text-white/70 mt-3">Készülj fel!</p>
             </div>
           </div>
-          <transition name="fade-slide" mode="in-out">
+          <transition name="fade-slide" mode="out-in" v-if="currentCard">
             <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex"
-              v-if="!preparingNextRound && !answerSelected && currentCard">
+              v-if="!preparingNextRound && !answerSelected">
               <div
                 class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
                 :class="time < 5000 ? 'text-red-500' : 'text-white'">
