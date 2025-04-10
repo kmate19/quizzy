@@ -13,7 +13,8 @@ import router from '@/router'
 import draggable from 'vuedraggable'
 
 const qTypes = ['twochoice', 'normal']
-const items = ['draft', 'requires_review', 'private']
+const eitems = ['draft', 'published','requires_review', 'private']
+const mItems = ['vázlat', 'publikus', 'ellenőrzést igényel', 'privát']
 
 const isTagDropdownOpen = ref(false)
 const tagSearchQuery = ref('')
@@ -119,7 +120,7 @@ const oneQuestion = ref<cardType>({
 const quiz = ref<quizUpload>({
   title: '',
   description: '',
-  status: <'draft' | 'requires_review' | 'private'> 'draft',
+  status: <'draft' | 'published' | 'requires_review' | 'private'> 'draft',
   banner: '',
   languageISOCodes: [] as unknown as [string, ...string[]],
   tags: [] as unknown as [string, ...string[]],
@@ -184,8 +185,9 @@ function toggleDropdown() {
   isOpen.value = !isOpen.value
 }
 
-function selectItem(item: string) {
-  quiz.value.status = item as 'draft' | 'requires_review' | 'private'
+function selectItem(index: number) {
+  const status = eitems[index]
+  quiz.value.status = status as 'draft' | 'published' | 'requires_review' | 'private'
   isOpen.value = false
 }
 
@@ -477,6 +479,8 @@ const uploadOrUpdate = async () => {
     oneQuestion.value.type = 'normal'
     quiz.value = resetObject(quiz.value)
     quiz.value.status = "draft"
+    selectedLanguages.value = []
+    selectedTags.value = []
     resetQuestion()
     console.log('Quiz successfully uploaded!')
     console.log(quiz.value)
@@ -548,7 +552,7 @@ const marqueeDuration = computed(() => {
               <div class="relative inline-block text-left">
                 <button @click="toggleDropdown"
                   class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
-                  <span>{{ quiz.status }}</span>
+                  <span>{{ mItems[eitems.indexOf(quiz.status)] }}</span>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300"
                     :class="{ 'rotate-180': isOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -561,7 +565,7 @@ const marqueeDuration = computed(() => {
                   <div v-if="isOpen"
                     class="z-50 absolute mt-2 w-full origin-top-right rounded-md shadow-lg bg-gray-500 backdrop-blur-3xl transition-all duration-300">
                     <div class="py-1" v-click-outside="() => (isOpen = false)">
-                      <div v-for="item in items" :key="item" @click="selectItem(item)"
+                      <div v-for="(item, index) in mItems" :key="item" @click="selectItem(index)"
                         class="cursor-pointer text-white px-4 py-2 hover:scale-105 transition-all duration-300 bg-">
                         {{ item }}
                       </div>
