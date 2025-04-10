@@ -40,9 +40,6 @@ const apiKey = ref('')
 const route = useRoute()
 const userId = route.params.uuid.toString()
 
-//i get my status from the api and i want to create a key value object which takes in the english version and gives back the hungarian one:
-//private, requires_review, published, draft
-
 const mItems = {
   private: 'privát',
   requires_review: 'ellenőrzést igényel',
@@ -421,13 +418,14 @@ watch(
               </div>
               <div v-else>
                 <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
-                  Quizzes
+                  Kvízek
                   <span class="text-sm font-normal text-white/70">
                     {{ userQuizzies?.length }} összesen
                   </span>
                 </h2>
                 <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
-                  <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white 
+                  <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-row gap-4 p-4
+                   rounded-xl text-white 
                     hover:border-white border-2 border-transparent shadow-lg transition-all 
                     duration-500 cursor-pointer bg-white/10"
                     @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
@@ -439,9 +437,8 @@ watch(
 
                     <div class="flex-1 relative">
                       <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-
-                        <div class="flex gap-2 absolute top-0 right-0">
+                        <h3 class="text-white font-medium text-xl flex flex-wrap">{{ quiz.title }}</h3>
+                        <div class="flex gap-2 top-0 right-0">
                           <span v-if="quiz.status !== 'draft' && !isOtherUser" @click.stop="handleQuizView(quiz.id)"
                             class="flex rounded-full text-xs bg-blue-700 w-10 h-10 
                             justify-center items-center border-2 border-transparent 
