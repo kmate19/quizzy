@@ -29,8 +29,8 @@ RUN pnpm run --filter api build:bun
 
 FROM alpine:latest AS prod
 WORKDIR /app
-RUN apk add --no-cache python3 build-base cairo-dev pkgconfig pixman-dev jpeg-dev giflib-dev pango-dev
-RUN apk add --no-cache libstdc++ libgcc
+
+RUN apk add --no-cache libstdc++ libgcc font-liberation ttf-dejavu python3 build-base cairo-dev pkgconfig pixman-dev jpeg-dev giflib-dev pango-dev
 # ^ needed for bun binary to work
 COPY --from=builder /app/apps/api/dist/api api
 COPY --from=builder /app/apps/api/migrations/ migrations/

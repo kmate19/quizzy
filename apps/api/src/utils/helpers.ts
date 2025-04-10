@@ -1,19 +1,15 @@
 import { createCanvas, loadImage } from "canvas";
 
-export async function processImage(
-    pfpBuf: Buffer,
-    width?: number,
-    height?: number
-) {
-    const w = width || 400;
-    const h = height || 300;
-    const canvas = createCanvas(w, h);
+export async function processImage(pfpBuf: Buffer) {
+    const image = await loadImage(pfpBuf);
+    const targetWidth = 400;
+    const scale = targetWidth / image.width;
+    const targetHeight = image.height * scale;
 
+    const canvas = createCanvas(targetWidth, targetHeight);
     const ctx = canvas.getContext("2d");
 
-    const image = await loadImage(pfpBuf);
-
-    ctx.drawImage(image, 0, 0, w, h);
+    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
 
     return canvas.toBuffer("image/jpeg", { quality: 1.0 });
 }
@@ -61,7 +57,7 @@ export async function makeDefaultPfp(name: string) {
 
     const intial = name.charAt(0).toUpperCase();
 
-    ctx.font = "bold 120px Arial";
+    ctx.font = "bold 120px 'Liberation Sans'";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
