@@ -601,7 +601,7 @@ const restartGame = () => {
                 <transition name="score" mode="out-in">
                   <span class="font-bold text-yellow-300" :key="player.stats.score">{{
                     player.stats.score
-                    }}</span>
+                  }}</span>
                 </transition>
               </div>
             </transition-group>
@@ -726,12 +726,17 @@ const restartGame = () => {
 
     <div v-else class="text-white">
       <div class="flex justify-between items-center mb-8">
+        <div class="flex justify-center" v-if="isHost">
+          <button class="glass-button px-4 py-2  rounded-full cursor-pointer" @click="startGame">
+            Játék
+          </button>
+        </div>
         <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-full cursor-pointer">
           Lobby elhagyása
         </button>
       </div>
 
-      <div class="text-center relative z-50 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
+      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
         <div v-if="!gameQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
           <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md" />
@@ -769,11 +774,7 @@ const restartGame = () => {
         </div>
       </div>
 
-      <div class="flex justify-center" v-if="isHost">
-        <button class="glass-button px-8 py-4 text-xl rounded-lg bg-green-600/30" @click="startGame">
-          Játék
-        </button>
-      </div>
+
     </div>
   </div>
 </template>

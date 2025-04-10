@@ -40,7 +40,7 @@ const handlePath = (routeName: string) => {
     case 'home':
       return 'Kezdőlap'
     case 'game_creation':
-      return 'Játék készítés'
+      return 'Szerkesztő'
     case 'quiz_practice':
       return 'Gyakorlás'
     case 'detailed_view':
@@ -133,9 +133,11 @@ const joinLobby = async (code: string) => {
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <div @click="router.push('/')"
-          class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
-          Quizzy <span class="text-white">| {{ componentName }}</span>
+        <div
+          @click="router.push('/')"
+          class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
+        >
+          Quizzy <span class="text-white">{{ componentName }}</span>
         </div>
         <div class="hidden md:block desktop-navbar">
           <div class="ml-10 flex items-baseline space-x-4">
@@ -170,8 +172,10 @@ const joinLobby = async (code: string) => {
           </div>
         </div>
         <div class="block md:hidden mobile-navbar">
-          <button @click="toggleMobileMenu"
-            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300">
+          <button
+            @click="toggleMobileMenu"
+            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300 cursor-pointer"
+          >
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16" />
