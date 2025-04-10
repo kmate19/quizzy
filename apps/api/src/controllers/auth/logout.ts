@@ -13,7 +13,7 @@ const logoutHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
             eq(userTokensTable.id, c.get("accessTokenPayload").refreshTokenId)
         );
 
-    deleteCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
+    deleteCookie(c, GLOBALS.ACCESS_COOKIE_NAME, GLOBALS.COOKIE_OPTS);
 
     const res = {
         message: "user logged out",

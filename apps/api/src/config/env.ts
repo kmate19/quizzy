@@ -36,10 +36,12 @@ function verify() {
 
 const ENV = {
     NODE_ENV: () => assertEnvProd(Bun.env.NODE_ENV, "NODE_ENV", "development"),
+    MAILGUN_API_KEY: () =>
+        assertEnvProd(Bun.env.MAILGUN_API_KEY, "MAILGUN_API_KEY"),
     EMAIL_USER: () => assertEnvProd(Bun.env.EMAIL_USER, "EMAIL_USER"),
     EMAIL_PASS: () => assertEnvProd(Bun.env.EMAIL_PASS, "EMAIL_PASS"),
     ACCESS_COOKIE_NAME: () =>
-        assertEnvProd(Bun.env.ACESS_COOKIE_NAME, "ACCESS_COOKIE_NAME"),
+        assertEnvProd(Bun.env.ACCESS_COOKIE_NAME, "ACCESS_COOKIE_NAME"),
     DOMAIN: () => assertEnvProd(Bun.env.DOMAIN, "DOMAIN", "localhost"),
     REFRESH_JWT_SECRET: () =>
         assertEnvProd(Bun.env.REFRESH_JWT_SECRET, "REFRESH_JWT_SECRET"),

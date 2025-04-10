@@ -42,7 +42,6 @@ const userId = route.params.uuid.toString()
 
 const mItems = {
   private: 'privát',
-  requires_review: 'ellenőrzést igényel',
   published: 'publikus',
   draft: 'vázlat'
 }
@@ -440,16 +439,16 @@ watch(
                         <h3 class="text-white font-medium text-xl flex flex-wrap">{{ quiz.title }}</h3>
                         <div class="flex gap-2 top-0 right-0">
                           <span v-if="quiz.status !== 'draft' && !isOtherUser" @click.stop="handleQuizView(quiz.id)"
-                            class="flex rounded-full text-xs bg-blue-700 w-10 h-10 
-                            justify-center items-center border-2 border-transparent 
+                            class="flex rounded-full text-xs bg-blue-700 w-10 h-10
+                            justify-center items-center border-2 border-transparent
                             hover:border-white transition-all duration-300">
                             <Settings class="w-5 h-5" />
                           </span>
                           <span v-if="!isOtherUser" @click.stop="
                             (isDeleteModal = !isDeleteModal),
                             (selectedUuid = quiz.id)
-                            " class="flex rounded-full text-xs bg-red-700 w-10 h-10 
-                            justify-center items-center border-2 border-transparent 
+                            " class="flex rounded-full text-xs bg-red-700 w-10 h-10
+                            justify-center items-center border-2 border-transparent
                             hover:border-white transition-all duration-300">
                             <Trash2 class="w-5 h-5" />
                           </span>
