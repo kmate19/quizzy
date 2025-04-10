@@ -11,6 +11,7 @@ COPY apps/api/src ./apps/api/src/
 COPY apps/api/tsconfig.json ./apps/api/
 COPY apps/api/tsconfig.build.json ./apps/api/
 COPY apps/api/drizzle.config.ts ./apps/api/
+COPY apps/api/migrations ./apps/api/migrations/
 COPY packages/ ./packages/
 
 # begin add bun
@@ -24,7 +25,7 @@ ENV PATH=$PATH:/root/.bun/bin
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm run --filter api build
+RUN pnpm run --filter api build:bun
 
 FROM alpine:latest AS prod
 WORKDIR /app
