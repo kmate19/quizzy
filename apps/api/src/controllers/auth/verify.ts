@@ -4,7 +4,6 @@ import { usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
 import { zv } from "@/middlewares/zv";
 import { eq } from "drizzle-orm";
-import type { ApiResponse } from "repo";
 import { z } from "zod";
 
 const verifyHandler = GLOBALS.CONTROLLER_FACTORY(
@@ -22,34 +21,30 @@ const verifyHandler = GLOBALS.CONTROLLER_FACTORY(
                         eq(userTokensTable.user_id, usersTable.id)
                     )
                     .where(eq(userTokensTable.token, emailHash));
+
+                if (!userAndToken) {
+                    throw new Error("No user with this hash");
+                }
+
                 await tx
                     .update(usersTable)
                     .set({ auth_status: "active" })
                     .where(eq(usersTable.id, userAndToken.users.id));
+
                 if (!userAndToken.user_tokens) {
-                    throw new Error("invalid");
+                    throw new Error("User has no tokens");
                 }
+
                 await tx
                     .delete(userTokensTable)
                     .where(eq(userTokensTable.id, userAndToken.user_tokens.id));
             });
         } catch (e) {
             console.error("VERIFY ERROR", e);
-            // TEST: test this somehow (idk what could cause the fauilure here)
-            const res = {
-                message: "invalid",
-                error: {
-                    message: "invalid",
-                    case: "server",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
+            return c.redirect("/login?error=1", 302);
         }
 
-        const res = {
-            message: "user verified",
-        } satisfies ApiResponse;
-        return c.json(res, 200);
+        return c.redirect("/login", 302);
     }
 );
 

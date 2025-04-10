@@ -15,10 +15,19 @@ import { processImage } from "@/utils/helpers";
 import { publishQuizSchema } from "@/utils/schemas/zod-schemas";
 import { eq } from "drizzle-orm";
 import { fileTypeFromBuffer } from "file-type";
+import { rateLimiter } from "hono-rate-limiter";
+import { getConnInfo } from "hono/bun";
 import type { ApiResponse } from "repo";
 
 const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
     checkJwt(),
+    rateLimiter({
+        windowMs: 2 * 60 * 1000,
+        limit: 2,
+        standardHeaders: "draft-7",
+        keyGenerator: (c) => getConnInfo(c).remote.address!,
+        message: "Too many requests, please try again later.",
+    }),
     zv("json", publishQuizSchema),
     async (c) => {
         const { userId } = c.get("accessTokenPayload");
