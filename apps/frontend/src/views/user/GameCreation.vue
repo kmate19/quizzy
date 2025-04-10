@@ -791,7 +791,10 @@ const marqueeDuration = computed(() => {
           <transition name="height-fade">
             <div v-if="quiz.cards.length"
               class="p-6 rounded-lg backdrop-blur-lg bg-white/10 overflow-hidden h-[calc(100vh-15vh)] flex flex-col">
-              <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések</h3>
+              <div class="flex flex-row items-center">
+                <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések: </h3>
+                <h3 class="text-xl font-semibold mb-2 text-white">{{ quiz.cards.length }}</h3>
+              </div>
               <div class="space-y-4 overflow-y-auto  flex-1 p-2">
                 <draggable v-model="quiz.cards" item-key="id" class="gap-2 flex flex-col">
                   <template #item="{ element: card, index }">
