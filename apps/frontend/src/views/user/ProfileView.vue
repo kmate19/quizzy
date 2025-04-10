@@ -45,7 +45,6 @@ const userId = route.params.uuid.toString()
 
 const mItems = {
   private: 'privát',
-  requires_review: 'ellenőrzést igényel',
   published: 'publikus',
   draft: 'vázlat'
 }
@@ -427,8 +426,8 @@ watch(
                   </span>
                 </h2>
                 <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
-                  <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white 
-                    hover:border-white border-2 border-transparent shadow-lg transition-all 
+                  <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white
+                    hover:border-white border-2 border-transparent shadow-lg transition-all
                     duration-500 cursor-pointer bg-white/10"
                     @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
 
@@ -443,16 +442,16 @@ watch(
 
                         <div class="flex gap-2 absolute top-0 right-0">
                           <span v-if="quiz.status !== 'draft' && !isOtherUser" @click.stop="handleQuizView(quiz.id)"
-                            class="flex rounded-full text-xs bg-blue-700 w-10 h-10 
-                            justify-center items-center border-2 border-transparent 
+                            class="flex rounded-full text-xs bg-blue-700 w-10 h-10
+                            justify-center items-center border-2 border-transparent
                             hover:border-white transition-all duration-300">
                             <Settings class="w-5 h-5" />
                           </span>
                           <span v-if="!isOtherUser" @click.stop="
                             (isDeleteModal = !isDeleteModal),
                             (selectedUuid = quiz.id)
-                            " class="flex rounded-full text-xs bg-red-700 w-10 h-10 
-                            justify-center items-center border-2 border-transparent 
+                            " class="flex rounded-full text-xs bg-red-700 w-10 h-10
+                            justify-center items-center border-2 border-transparent
                             hover:border-white transition-all duration-300">
                             <Trash2 class="w-5 h-5" />
                           </span>
