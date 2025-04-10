@@ -40,6 +40,17 @@ const apiKey = ref('')
 const route = useRoute()
 const userId = route.params.uuid.toString()
 
+//i get my status from the api and i want to create a key value object which takes in the english version and gives back the hungarian one:
+//private, requires_review, published, draft
+
+const mItems = {
+  private: 'privát',
+  requires_review: 'ellenőrzést igényel',
+  published: 'publikus',
+  draft: 'vázlat'
+}
+
+
 const isOtherUser = computed(() => {
   return userId !== ''
 })
@@ -454,7 +465,7 @@ watch(
                         'bg-gray-500': quiz.status === 'draft',
                         'bg-blue-500': quiz.status === 'private',
                       }">
-                        {{ quiz.status }}
+                        {{ mItems[quiz?.status as keyof typeof mItems] }}
                       </span>
 
                       <p class="text-sm text-white/70 my-2 line-clamp-2">
