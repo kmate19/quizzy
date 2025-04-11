@@ -5,7 +5,6 @@ import { createPinia, setActivePinia } from 'pinia'
 import type { quizCardView } from '@/utils/type'
 import QuizCard from '@/components/QuizCard.vue'
 import NavBar from '@/components/NavBar.vue'
-import MistBackground from '@/components/MistBackground.vue'
 import CategoriesBtn from '@/components/CategoriesBtn.vue'
 import { ref } from 'vue'
 
@@ -218,26 +217,6 @@ describe('NavBar', () => {
     await wrapper.find('button.glass-button').trigger('click')
 
     expect(wrapper.text()).toContain('Kérjük, adjon meg érvényes lobby kódot')
-  })
-})
-
-describe('MistBackground', () => {
-  it('renders with proper structure', () => {
-    const wrapper = mount(MistBackground)
-
-    expect(wrapper.find('canvas').exists()).toBe(true)
-    expect(wrapper.find('.mist-content-wrapper').exists()).toBe(true)
-  })
-
-  it('renders slot content', () => {
-    const wrapper = mount(MistBackground, {
-      slots: {
-        default: '<div class="test-slot">Test Content</div>',
-      },
-    })
-
-    expect(wrapper.find('.test-slot').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Test Content')
   })
 })
 

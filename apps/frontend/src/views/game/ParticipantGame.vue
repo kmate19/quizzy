@@ -804,7 +804,7 @@ const restartGame = () => {
       <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
         <div v-if="!gameQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
-          <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" /> />
+          <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" />
           <h2 class="text-2xl font-semibold mb-2">{{ gameQuiz?.quiz.title }}</h2>
           <p class="text-gray-300">{{ gameQuiz?.quiz.description }}</p>
         </div>
