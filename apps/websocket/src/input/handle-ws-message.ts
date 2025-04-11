@@ -9,6 +9,7 @@ import { WebsocketMessage } from "repo";
 import { startGameLoop } from "@/game-loop/start-game";
 import { abortLobby, closeWithError } from "@/output/close";
 import { publishWs, sendLobby, sendSingle } from "@/output/send";
+import { z } from "zod";
 
 export async function handleWsMessage(
     ws: ServerWebSocket<LobbyUser>,
@@ -20,6 +21,28 @@ export async function handleWsMessage(
     const members = lobby.members;
 
     switch (msg.type) {
+        case "sendchatmessage":
+            const maybeChatMessage = z.string().max(100).safeParse(msg.data);
+
+            if (maybeChatMessage.error) {
+                closeWithError(
+                    ws,
+                    "Bad data: chat message",
+                    1007,
+                    maybeChatMessage.error
+                );
+                return;
+            }
+
+            const chatMessage = {
+                name: ws.data.lobbyUserData.username,
+                pfp: ws.data.lobbyUserData.pfp,
+                message: maybeChatMessage.data,
+            };
+
+            publishWs(ws, lobbyid, "recvchatmessage", chatMessage);
+
+            return;
         case "members":
             const rest = members
                 .values()
