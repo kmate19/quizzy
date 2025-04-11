@@ -26,12 +26,12 @@ export default async function sendEmail(
 
         await mg.messages
             .create(ENV.DOMAIN(), {
-                from: `No Reply <noreply@${ENV.DOMAIN()}>`,
+                from: `Quizzy | ${type === "verify" ? "Hitelesítés" : "Jelszó"} <noreply@${ENV.DOMAIN()}>`,
                 to: userEmail,
                 subject:
                     type === "verify"
-                        ? "Verify your account"
-                        : "Your temporary password",
+                        ? "E-mail cím megerősítése"
+                        : "Jelszó visszaállítása",
                 html: createEmailTemplate(ENV.DOMAIN(), token, type, data)!,
             })
             .then((info) => {

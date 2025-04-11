@@ -25,36 +25,36 @@ export default function createEmailTemplate(
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Verify Your Account</title>
+      <title>Fiók Ellenőrzése</title>
       <style>${baseStyles}</style>
     </head>
     <body>
       <div class="container">
         <div class="logo">
-          <!-- You can add your logo here -->
+          <!-- Ide jöhet a logó -->
           <h2 style="color: #3498db;">Quizzy</h2>
         </div>
         
-        <h1>Welcome! Please verify your account</h1>
+        <h1>Üdvözlünk! Kérjük, erősítsd meg a fiókodat</h1>
         
-        <p>Thank you for signing up! To get started, please verify your email address by clicking the button below:</p>
+        <p>Köszönjük a regisztrációt! Az induláshoz kattints az alábbi gombra az e-mail címed megerősítéséhez:</p>
         
         <center>
           <a href="https://${domain}/api/v1/auth/verify/${token}" class="button">
-            Verify My Account
+            Fiókom megerősítése
           </a>
         </center>
         
-        <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
+        <p>Ha a gomb nem működik, másold be ezt a linket a böngésződbe:</p>
         <p style="word-break: break-all; font-size: 12px;">
           https://${domain}/api/v1/auth/verify/${token}
         </p>
         
-        <p>This verification link will expire in 24 hours.</p>
+        <p>Ez az ellenőrző link 24 órán belül lejár.</p>
         
         <div class="footer">
-          <p>If you didn't create an account, you can safely ignore this email.</p>
-          <p>&copy; ${new Date().getFullYear()} Quizzy Co. All rights reserved.</p>
+          <p>Ha nem te hoztál létre fiókot, akkor nyugodtan hagyd figyelmen kívül ezt az e-mailt.</p>
+          <p>&copy; ${new Date().getFullYear()} Quizzy Co. Minden jog fenntartva.</p>
         </div>
       </div>
     </body>
@@ -67,38 +67,38 @@ export default function createEmailTemplate(
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Password Reset</title>
+      <title>Jelszó Visszaállítása</title>
       <style>${baseStyles}</style>
     </head>
     <body>
       <div class="container">
         <div class="logo">
-          <!-- You can add your logo here -->
+          <!-- Ide jöhet a logó -->
           <h2 style="color: #3498db;">Quizzy</h2>
         </div>
         
-        <h1>Reset Your Password</h1>
+        <h1>Állítsd vissza a jelszavad</h1>
         
-        <p>We received a request to reset your password. Click the button below to change your password to a temporary one:</p>
+        <p>Jelszó-visszaállítási kérelmet kaptunk. Kattints az alábbi gombra, hogy ideiglenes jelszóra cseréld:</p>
         
         <center>
           <a href="${domain}/api/v1/auth/forgotpassactivate/${token}" class="button">
-            Reset My Password
+            Jelszó visszaállítása
           </a>
         </center>
         
-        <p>After using the temporary password to log in, please change it immediately for security reasons.</p>
+        <p>Miután bejelentkeztél az ideiglenes jelszóval, kérjük, azonnal módosítsd biztonsági okokból.</p>
         
         <div class="password-box">
-          <h2 style="margin-top: 0;">Your temporary password:</h2>
+          <h2 style="margin-top: 0;">Az ideiglenes jelszavad:</h2>
           <p class="password-text">${data}</p>
         </div>
         
-        <p>If you didn't request a password reset, please contact our support team immediately.</p>
+        <p>Ha nem te kérted a jelszó visszaállítását, kérjük, azonnal vedd fel a kapcsolatot ügyfélszolgálatunkkal.</p>
         
         <div class="footer">
-          <p>This password reset link will expire in 1 hour for security purposes.</p>
-          <p>&copy; ${new Date().getFullYear()} Quizzy Co. All rights reserved.</p>
+          <p>Ez a jelszó-visszaállító link 1 órán belül lejár biztonsági okokból.</p>
+          <p>&copy; ${new Date().getFullYear()} Quizzy Co. Minden jog fenntartva.</p>
         </div>
       </div>
     </body>
