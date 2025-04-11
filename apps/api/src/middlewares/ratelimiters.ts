@@ -2,8 +2,8 @@ import GLOBALS from "@/config/globals";
 import { QuizzyJWTPAYLOAD } from "@/types";
 import { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
-import { getConnInfo } from "hono/bun";
 import { getCookie } from "hono/cookie";
+import { decode } from "hono/jwt";
 
 export function makeRateLimiter(
     timeMinutes: number,
@@ -20,26 +20,20 @@ export function makeRateLimiter(
         skipSuccessfulRequests: skipSuccess,
         standardHeaders: "draft-7",
         keyGenerator: (c) => {
-            const ip = getConnInfo(c).remote.address!;
+            const userAgent =
+                c.req.header("User-Agent") || "unknown-user-agent";
 
-            console.log(`getconninfo ip (unused): ${ip}`);
-
-            const userAgent = c.req.header("User-Agent");
-
-            console.log(`userAgent: ${userAgent}`);
-
-            const xfor = c.req.header("X-Forwarded-For");
-
-            console.log(`xfor: ${xfor}`);
+            const cfconnecting =
+                c.req.header("CF-Connecting-IP") || "unknown-ip";
 
             if (hasJwt === "maybe") {
                 const cookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
 
                 if (!cookie) {
-                    return `${userAgent}${xfor}`;
+                    return `noauth:${userAgent}${cfconnecting}`;
                 }
 
-                return `${userAgent}${xfor}${cookie}`;
+                return `hascookie:${userAgent}${cfconnecting}${cookie.substring(0, 20)}`;
             }
 
             if (hasJwt) {
@@ -49,11 +43,11 @@ export function makeRateLimiter(
                     }>
                 ).get("accessTokenPayload");
 
-                return `${userAgent}${xfor}${userId}`;
+                return `auth:${userAgent}${cfconnecting}${userId}`;
             }
 
-            return `${userAgent}${xfor}`;
+            return `noauth:${userAgent}${cfconnecting}`;
         },
-        message: message || "Too many requests, please try again later.",
+        message: message || "Túl sok kérés érkezett, próbáld újra később.",
     });
 }

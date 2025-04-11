@@ -38,7 +38,7 @@ export const app = new Hono()
         // TEST: test this somehow (idk what could cause the fauilure here).
         console.error(err);
         const res = {
-            message: "Something went wrong",
+            message: "Hiba történt",
             error: {
                 message: "Something went wrong",
                 case: "server",
