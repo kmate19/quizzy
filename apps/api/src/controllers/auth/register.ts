@@ -45,7 +45,11 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
             return c.json(res, 400);
         }
 
-        if (!GLOBALS.TRUSED_DOMAINS.includes(registerUserData.email)) {
+        if (
+            !GLOBALS.TRUSED_DOMAINS.includes(
+                registerUserData.email.split("@")[1]
+            )
+        ) {
             const res = {
                 message:
                     "Felhasználó létrehozása sikertelen, nem megbízható e-mail cím.",
