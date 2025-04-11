@@ -76,7 +76,7 @@ const { data: userQuizzies, isLoading: isLoadingQuizzies } = useQuery({
   queryFn: () => getUserQuizzies(userId),
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
-  refetchOnMount: true,
+  refetchOnMount: false,
 })
 
 watch(
@@ -98,7 +98,7 @@ const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
   queryFn: listApiKeys,
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
-  refetchOnMount: true,
+  refetchOnMount: false,
   enabled: isAdmin.value,
 })
 

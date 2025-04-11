@@ -70,8 +70,18 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
     })
     if (edit.status === 200) {
       queryClient.invalidateQueries({ queryKey: ['userQuizzies',''], refetchType: 'none' })
-      return true
-    } else {
+      return true  
+    } 
+    else if((edit.status as number) === 429) {
+      toast('Elérted a maximális módosítási kísérletek számát!\nMax 2 próbálkozás 2 percenként', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: true,
+      } )
+    }
+    else {
       const res = await edit.json()
       toast(res.message, {
         autoClose: 5000,
@@ -105,7 +115,17 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
       })
       queryClient.invalidateQueries({ queryKey: ['userQuizzies',''], refetchType: 'none' })
       return true
-    } else {
+    } 
+    else if((query.status as number) === 429) {
+      toast('Elérted a maximális feltöltési kísérletek számát!\nMax 2 próbálkozás 2 percenként', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: true,
+      })
+    }
+    else {
       const res = await query.json()
       toast(res.message, {
         autoClose: 5000,

@@ -1,24 +1,22 @@
 import { clientv1 } from "@/lib/apiClient"
-import type { quizCardView } from "../type"
+import type { quizCardView, QuizQueryParams } from "../type"
 import { arrayBufferToBase64 } from "../helpers"
 
-export const getQuizzes = async (limit: string | undefined, currentPage: string | undefined, 
-  isStrict: string | undefined, tags: string | [string, ...string[]] | undefined, 
-  languages: string | [string, ...string[]] | undefined, searchText: string | undefined) => {
+export const getQuizzes = async (params: QuizQueryParams) => {
   let response;
-    if((Array.isArray(tags) && tags.length > 0) || (searchText && searchText !== "") || (Array.isArray(languages) && languages.length > 0)){
+    if((Array.isArray(params.tags) && params.tags.length > 0) || (params.searchText && params.searchText !== "") || (Array.isArray(params.languages) && params.languages.length > 0)){
       response = await clientv1.quizzes.search.$get({query:{
-        query: searchText !== undefined ? searchText : undefined,
-        strict: isStrict !== undefined ? isStrict : undefined, 
-        limit: limit !== undefined ? limit : undefined, 
-        page: currentPage !== undefined ? currentPage : undefined, 
-        tagNames: tags !== undefined ? tags : undefined,
-        languageISOCodes: languages !== undefined ? languages : undefined,
+        query: params.searchText !== undefined ? params.searchText : undefined,
+        strict: params.strict !== undefined ? params.strict : undefined, 
+        limit: params.limit !== undefined ? params.limit.toString() : undefined, 
+        page: params.page !== undefined ? params.page : undefined, 
+        tagNames: params.tags !== undefined ? params.tags : undefined,
+        languageISOCodes: params.languages !== undefined ? params.languages : undefined,
       }})
     }
     else{
       response = await clientv1.quizzes.$get({
-        query: { limit: limit?.toString(), page: currentPage?.toString() }
+        query: { limit: params.limit?.toString(), page: params.page?.toString() }
       })
     }
     if (!response.ok) {

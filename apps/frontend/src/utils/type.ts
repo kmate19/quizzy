@@ -175,3 +175,12 @@ export type Participants = {
     userId: string
   }[]
 }
+
+export type QuizQueryParams = {
+  limit: number
+  page?: string
+  strict?: string
+  tags?: [string, ...string[]]
+  languages?: [string, ...string[]]
+  searchText?: string
+}

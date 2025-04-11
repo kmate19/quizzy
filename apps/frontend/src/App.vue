@@ -2,6 +2,7 @@
 import NavBar from './components/NavBar.vue';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { VueQueryDevtools } from '@tanstack/vue-query-devtools';
 
 const route = useRoute();
 const hide = ['/login', '/forgotPw'];
@@ -20,4 +21,5 @@ const isNavbar = computed(() => {
     </div>
   </div>
   <RouterView :key="route.fullPath" />
+  <VueQueryDevtools />
 </template>
