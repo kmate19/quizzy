@@ -75,7 +75,13 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        sendEmail(user.email, emailToken, "forgot_password", randomPassword);
+        sendEmail(
+            user.email,
+            user.username,
+            emailToken,
+            "forgot_password",
+            randomPassword
+        );
 
         const res = {
             message:

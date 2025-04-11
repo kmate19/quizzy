@@ -13,6 +13,7 @@ const mg = mailgun.client({
 
 export default async function sendEmail(
     userEmail: string,
+    userName: string,
     token: string,
     type: "forgot_password" | "verify",
     data?: string
@@ -32,7 +33,13 @@ export default async function sendEmail(
                     type === "verify"
                         ? "E-mail cím megerősítése"
                         : "Jelszó visszaállítása",
-                html: createEmailTemplate(ENV.DOMAIN(), token, type, data)!,
+                html: createEmailTemplate(
+                    ENV.DOMAIN(),
+                    userName,
+                    token,
+                    type,
+                    data
+                )!,
             })
             .then((info) => {
                 clearTimeout(timeout);

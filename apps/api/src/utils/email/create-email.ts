@@ -1,5 +1,6 @@
 export default function createEmailTemplate(
     domain: string,
+    username: string,
     token: string,
     type: "forgot_password" | "verify",
     data?: string
@@ -35,7 +36,7 @@ export default function createEmailTemplate(
           <h2 style="color: #3498db;">Quizzy</h2>
         </div>
         
-        <h1>Üdvözlünk! Kérjük, erősítsd meg a fiókodat</h1>
+        <h1>Üdvözlünk ${username}! Kérjük, erősítsd meg a fiókodat</h1>
         
         <p>Köszönjük a regisztrációt! Az induláshoz kattints az alábbi gombra az e-mail címed megerősítéséhez:</p>
         
@@ -77,7 +78,7 @@ export default function createEmailTemplate(
           <h2 style="color: #3498db;">Quizzy</h2>
         </div>
         
-        <h1>Állítsd vissza a jelszavad</h1>
+        <h1>Üdvözlünk ${username}! Kérjük, állítsd vissza a jelszavad</h1>
         
         <p>Jelszó-visszaállítási kérelmet kaptunk. Kattints az alábbi gombra, hogy ideiglenes jelszóra cseréld:</p>
         

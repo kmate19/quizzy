@@ -110,7 +110,12 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        await sendEmail(registerUserData.email, emailToken, "verify");
+        await sendEmail(
+            registerUserData.email,
+            registerUserData.username,
+            emailToken,
+            "verify"
+        );
 
         const res = {
             message: "Felhasználó létrehozva",
