@@ -290,7 +290,7 @@ const resetTilt = (element: HTMLElement) => {
 <template>
   <div class="home-page">
     <div
-      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-scroll  bg-white/90 rounded-md z-10 pointer-events-none">
+      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-auto  rounded-md z-10 pointer-events-none">
       <div class="flex flex-col md:flex-row justify-between mb-2 pointer-events-auto">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
@@ -311,7 +311,7 @@ const resetTilt = (element: HTMLElement) => {
         <div class="mt-4 md:mt-0 relative" v-click-outside="()=>{showDropdown = false}">
           <div @click="toggleDropdown" class="glass-button px-4 py-2 rounded-full transition-all duration-300 cursor-pointer 
           !bg-white/10 flex items-center justify-center ">
-            <span class="text-white mr-2">Quiz / oldal: {{ selectedLimit }}</span>
+            <span class="text-white mr-2">Kvíz / oldal: {{ selectedLimit }}</span>
             <ChevronDown class="h-4 w-4 text-white transition-all duration-300"
               :class="{ 'transform rotate-180': showDropdown }" />
           </div>
