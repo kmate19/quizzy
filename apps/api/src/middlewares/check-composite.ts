@@ -19,8 +19,6 @@ export const apikey_or_jwt = (role?: string) => {
         // @ts-expect-error we need to call without next
         const apikeyMiddleware = await check_apikey(c);
 
-        console.log("apikeyMiddleware", apikeyMiddleware);
-
         if (apikeyMiddleware) {
             middlewareStatuses.apikey.status = false;
             middlewareStatuses.apikey.response = apikeyMiddleware;
@@ -37,8 +35,6 @@ export const apikey_or_jwt = (role?: string) => {
         const somePassed = Object.values(middlewareStatuses).some(
             (middleware) => middleware.status
         );
-
-        console.log(somePassed);
 
         if (somePassed) {
             await next();

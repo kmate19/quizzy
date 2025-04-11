@@ -13,8 +13,7 @@ import { openAPISpecs } from "hono-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import events from "./routes/events";
 import GLOBALS from "./config/globals";
-import { rateLimiter } from "hono-rate-limiter";
-import { getConnInfo } from "hono/bun";
+import { makeRateLimiter } from "./middlewares/ratelimiters";
 
 console.log(ENV.NODE_ENV());
 
@@ -22,15 +21,7 @@ export const app = new Hono()
     .basePath("/api/v1")
     .use(logger())
     .use(cors())
-    .use(
-        rateLimiter({
-            windowMs: 60 * 1000,
-            limit: 60,
-            standardHeaders: "draft-7",
-            keyGenerator: (c) => getConnInfo(c).remote.address!,
-            message: "Too many requests, please try again later.",
-        })
-    )
+    .use(makeRateLimiter(1, 60, "maybe"))
     .route("/", auth)
     .route("/", apikey)
     .route("/", userprofile)

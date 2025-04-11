@@ -7,17 +7,10 @@ import { and, eq, or } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 import { randomBytes } from "node:crypto";
 import sendEmail from "@/utils/email/send-email";
-import { rateLimiter } from "hono-rate-limiter";
-import { getConnInfo } from "hono/bun";
+import { makeRateLimiter } from "@/middlewares/ratelimiters";
 
 const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
-    rateLimiter({
-        windowMs: 15 * 60 * 1000,
-        limit: 3,
-        standardHeaders: "draft-7",
-        keyGenerator: (c) => getConnInfo(c).remote.address!,
-        message: "Too many requests, please try again later.",
-    }),
+    makeRateLimiter(15, 5, false),
     zv("json", LoginUserSchema.omit({ password: true })),
     async (c) => {
         const loginUserData = c.req.valid("json");

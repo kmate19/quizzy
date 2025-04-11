@@ -11,17 +11,11 @@ import { zv } from "@/middlewares/zv";
 import { userStatsTable } from "@/db/schemas";
 import { randomBytes } from "node:crypto";
 import sendEmail from "@/utils/email/send-email";
-import { rateLimiter } from "hono-rate-limiter";
-import { getConnInfo } from "hono/bun";
+import { makeRateLimiter } from "@/middlewares/ratelimiters";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(
-    rateLimiter({
-        windowMs: 15 * 60 * 1000,
-        limit: 5,
-        standardHeaders: "draft-7",
-        keyGenerator: (c) => getConnInfo(c).remote.address!,
-        message: "Too many requests, please try again later.",
-    }),
+    // makemsg hungarian
+    makeRateLimiter(15, 5, false, undefined, true),
     zv("json", RegisterUserSchema),
     async (c) => {
         const registerUserData = c.req.valid("json");
