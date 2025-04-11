@@ -43,21 +43,21 @@ const createLobby = async () => {
   try {
     isCreatingLobby.value = true;
     console.log('Creating new lobby');
-    
+
     const sessionResponse = await wsclient.reserve.session[':code?'].$post({
       param: { code: '' },
       query: { ts: Date.now().toString() },
     });
-    
-    
-    
+
+
+
     if (sessionResponse.status === 200) {
       const sessionData = await sessionResponse.json() as { code: string };
-      
+
       if (!sessionData.code) {
         throw new Error('Failed to create lobby - no code returned');
       }
-      
+
       quizzyStore.setLobbyData({
         lobbyId: sessionData.code,
         isHost: true,
@@ -66,7 +66,7 @@ const createLobby = async () => {
       })
       if (data.value) {
         quizzyStore.setCurrentQuiz(toRaw(data.value))
-       
+
       }
 
       isCreatingLobby.value = false;
@@ -77,7 +77,7 @@ const createLobby = async () => {
   } catch (error) {
     console.error('Error creating lobby:', error);
     isCreatingLobby.value = false;
-    
+
   }
 };
 </script>
@@ -96,28 +96,20 @@ const createLobby = async () => {
           <div class="flex gap-2 justify-center lg:order-last sticky top-0 z-10 p-1 rounded-xl">
             <button
               class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl"
-              @click="handleTestPlay"
-            >
+              @click="handleTestPlay">
               Gyakorlás
             </button>
-            <button
-              @click="createLobby"
-              :disabled="isCreatingLobby"
-              class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl"
-            >
+            <button @click="createLobby" :disabled="isCreatingLobby"
+              class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-green-500/30 hover:bg-green-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl">
               {{ isCreatingLobby ? 'Létrehozás...' : 'Többjátékos' }}
             </button>
           </div>
 
           <div class="overflow-y-auto flex-1 md:space-y-4 space-y-2 p-2">
             <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
-              <div class="h-52 bg-white/10 rounded-lg">
-                <v-img
-                  :src="data?.banner || '/placeholder.svg?height=200&width=300'"
-                  class="rounded-md justify-center items-center"
-                  aspect-ratio="16/9"
-                  cover
-                />
+              <div class="h-52 bg-white/10 rounded-lg flex items-center">
+                <v-img :src="data?.banner || '/placeholder.svg?height=200&width=300'" max-width="fit"
+                  max-height="fit" />
               </div>
             </div>
 
@@ -127,36 +119,26 @@ const createLobby = async () => {
                 {{ data?.description }}
               </div>
             </div>
-
             <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
               <div>
                 Készítette:
-                <span
-                  @click="data?.user_id && handleViewUser(data.user_id)"
-                  class="cursor-pointer font-bold relative before:absolute before:left-0
+                <span @click="data?.user_id && handleViewUser(data.user_id)" class="cursor-pointer font-bold relative before:absolute before:left-0
                   before:bottom-0 before:w-0 before:h-[2px] before:bg-white
-                  before:transition-all before:duration-300 hover:before:w-full"
-                >
+                  before:transition-all before:duration-300 hover:before:w-full">
                   {{ data?.username }}
                 </span>
               </div>
               <div class="mb-2">Kategóriák:</div>
               <div class="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-                <span
-                  v-for="tag in data?.tags"
-                  :key="tag"
-                  class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
-                >
+                <span v-for="tag in data?.tags" :key="tag"
+                  class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm">
                   {{ tag }}
                 </span>
               </div>
               <div class="mb-2">Nyelvek:</div>
               <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="lang in data?.languages"
-                  :key="lang.iso_code"
-                  class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm"
-                >
+                <span v-for="lang in data?.languages" :key="lang.iso_code"
+                  class="bg-white/10 px-3 py-1 rounded-full text-xs backdrop-blur-sm">
                   {{ lang.icon }} {{ lang.iso_code }}
                 </span>
               </div>
@@ -176,62 +158,38 @@ const createLobby = async () => {
         <div class="lg:w-2/3">
           <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[calc(100vh-15vh)] overflow-y-auto m-2
           md:space-y-4 space-y-2">
-            <div
-              v-for="(card, index) in data?.cards"
-              :key="card.picture"
-              class="rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border border-white/20 shadow-lg"
-            >
-              <button
-                class="w-full flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
-                @click="toggleQuestion(index)"
-              >
+            <div v-for="(card, index) in data?.cards" :key="card.picture"
+              class="rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border border-white/20 shadow-lg">
+              <button class="w-full flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
+                @click="toggleQuestion(index)">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
-                  <div
-                    class="w-full sm:w-1/4 bg-white/10 rounded-md overflow-hidden"
-                  >
-                    <img
-                      :src="card.picture || '/placeholder.svg?height=200&width=300'"
-                      class="rounded-md w-full object-cover"
-                      alt="Question image"
-                      aspect-ratio="16/9"
-                    />
+                  <div class="w-full sm:w-1/4 bg-white/10 rounded-md overflow-hidden">
+                    <div class="h-30 flex items-center justify-center">
+                      <img :src="card.picture || '/placeholder.svg?height=200&width=300'" 
+                        class="max-h-[120px] w-full object-contain"
+                        alt="Question image" />
+                    </div>
                   </div>
                   <div class="flex flex-col gap-4 flex-1 p-2 sm:p-4">
                     <span class="text-left text-base sm:text-lg font-medium">{{ card.question }}</span>
                     <div class="flex flex-wrap gap-2">
-                      <div
-                        v-for="(answer, i) in card.answers"
-                        :key="i"
-                        class="p-2 text-sm rounded-md border border-white/20 bg-white/10 flex items-center"
-                      >
+                      <div v-for="(answer, i) in card.answers" :key="i"
+                        class="p-2 text-sm rounded-md border border-white/20 bg-white/10 flex items-center">
                         {{ answer }}
                       </div>
                     </div>
                   </div>
                 </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                <svg xmlns="http://www.w3.org/2000/svg"
                   class="h-6 w-6 transform transition-transform duration-700 flex-shrink-0"
-                  :class="{ 'rotate-180': expandedQuestions[index] }"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
+                  :class="{ 'rotate-180': expandedQuestions[index] }" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              <div
-                class="transition-all duration-700 ease-in-out overflow-hidden"
-                :class="
-                  expandedQuestions[index] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-                "
-              >
+              <div class="transition-all duration-700 ease-in-out overflow-hidden" :class="expandedQuestions[index] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                ">
                 <div class="pt-4 pb-2 px-2 sm:px-4">
                   <span class="text-sm font-semibold">Helyes válasz:</span>
                   <div class="py-2 text-green-600 border-t border-white/10 text-sm sm:text-base">
@@ -268,6 +226,7 @@ const createLobby = async () => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .transition-all,
   .transition-transform {
     transition: none;

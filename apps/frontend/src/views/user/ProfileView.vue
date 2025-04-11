@@ -284,7 +284,8 @@ watch(
               :class="isOtherUser ? 'md:flex-row' : 'md:flex-row md:flex-wrap'">
               <div class="relative mx-auto md:mx-0">
                 <img :src="localPfp"
-                  class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30" />
+                  class="md:w-40 md:h-40 h-fit w-fit rounded-full border-4
+                   border-white/30 flex items-center justify-center" />
                 <div v-if="!isOtherUser">
                   <div
                     class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
@@ -400,7 +401,7 @@ watch(
                 </div>
               </div>
             </div>
-            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full">
+            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full md:w-[80%] mx-auto">
               <div v-if="isLoadingQuizzies" class="h-[456px] flex justify-center items-center self-center">
                 <div class="flex justify-center items-center h-64">
                   <Loader2Icon class="w-12 h-12 text-white animate-spin" />

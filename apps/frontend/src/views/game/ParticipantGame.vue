@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ref, onMounted, nextTick, onUnmounted } from 'vue'
 import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
-import { Loader2Icon, Users, Copy, Trophy } from 'lucide-vue-next'
+import { Loader2Icon, Users, Copy, Trophy, MessageCircle, Send } from 'lucide-vue-next'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 import type { QuizData, gameStats, Participants } from '@/utils/type'
 import XButton from '@/components/XButton.vue'
@@ -35,6 +35,10 @@ const isReconnect = ref(false)
 const hasSomeReason = ref(false)
 const isLeaderboardModalOpen = ref(false)
 const windowWidth = ref(window.innerWidth)
+
+const isChatOpen = ref(false)
+const chatMessage = ref('')
+const chatMessages = ref<{name: string, pfp: string, message: string, isSelf: boolean}[]>([])
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -314,6 +318,32 @@ const setupWebSocketListeners = (ws: WebSocket) => {
           quizzyStore.lobbyDataReset()
         }
       }
+
+      if (data.type === 'recvchatmessage') {
+        chatMessages.value.push({
+          name: data.data.name,
+          pfp: 'data:image/png;base64,' + data.data.pfp,
+          message: data.data.message,
+          isSelf: false
+        })
+        
+        nextTick(() => {
+          const chatContainer = document.querySelector('.chat-messages')
+          if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight
+          }
+        })
+        
+        if (!isChatOpen.value) {
+          toast(`${data.data.name}: ${data.data.message}`, {
+            autoClose: 3000,
+            position: toast.POSITION.BOTTOM_RIGHT,
+            type: 'info',
+            transition: 'slide',
+            pauseOnHover: true,
+          })
+        }
+      }
     } catch (err) {
       console.error('Error parsing WebSocket message:', err)
     }
@@ -398,6 +428,42 @@ const decrase = () => {
 
 const toggleLeaderboardModal = () => {
   isLeaderboardModalOpen.value = !isLeaderboardModalOpen.value
+}
+
+const toggleChat = () => {
+  isChatOpen.value = !isChatOpen.value
+}
+
+const sendChatMessage = () => {
+  if (chatMessage.value.trim() === '' || chatMessage.value.length > 100) return
+  
+  if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+    websocket.value.send(
+      JSON.stringify({
+        type: 'sendchatmessage',
+        successful: true,
+        server: false,
+        data: chatMessage.value
+        
+      })
+    )
+    
+    chatMessages.value.push({
+      name: quizzyStore.userName,
+      pfp: quizzyStore.pfp,
+      message: chatMessage.value,
+      isSelf: true
+    })
+    
+    chatMessage.value = ''
+    
+    nextTick(() => {
+      const chatContainer = document.querySelector('.chat-messages')
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight
+      }
+    })
+  }
 }
 
 onMounted(() => {
@@ -738,7 +804,7 @@ const restartGame = () => {
       <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
         <div v-if="!gameQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
-          <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md" />
+          <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" /> />
           <h2 class="text-2xl font-semibold mb-2">{{ gameQuiz?.quiz.title }}</h2>
           <p class="text-gray-300">{{ gameQuiz?.quiz.description }}</p>
         </div>
@@ -772,9 +838,80 @@ const restartGame = () => {
           </div>
         </div>
       </div>
-
-
     </div>
+
+    <div class="fixed bottom-8 right-8 z-50">
+      <button @click="toggleChat" 
+              class="glass-button p-3 rounded-full relative flex items-center justify-center hover:scale-110 transition-transform">
+        <MessageCircle class="h-6 w-6" :class="isChatOpen ? 'text-blue-300' : 'text-white'" />
+        <div v-if="chatMessages.length > 0 && !isChatOpen" 
+             class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          {{ chatMessages.length }}
+        </div>
+      </button>
+    </div>
+    
+    <transition name="slide-in">
+      <div v-if="isChatOpen" 
+           class="fixed bottom-24 right-8 z-40 w-80 bg-gray-800/90 backdrop-blur-md rounded-lg border border-gray-700 shadow-lg flex flex-col"
+           style="height: 400px; max-height: 60vh;">
+        <div class="p-3 border-b border-gray-700 flex justify-between items-center">
+          <h3 class="text-white font-semibold flex items-center">
+            <MessageCircle class="h-4 w-4 mr-2 text-blue-300" />
+            Chat
+          </h3>
+          <button @click="toggleChat" class="text-gray-400 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="flex-grow overflow-y-auto p-3 chat-messages">
+          <div v-if="chatMessages.length === 0" class="flex items-center justify-center h-full text-gray-500 text-sm">
+            Még nincsenek üzenetek
+          </div>
+          <div v-else>
+            <transition-group name="message" tag="div" class="space-y-3">
+              <div v-for="(msg, index) in chatMessages" :key="index"
+                   :class="[
+                     'flex items-start max-w-[85%]', 
+                     msg.isSelf ? 'ml-auto flex-row-reverse' : ''
+                   ]">
+                <img :src="msg.pfp" class="w-8 h-8 rounded-full flex-shrink-0" 
+                     :class="msg.isSelf ? 'ml-2' : 'mr-2'" />
+                <div :class="[
+                  'rounded-lg py-2 px-3', 
+                  msg.isSelf ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-white rounded-bl-none'
+                ]">
+                  <div class="text-xs opacity-80 mb-1" :class="msg.isSelf ? 'text-right' : 'text-left'">
+                    {{ msg.name }}
+                  </div>
+                  <div class="text-sm">{{ msg.message }}</div>
+                </div>
+              </div>
+            </transition-group>
+          </div>
+        </div>
+        
+        <div class="p-2 border-t border-gray-700 flex">
+          <input v-model="chatMessage" 
+                 @keyup.enter="sendChatMessage"
+                 type="text" 
+                 placeholder="Type a message..." 
+                 class="bg-gray-700 text-white text-sm rounded-l-md px-3 py-2 flex-grow focus:outline-none"
+                 :maxlength="100" />
+          <button @click="sendChatMessage" 
+                  :disabled="!chatMessage.trim()"
+                  class="bg-blue-600 text-white cursor-pointer px-3 rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+            <Send class="h-4 w-4" />
+          </button>
+        </div>
+        <div class="text-xs text-right px-2 pb-1 text-gray-400">
+          {{ chatMessage.length }}/100
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -960,5 +1097,49 @@ const restartGame = () => {
 .modal-leave-to {
   opacity: 0;
   transform: scale(0.9);
+}
+
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-in-enter-from,
+.slide-in-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.message-enter-active {
+  animation: slide-up 0.3s;
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
 }
 </style>

@@ -203,7 +203,7 @@ onMounted(async () => {
                 </div>
                 <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl" key="question">
 
-                    <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg">
+                    <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg  mx-auto">
                         <div class="flex justify-center items-center m-4 px-4 top-4 right-0 absolute z-50">
                             <svg class="w-12 h-12" viewBox="0 0 48 48">
                                 <circle cx="24" cy="24" r="20"
@@ -219,9 +219,9 @@ onMounted(async () => {
                             </svg>
                         </div>
 
-                        <div class="p-6 mb-4">
+                        <div class="p-6 mb-4 flex items-center justify-center flex-col gap-4 w-full">
                             <img v-if="currentQuestion?.picture" :src="currentQuestion.picture"
-                                :alt="currentQuestion.question" class="w-full max-h-64 object-contain mb-6 rounded" />
+                                :alt="currentQuestion.question" class="w-full max-h-96 object-contain mb-6 rounded" />
                             <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
                         </div>
 
