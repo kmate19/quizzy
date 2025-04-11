@@ -11,6 +11,7 @@ COPY apps/api/src ./apps/api/src/
 COPY apps/api/tsconfig.json ./apps/api/
 COPY apps/api/tsconfig.build.json ./apps/api/
 COPY apps/api/drizzle.config.ts ./apps/api/
+COPY apps/api/assets ./apps/api/assets/
 COPY apps/api/migrations ./apps/api/migrations/
 COPY packages/ ./packages/
 
@@ -34,5 +35,6 @@ RUN apk add --no-cache libstdc++ libgcc font-liberation ttf-dejavu python3 build
 # ^ needed for bun binary to work
 COPY --from=builder /app/apps/api/dist/api api
 COPY --from=builder /app/apps/api/migrations/ migrations/
+COPY --from=builder /app/apps/api/assets/ assets/
 CMD ["./api"]
 EXPOSE 3000

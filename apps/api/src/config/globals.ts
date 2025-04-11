@@ -2,6 +2,7 @@ import type { CookieOptions } from "hono/utils/cookie";
 import ENV from "./env";
 import { createFactory } from "hono/factory";
 import { LanguageInsert, RoleInsert, TagInsert } from "@/db/schemas";
+import { readFile } from "node:fs/promises";
 
 const controllerFactory = createFactory().createHandlers;
 
@@ -58,6 +59,13 @@ const GLOBALS = {
         { name: "Utazás" },
         { name: "Divat" },
     ] satisfies TagInsert[],
+    TRUSED_DOMAINS: await parseTrustedDomains(),
 } as const;
+
+async function parseTrustedDomains() {
+    return readFile("./assets/all_email_provider_domains.txt", {
+        encoding: "utf-8",
+    }).then((text) => text.split("\n"));
+}
 
 export default GLOBALS;

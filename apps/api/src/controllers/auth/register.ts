@@ -45,6 +45,18 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
             return c.json(res, 400);
         }
 
+        if (!GLOBALS.TRUSED_DOMAINS.includes(registerUserData.email)) {
+            const res = {
+                message:
+                    "Felhasználó létrehozása sikertelen, nem megbízható e-mail cím.",
+                error: {
+                    message: "Domain not trusted",
+                    case: "bad_request",
+                },
+            } satisfies ApiResponse;
+            return c.json(res, 400);
+        }
+
         // PERF: maybe use worker threads
         registerUserData.password = await Bun.password.hash(
             registerUserData.password
