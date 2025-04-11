@@ -335,7 +335,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 }
 
 const leaveLobby = () => {
-
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     try {
       setTimeout(() => {
@@ -489,7 +488,7 @@ const restartGame = () => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4 bg-gray-800 bg-opacity-80 rounded-md mt-8">
+  <div class="max-w-4xl mx-auto px-4 rounded-md mt-8">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       <p class="ml-4 text-white text-xl">Csatlakozás...</p>

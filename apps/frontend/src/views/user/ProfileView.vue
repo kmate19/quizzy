@@ -223,6 +223,7 @@ const saveProfileImage = async () => {
     })
     showSaveButton.value = false
     queryClient.refetchQueries({ queryKey: ['userProfile'] })
+    quizzyStore.pfp = localPfp.value
   } else {
     const res = await pfpUpload.json()
     toast(res.error.message, {
