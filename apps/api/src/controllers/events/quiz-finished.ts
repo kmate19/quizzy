@@ -32,7 +32,7 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
                 },
             } satisfies ApiResponse;
 
-            return c.json(res, 400);
+            return c.json(res, 500);
         }
 
         members.forEach(async (u) => {
@@ -71,7 +71,7 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
                     },
                 } satisfies ApiResponse;
 
-                return c.json(res, 400);
+                return c.json(res, 500);
             }
         });
 
@@ -100,7 +100,7 @@ const quizFinishedHandlers = GLOBALS.CONTROLLER_FACTORY(
         // }
 
         const res = {
-            message: "event successful",
+            message: "Esemény sikeres",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

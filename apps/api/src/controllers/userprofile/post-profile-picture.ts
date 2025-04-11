@@ -18,7 +18,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(
 
         if (!fileInfo || !fileInfo.mime.startsWith("image/")) {
             const res = {
-                message: "Invalid file type",
+                message: "Érvénytelen fájltípus",
                 error: {
                     message: "invalid_file_type",
                     case: "bad_request",
@@ -30,7 +30,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(
 
         if (imgBlob.size > 1024 * 1024) {
             const res = {
-                message: "File too large maximum 1MB",
+                message: "A fájl túl nagy, maximum 1MB",
                 error: {
                     message: "file_too_large",
                     case: "bad_request",
@@ -46,7 +46,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(
         } catch (e) {
             console.error("ERROR: Uploading pfp buffer parse:", e);
             const res = {
-                message: "Invalid pfpBlob",
+                message: "Érvénytelen profil kép",
                 error: {
                     message: "invalid_pfp_blob",
                     case: "bad_request",
@@ -69,7 +69,7 @@ const postProfilePictureHandler = GLOBALS.CONTROLLER_FACTORY(
         }
 
         const res = {
-            message: "Success",
+            message: "Sikeres",
         } satisfies ApiResponse;
 
         return c.json(res, 200);

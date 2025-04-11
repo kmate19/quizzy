@@ -30,17 +30,19 @@ const setQuizStatusHandlers = GLOBALS.CONTROLLER_FACTORY(
                     )
                 );
         } catch (e) {
-            const res = {
-                message: "Error updating quiz status",
-                error: {
-                    message: e instanceof Error ? e.message : "Unknown error",
-                    case: "conflict",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
+            return c.json(
+                {
+                    message: "Hiba történt a kvíz státuszának frissítésekor",
+                    error: {
+                        message: "Error updating quiz status",
+                        case: "server",
+                    },
+                } satisfies ApiResponse,
+                500
+            );
         }
 
-        return c.json({ message: "Status updated" });
+        return c.json({ message: "Státusz frissítve" });
     }
 );
 

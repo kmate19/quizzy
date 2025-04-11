@@ -285,8 +285,11 @@ const searchHandlers = GLOBALS.CONTROLLER_FACTORY(
         console.log(quizzes);
 
         const res = {
-            message: "search results",
-            data: { quizzes, totalCount },
+            message: "keresési eredmények",
+            data: {
+                quizzes: quizzes,
+                totalCount,
+            },
         } satisfies ApiResponse;
 
         return c.json(res, 200);

@@ -36,10 +36,10 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
                     ? "email already exists"
                     : "username already exists";
             const res = {
-                message: "user not created",
+                message: "Felhasználó létrehozása sikertelen",
                 error: {
                     message: message,
-                    case: "auth",
+                    case: "bad_request",
                 },
             } satisfies ApiResponse;
             return c.json(res, 400);
@@ -74,10 +74,10 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
         if (maybeError) {
             // TODO: test this somehow (idk what could cause the fauilure here)
             const res = {
-                message: "user not created",
+                message: "Felhasználó létrehozása sikertelen",
                 error: {
                     message: maybeError.message,
-                    case: "server",
+                    case: "bad_request",
                 },
             } satisfies ApiResponse;
             return c.json(res, 400);
@@ -101,7 +101,7 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
         await sendEmail(registerUserData.email, emailToken, "verify");
 
         const res = {
-            message: "user created",
+            message: "Felhasználó létrehozva",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

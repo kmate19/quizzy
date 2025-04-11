@@ -76,7 +76,7 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
 
     if (!userData) {
         const res = {
-            message: "User not found",
+            message: "Felhasználó nem található",
             error: {
                 message: "User not found",
                 case: "not_found",
@@ -86,7 +86,7 @@ const getBaseDataHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     }
 
     const res = {
-        message: "Success",
+        message: "Sikeres",
         data: userData,
     } satisfies ApiResponse;
 

@@ -24,7 +24,7 @@ const deleteHandler = GLOBALS.CONTROLLER_FACTORY(
 
         if (!deleted) {
             const res = {
-                message: "API key not found",
+                message: "API kulcs nem található",
                 error: {
                     message: "API key not found",
                     case: "not_found",
@@ -34,7 +34,7 @@ const deleteHandler = GLOBALS.CONTROLLER_FACTORY(
         }
 
         const res = {
-            message: "API key deleted",
+            message: "API kulcs törölve",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

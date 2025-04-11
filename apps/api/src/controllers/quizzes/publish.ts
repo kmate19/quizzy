@@ -37,7 +37,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             .where(eq(quizzesTable.user_id, userId));
         if (existingQuizzes.length > 10) {
             const res = {
-                message: "User has too many quizzes Max 10",
+                message: "A felhasználónak túl sok kvíze van, maximum 10",
                 error: {
                     message: "user_has_too_many_quizzes",
                     case: "bad_request",
@@ -49,7 +49,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         if (cards.length > 10) {
             const res = {
-                message: "Quiz has too many cards Max 10",
+                message: "A kvíznek túl sok kártyája van, maximum 10",
                 error: {
                     message: "quiz_has_too_many_cards",
                     case: "bad_request",
@@ -69,7 +69,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
             if (!fileInfoRaw || !fileInfoRaw.mime.startsWith("image/")) {
                 const res = {
-                    message: "Invalid file type",
+                    message: "Érvénytelen fájltípus",
                     error: {
                         message: "invalid_file_type",
                         case: "bad_request",
@@ -81,12 +81,12 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
             if (rawFileBuf.length > 1024 * 1024) {
                 const res = {
-                    message: "File too large maximum 1MB",
+                    message: "A fájl túl nagy, maximum 1MB",
                     error: {
                         message: "file_too_large",
                         case: "bad_request",
                     },
-                };
+                } satisfies ApiResponse;
 
                 return c.json(res, 400);
             }
@@ -100,7 +100,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
         } catch (e) {
             console.error(e);
             const res = {
-                message: "Failed to publish quiz (banner)",
+                message: "A fejléc hibás formátumú",
                 error: {
                     message: "Failed to publish quiz (banner)",
                     case: "bad_request",
@@ -120,7 +120,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                 if (!fileInfoRaw || !fileInfoRaw.mime.startsWith("image/")) {
                     const res = {
-                        message: "Invalid file type",
+                        message: "Érvénytelen fájltípus",
                         error: {
                             message: "invalid_file_type",
                             case: "bad_request",
@@ -132,12 +132,12 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                 if (rawFileBuf.length > 1024 * 1024) {
                     const res = {
-                        message: "File too large maximum 1MB",
+                        message: "A fájl túl nagy, maximum 1MB",
                         error: {
                             message: "file_too_large",
                             case: "bad_request",
                         },
-                    };
+                    } satisfies ApiResponse;
 
                     return c.json(res, 400);
                 }
@@ -151,7 +151,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
         } catch (e) {
             console.error("QUIZ PUBLISH ERROR (CARDS)", e);
             const res = {
-                message: "Failed to publish quiz (cards)",
+                message: "A kártyák hibás formátumúak",
                 error: {
                     message: "Failed to publish quiz (cards)",
                     case: "bad_request",
@@ -235,7 +235,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             }
 
             const res = {
-                message: "Failed to publish quiz",
+                message: "Nem sikerült publikálni a kvízt",
                 error: {
                     message: errMessage,
                     case: "server",
@@ -248,7 +248,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             throw new Error("Quiz id is undefined");
         }
         const res = {
-            message: "Quiz published",
+            message: "Kvíz publikálva",
             data: quizId,
         } satisfies ApiResponse;
 

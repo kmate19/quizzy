@@ -25,11 +25,11 @@ const deleteHandlers = GLOBALS.CONTROLLER_FACTORY(
                 );
         } catch (e) {
             console.error(e);
-            return c.json({ message: "Deletion failed" }, 404);
+            return c.json({ message: "Törlés sikertelen" }, 404);
         }
 
         const res = {
-            message: "Quiz deleted successfully",
+            message: "Kvíz sikeresen törölve",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

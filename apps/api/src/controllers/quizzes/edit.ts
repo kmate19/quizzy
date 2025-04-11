@@ -37,7 +37,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         if (!modifiedQuiz && !newCards && !newLanguageISOCodes && !newTags) {
             const res = {
-                message: "No changes",
+                message: "Nincs változás",
                 error: {
                     message: "no_changes",
                     case: "bad_request",
@@ -79,7 +79,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         if (!quiz) {
             const res = {
-                message: "Quiz not found",
+                message: "Kvíz nem található",
                 error: {
                     message: "quiz_not_found",
                     case: "not_found",
@@ -100,7 +100,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                 if (!fileInfoRaw || !fileInfoRaw.mime.startsWith("image/")) {
                     const res = {
-                        message: "Invalid file type",
+                        message: "Érvénytelen fájltípus",
                         error: {
                             message: "invalid_file_type",
                             case: "bad_request",
@@ -112,12 +112,12 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                 if (rawFileBuf.length > 1024 * 1024) {
                     const res = {
-                        message: "File too large maximum 1MB",
+                        message: "A fájl túl nagy, maximum 1MB",
                         error: {
                             message: "file_too_large",
                             case: "bad_request",
                         },
-                    };
+                    } satisfies ApiResponse;
 
                     return c.json(res, 400);
                 }
@@ -131,7 +131,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
             } catch (e) {
                 console.error(e);
                 const res = {
-                    message: "Failed to publish quiz (banner)",
+                    message: "A fejléc hibás formátumú",
                     error: {
                         message: "Failed to publish quiz (banner)",
                         case: "bad_request",
@@ -163,7 +163,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
         if (newCards) {
             if (newCards.length > 10) {
                 const res = {
-                    message: "Quiz has too many cards Max 10",
+                    message: "A kvíznek túl sok kártyája van, maximum 10",
                     error: {
                         message: "quiz_has_too_many_cards",
                         case: "bad_request",
@@ -186,7 +186,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
                         !fileInfoRaw.mime.startsWith("image/")
                     ) {
                         const res = {
-                            message: "Invalid file type",
+                            message: "Érvénytelen fájltípus",
                             error: {
                                 message: "invalid_file_type",
                                 case: "bad_request",
@@ -198,12 +198,12 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                     if (rawFileBuf.length > 1024 * 1024) {
                         const res = {
-                            message: "File too large maximum 1MB",
+                            message: "A fájl túl nagy, maximum 1MB",
                             error: {
                                 message: "file_too_large",
                                 case: "bad_request",
                             },
-                        };
+                        } satisfies ApiResponse;
 
                         return c.json(res, 400);
                     }
@@ -220,7 +220,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
             } catch (e) {
                 console.error("QUIZ EDIT ERROR (CARDS)", e);
                 const res = {
-                    message: "Failed to publish quiz (cards)",
+                    message: "A kártyák hibás formátumúak",
                     error: {
                         message: "Failed to publish quiz (cards)",
                         case: "bad_request",
@@ -319,7 +319,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
             }
 
             const res = {
-                message: "Failed to publish quiz",
+                message: "Nem sikerült publikálni a kvízt",
                 error: {
                     message: errMessage,
                     case: "server",
@@ -329,7 +329,7 @@ const editHandlers = GLOBALS.CONTROLLER_FACTORY(
         }
 
         const res = {
-            message: "Quiz updated",
+            message: "Kvíz frissítve",
             data: quizId,
         } satisfies ApiResponse;
 

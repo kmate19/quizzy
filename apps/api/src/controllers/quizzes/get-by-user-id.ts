@@ -46,7 +46,7 @@ const getByUserIdHandlers = GLOBALS.CONTROLLER_FACTORY(
         });
 
         const res = {
-            message: "Quiz fetched",
+            message: "Kvíz betöltve",
             data: quizzes,
         } satisfies ApiResponse;
 

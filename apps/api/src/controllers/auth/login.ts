@@ -30,7 +30,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
 
         if (!user) {
             const res = {
-                message: "Invalid credentials try again!",
+                message: "Érvénytelen bejelentkezési adatok, próbálja újra!",
                 error: {
                     message: "invalid_creds",
                     case: "bad_request",
@@ -43,7 +43,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
             !(await Bun.password.verify(loginUserData.password, user.password))
         ) {
             const res = {
-                message: "Invalid credentials try again!",
+                message: "Érvénytelen bejelentkezési adatok, próbálja újra!",
                 error: {
                     message: "invalid_creds",
                     case: "bad_request",
@@ -132,7 +132,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
         );
 
         const res = {
-            message: "login successful",
+            message: "Sikeres bejelentkezés",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

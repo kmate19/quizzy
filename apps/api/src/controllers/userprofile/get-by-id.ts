@@ -47,7 +47,7 @@ const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(
 
         if (!userData) {
             const res = {
-                message: "User not found",
+                message: "Felhasználó nem található",
                 error: {
                     message: "User not found",
                     case: "not_found",
@@ -57,7 +57,7 @@ const getProfileByIdHandler = GLOBALS.CONTROLLER_FACTORY(
         }
 
         const res = {
-            message: "Success",
+            message: "Sikeres",
             data: userData,
         } satisfies ApiResponse;
 

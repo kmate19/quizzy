@@ -29,7 +29,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             // do this to prevent user enumeration
             const res = {
                 message:
-                    "If the email exists, a reset password link has been sent to the email",
+                    "Ha az email cím létezik, egy jelszó visszaállító linket küldtünk az email címre",
             } satisfies ApiResponse;
             return c.json(res, 200);
         }
@@ -79,7 +79,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
 
         const res = {
             message:
-                "If the email exists, a reset password link has been sent to the email",
+                "Ha az email cím létezik, egy jelszó visszaállító linket küldtünk az email címre",
         } satisfies ApiResponse;
 
         return c.json(res, 200);

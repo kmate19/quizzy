@@ -31,16 +31,16 @@ const setAuthStatusHandlers = GLOBALS.CONTROLLER_FACTORY(
                 .where(eq(usersTable.id, userId));
         } catch (e) {
             const res = {
-                message: "Error setting role",
+                message: "Hiba történt a szerepkör beállításakor",
                 error: {
-                    message: e instanceof Error ? e.message : "Unknown error",
+                    message: e instanceof Error ? e.message : "Ismeretlen hiba",
                     case: "conflict",
                 },
             } satisfies ApiResponse;
             return c.json(res, 400);
         }
 
-        return c.json({ message: "Role updated" });
+        return c.json({ message: "Szerepkör frissítve" });
     }
 );
 

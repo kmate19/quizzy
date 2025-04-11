@@ -49,7 +49,7 @@ const getOwnByIdHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         if (!quiz) {
             const res = {
-                message: "Quiz not found",
+                message: "Kvíz nem található",
                 error: {
                     message: "Quiz not found",
                     case: "not_found",
@@ -60,7 +60,7 @@ const getOwnByIdHandlers = GLOBALS.CONTROLLER_FACTORY(
         }
 
         const res = {
-            message: "Quiz fetched",
+            message: "Kvíz betöltve",
             data: quiz,
         } satisfies ApiResponse;
 

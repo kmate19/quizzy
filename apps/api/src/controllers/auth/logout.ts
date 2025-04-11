@@ -16,7 +16,7 @@ const logoutHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     deleteCookie(c, GLOBALS.ACCESS_COOKIE_NAME, GLOBALS.COOKIE_OPTS);
 
     const res = {
-        message: "user logged out",
+        message: "Felhasználó kijelentkezve",
     } satisfies ApiResponse;
     return c.json(res, 200);
 });
