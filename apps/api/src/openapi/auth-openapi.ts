@@ -7,8 +7,8 @@ import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 
 export const registerDesc = describeRoute({
-    tags: ["Authentication"],
-    description: "Register a new user account. Sends a verification email.",
+    tags: ["Hitelesítés"],
+    description: "Új felhasználói fiók regisztrálása. Ellenőrző emailt küld.",
     request: {
         body: {
             content: {
@@ -16,13 +16,14 @@ export const registerDesc = describeRoute({
                     schema: resolver(RegisterUserSchema),
                 },
             },
-            description: "User registration details.",
+            description: "Felhasználói regisztrációs adatok.",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - User created, verification email sent.",
+            description:
+                "Sikeres - Felhasználó létrehozva, ellenőrző email elküldve.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -31,7 +32,7 @@ export const registerDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - User not created due to validation errors (e.g., invalid email format, weak password) or duplicate username/email.",
+                "Hibás kérés - A felhasználó nem hozható létre érvényesítési hibák miatt (pl. érvénytelen email formátum, gyenge jelszó) vagy duplikált felhasználónév/email.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -44,9 +45,9 @@ export const registerDesc = describeRoute({
 });
 
 export const loginDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Login a user using username/email and password. Sets an HTTP-only access cookie upon success.",
+        "Felhasználó bejelentkeztetése felhasználónév/email és jelszó használatával. Sikeres bejelentkezés esetén HTTP-only hozzáférési sütit állít be.",
     request: {
         body: {
             content: {
@@ -54,13 +55,14 @@ export const loginDesc = describeRoute({
                     schema: resolver(LoginUserSchema),
                 },
             },
-            description: "User login credentials.",
+            description: "Felhasználói bejelentkezési adatok.",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - Login successful, access cookie set.",
+            description:
+                "Sikeres - Bejelentkezés sikeres, hozzáférési süti beállítva.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -69,7 +71,7 @@ export const loginDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - Login failed due to invalid credentials or if the user already has an active login cookie.",
+                "Hibás kérés - A bejelentkezés sikertelen érvénytelen hitelesítő adatok miatt.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -80,7 +82,7 @@ export const loginDesc = describeRoute({
         },
         401: {
             description:
-                "Unauthorized - Account is not verified ('pending') or is 'blocked'.",
+                "Jogosulatlan - A fiók nincs ellenőrizve ('pending') vagy 'blocked' állapotban van.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -93,12 +95,13 @@ export const loginDesc = describeRoute({
 });
 
 export const logoutDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Logout the currently authenticated user by invalidating their refresh token and removing the access cookie. Requires a valid access cookie.",
+        "Kijelentkezteti az aktuálisan bejelentkezett felhasználót a frissítési token érvénytelenítésével és a hozzáférési süti eltávolításával. Érvényes hozzáférési süti szükséges.",
     responses: {
         200: {
-            description: "Success - User logged out, access cookie cleared.",
+            description:
+                "Sikeres - Felhasználó kijelentkezve, hozzáférési süti törölve.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -107,7 +110,7 @@ export const logoutDesc = describeRoute({
         },
         401: {
             description:
-                "Unauthorized - User is not logged in (no valid access cookie).",
+                "Jogosulatlan - A felhasználó nincs bejelentkezve (nincs érvényes hozzáférési süti).",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -120,28 +123,27 @@ export const logoutDesc = describeRoute({
 });
 
 export const forgotPasswordDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Request a password reset email. If the provided username or email exists, an email is sent containing a link to activate a temporary password.",
+        "Jelszó visszaállító email kérése. Ha a megadott felhasználónév vagy email létezik, egy emailt küldünk, amely tartalmaz egy linket az ideiglenes jelszó aktiválásához.",
     request: {
         body: {
             content: {
                 "application/json": {
-                    // Using LoginUserSchema but only username_or_email is relevant
                     schema: resolver(
                         LoginUserSchema.pick({ username_or_email: true })
                     ),
                 },
             },
             description:
-                "The username or email of the account to reset password for.",
+                "A jelszó visszaállításhoz használt felhasználónév vagy email.",
             required: true,
         },
     },
     responses: {
         200: {
             description:
-                "Success - If the account exists, a password reset email has been dispatched. (The response is the same whether the account exists or not to prevent user enumeration).",
+                "Sikeres - Ha a fiók létezik, egy jelszó visszaállító emailt küldtünk. (A válasz ugyanaz, függetlenül attól, hogy a fiók létezik-e vagy sem, hogy megakadályozzuk a felhasználó enumerálást).",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -149,7 +151,7 @@ export const forgotPasswordDesc = describeRoute({
             },
         },
         400: {
-            description: "Bad Request - Invalid input format.",
+            description: "Hibás kérés - Érvénytelen bemeneti formátum.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -162,9 +164,9 @@ export const forgotPasswordDesc = describeRoute({
 });
 
 export const changePasswordDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Change the authenticated user's password. Requires the current (old) password and the new password. Requires a valid access cookie.",
+        "A bejelentkezett felhasználó jelszavának megváltoztatása. Az aktuális (régi) jelszó és az új jelszó megadása szükséges. Érvényes hozzáférési süti szükséges.",
     request: {
         body: {
             content: {
@@ -172,13 +174,13 @@ export const changePasswordDesc = describeRoute({
                     schema: resolver(changePasswordSchema),
                 },
             },
-            description: "Old and new password details.",
+            description: "Régi és új jelszó adatok.",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - Password changed successfully.",
+            description: "Sikeres - A jelszó sikeresen megváltoztatva.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -187,7 +189,7 @@ export const changePasswordDesc = describeRoute({
         },
         401: {
             description:
-                "Unauthorized - Invalid old password provided or user is not logged in.",
+                "Jogosulatlan - Érvénytelen régi jelszó megadva vagy a felhasználó nincs bejelentkezve.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -197,7 +199,8 @@ export const changePasswordDesc = describeRoute({
             },
         },
         400: {
-            description: "Bad Request - Invalid input format for new password.",
+            description:
+                "Hibás kérés - Érvénytelen bemeneti formátum az új jelszóhoz.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -210,16 +213,16 @@ export const changePasswordDesc = describeRoute({
 });
 
 export const forgotPassActivateDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Activate the temporary password using the token sent via the forgot password email. This changes the user's password to the temporary one.",
+        "Az ideiglenes jelszó aktiválása az emailben küldött token segítségével. Ez megváltoztatja a felhasználó jelszavát az ideiglenesre.",
     request: {
         params: {
             type: "object",
             properties: {
                 token: {
                     type: "string",
-                    description: "The password reset token from the email.",
+                    description: "A jelszó visszaállító token az emailből.",
                 },
             },
             required: ["token"],
@@ -228,7 +231,7 @@ export const forgotPassActivateDesc = describeRoute({
     responses: {
         200: {
             description:
-                "Success - Temporary password assigned. The user should now log in with the temporary password and change it.",
+                "Sikeres - Ideiglenes jelszó beállítva. A felhasználónak most be kell jelentkeznie az ideiglenes jelszóval és meg kell változtatnia azt.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -237,7 +240,7 @@ export const forgotPassActivateDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - The provided token is invalid or has expired.",
+                "Hibás kérés - A megadott token érvénytelen vagy lejárt.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -250,16 +253,16 @@ export const forgotPassActivateDesc = describeRoute({
 });
 
 export const verifyDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Verify the user's account using the verification token sent via email upon registration. Sets the user's status to 'active'.",
+        "A felhasználó fiókjának ellenőrzése a regisztráció során emailben küldött ellenőrző token segítségével. A felhasználó állapotát 'aktív' állapotba állítja.",
     request: {
         params: {
             type: "object",
             properties: {
                 emailHash: {
                     type: "string",
-                    description: "The email verification token from the email.",
+                    description: "Az email ellenőrző token az emailből.",
                 },
             },
             required: ["emailHash"],
@@ -267,7 +270,7 @@ export const verifyDesc = describeRoute({
     },
     responses: {
         200: {
-            description: "Success - User account verified successfully.",
+            description: "Sikeres - A felhasználói fiók sikeresen ellenőrizve.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -276,7 +279,7 @@ export const verifyDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - The provided verification token is invalid or has expired.",
+                "Hibás kérés - A megadott ellenőrző token érvénytelen vagy lejárt.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -289,9 +292,9 @@ export const verifyDesc = describeRoute({
 });
 
 export const authedDesc = describeRoute({
-    tags: ["Authentication"],
+    tags: ["Hitelesítés"],
     description:
-        "Check if the user is currently authenticated via access cookie. Optionally, check if the user has a specific role.",
+        "Ellenőrzi, hogy a felhasználó jelenleg be van-e jelentkezve a hozzáférési süti segítségével. Opcionálisan ellenőrizheti, hogy a felhasználó rendelkezik-e egy adott szerepkörrel.",
     request: {
         query: {
             type: "object",
@@ -299,7 +302,7 @@ export const authedDesc = describeRoute({
                 role: {
                     type: "string",
                     description:
-                        "Optional role name to check if the user possesses.",
+                        "Opcionális szerepkör neve, amellyel ellenőrizhető, hogy a felhasználó rendelkezik-e vele.",
                     example: "admin",
                 },
             },
@@ -308,7 +311,7 @@ export const authedDesc = describeRoute({
     responses: {
         200: {
             description:
-                "Success - User is authenticated (and has the specified role, if provided).",
+                "Sikeres - A felhasználó be van jelentkezve (és rendelkezik a megadott szerepkörrel, ha meg van adva).",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -317,7 +320,7 @@ export const authedDesc = describeRoute({
         },
         401: {
             description:
-                "Unauthorized - User is not logged in (no valid access cookie or expired token).",
+                "Jogosulatlan - A felhasználó nincs bejelentkezve (nincs érvényes hozzáférési süti vagy lejárt token).",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -328,7 +331,7 @@ export const authedDesc = describeRoute({
         },
         403: {
             description:
-                "Forbidden - User is authenticated but does not have the required role specified in the query parameter.",
+                "Tiltott - A felhasználó be van jelentkezve, de nem rendelkezik a lekérdezési paraméterben megadott szükséges szerepkörrel.",
             content: {
                 "application/json": {
                     schema: resolver(

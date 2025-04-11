@@ -15,19 +15,19 @@ const uuidParam = {
         quizId: {
             type: "string",
             format: "uuid",
-            description: "The UUID of the quiz.",
+            description: "A kvíz UUID azonosítója.",
         },
     },
     required: ["quizId"],
 };
 
-const apiKeySecurity = [{ ApiKeyAuth: [] }]; // Define globally in OpenAPI setup if preferred
+const apiKeySecurity = [{ ApiKeyAuth: [] }]; // Globálisan definiálható az OpenAPI beállításban, ha szükséges
 
 export const setRoleDesc = describeRoute({
-    tags: ["Admin"],
+    tags: ["Adminisztráció"],
     security: apiKeySecurity,
     description:
-        "Assign a role to a user. Requires a valid API Key passed in the 'X-Api-Key' header.",
+        "Szerepkör hozzárendelése egy felhasználóhoz. Érvényes API kulcs szükséges az 'X-Api-Key' fejlécben.",
     request: {
         body: {
             content: {
@@ -38,20 +38,22 @@ export const setRoleDesc = describeRoute({
                     }),
                 },
             },
-            description: "User UUID and the name of the role to assign.",
+            description:
+                "Felhasználó UUID és a hozzárendelendő szerepkör neve.",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - Role assigned/updated successfully.",
+            description:
+                "Sikeres - A szerepkör sikeresen hozzárendelve/frissítve.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
             },
         },
         400: {
             description:
-                "Bad Request - Invalid input data, role name not found, or database conflict (e.g., user already has role).",
+                "Hibás kérés - Érvénytelen bemeneti adatok, nem létező szerepkör név, vagy adatbázis konfliktus (pl. a felhasználó már rendelkezik a szerepkörrel).",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -61,23 +63,23 @@ export const setRoleDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - Missing or invalid API Key.",
+            description: "Jogosulatlan - Hiányzó vagy érvénytelen API kulcs.",
             content: {
                 "application/json": {
                     schema: resolver(
                         ApiResponseSchema.required({ error: true })
                     ),
                 },
-            }, // Middleware returns 401
+            },
         },
     },
 });
 
 export const setAuthStatusDesc = describeRoute({
-    tags: ["Admin"],
+    tags: ["Adminisztráció"],
     security: apiKeySecurity,
     description:
-        "Set the authentication status ('active', 'pending', 'blocked') for a user. Requires a valid API Key.",
+        "A felhasználó hitelesítési állapotának ('aktív', 'függőben', 'blokkolt') beállítása. Érvényes API kulcs szükséges.",
     request: {
         body: {
             content: {
@@ -88,19 +90,21 @@ export const setAuthStatusDesc = describeRoute({
                     }),
                 },
             },
-            description: "User UUID and the new authentication status.",
+            description: "Felhasználó UUID és az új hitelesítési állapot.",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - User authentication status updated.",
+            description:
+                "Sikeres - A felhasználó hitelesítési állapota frissítve.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
             },
         },
         400: {
-            description: "Bad Request - Invalid input data or database error.",
+            description:
+                "Hibás kérés - Érvénytelen bemeneti adatok vagy adatbázis hiba.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -110,7 +114,7 @@ export const setAuthStatusDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - Missing or invalid API Key.",
+            description: "Jogosulatlan - Hiányzó vagy érvénytelen API kulcs.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -123,10 +127,10 @@ export const setAuthStatusDesc = describeRoute({
 });
 
 export const setQuizStatusDesc = describeRoute({
-    tags: ["Admin"],
+    tags: ["Adminisztráció"],
     security: apiKeySecurity,
     description:
-        "Approve ('published') or reject ('rejected') a quiz that is currently in the 'requires_review' state. Requires a valid API Key.",
+        "Kvíz jóváhagyása ('publikált') vagy elutasítása ('elutasított'), amely jelenleg 'ellenőrzésre_vár' állapotban van. Érvényes API kulcs szükséges.",
     request: {
         body: {
             content: {
@@ -138,20 +142,20 @@ export const setQuizStatusDesc = describeRoute({
                 },
             },
             description:
-                "Quiz UUID and the new status ('published' or 'rejected').",
+                "Kvíz UUID és az új állapot ('publikált' vagy 'elutasított').",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - Quiz status updated.",
+            description: "Sikeres - A kvíz állapota frissítve.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
             },
         },
         400: {
             description:
-                "Bad Request - Invalid input data, quiz not found, quiz not in 'requires_review' state, or database error.",
+                "Hibás kérés - Érvénytelen bemeneti adatok, kvíz nem található, kvíz nem 'ellenőrzésre_vár' állapotban van, vagy adatbázis hiba.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -161,7 +165,7 @@ export const setQuizStatusDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - Missing or invalid API Key.",
+            description: "Jogosulatlan - Hiányzó vagy érvénytelen API kulcs.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -174,23 +178,23 @@ export const setQuizStatusDesc = describeRoute({
 });
 
 export const getAllQuizzesAdminDesc = describeRoute({
-    tags: ["Admin"],
+    tags: ["Adminisztráció"],
     security: apiKeySecurity,
     description:
-        "Get a paginated list of *all* quizzes in the system, regardless of status. Includes user, tags, and languages. Requires a valid API Key.",
+        "Az összes kvíz lapozható listájának lekérése a rendszerben, függetlenül az állapottól. Beleérti a felhasználót, címkéket és nyelveket. Érvényes API kulcs szükséges.",
     request: {
         query: resolver(paginationSchema),
     },
     responses: {
         200: {
             description:
-                "Success - Returns a list of all quizzes and the total count.",
+                "Sikeres - Az összes kvíz listája és a teljes darabszám.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
-            }, // data: { quizzes: Quiz[], totalCount: number }
+            },
         },
         400: {
-            description: "Bad Request - Invalid pagination parameters.",
+            description: "Hibás kérés - Érvénytelen lapozási paraméterek.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -200,7 +204,7 @@ export const getAllQuizzesAdminDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - Missing or invalid API Key.",
+            description: "Jogosulatlan - Hiányzó vagy érvénytelen API kulcs.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -213,23 +217,23 @@ export const getAllQuizzesAdminDesc = describeRoute({
 });
 
 export const getAllUsersAdminDesc = describeRoute({
-    tags: ["Admin"],
+    tags: ["Adminisztráció"],
     security: apiKeySecurity,
     description:
-        "Get a paginated list of *all* users in the system, including detailed information like stats, tokens, reviews, API keys, and roles. Requires a valid API Key.",
+        "Az összes felhasználó lapozható listájának lekérése a rendszerben, beleértve a részletes információkat, mint statisztikák, tokenek, értékelések, API kulcsok és szerepkörök. Érvényes API kulcs szükséges.",
     request: {
         query: resolver(paginationSchema),
     },
     responses: {
         200: {
             description:
-                "Success - Returns a list of all users and the total count.",
+                "Sikeres - Az összes felhasználó listája és a teljes darabszám.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
-            }, // data: { users: User[], totalCount: number }
+            },
         },
         400: {
-            description: "Bad Request - Invalid pagination parameters.",
+            description: "Hibás kérés - Érvénytelen lapozási paraméterek.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -239,7 +243,7 @@ export const getAllUsersAdminDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - Missing or invalid API Key.",
+            description: "Jogosulatlan - Hiányzó vagy érvénytelen API kulcs.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -252,50 +256,49 @@ export const getAllUsersAdminDesc = describeRoute({
 });
 
 export const authenticateAdminDesc = describeRoute({
-    tags: ["Admin"],
+    tags: ["Adminisztráció"],
     security: apiKeySecurity,
     description:
-        "Verify if the provided API Key in the 'X-Api-Key' header is valid and not expired.",
+        "Ellenőrzi, hogy az 'X-Api-Key' fejlécben megadott API kulcs érvényes-e és nem járt-e le.",
     responses: {
         200: {
-            description: "Success - API Key is valid.",
+            description: "Sikeres - Az API kulcs érvényes.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
             },
         },
         401: {
-            description: "Unauthorized - Missing or invalid/expired API Key.",
+            description:
+                "Jogosulatlan - Hiányzó vagy érvénytelen/lejárt API kulcs.",
             content: {
                 "application/json": {
                     schema: resolver(
                         ApiResponseSchema.required({ error: true })
                     ),
                 },
-            }, // Middleware returns 401
+            },
         },
     },
 });
 
 export const getQuizByIdAdminDesc = describeRoute({
-    tags: ["Admin"],
-    // Uses apikey_or_jwt, so either works
-    security: [{ ApiKeyAuth: [] }, { CookieAuth: [] }], // Assuming CookieAuth defined for JWT
+    tags: ["Adminisztráció"],
+    security: [{ ApiKeyAuth: [] }],
     description:
-        "Fetch a single quiz by its UUID, regardless of its status. Includes full details like user, cards, tags, languages. Requires authentication via API Key or JWT Cookie.",
+        "Egyetlen kvíz lekérése UUID alapján, függetlenül az állapottól. Beleérti a teljes részleteket, mint felhasználó, kártyák, címkék, nyelvek. Hitelesítést igényel API kulcs használatával.",
     request: {
         params: uuidParam,
     },
     responses: {
         200: {
-            description:
-                "Success - Returns the full details of the requested quiz.",
+            description: "Sikeres - A kért kvíz teljes részletei.",
             content: {
                 "application/json": { schema: resolver(ApiResponseSchema) },
-            }, // data: Quiz (with relations)
+            },
         },
         401: {
             description:
-                "Unauthorized - Missing or invalid API Key / JWT Cookie.",
+                "Jogosulatlan - Hiányzó vagy érvénytelen API kulcs / JWT süti.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -304,9 +307,9 @@ export const getQuizByIdAdminDesc = describeRoute({
                 },
             },
         },
-        // 403 might occur depending on middleware specifics
         404: {
-            description: "Not Found - No quiz found with the specified UUID.",
+            description:
+                "Nem található - Nem található kvíz a megadott UUID-vel.",
             content: {
                 "application/json": {
                     schema: resolver(

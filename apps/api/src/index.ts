@@ -17,10 +17,16 @@ import { makeRateLimiter } from "./middlewares/ratelimiters";
 
 console.log(ENV.NODE_ENV());
 
+const corsOpts =
+    ENV.NODE_ENV() === "production"
+        ? { origin: ENV.DOMAIN(), maxAge: 600 }
+        : {};
+
 export const app = new Hono()
     .basePath("/api/v1")
     .use(logger())
-    .use(cors())
+    // @ts-expect-error idk miert
+    .use(cors(corsOpts))
     .use(makeRateLimiter(1, 60, "maybe"))
     .route("/", auth)
     .route("/", apikey)
@@ -51,7 +57,6 @@ app.get(
             info: {
                 title: "Quizzy API",
                 description: `## A Quizzy API dokumentációja
-
 ### Megjegyzés a hitelesítésről
 A Swagger UI 'Try it out' funkciója nem támogatja a sütik automatikus küldését.
 Szerezd meg a sütit a /login végponton keresztül, majd használd a böngésző fejlesztői eszközeit vagy
@@ -90,6 +95,16 @@ egy külső kliensprogramot (például Postman, curl), hogy a sütit beilleszd a
 app.get(
     "/reference",
     apiReference({
+        servers: [
+            {
+                url: "http://localhost:3000/api/v1",
+                description: "Local Development",
+            },
+            {
+                url: "https://quizzy.kmate.xyz/api/v1",
+                description: "Production",
+            },
+        ],
         theme: "deepSpace",
         layout: "modern",
         spec: {

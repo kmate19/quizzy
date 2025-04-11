@@ -8,10 +8,10 @@ import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 
 export const quizFinishedDesc = describeRoute({
-    tags: ["Events"],
-    security: [{ BearerAuth: [] }], // Indicate API Key is used, maybe define globally? Or BearerAuth for WS secret
-    description: `Record the results of a finished quiz for a user. Updates the quiz's play count and the user's statistics (plays, placements for multi, correct/wrong answers).
-    Requires authentication via a secret token passed in the 'Authorization: Bearer <token>' header (matching WS_SECRET env var). Intended for internal/service-to-service use.`,
+    tags: ["Események"],
+    security: [{ BearerAuth: [] }], // Jelzi, hogy API kulcsot használ, talán globálisan definiálható? Vagy BearerAuth a WS titokhoz
+    description: `Rögzíti egy felhasználó által befejezett kvíz eredményeit. Frissíti a kvíz játékok számát és a felhasználó statisztikáit (játékok, helyezések többjátékos módban, helyes/rossz válaszok).
+    Hitelesítést igényel egy titkos token segítségével, amelyet az 'Authorization: Bearer <token>' fejlécben kell átadni (meg kell egyeznie a WS_SECRET környezeti változóval). Belső/szolgáltatások közötti használatra szánva.`,
     request: {
         body: {
             content: {
@@ -20,13 +20,14 @@ export const quizFinishedDesc = describeRoute({
                 },
             },
             description:
-                "Details of the finished quiz, including user ID, quiz ID, type (solo/multi), and metadata (placement, answer counts).",
+                "A befejezett kvíz részletei, beleértve a felhasználó azonosítóját, kvíz azonosítóját, típust (egyjátékos/többjátékos) és metaadatokat (helyezés, válaszok száma).",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - Event processed and statistics updated.",
+            description:
+                "Sikeres - Az esemény feldolgozva és a statisztikák frissítve.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -35,7 +36,7 @@ export const quizFinishedDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - Invalid request body format or error updating database records.",
+                "Hibás kérés - Érvénytelen kérés törzs formátum vagy hiba az adatbázis rekordok frissítésekor.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -46,11 +47,11 @@ export const quizFinishedDesc = describeRoute({
         },
         401: {
             description:
-                "Unauthorized - Missing or invalid authorization token (Bearer token does not match WS_SECRET).",
+                "Jogosulatlan - Hiányzó vagy érvénytelen hitelesítési token (a Bearer token nem egyezik a WS_SECRET-tel).",
             content: {
                 "application/json": {
                     schema: resolver(
-                        ApiResponseSchema.required({ error: true }) // Middleware likely returns plain 401
+                        ApiResponseSchema.required({ error: true })
                     ),
                 },
             },
