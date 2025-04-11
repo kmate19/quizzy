@@ -20,20 +20,28 @@ export function makeRateLimiter(
         skipSuccessfulRequests: skipSuccess,
         standardHeaders: "draft-7",
         keyGenerator: (c) => {
+            let key = "unknown";
+
             const userAgent =
                 c.req.header("User-Agent") || "unknown-user-agent";
 
             const cfconnecting =
                 c.req.header("CF-Connecting-IP") || "unknown-ip";
 
+            key = `${userAgent};${cfconnecting}`;
+
             if (hasJwt === "maybe") {
                 const cookie = getCookie(c, GLOBALS.ACCESS_COOKIE_NAME);
 
                 if (!cookie) {
-                    return `noauth:${userAgent}${cfconnecting}`;
+                    key = `noauth:${key}`;
+                    console.log(key);
+                    return key;
                 }
 
-                return `hascookie:${userAgent}${cfconnecting}${cookie.substring(0, 20)}`;
+                key = `hascookie:${key};${cookie.substring(0, 20)}`;
+                console.log(key);
+                return key;
             }
 
             if (hasJwt) {
@@ -43,10 +51,14 @@ export function makeRateLimiter(
                     }>
                 ).get("accessTokenPayload");
 
-                return `auth:${userAgent}${cfconnecting}${userId}`;
+                key = `auth:${key};${userId}`;
+                console.log(key);
+                return key;
             }
 
-            return `noauth:${userAgent}${cfconnecting}`;
+            key = `noauth:${key}`;
+            console.log(key);
+            return key;
         },
         message: message || "Túl sok kérés érkezett, próbáld újra később.",
     });
