@@ -153,6 +153,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 /// <summary>
 /// Amikor elindul az alkalmazás, eltünik a főablak és megjelenik az API kulcs ablak.
 /// </summary>
+
 public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)

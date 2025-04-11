@@ -94,7 +94,7 @@ namespace localadmin.Models
             : "No Roles";
 
         private NavigationService navigationService = new NavigationService();
-        private SharedStateService sharedState = new SharedStateService();
+        //private SharedStateService sharedState = new SharedStateService();
 
         /// <summary>
         /// Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
@@ -136,7 +136,6 @@ namespace localadmin.Models
         public void Initialize(NavigationService navigationService, SharedStateService sharedState)
         {
             this.navigationService = navigationService;
-            this.sharedState = sharedState;
         }
 
         /// <summary>
@@ -173,8 +172,8 @@ namespace localadmin.Models
 
         public async void ViewQuiz(object parameter)
         {
-            QuizViewModel quizView = new(navigationService, sharedState);
-            sharedState.SearchText = Username;
+            QuizViewModel quizView = new(navigationService, SharedStateService.Instance);
+            SharedStateService.Instance.SearchText = Username;
             navigationService.NavigateTo(quizView);
             await quizView.InitializeAsync();
             quizView.SearchQuizes(Username);
@@ -182,8 +181,8 @@ namespace localadmin.Models
 
         public void ViewReview(object parameter)
         {
-            ReviewViewModel reviewView = new(navigationService, sharedState);
-            sharedState.SearchText = Username;
+            ReviewViewModel reviewView = new(navigationService, SharedStateService.Instance);
+            SharedStateService.Instance.SearchText = Username;
             navigationService.NavigateTo(reviewView);
             reviewView.SearchReviews(Username);
         }
