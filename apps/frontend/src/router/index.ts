@@ -3,7 +3,6 @@ import LoginRegisterView from '@/views/auth/LoginRegister.vue'
 import HomeView from '@/views/HomeView.vue'
 import ProfileView from '@/views/user/ProfileView.vue'
 import GameCreation from '@/views/user/GameCreation.vue'
-import { ref, watch } from 'vue'
 import DetailedView from '@/views/DetailedView.vue'
 import { clientv1 } from '@/lib/apiClient'
 import ForgotPassword from '@/views/auth/ForgotPassword.vue'
@@ -76,8 +75,6 @@ const router = createRouter({
   ],
 })
 
-const title = ref('Quizzy')
-
 async function checkAuthStatus() {
   try {
     const cachedAuth = queryClient.getQueryData(AUTH_QUERY_KEY)
@@ -116,7 +113,6 @@ async function checkAuthStatus() {
 }
 
 router.beforeEach(async (to, from, next) => {
-  let newTitle = 'Quizzy'
   const quizzyStore = useQuizzyStore()
 
   quizzyStore.fromLogin = from.path === '/login'
@@ -138,41 +134,10 @@ router.beforeEach(async (to, from, next) => {
       return next()
     }
   }
-
-  switch (to.name?.toString()) {
-    case 'loginRegister':
-      newTitle = 'Autentikáció'
-      break
-    case 'home':
-      newTitle = 'Kezdőlap'
-      break
-    case 'profile':
-      newTitle = 'Profil'
-      break
-    case 'game_creation':
-      newTitle = 'Szerkesztő'
-      break
-    case 'detailed_view':
-      newTitle = 'Megtekintés'
-      break
-    case 'quiz_practice':
-      newTitle = 'Gyakorlás'
-      break
-    case 'quiz_multiplayer':
-      newTitle = 'Játék'
-      break
-  }
-
-  document.title = newTitle
+  
+  console.log("Navigating to:", to.path)
+  
   next()
 })
-
-watch(
-  title,
-  (newTitleValue) => {
-    document.title = `Quizzy - ${newTitleValue}`
-  },
-  { immediate: true },
-)
 
 export default router
