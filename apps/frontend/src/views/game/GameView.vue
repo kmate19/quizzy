@@ -332,8 +332,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
             chatContainer.scrollTop = chatContainer.scrollHeight
           }
         })
-        
-        // Show notification if chat is closed
         if (!isChatOpen.value) {
           toast(`${data.data.name}: ${data.data.message}`, {
             autoClose: 3000,
