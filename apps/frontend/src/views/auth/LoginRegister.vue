@@ -225,7 +225,7 @@ onMounted(() => {
             <div class="w-full max-w-md space-y-6">
               <button type="submit" :disabled="isLoading"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
-                <div class="flex items-center justify-center">
+                <div class="flex items-center justify-center w-full">
                   <span v-if="isLoading" class="inline-block animate-spin mr-2">
                     <svg class="w-5 h-5" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"

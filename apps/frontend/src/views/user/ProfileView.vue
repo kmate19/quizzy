@@ -275,7 +275,7 @@ watch(
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
-        <div :class="isOtherUser ? 'flex flex-col lg:flex-row items-center justify-center gap-4 lg:mt-42' : ''">
+        <div :class="isOtherUser ? 'flex flex-row items-center justify-center gap-4 lg:mt-42' : ''">
           <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 "
             :class="isOtherUser ? 'w-full lg:w-[40%]' : 'w-full md:w-[80%]'">
             <div v-if="isLoadingPage" class="w-full flex justify-center items-center">
@@ -320,7 +320,7 @@ watch(
                 </div>
               </div>
               <div class="flex-1 flex flex-col md:flex-row justify-center md:justify-end items-center gap-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                <div class="flex flex-row gap-6">
                   <div>
                     <div class="text-3xl md:text-4xl font-bold text-white">
                       {{ realUser?.stats.plays }}
@@ -480,7 +480,7 @@ watch(
                             <span class="text-white">{{ quiz.rating.toFixed(1) }}</span>
                           </div>
 
-                          <div class="flex items-center">
+                          <div class="flex items-center ">
                             <PlayIcon class="w-5 h-5 text-green-400 mr-1" />
                             <span class="text-white">{{ quiz.plays }}</span>
                           </div>
