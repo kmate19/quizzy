@@ -254,8 +254,8 @@ const onDelete = (uuid: string) => {
 
 const OnLogOut = async () => {
   await clientv1.auth.logout.$get()
-  const quizzyStore = useQuizzyStore()
-  queryClient.clear()
+  queryClient.removeQueries({ queryKey: ['auth'] })
+  queryClient.removeQueries({ queryKey: ['userProfile'] })
   localStorage.clear()
   quizzyStore.$reset()
   router.push('/login')

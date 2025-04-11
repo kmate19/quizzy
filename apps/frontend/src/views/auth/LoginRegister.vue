@@ -124,13 +124,15 @@ const onLogin = async () => {
   isLoading.value = true; 
   (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
       loginForm.value[key] = loginForm.value[key].trim()
-    })
+  })
+  
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
+  
   if (loginRes.status === 200) {
-    queryClient.setQueryData(['authUser'], 'authed')
+    queryClient.setQueryData(['auth'], { isAuthenticated: true })
     const res = await userData("")
     if (res !== null) {
-      await queryClient.setQueryData(['userProfile', ''], res)
+      await queryClient.setQueryData(['userProfile'], res)
       quizzyStore.isAdmin = res?.roles?.some(role => role.role.name === 'admin') || false
       quizzyStore.userName = res?.username || ''
       quizzyStore.fromLogin = true

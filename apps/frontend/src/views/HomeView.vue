@@ -34,6 +34,8 @@ const { data: quizies, isLoading } = useQuery({
   queryFn: () => getQuizzes(params.value),
   refetchOnMount: false,
   placeholderData: keepPreviousData,
+  refetchInterval: 1000 * 30,
+  staleTime: 60  * 1000, 
 })
 
 watch(quizies, (newData) => {
