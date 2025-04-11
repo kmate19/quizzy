@@ -108,7 +108,7 @@ const onRegistration = async () => {
     }
     else {
       const res = (await regRes.json()) satisfies ApiResponse
-      toast(res.error?.message, {
+      toast(res.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -150,7 +150,7 @@ const onLogin = async () => {
   }
   else {
     const res = (await loginRes.json()) satisfies ApiResponse
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',

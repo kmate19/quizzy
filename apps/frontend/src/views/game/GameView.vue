@@ -607,7 +607,7 @@ onUnmounted(() => {
                   #{{ index + 1 }}
                 </div>
                 <img :src="player.pfp" class="w-8 h-8 rounded-full mr-2" />
-                <span class="font-medium truncate flex-grow">{{ player.username }}</span>
+                <span class="font-medium truncate mr-2 flex-grow">{{ player.username }}</span>
                 <transition name="score" mode="out-in">
                   <span class="font-bold text-yellow-300" :key="player.stats.score">{{
                     player.stats.score
@@ -679,10 +679,10 @@ onUnmounted(() => {
         </div>
         <div class="flex justify-center mt-2 mb-2 gap-2">
           <button @click="restartGame" v-if="quizzyStore.isHost"
-            class="glass-button px-8 py-3 rounded-full !bg-purple-500 text-lg font-bold flex items-center animate-bounce cursor-pointer">
+            class="glass-button px-8 py-3 rounded-md !bg-purple-700 text-lg font-bold flex items-center animate-bounce cursor-pointer">
             Még egy kör?
           </button>
-          <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-full cursor-pointer">
+          <button @click="leaveLobby" class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
             Lobby elhagyása
           </button>
         </div>
@@ -706,7 +706,7 @@ onUnmounted(() => {
                 <img :src="playerStat.pfp || '/placeholder.svg?height=60&width=60'"
                   class="w-16 h-16 rounded-full object-cover border-2 border-white/50" />
               </div>
-              <span class="text-xl font-bold mb-3">{{ playerStat.username }}</span>
+              <span class="text-xl font-bold mb-3 ml-2">{{ playerStat.username }}</span>
 
               <div class="grid grid-cols-2 gap-2 w-full mt-2">
                 <div class="bg-white/10 rounded p-2 text-center">
@@ -737,10 +737,10 @@ onUnmounted(() => {
 
     <div v-else class="text-white">
       <div class="flex justify-between items-center mb-8">
-        <button class="glass-button px-4 py-2 rounded-full cursor-pointer" @click="startGame">
+        <button  class="glass-button transition-all duration-300 px-10 py-2 rounded-md cursor-pointer text-xl !bg-green-800"  @click="startGame">
           Játék
         </button>
-        <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-full cursor-pointer">
+        <button @click="leaveLobby" class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
           Lobby elhagyása
         </button>
       </div>

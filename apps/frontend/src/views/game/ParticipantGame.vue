@@ -596,7 +596,7 @@ const restartGame = () => {
                   #{{ index + 1 }}
                 </div>
                 <img :src="player.pfp" class="w-8 h-8 rounded-full mr-2" />
-                <span class="font-medium truncate flex-grow">{{ player.username }}</span>
+                <span class="font-medium truncate mr-2 flex-grow">{{ player.username }}</span>
                 <transition name="score" mode="out-in">
                   <span class="font-bold text-yellow-300" :key="player.stats.score">{{
                     player.stats.score
@@ -667,10 +667,10 @@ const restartGame = () => {
         </div>
         <div class="flex justify-center mt-2 mb-2 gap-2">
           <button @click="restartGame" v-if="isHost"
-            class="glass-button px-8 py-3 rounded-full !bg-purple-500 text-lg font-bold flex items-center animate-bounce cursor-pointer">
+            class="glass-button px-8 py-3 rounded-md !bg-purple-700 text-lg font-bold flex items-center animate-bounce cursor-pointer">
             Még egy kör?
           </button>
-          <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-full cursor-pointer">
+          <button @click="leaveLobby" class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
             Lobby elhagyása
           </button>
         </div>
@@ -726,11 +726,11 @@ const restartGame = () => {
     <div v-else class="text-white">
       <div class="flex justify-between items-center mb-8">
         <div class="flex justify-center" v-if="isHost">
-          <button class="glass-button px-4 py-2  rounded-full cursor-pointer" @click="startGame">
+          <button class="glass-button transition-all duration-300 px-10 py-2 rounded-md cursor-pointer text-xl !bg-green-800" @click="startGame">
             Játék
           </button>
         </div>
-        <button @click="leaveLobby" class="glass-button px-4 py-2 rounded-full cursor-pointer">
+        <button @click="leaveLobby" class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
           Lobby elhagyása
         </button>
       </div>
@@ -785,7 +785,6 @@ const restartGame = () => {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
   border: 2px solid transparent;
-  transition: all 0.3s ease;
 }
 
 .glass-button:hover {
@@ -798,6 +797,18 @@ const restartGame = () => {
 .glass-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 
 .fade-enter-active,

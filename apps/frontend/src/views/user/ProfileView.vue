@@ -226,7 +226,7 @@ const saveProfileImage = async () => {
     quizzyStore.pfp = localPfp.value
   } else {
     const res = await pfpUpload.json()
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -313,7 +313,9 @@ watch(
                     </span>
                   </p>
                   <button @click="isApiModal = true"
-                    class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900 hover:border-white border-2 border-transparent">
+                    class="glass-button px-4 py-1 text-white font-semibold 
+                    rounded-lg transition-all duration-300 ease-in-out w-fit
+                     !bg-blue-900 hover:border-white border-2 border-transparent">
                     API Kulcs igénylés
                   </button>
                 </div>
