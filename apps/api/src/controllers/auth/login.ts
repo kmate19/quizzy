@@ -8,7 +8,7 @@ import { zv } from "@/middlewares/zv";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import { makeDefaultPfp } from "@/utils/helpers";
 import { eq, or } from "drizzle-orm";
-import { getCookie, setCookie } from "hono/cookie";
+import { setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import type { ApiResponse } from "repo";
 
@@ -17,18 +17,6 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
     makeRateLimiter(1, 15, false, undefined, false, true),
     async (c) => {
         const loginUserData = c.req.valid("json");
-
-        if (getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)) {
-            // user already logged in
-            const res = {
-                message: "user already has a login cookie",
-                error: {
-                    message: "user cant have a login cookie and try to log in",
-                    case: "conflict",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
-        }
 
         const [user] = await db
             .select()
