@@ -272,16 +272,16 @@ watch(
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
-        <div :class="isOtherUser ? 'flex flex-row items-center justify-center gap-4 lg:mt-42' : ''">
-          <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 "
-            :class="isOtherUser ? 'w-full lg:w-[40%]' : 'w-full md:w-[80%]'">
+        <div :class="isOtherUser ? 'flex flex-col items-center' : ''">
+          <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8"
+            :class="isOtherUser ? 'w-full md:w-[75%]' : 'w-full md:w-[80%]'">
             <div v-if="isLoadingPage" class="w-full flex justify-center items-center">
               <div class="flex justify-center items-center h-38">
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
               </div>
             </div>
             <div v-else class="flex flex-col md:justify-center w-full items-center gap-6 md:gap-8 p-4"
-              :class="isOtherUser ? 'md:flex-col' : 'md:flex-row md:flex-wrap'">
+              :class="isOtherUser ? 'md:flex-row' : 'md:flex-row md:flex-wrap'">
               <div class="relative mx-auto md:mx-0">
                 <img :src="localPfp"
                   class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30" />
@@ -316,7 +316,7 @@ watch(
                   </button>
                 </div>
               </div>
-              <div class="flex-1 flex flex-col md:flex-row justify-center md:justify-end items-center gap-6">
+              <div class="flex-1 flex flex-col md:flex-row justify-center  items-center gap-6">
                 <div class="flex flex-row gap-6">
                   <div>
                     <div class="text-3xl md:text-4xl font-bold text-white">
@@ -361,9 +361,9 @@ watch(
               </div>
             </div>
           </div>
-          <div class="gap-8 justify-center flex flex-col md:flex-row">
-            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full md:w-[40%]"
-              v-if="!isOtherUser && realUser?.friends?.length">
+          <div class="w-full" :class="isOtherUser ? 'md:w-[75%]' : ''">
+            <div v-if="!isOtherUser && realUser?.friends?.length" 
+                 class="backdrop-blur-md bg-white/10 rounded-2xl p-6 mb-8 w-full">
               <div v-if="isLoadingPage" class="h-[456px] flex justify-center items-center self-center">
                 <div class="flex justify-center items-center h-64">
                   <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -400,8 +400,7 @@ watch(
                 </div>
               </div>
             </div>
-            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full"
-              :class="realUser?.friends?.length ? 'md:w-[50%]' : 'md:w-[75%]'">
+            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full">
               <div v-if="isLoadingQuizzies" class="h-[456px] flex justify-center items-center self-center">
                 <div class="flex justify-center items-center h-64">
                   <Loader2Icon class="w-12 h-12 text-white animate-spin" />
