@@ -47,9 +47,8 @@ const mItems = {
 }
 
 
-const isOtherUser = computed(() => {
-  return userId !== ''
-})
+const isOtherUser =  userId !== ''
+
 
 const minDateTime = computed(() => {
   const now = new Date()
@@ -277,7 +276,8 @@ watch(
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
         <div :class="isOtherUser ? 'flex flex-col lg:flex-row items-center justify-center gap-4 lg:mt-42' : ''">
-          <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 w-fit">
+          <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 "
+          :class="isOtherUser ? 'w-full lg:w-[40%]' : 'w-full md:w-[80%]'">
             <div v-if="isLoadingPage" class="w-full flex justify-center items-center">
               <div class="flex justify-center items-center h-38">
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -312,8 +312,7 @@ watch(
                       Admin
                     </span>
                   </p>
-                  <button @click="isApiModal = true"
-                    class="glass-button px-4 py-1 text-white font-semibold 
+                  <button @click="isApiModal = true" class="glass-button px-4 py-1 text-white font-semibold 
                     rounded-lg transition-all duration-300 ease-in-out w-fit
                      !bg-blue-900 hover:border-white border-2 border-transparent">
                     API Kulcs igénylés
@@ -430,7 +429,7 @@ watch(
                    rounded-xl text-white 
                     hover:border-white border-2 border-transparent shadow-lg transition-all 
                     duration-500 cursor-pointer bg-white/10"
-                    @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
+                    @click="quiz.status !== 'published' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
 
                     <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
                       <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner" class="w-full h-full object-cover" />
