@@ -49,12 +49,12 @@ if (ENV.NODE_ENV() === "development") {
             documentation: {
                 info: {
                     title: "Quizzy API",
-                    description: `## Documentation for the Quizzy API
+                    description: `## A Quizzy API dokumentációja
 
-### Note on authentication
-Swagger UI 'Try it out' does not support sending cookies automatically.
-Obtain the cookie via the /login endpoint and use browser developer tools or,
-an external client (like Postman, curl) to include the cookie in requests.`,
+### Megjegyzés a hitelesítésről
+A Swagger UI 'Try it out' funkciója nem támogatja a sütik automatikus küldését.
+Szerezd meg a sütit a /login végponton keresztül, majd használd a böngésző fejlesztői eszközeit vagy
+egy külső kliensprogramot (például Postman, curl), hogy a sütit beilleszd a kérésekbe.`,
                     version: "1.0.0",
                 },
                 components: {
@@ -64,21 +64,22 @@ an external client (like Postman, curl) to include the cookie in requests.`,
                             type: "apiKey",
                             in: "header",
                             name: "X-Api-Key", // The actual header name
-                            description: "API Key for administrative access.",
+                            description:
+                                "Adminisztrátori hozzáféréshez szükséges API kulcs.",
                         },
                         CookieAuth: {
                             // For JWT cookie
                             type: "apiKey", // Using apiKey type for cookie auth representation
                             in: "cookie",
                             name: GLOBALS.ACCESS_COOKIE_NAME, // Your cookie name
-                            description: "Session authentication cookie (JWT).",
+                            description: "Session hitelesítési süti (JWT).",
                         },
                         BearerAuth: {
                             // For WS secret
                             type: "http",
                             scheme: "bearer",
                             description:
-                                "Bearer token for WebSocket/Event authentication (WS_SECRET).",
+                                "WebSocket-Event hitelesítéshez használt Bearer token (WS_SECRET).",
                         },
                     },
                 },
