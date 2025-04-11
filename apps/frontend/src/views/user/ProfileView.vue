@@ -73,9 +73,6 @@ const { data: realUser, isLoading: isLoadingPage } = useQuery({
 const { data: userQuizzies, isLoading: isLoadingQuizzies } = useQuery({
   queryKey: ['userQuizzies', userId],
   queryFn: () => getUserQuizzies(userId),
-  staleTime: 60 * 15 * 1000,
-  refetchInterval: 60 * 15 * 1000,
-  refetchOnMount: false,
 })
 
 watch(
