@@ -63,9 +63,11 @@ const GLOBALS = {
 } as const;
 
 async function parseTrustedDomains() {
-    return readFile("./assets/all_email_provider_domains.txt", {
+    const arr = await readFile("./assets/all_email_provider_domains.txt", {
         encoding: "utf-8",
     }).then((text) => text.split("\n"));
+
+    return new Set(arr);
 }
 
 export default GLOBALS;
