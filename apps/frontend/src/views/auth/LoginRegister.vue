@@ -13,6 +13,7 @@ import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const queryClient = useQueryClient()
 const quizzyStore = useQuizzyStore()
+const isLoading = ref(false)
 
 const isLoginForm = ref(true)
 
@@ -31,7 +32,7 @@ const showPasswordRequirements = () => {
     position: toast.POSITION.TOP_CENTER,
     type: 'info',
     transition: 'zoom',
-    pauseOnHover: false,
+    pauseOnHover: true,
   })
 }
 
@@ -76,6 +77,7 @@ const createRegisterSchema = (password: string) =>
 const regErrors = ref<zod.ZodFormattedError<RegisterSchemaType> | null>(null)
 
 const onRegistration = async () => {
+  isLoading.value = true
   const schema = createRegisterSchema(regForm.value.password)
   const valid = schema.safeParse(regForm.value)
 
@@ -94,9 +96,19 @@ const onRegistration = async () => {
       } as ToastOptions)
       flipLogin()
       clearRegistration()
-    } else {
+    }
+    else if ((regRes.status as number) === 429) {
+      toast('Elérted a maximális regisztrációs kísérletek számát!\nMax 5 próbálkozás 15 percenként', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: true,
+      } as ToastOptions)
+    }
+    else {
       const res = (await regRes.json()) satisfies ApiResponse
-      toast(res.error?.message, {
+      toast(res.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -105,36 +117,42 @@ const onRegistration = async () => {
       } as ToastOptions)
     }
   }
+  isLoading.value = false
 }
 
 const onLogin = async () => {
-  ; (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
-    loginForm.value[key] = loginForm.value[key].trim()
+  isLoading.value = true; 
+  (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
+      loginForm.value[key] = loginForm.value[key].trim()
   })
+  
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
+  
   if (loginRes.status === 200) {
-    queryClient.setQueryData(['authUser'], 'authed')
+    queryClient.setQueryData(['auth'], { isAuthenticated: true })
     const res = await userData("")
     if (res !== null) {
-      await queryClient.setQueryData(['userProfile', ''], res)
+      await queryClient.setQueryData(['userProfile'], res)
       quizzyStore.isAdmin = res?.roles?.some(role => role.role.name === 'admin') || false
       quizzyStore.userName = res?.username || ''
       quizzyStore.fromLogin = true
-      quizzyStore.pfp =  res?.profile_picture || ''
+      quizzyStore.pfp = res?.profile_picture || ''
       quizzyStore.id = res?.id || ''
       router.push('/')
-    } else {
-      toast('Hiba történt a felhasználó adatainak lekérdezése közben', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
     }
-  } else {
+  }
+  else if ((loginRes.status as number) === 429) {
+    toast('Elérted a maximális bejelentkezési kísérletek számát!\nMax 15 próbálkozás percenként', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: true,
+    } as ToastOptions)
+  }
+  else {
     const res = (await loginRes.json()) satisfies ApiResponse
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -142,6 +160,7 @@ const onLogin = async () => {
       pauseOnHover: false,
     } as ToastOptions)
   }
+  isLoading.value = false
 }
 
 const showPassword = ref(false)
@@ -165,19 +184,17 @@ const updateCardHeight = () => {
 onMounted(() => {
   updateCardHeight()
   window.addEventListener('resize', () => {
-        updateCardHeight()
+    updateCardHeight()
   })
 })
 </script>
 
 <template>
   <div class="wrapper">
-    <div
-      class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
+    <div class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
        backdrop-blur-md transition-all duration-1000 
        !hover:bg-red-950 flex flex-col
-       justify-evenly relative text-white "
-      :style="{ height: `${cardHeight}px` }">
+       justify-evenly relative text-white " :style="{ height: `${cardHeight}px` }">
       <transition name="fade" enter-active-class="transition ease-out duration-300"
         leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
         @leave="updateCardHeight">
@@ -186,11 +203,13 @@ onMounted(() => {
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
           <form @submit.prevent="onLogin">
-            <v-text-field label="Felhasználónév" v-model="loginForm.username_or_email" variant="outlined"
-              density="comfortable" class="!mb-5"></v-text-field>
-            <v-text-field name="pw" label="Jelszó" v-model="loginForm.password" variant="outlined" density="comfortable"
-              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative">
-              <button @click="togglePassword"
+            <label for="username" class="text-white self-center">Felhasználónév vagy e-mail:</label>
+            <v-text-field name="username" v-model="loginForm.username_or_email" variant="outlined"
+              density="comfortable"></v-text-field>
+            <label for="username" class="text-white self-center">Jelszó:</label>
+            <v-text-field name="username" v-model="loginForm.password" variant="outlined" density="comfortable"
+              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword">
+              <button @click="togglePassword" tabindex="-1"
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none"
                 type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
@@ -203,13 +222,24 @@ onMounted(() => {
                 Elfelejtett jelszó?
               </router-link>
             </div>
-
             <div class="w-full max-w-md space-y-6">
-              <button type="submit"
+              <button type="submit" :disabled="isLoading"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
-                Bejelentkezés
+                <div class="flex items-center justify-center w-full">
+                  <span v-if="isLoading" class="inline-block animate-spin mr-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                        fill="none" />
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0
+                      5.373 0 12h4zm2 5.291A7.962 7.962 0
+                      014 12H0c0 3.042 1.135 5.824 3
+                      7.938l3-2.647z" />
+                    </svg>
+                  </span>
+                  {{ isLoading ? '' : 'Bejelentkezés' }}
+                </div>
               </button>
-              <button type="button"
+              <button type="button" :disabled="isLoading"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
                 @click="flipLogin">
                 Regisztráció
@@ -227,32 +257,42 @@ onMounted(() => {
           <form @submit.prevent="onRegistration">
             <label for="email" class="text-white self-center">E-mail:</label>
             <v-text-field name="email" v-model="regForm.email" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.email?._errors[0]"  placeholder="pelda@pelda.com"></v-text-field>
+              :error-messages="regErrors?.email?._errors[0]" placeholder="pelda@pelda.com"></v-text-field>
             <label for="username" class="text-white self-center">Felhasználónév:</label>
             <v-text-field name="username" v-model="regForm.username" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.username?._errors[0]"  placeholder="QuizzyUser43"></v-text-field>
-              <label for="pw" class="text-white self-center">Jelszó:</label>  
+              :error-messages="regErrors?.username?._errors[0]" placeholder="QuizzyUser43"></v-text-field>
+            <label for="pw" class="text-white self-center">Jelszó:</label>
             <v-text-field v-model="regForm.password" name="pw" variant="outlined" density="comfortable"
               :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative"
               :error-messages="regErrors?.password?._errors[0]">
-              <button @click="togglePassword"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-whitefocus:outline-none hover:text-gray-400"
+              <button @click="togglePassword" tabindex="-1"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none"
                 type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
             </v-text-field>
-            <label for="pw_again" class="text-white self-center">Jelszó megerősítése:</label>  
-            <v-text-field  v-model="regForm.confirmPassword"
-              :type="showPassword ? 'text' : 'password'" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="togglePassword" name="pw_again" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-2">
+            <label for="pw_again" class="text-white self-center">Jelszó megerősítése:</label>
+            <v-text-field v-model="regForm.confirmPassword" :type="showPassword ? 'text' : 'password'"
+              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" name="pw_again" variant="outlined"
+              density="comfortable" :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-2">
             </v-text-field>
-
             <div class="w-full max-w-md space-y-6">
-              <button type="submit"
+              <button type="submit" :disabled="isLoading"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
-                Regisztráció
+                <div class="flex items-center justify-center">
+                  <span v-if="isLoading" class="inline-block animate-spin mr-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                        fill="none" />
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0
+                      5.373 0 12h4zm2 5.291A7.962 7.962 0
+                      014 12H0c0 3.042 1.135 5.824 3
+                      7.938l3-2.647z" />
+                    </svg>
+                  </span>
+                  {{ isLoading ? '' : 'Regisztráció' }}
+                </div>
               </button>
               <button type="button"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
@@ -275,7 +315,6 @@ onMounted(() => {
 <style scoped>
 .custom-scrollbar {
   scrollbar-width: thin;
-  /*tuzroka miatt kell*/
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
   scroll-behavior: smooth;
 }
@@ -339,8 +378,8 @@ v-text-field {
   width: 80vh;
 }
 
-@media only screen and (max-height: 835px){
-  .form-content{
+@media only screen and (max-height: 835px) {
+  .form-content {
     overflow-y: auto;
   }
 }
@@ -440,15 +479,5 @@ v-text-field {
   pointer-events: none;
 }
 
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill:focus {
-  --webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important;
-  box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important;
-  --webkit-text-fill-color: #ffffff !important;
-  border-radius: 0.5rem !important;
-}
+/*192.168.1.1*/
 </style>

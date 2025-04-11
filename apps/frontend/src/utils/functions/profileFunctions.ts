@@ -25,7 +25,7 @@ export const userData = async (id: string) => {
       return userObj
     } else {
       const res = await user.json()
-      toast(res.error.message, {
+      toast(res.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -67,7 +67,7 @@ export const userData = async (id: string) => {
       return userObj
     } else {
       const res = await user.json()
-      toast(res.error.message, {
+      toast(res.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -248,7 +248,7 @@ export const getApiKey = async (expiration: string, description: string) => {
     return res.data
   } else {
     const res = await post.json()
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -271,7 +271,7 @@ export const deleteApiKey = async (uuid: number) => {
     queryClient.refetchQueries({ queryKey: ['apiKeys'] })
   } else {
     const res = await del.json()
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',

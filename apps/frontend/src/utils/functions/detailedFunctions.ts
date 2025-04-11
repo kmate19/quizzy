@@ -50,7 +50,7 @@ export const getQuiz = async (uuid: string) => {
     }
   } else {
     const res = await getQuiz.json()
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
