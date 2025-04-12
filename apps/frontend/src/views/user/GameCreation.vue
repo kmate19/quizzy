@@ -820,8 +820,15 @@ const marqueeDuration = computed(() => {
                 <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések: </h3>
                 <h3 class="text-xl font-semibold mb-2 text-white">{{ quiz.cards.length }}</h3>
               </div>
-              <div class="space-y-4 overflow-y-auto  flex-1 p-2">
-                <draggable v-model="quiz.cards" group="cards" item-key="cards" class="gap-2 flex flex-col">
+              <div class="space-y-4 overflow-y-auto flex-1 p-2">
+                <draggable v-model="quiz.cards" 
+                  group="cards" 
+                  item-key="cards" 
+                  class="gap-2 flex flex-col"
+                  :delay="150"
+                  :delayOnTouchOnly="true"
+                  :touchStartThreshold="10"
+                  :animation="200">
                   <template #item="{ element: card, index }">
                     <PreviewQuestion :question="card" :index="index" :handleQuestionRemove="handleQuestionRemove"
                       :handleQuestionEdit="handleQuestionModify" />
