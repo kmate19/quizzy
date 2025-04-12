@@ -224,8 +224,6 @@ onMounted(async () => {
                                 class="text-lg md:text-2xl font-bold text-white text-center mt-2 px-2 md:px-4 leading-relaxed tracking-wide">
                                 {{ currentQuestion?.question }}
                             </h2>
-
-                            <!-- Improved image container with better responsive behavior -->
                             <div v-if="currentQuestion?.picture"
                                 class="w-full flex justify-center items-center px-2 py-1 md:px-4 md:py-2">
                                 <div

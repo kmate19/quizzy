@@ -337,7 +337,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         if (!isChatOpen.value) {
           toast(`${data.data.name}: ${data.data.message}`, {
             autoClose: 3000,
-            position: toast.POSITION.BOTTOM_RIGHT,
+            position: toast.POSITION.TOP_CENTER,
             type: 'info',
             transition: 'slide',
             pauseOnHover: true,
@@ -531,16 +531,6 @@ const kickUser = (userName: string) => {
 }
 
 const restartGame = () => {
-  gameEnded.value = false
-  gameStarted.value = true
-  answerSelected.value = false
-  currentCard.value = null
-  preparingNextRound.value = true
-  setTimeout(() => {
-    preparingNextRound.value = false
-  }, 1500)
-  currentQuestionIndex.value = 0
-
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
       JSON.stringify({
@@ -605,7 +595,7 @@ const restartGame = () => {
             </div>
             <div v-if="preparingNextRound"
               class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-xl min-h-[200px] flex items-center justify-center border border-white/20"
-              :key="'loading'">
+              :key="currentQuestionIndex">
               <div class="text-center">
                 <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
                 <h2 class="text-2xl font-bold text-white">Következő kérdés...</h2>
@@ -616,26 +606,28 @@ const restartGame = () => {
               </div>
             </div>
             <transition name="fade-slide" mode="out-in" v-if="currentCard">
-              <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20" :key="currentQuestionIndex"
-                v-if="!preparingNextRound && !answerSelected">
-                <div class="absolute top-1 right-2 z-50">
-                  <svg class="w-10 h-10 md:w-12 md:h-12" viewBox="0 0 48 48">
-                    <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="20"
-                      font-weight="bold" fill="white" class="drop-shadow-md">{{ Math.ceil(time / 1000) }}</text>
-                  </svg>
+              <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20"
+                :key="currentQuestionIndex" v-if="!preparingNextRound && !answerSelected">
+                <div
+                  class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-1 right-1 border border-white/20"
+                  :class="time < 5000 ? 'text-red-500' : 'text-white'">
+                  <transition name="bounce" mode="out-in">
+                    <span :key="Math.ceil(time / 1000)">{{ Math.ceil(time / 1000) }}</span>
+                  </transition>
                 </div>
                 <transition name="fade" mode="out-in">
                   <div class="flex flex-col items-center justify-center" v-if="currentCard">
                     <img v-if="currentCard.picture" :src="currentCard.picture" :alt="currentCard.question"
                       class="w-full max-h-64 object-contain mb-6 rounded-xl" :key="'img-' + currentQuestionIndex" />
-                    <h2 class="text-xl md:text-2xl font-semibold text-white text-center mb-4" :key="'q-' + currentQuestionIndex">
+                    <h2 class="text-xl md:text-2xl font-semibold text-white text-center mb-4"
+                      :key="'q-' + currentQuestionIndex">
                       {{ currentCard?.question }}
                     </h2>
                   </div>
                 </transition>
               </div>
             </transition>
-            
+
             <transition-group name="answer-pop" mode="in-out" tag="div"
               v-if="!preparingNextRound && !answerSelected && currentCard" :class="[
                 'grid gap-4',
@@ -654,7 +646,8 @@ const restartGame = () => {
           </div>
 
 
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 h-96 overflow-y-auto small-screen-hidden border border-white/20"
+          <div
+            class="bg-white/10 backdrop-blur-sm rounded-xl p-4 h-96 overflow-y-auto small-screen-hidden border border-white/20"
             :class="{ 'd-none': windowWidth <= 958 }">
             <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
             <transition-group name="list" tag="div" class="space-y-2">
@@ -809,7 +802,8 @@ const restartGame = () => {
         </button>
       </div>
 
-      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-xl mb-8 border border-white/20" id="quiz">
+      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-xl mb-8 border border-white/20"
+        id="quiz">
         <div v-if="!gameQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
           <img :src="gameQuiz?.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" />
@@ -832,7 +826,7 @@ const restartGame = () => {
       </div>
 
       <div class="mb-4 flex justify-center">
-        <div class="flex gap-4 flex-wrap">
+        <div class="flex gap-4 flex-wrap justify-center">
           <div v-for="participant in participants?.members" :key="participant.username"
             class="p-4 glass-button rounded-xl flex !w-fit">
             <div class="flex items-center space-x-4">
@@ -868,13 +862,7 @@ const restartGame = () => {
             <MessageCircle class="h-4 w-4 mr-2 text-blue-300" />
             Chat
           </h3>
-          <button @click="toggleChat" class="text-gray-400 hover:text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.4F14 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clip-rule="evenodd" />
-            </svg>
-          </button>
+          <XButton class="h-4 w-4 text-white cursor-pointer absolute top-2 right-5" @click="toggleChat" />
         </div>
 
         <div class="flex-grow overflow-y-auto p-3 chat-messages">
@@ -903,7 +891,7 @@ const restartGame = () => {
         </div>
 
         <div class="p-2 border-t border-gray-700 flex">
-          <input v-model="chatMessage" @keyup.enter="sendChatMessage" type="text" placeholder="Type a message..."
+          <input v-model="chatMessage" @keyup.enter="sendChatMessage" type="text" placeholder="Írj üzenetet..."
             class="bg-gray-700 text-white text-sm rounded-l-md px-3 py-2 flex-grow focus:outline-none"
             :maxlength="100" />
           <button @click="sendChatMessage" :disabled="!chatMessage.trim()"

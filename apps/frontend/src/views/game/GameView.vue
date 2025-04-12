@@ -38,7 +38,7 @@ const windowWidth = ref(window.innerWidth)
 
 const isChatOpen = ref(false)
 const chatMessage = ref('')
-const chatMessages = ref<{name: string, pfp: string, message: string, isSelf: boolean}[]>([])
+const chatMessages = ref<{ name: string, pfp: string, message: string, isSelf: boolean }[]>([])
 
 const copyLobbyCode = () => {
   navigator.clipboard.writeText(lobbyId.value)
@@ -335,7 +335,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         if (!isChatOpen.value) {
           toast(`${data.data.name}: ${data.data.message}`, {
             autoClose: 3000,
-            position: toast.POSITION.BOTTOM_RIGHT,
+            position: toast.POSITION.TOP_CENTER,
             type: 'info',
             transition: 'slide',
             pauseOnHover: true,
@@ -444,16 +444,6 @@ const decrase = () => {
 }
 
 const restartGame = () => {
-  gameEnded.value = false
-  gameStarted.value = true
-  answerSelected.value = false
-  currentCard.value = null
-  preparingNextRound.value = true
-  setTimeout(() => {
-    preparingNextRound.value = false
-  }, 1500)
-  currentQuestionIndex.value = 0
-
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
       JSON.stringify({
@@ -490,7 +480,7 @@ const toggleChat = () => {
 
 const sendChatMessage = () => {
   if (chatMessage.value.trim() === '' || chatMessage.value.length > 100) return
-  
+
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     websocket.value.send(
       JSON.stringify({
@@ -500,15 +490,15 @@ const sendChatMessage = () => {
         data: chatMessage.value
       })
     )
-    
-    
+
+
     chatMessages.value.push({
       name: quizzyStore.userName,
       pfp: quizzyStore.pfp,
       message: chatMessage.value.slice(0, 100),
       isSelf: true
     })
-    
+
     chatMessage.value = ''
 
     nextTick(() => {
@@ -612,7 +602,7 @@ onUnmounted(() => {
             </div>
             <div v-if="preparingNextRound"
               class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-xl min-h-[200px] flex items-center justify-center border border-white/20"
-              :key="'loading'">
+              :key="currentQuestionIndex">
               <div class="text-center">
                 <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
                 <h2 class="text-2xl font-bold text-white">Következő kérdés...</h2>
@@ -623,26 +613,28 @@ onUnmounted(() => {
               </div>
             </div>
             <transition name="fade-slide" mode="out-in" v-if="currentCard">
-              <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-lg rounded-xl shadow-xl border border-white/20" :key="currentQuestionIndex"
-                v-if="!preparingNextRound && !answerSelected">
-                <div class="absolute top-1 right-2 z-50">
-                  <svg class="w-10 h-10 md:w-12 md:h-12" viewBox="0 0 48 48">
-                    <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="20"
-                      font-weight="bold" fill="white" class="drop-shadow-md">{{ Math.ceil(time / 1000) }}</text>
-                  </svg>
+              <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-lg rounded-xl shadow-xl border border-white/20"
+                :key="currentQuestionIndex" v-if="!preparingNextRound && !answerSelected">
+                <div
+                  class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-1 right-1 border border-white/20"
+                  :class="time < 5000 ? 'text-red-500' : 'text-white'">
+                  <transition name="bounce" mode="out-in">
+                    <span :key="Math.ceil(time / 1000)">{{ Math.ceil(time / 1000) }}</span>
+                  </transition>
                 </div>
                 <transition name="fade" mode="out-in">
                   <div class="flex flex-col items-center justify-center" v-if="currentCard">
                     <img v-if="currentCard.picture" :src="currentCard.picture" :alt="currentCard.question"
                       class="w-full max-h-64 object-contain mb-6 rounded-xl" :key="'img-' + currentQuestionIndex" />
-                    <h2 class="text-xl md:text-2xl font-semibold text-white text-center mb-4" :key="'q-' + currentQuestionIndex">
+                    <h2 class="text-xl md:text-2xl font-semibold text-white text-center mb-4"
+                      :key="'q-' + currentQuestionIndex">
                       {{ currentCard?.question }}
                     </h2>
                   </div>
                 </transition>
               </div>
             </transition>
-            
+
             <transition-group name="answer-pop" mode="in-out" tag="div"
               v-if="!preparingNextRound && !answerSelected && currentCard" :class="[
                 'grid gap-4',
@@ -661,7 +653,8 @@ onUnmounted(() => {
           </div>
 
 
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 h-96 overflow-y-auto small-screen-hidden border border-white/20"
+          <div
+            class="bg-white/10 backdrop-blur-sm rounded-xl p-4 h-96 overflow-y-auto small-screen-hidden border border-white/20"
             :class="{ 'd-none': windowWidth <= 958 }">
             <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
             <transition-group name="list" tag="div" class="space-y-2">
@@ -746,7 +739,8 @@ onUnmounted(() => {
             class="glass-button px-8 py-3 rounded-md !bg-purple-700 text-lg font-bold flex items-center animate-bounce cursor-pointer">
             Még egy kör?
           </button>
-          <button @click="leaveLobby" class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
+          <button @click="leaveLobby"
+            class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
             Lobby elhagyása
           </button>
         </div>
@@ -801,18 +795,23 @@ onUnmounted(() => {
 
     <div v-else class="text-white">
       <div class="flex justify-between items-center mb-8">
-        <button  class="glass-button transition-all duration-300 px-10 py-2 rounded-md cursor-pointer text-xl !bg-green-800"  @click="startGame">
+        <button
+          class="glass-button transition-all duration-300 px-10 py-2 rounded-md cursor-pointer text-xl !bg-green-800"
+          @click="startGame">
           Játék
         </button>
-        <button @click="leaveLobby" class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
+        <button @click="leaveLobby"
+          class="glass-button transition-all duration-300 px-4 py-2 rounded-md text-xl cursor-pointer !bg-red-800">
           Lobby elhagyása
         </button>
       </div>
 
-      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-xl mb-8 border border-white/20" id="quiz">
+      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-xl mb-8 border border-white/20"
+        id="quiz">
         <div v-if="!quizzyStore.currentQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
-          <img :src="quizzyStore.currentQuiz.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" />
+          <img :src="quizzyStore.currentQuiz.quiz.banner"
+            class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" />
           <h2 class="text-2xl font-semibold mb-2">{{ quizzyStore.currentQuiz.quiz.title }}</h2>
           <p class="text-gray-300">{{ quizzyStore.currentQuiz.quiz.description }}</p>
         </div>
@@ -832,7 +831,7 @@ onUnmounted(() => {
       </div>
 
       <div class="mb-4 flex justify-center">
-        <div class="flex gap-4 flex-wrap">
+        <div class="flex gap-4 flex-wrap justify-center">
           <div v-for="participant in participants?.members" :key="participant.username"
             class="p-4 glass-button rounded-xl flex !w-fit">
             <div class="flex items-center space-x-4">
@@ -849,29 +848,25 @@ onUnmounted(() => {
     </div>
 
     <div class="fixed bottom-8 right-8 z-50">
-      <button @click="toggleChat" 
-              class="glass-button p-3 rounded-full relative flex items-center justify-center hover:scale-110 transition-transform">
+      <button @click="toggleChat"
+        class="glass-button p-3 rounded-full relative flex items-center justify-center hover:scale-110 transition-transform">
         <MessageCircle class="h-6 w-6" :class="isChatOpen ? 'text-blue-300' : 'text-white'" />
-        <div v-if="chatMessages.length > 0 && !isChatOpen" 
-             class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+        <div v-if="chatMessages.length > 0 && !isChatOpen"
+          class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
           {{ chatMessages.length }}
         </div>
       </button>
     </div>
     <transition name="slide-in">
-      <div v-if="isChatOpen" 
-           class="fixed bottom-24 right-8 z-40 w-80 bg-gray-800/90 backdrop-blur-md rounded-xl border border-gray-700 shadow-lg flex flex-col"
-           style="height: 400px; max-height: 60vh;">
+      <div v-if="isChatOpen"
+        class="fixed bottom-24 right-8 z-40 w-80 bg-gray-800/90 backdrop-blur-md rounded-xl border border-gray-700 shadow-lg flex flex-col"
+        style="height: 400px; max-height: 60vh;">
         <div class="p-3 border-b border-gray-700 flex justify-between items-center">
           <h3 class="text-white font-semibold flex items-center">
             <MessageCircle class="h-4 w-4 mr-2 text-blue-300" />
             Chat
           </h3>
-          <button @click="toggleChat" class="text-gray-400 hover:text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
+          <XButton class="h-4 w-4 text-white cursor-pointer absolute top-2 right-5" @click="toggleChat" />
         </div>
 
         <div class="flex-grow overflow-y-auto p-3 chat-messages">
@@ -880,15 +875,13 @@ onUnmounted(() => {
           </div>
           <div v-else>
             <transition-group name="message" tag="div" class="space-y-3">
-              <div v-for="(msg, index) in chatMessages" :key="index"
-                   :class="[
-                     'flex items-start max-w-[85%]', 
-                     msg.isSelf ? 'ml-auto flex-row-reverse' : ''
-                   ]">
-                <img :src="msg.pfp" class="w-8 h-8 rounded-full flex-shrink-0" 
-                     :class="msg.isSelf ? 'ml-2' : 'mr-2'" />
+              <div v-for="(msg, index) in chatMessages" :key="index" :class="[
+                'flex items-start max-w-[85%]',
+                msg.isSelf ? 'ml-auto flex-row-reverse' : ''
+              ]">
+                <img :src="msg.pfp" class="w-8 h-8 rounded-full flex-shrink-0" :class="msg.isSelf ? 'ml-2' : 'mr-2'" />
                 <div :class="[
-                  'rounded-xl py-2 px-3', 
+                  'rounded-xl py-2 px-3',
                   msg.isSelf ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-white rounded-bl-none'
                 ]">
                   <div class="text-xs opacity-80 mb-1" :class="msg.isSelf ? 'text-right' : 'text-left'">
@@ -902,15 +895,11 @@ onUnmounted(() => {
         </div>
 
         <div class="p-2 border-t border-gray-700 flex">
-          <input v-model="chatMessage" 
-                 @keyup.enter="sendChatMessage"
-                 type="text" 
-                 placeholder="Type a message..." 
-                 class="bg-gray-700 text-white text-sm rounded-l-md px-3 py-2 flex-grow focus:outline-none"
-                 :maxlength="100" />
-          <button @click="sendChatMessage" 
-                  :disabled="!chatMessage.trim()"
-                  class="bg-blue-600 text-white cursor-pointer px-3 rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+          <input v-model="chatMessage" @keyup.enter="sendChatMessage" type="text" placeholder="Írj üzenetet..."
+            class="bg-gray-700 text-white text-sm rounded-l-md px-3 py-2 flex-grow focus:outline-none"
+            :maxlength="100" />
+          <button @click="sendChatMessage" :disabled="!chatMessage.trim()"
+            class="bg-blue-600 text-white cursor-pointer px-3 rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
             <Send class="h-4 w-4" />
           </button>
         </div>
@@ -1115,6 +1104,7 @@ onUnmounted(() => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
