@@ -254,7 +254,7 @@ namespace localadmin
             if (Quiz.User == null)
                 return;
 
-            UserViewModel userView = new UserViewModel(NavigationService, SharedState);
+            UserViewModel userView = new UserViewModel(NavigationService);
             SharedState.SearchText = Quiz.User.Username;
             NavigationService.NavigateTo(userView);
             await userView.InitializeAsync();

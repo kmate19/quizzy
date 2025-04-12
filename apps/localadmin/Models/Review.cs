@@ -29,7 +29,7 @@ namespace localadmin.Models
         {
             get
             {
-                UserViewModel userView = new UserViewModel(NavigationService, SharedState);
+                UserViewModel userView = new UserViewModel(NavigationService);
                 User user = userView.Users.FirstOrDefault(x => x.UUID == UserUUID);
                 if (user == null)
                 {
@@ -44,7 +44,7 @@ namespace localadmin.Models
         {
             get
             {
-                QuizViewModel quizView = new QuizViewModel(NavigationService, SharedState);
+                QuizViewModel quizView = new QuizViewModel(NavigationService);
                 return quizView.Quizzes.Where(x => x.UUID == QuizUUID).First().Title;
             }
         }
@@ -60,7 +60,7 @@ namespace localadmin.Models
 
         private void ViewUser(object parameter)
         {
-            UserViewModel userView = new UserViewModel(NavigationService, SharedState); 
+            UserViewModel userView = new UserViewModel(NavigationService); 
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(userView);
             userView.SearchUsers(SharedState.SearchText);
@@ -68,7 +68,7 @@ namespace localadmin.Models
 
         private void ViewQuiz(object parameter) 
         {
-            QuizViewModel quizView = new QuizViewModel(NavigationService, SharedState);
+            QuizViewModel quizView = new QuizViewModel(NavigationService);
             SharedState.SearchText = MadeBy;
             NavigationService?.NavigateTo(quizView);
             quizView.SearchQuizes(SharedState.SearchText);

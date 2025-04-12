@@ -89,8 +89,8 @@ namespace localadmin.Models
         }
 
         private NavigationService? NavigationService;
-
         private SharedStateService? SharedState;
+
         public ICommand ViewUserCommand { get; }
         public ICommand ViewReviewCommand { get; }
         public ICommand ViewQuizCommand { get; }
@@ -127,10 +127,10 @@ namespace localadmin.Models
             ViewQuizCommand = new RelayCommand(ViewQuiz);
         }
 
-        public void Initialize(NavigationService navigation, SharedStateService sharedState)
+        public void Initialize(NavigationService navigation)
         {
             NavigationService = navigation;
-            SharedState = sharedState;
+            SharedState = SharedStateService.Instance;
         }
 
         public static ImageSource? ByteArrayToImage(byte[]? imageData)
@@ -158,7 +158,7 @@ namespace localadmin.Models
             if (NavigationService == null || SharedState == null || User.Username == null)
                 return;
 
-            UserViewModel userView = new UserViewModel(NavigationService, SharedState);
+            UserViewModel userView = new UserViewModel(NavigationService);
             SharedState.SearchText = User.Username;
             NavigationService.NavigateTo(userView);
             await userView.InitializeAsync();
@@ -170,7 +170,7 @@ namespace localadmin.Models
             if (NavigationService == null || SharedState == null || User.Username == null)
                 return;
 
-            ReviewViewModel reviewView = new ReviewViewModel(NavigationService, SharedState);
+            ReviewViewModel reviewView = new ReviewViewModel(NavigationService);
             SharedState.SearchText = User.Username;
             NavigationService.NavigateTo(reviewView);
             reviewView.SearchReviews(SharedState.SearchText);

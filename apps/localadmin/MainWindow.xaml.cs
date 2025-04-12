@@ -5,6 +5,7 @@ using localadmin.ViewModels;
 using System.Diagnostics;
 using localadmin.Services;
 using localadmin.Views;
+using System.Drawing;
 
 namespace localadmin;
 
@@ -15,6 +16,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public UserViewModel UserViewModel { get; private set; }
     public ReviewViewModel ReviewViewModel { get; private set; }
     public QuizViewModel QuizViewModel { get; private set; }
+
+    private string _CurrentAPI = string.Empty;
+
+    public string CurrentAPI
+    {
+        get => _CurrentAPI;
+        set
+        {
+            _CurrentAPI = value;
+            OnPropertyChanged(nameof(CurrentAPI));
+        }
+    }
 
     private object _currentView = null!;
 
@@ -66,9 +79,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     /// </summary>
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        UserViewModel = new UserViewModel(NavigationService, SharedState);
-        ReviewViewModel = new ReviewViewModel(NavigationService, SharedState);
-        QuizViewModel = new QuizViewModel(NavigationService, SharedState);
+        UserViewModel = new UserViewModel(NavigationService);
+        ReviewViewModel = new ReviewViewModel(NavigationService);
+        QuizViewModel = new QuizViewModel(NavigationService);
 
         await UserViewModel.InitializeAsync();
         await QuizViewModel.InitializeAsync();
@@ -77,6 +90,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         OnPropertyChanged(nameof(CurrentView));
 
         Loaded -= MainWindow_Loaded;
+
+        if(SharedState.ApiURL.Contains("localhost"))
+            CurrentAPI = "Jelenleg hasznát api: http://localhost:3000";
+        else
+            CurrentAPI = "Jelenleg hasznát api: https://quizzy.kmate.xyz";
     }
 
     private void OnViewModelChanged(object newViewModel)
@@ -86,7 +104,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void RedirectToMainPage(object sender, RoutedEventArgs e)
     {
-        string url = "http://localhost:5173";
+        string url = "";
+        if(SharedState.ApiURL.Contains("localhost"))
+            url= "http://localhost:3000";
+        else
+            url = "https://quizzy.kmate.xyz";
         Process.Start(new ProcessStartInfo("cmd", $"/c start {url}")
         { CreateNoWindow = true });
     }
@@ -164,6 +186,17 @@ public partial class App : Application
         mainWindow.Hide();
 
         APIKeyWindow apiKeyWindow = new APIKeyWindow(mainWindow);
-        apiKeyWindow.Show();
+
+        APIChooser APIChooser = new APIChooser();
+        bool? result=APIChooser.ShowDialog();
+
+        if(result == true)
+        {
+            apiKeyWindow.Show();
+        }
+        else
+        {
+            Application.Current.Shutdown();
+        }
     }
 }

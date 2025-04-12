@@ -25,7 +25,7 @@ namespace localadmin.Services
         /// <returns></returns>
         public static async Task<(ObservableCollection<User> Users, int TotalCount)> GetUsersAsync(int page, int pagesize)
         {
-            string url = $"http://localhost:3000/api/v1/admin/all-users?page={page}&limit={pagesize}";
+            string url = $"{SharedStateService.Instance.ApiURL}/all-users?page={page}&limit={pagesize}";
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -76,7 +76,7 @@ namespace localadmin.Services
 
         public static async Task<bool> UpdateUserAuthStatus(string userUuid, EAuthStatus newStatus)
         {
-            string url = "http://localhost:3000/api/v1/admin/set/authstatus";
+            string url = $"{SharedStateService.Instance.ApiURL}/set/authstatus";
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -120,7 +120,7 @@ namespace localadmin.Services
         /// <returns></returns>
         public static async Task<bool> UpdateUserRole(string userUuid, string newRole)
         {
-            string url = "http://localhost:3000/api/v1/admin/set/role";
+            string url = $"{SharedStateService.Instance.ApiURL}/set/role";
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 

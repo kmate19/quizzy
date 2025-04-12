@@ -87,10 +87,10 @@ namespace localadmin.ViewModels
         public ObservableCollection<Quiz> FiltredQuizzes { get; set; } = new();
 
 
-        public QuizViewModel(NavigationService Navigation, SharedStateService State)
+        public QuizViewModel(NavigationService Navigation)
         {
             NavigationService=Navigation;
-            SharedState = State;
+            SharedState = SharedStateService.Instance;
             PreviousPageCommand = new RelayCommand(PreviousPage);
             NextPageCommand = new RelayCommand(NextPage);
 
@@ -128,7 +128,7 @@ namespace localadmin.ViewModels
 
             foreach (var quiz in fetchedQuizes.Quizzes)
             {
-                quiz.Initialize(NavigationService, SharedState);
+                quiz.Initialize(NavigationService);
                 quiz.QuizUpdated += async () => await GetQuizes();
 
                 quizzesList.Add(quiz);

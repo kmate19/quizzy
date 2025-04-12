@@ -9,7 +9,7 @@
         Title="Felhasználó módosítása" 
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Height="300" Width="400">
+        Height="400" Width="500">
     <Window.Resources>
         <services:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
     </Window.Resources>
@@ -20,41 +20,60 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        
+
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#c304f1" Offset="0"/>
+                <GradientStop Color="#00d2dc" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+
         <TextBlock Grid.Row="0" HorizontalAlignment="Center">
-            <Run Text="{Binding Username}" FontWeight="Bold" FontSize="20"/>
-            <Run Text=" módosítása" FontWeight="Bold" FontSize="20"/>
+            <Run Text="{Binding Username}" FontWeight="Bold" FontSize="20" Foreground="White"/>
+            <Run Text=" módosítása" FontWeight="Bold" FontSize="20" Foreground="White"/>
         </TextBlock>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="250"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Grid.Row="0" Text="Felhasználó jogosultsága" FontWeight="Bold" HorizontalAlignment="Center"/>
-            <GroupBox Grid.Column="0" Grid.Row="0" Width="150" Height="150" Margin="0, 15, 0, 0" BorderThickness="0">
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Felhasználó jogosultsága" FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="20"/>
+            <GroupBox Grid.Column="0" Grid.Row="0" Width="200" Height="200" Margin="0, 15, 0, 0" BorderThickness="0">
                 <ListBox ItemsSource="{Binding AllRoles}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel>
-                                <CheckBox Content="{Binding Value}" 
-                                        IsChecked="{Binding IsSelected, Mode=TwoWay}" 
-                                        IsEnabled="{Binding IsLocked, Converter={StaticResource InvertBooleanConverter}}"/>
-                                <TextBlock Text="{Binding Description}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                            </StackPanel>
+                            <Grid Width="170">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <CheckBox Grid.Row="0" Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}" IsEnabled="{Binding IsLocked, Converter={StaticResource InvertBooleanConverter}}">
+                                    <CheckBox.LayoutTransform>
+                                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                    </CheckBox.LayoutTransform>
+                                </CheckBox>
+
+                                <TextBlock Grid.Row="1" Text="{Binding Description}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </GroupBox>
 
-            <TextBlock Grid.Column="1" Grid.Row="1" Text="Felhasználó státusza" FontWeight="Bold" HorizontalAlignment="Center"/>
-            <GroupBox Grid.Column="1" Grid.Row="1" Width="150" Height="150" Margin="0, 15, 0, 0" BorderThickness="0">
+            <TextBlock Grid.Column="1" Grid.Row="1" Text="Felhasználó státusza" FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="20"/>
+            <GroupBox Grid.Column="1" Grid.Row="1" Width="200" Height="200" Margin="0, 15, 0, 0" BorderThickness="0">
                 <ListBox ItemsSource="{Binding AllStatuses}" >
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <CheckBox Content="{Binding Value}" 
-                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            <CheckBox Content="{Binding Value}" IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                <CheckBox.LayoutTransform>
+                                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                </CheckBox.LayoutTransform>
+                            </CheckBox>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

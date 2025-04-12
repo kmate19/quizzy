@@ -12,6 +12,7 @@ namespace localadmin.Services
 
         private string _searchText = "Keresés";
         private string _apiKey = string.Empty;
+        private string _apiURL = string.Empty;
         public string SearchText
         {
             get => _searchText;
@@ -34,6 +35,19 @@ namespace localadmin.Services
                 {
                     _apiKey = value;
                     OnPropertyChanged(nameof(ApiKey));
+                }
+            }
+        }
+
+        public string ApiURL
+        {
+            get => _apiURL;
+            set
+            {
+                if (_apiURL != value)
+                {
+                    _apiURL = value;
+                    OnPropertyChanged(nameof(ApiURL));
                 }
             }
         }

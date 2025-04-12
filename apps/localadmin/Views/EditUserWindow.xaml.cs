@@ -3,6 +3,7 @@ using System.Windows;
 using localadmin.Models;
 using static localadmin.Models.User;
 using localadmin.Services;
+using System.ComponentModel;
 
 namespace localadmin.Views
 {
@@ -11,13 +12,38 @@ namespace localadmin.Views
     /// </summary>
     public partial class EditUserWindow : Window
     {
-        public class SelectableItem<T>
+        public class SelectableItem<T> : INotifyPropertyChanged
         {
+            private bool _isSelected;
+
             public T Value { get; set; }
-            public bool IsSelected { get; set; }
             public string Description { get; set; } = string.Empty;
             public bool IsLocked { get; set; }
+
+            public bool IsSelected
+            {
+                get => _isSelected;
+                set
+                {
+                    if (_isSelected != value)
+                    {
+                        _isSelected = value;
+                        OnPropertyChanged(nameof(IsSelected));
+                        if (value)
+                        {
+                            SelectionChanged?.Invoke(this, EventArgs.Empty);
+                        }
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler? PropertyChanged;
+            protected void OnPropertyChanged(string name) =>
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+            public event EventHandler? SelectionChanged;
         }
+
 
         public List<SelectableItem<string>> AllRoles { get; }
         public List<SelectableItem<string>> AllStatuses { get; }
@@ -33,13 +59,12 @@ namespace localadmin.Views
             AllRoles = new List<SelectableItem<string>>
             {
                 new SelectableItem<string> { Value = "default", Description="Alap jogosultság", IsSelected = false, IsLocked=false},
-                new SelectableItem<string> { Value = "admin", Description="Minden it tud mokolni" ,IsSelected = false, IsLocked = false}
+                new SelectableItem<string> { Value = "admin", Description="Módosíthatja a felhasználókat illetve a quizeket." ,IsSelected = false, IsLocked = false}
             };
 
             /// <summary>
             /// Itt szükséges az InvertBooleanConverter, hogy ne tudjuk levenni a már meglévő jogosultságot.
             /// </summary>
-
             for (int i = 0; i < user?.Roles.Count; i++)
             {
                 for(int j=0; j < AllRoles.Count; j++)
@@ -52,16 +77,45 @@ namespace localadmin.Views
                 }
             }
 
+            /// <summary>
+            /// Itt automatikusan kiválaszjuk azt a státuszt, ami a felhasználónak van.
+            /// </summary>
             AllStatuses = Enum.GetNames(typeof(EAuthStatus))
-                .Select(status => new SelectableItem<string>
+                .Select(status =>
                 {
-                    Value = status,
-                    IsSelected = user?.AuthStatus.ToString() == status
+                    var item = new SelectableItem<string>
+                    {
+                        Value = status,
+                        IsSelected = user?.AuthStatus.ToString() == status
+                    };
+                    item.SelectionChanged += OnStatusSelected;
+                    return item;
                 })
                 .ToList();
 
+
             DataContext = this;
         }
+
+        /// <summary>
+        /// Itt ellenőrizzük, hogy csak egy státusz legyen kiválasztva.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnStatusSelected(object? sender, EventArgs e)
+        {
+            var selectedItem = sender as SelectableItem<string>;
+
+            foreach (var item in AllStatuses)
+            {
+                if (!ReferenceEquals(item, selectedItem))
+                {
+                    item.IsSelected = false;
+                }
+            }
+        }
+
+
         private void Cancel(object sender, RoutedEventArgs e)
         {
             Hide();

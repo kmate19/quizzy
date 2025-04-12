@@ -38,7 +38,7 @@ public static class ApiQuizzesService
     /// <returns>A quizek</returns>
     public static async Task<(ObservableCollection<Quiz> Quizzes, int TotalCount)> GetQuizzesAsync(int page, int pagesize)
     {
-        string url = $"http://localhost:3000/api/v1/admin/all-quizzes?page={page}&limit={pagesize}";
+        string url = $"{SharedStateService.Instance.ApiURL}/all-quizzes?page={page}&limit={pagesize}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -99,7 +99,7 @@ public static class ApiQuizzesService
     /// <returns>A quiz kédései kártyákra szedve.</returns>
     public static async Task<DetailedQuizData?> GetQuizCardsByIdAsync(string quizId)
     {
-        string url = $"http://localhost:3000/api/v1/admin/{quizId}";
+        string url = $"{SharedStateService.Instance.ApiURL}/{quizId}";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 
@@ -167,7 +167,7 @@ public static class ApiQuizzesService
     /// <returns></returns>
     public static async Task<bool> UpdateQuizStatus(string quizId, EQuizStatus status)
     {
-        string url = "http://localhost:3000/api/v1/admin/set/quiz";
+        string url = $"{SharedStateService.Instance.ApiURL}/admin/set/quiz";
         client.DefaultRequestHeaders.Remove("X-Api-Key");
         client.DefaultRequestHeaders.Add("X-Api-Key", SharedStateService.Instance.ApiKey);
 

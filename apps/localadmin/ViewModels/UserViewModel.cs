@@ -66,10 +66,10 @@ namespace localadmin.ViewModels
             }
         }
 
-        public UserViewModel(NavigationService Navigation, SharedStateService State)
+        public UserViewModel(NavigationService Navigation)
         {
             NavigationService = Navigation;
-            SharedState = State;
+            SharedState = SharedStateService.Instance;
 
             PreviousPageCommand = new RelayCommand(PreviousPage);
             NextPageCommand = new RelayCommand(NextPage);
@@ -107,7 +107,7 @@ namespace localadmin.ViewModels
 
             foreach (var user in fetchedUsers.Users)
             {
-                user.Initialize(NavigationService, SharedState);
+                user.Initialize(NavigationService);
                 user.UserUpdated += async () => await GetUsers();
                 user.Winrate = user.Stats.Plays == 0 || !user.Stats.Plays.HasValue || !user.Stats.FirstPlaces.HasValue ? 0 : ((double)user.Stats.FirstPlaces.Value / user.Stats.Plays.Value) * 100;
 

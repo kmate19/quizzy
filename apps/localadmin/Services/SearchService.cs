@@ -21,8 +21,19 @@ namespace localadmin.Services
             Func<T, IEnumerable<string>> propertiesToSearch,
             int threshold = 70)
         {
-            if (string.IsNullOrWhiteSpace(query) || query=="Keresés")
+            if (string.IsNullOrWhiteSpace(query) || query == "Keresés")
                 return items;
+
+            var exactMatches = items.Where(item =>
+            {
+                var properties = propertiesToSearch(item);
+                return properties.Any(property =>
+                    Fuzz.PartialRatio(property.ToLower(), query.ToLower()) == 100
+                );
+            }).ToList();
+
+            if (exactMatches.Any())
+                return exactMatches;
 
             return items.Where(item =>
             {

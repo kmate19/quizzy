@@ -11,10 +11,10 @@ namespace localadmin.ViewModels
         public ObservableCollection<Review> Reviews {  get; set; }
         public ObservableCollection<Review> FilteredReviews { get; private set; }
 
-        public ReviewViewModel(NavigationService Navigation, SharedStateService State)
+        public ReviewViewModel(NavigationService Navigation)
         {
             NavigationService = Navigation;
-            SharedState = State;
+            SharedState = SharedStateService.Instance;
 
             Reviews = new ObservableCollection<Review>
             {

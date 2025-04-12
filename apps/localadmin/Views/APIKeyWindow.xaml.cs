@@ -49,7 +49,7 @@ namespace localadmin.Views
         /// <returns></returns>
         private async Task<bool> AuthenticateApiKey(string apiKey)
         {
-            string url = "http://localhost:3000/api/v1/admin/authenticate";
+            string url = $"{SharedStateService.Instance.ApiURL}/authenticate";
 
             client.DefaultRequestHeaders.Remove("X-Api-Key");
             client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);

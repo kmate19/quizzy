@@ -5,15 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:localadmin.Views"
         mc:Ignorable="d"
-        Title="" Height="250" Width="400"
+        Title="" Height="250" Width="450"
         WindowStartupLocation="CenterScreen">
     <Grid>
-        <StackPanel Margin="0, 50, 0, 0">
-            <TextBlock Text="Kérlek add meg az API kulcsod: " FontSize="20" FontWeight="Bold" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 0, 0, 20"/>
-            <Border CornerRadius="10" BorderThickness="2" BorderBrush="Black" Background="LightGray" Padding="10" Width="200" Height="40">
-                <TextBox x:Name="TextBox" FontSize="15" Height="25" Width="180" Background="Transparent" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            </Border>
-            <Button Style="{StaticResource GridButtons}" Content="Ellenőrzés" Background="Green" Click="Button_Click"></Button>
-        </StackPanel>
+        <Grid>
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#c304f1" Offset="0"/>
+                    <GradientStop Color="#00d2dc" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <StackPanel Margin="0, 50, 0, 0">
+                <TextBlock Text="Kérlek add meg az API kulcsod: " FontSize="20" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 0, 0, 20" Foreground="White"/>
+                <Border CornerRadius="10" BorderThickness="2" BorderBrush="Black" Background="LightGray" Padding="10" Width="200" Height="40">
+                    <TextBox x:Name="TextBox" FontSize="15" Height="25" Width="180" Background="Transparent" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                </Border>
+                <Button Style="{StaticResource GridButtons}" Content="Ellenőrzés" Background="Green" Click="Button_Click"></Button>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
