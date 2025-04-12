@@ -4,7 +4,9 @@ import { getGameQuiz } from '@/utils/functions/practiceFunctions';
 import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
 import { useRouter } from 'vue-router';
+import { useQuizzyStore } from '@/stores/quizzyStore'
 
+const quizzyStore = useQuizzyStore()
 const router = useRouter()
 const quiz = ref<Game>();
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
@@ -78,6 +80,7 @@ const showResultAndProceed = () => {
     setTimeout(() => {
         if (isLastQuestion.value) {
             gamePhase.value = 'completed'
+            quizzyStore.isGame = false
         } else {
             currentQuestionIndex.value++
             startQuestion()
@@ -100,6 +103,7 @@ const getBaseButtonColor = (index: number) => {
 
 onUnmounted(() => {
     stopTimer()
+    quizzyStore.isGame = false
 })
 
 const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
@@ -155,6 +159,7 @@ const restartGame = () => {
     gamePhase.value = 'pre-game'
     shuffleAnswers()
     startPreGameTimer()
+    quizzyStore.isGame = true
 }
 
 onMounted(async () => {
@@ -167,6 +172,7 @@ onMounted(async () => {
     gamePhase.value = 'pre-game'
     shuffleAnswers()
     startPreGameTimer()
+    quizzyStore.isGame = true
 })
 
 
@@ -175,11 +181,11 @@ onMounted(async () => {
 <template>
 
     <div class="absolute inset-0 flex justify-center items-center w-full pl-2 pr-2">
-        <div class=" flex items-center justify-center flex-col gap-2">
+        <div class="flex items-center justify-center flex-col gap-2 w-full">
             <transition name="fade-slide" mode="out-in" appear>
                 <div v-if="gamePhase === 'question' || gamePhase === 'results'"
-                    class="w-3/4 rounded-full h-4 mb-4 flex fixed top-20 z-50 ">
-                    <div class="w-full rounded-full h-4 mb-4 flex z-20">
+                    class="w-3/4 rounded-full h-4  flex fixed md:top-20 top-10 z-40 ">
+                    <div class="w-full rounded-full h-4  flex z-1">
                         <div class="flex w-full space-x-2 ">
                             <div v-for="index in quiz?.cards.length" :key="index"
                                 class="h-5 flex-1 rounded-full overflow-hidden backdrop-filter ">
@@ -201,42 +207,50 @@ onMounted(async () => {
                         {{ preGameTimer }}
                     </div>
                 </div>
-                <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl" key="question">
-
-                    <div class="bg-white/10 backdrop-blur-lg p-2 rounded-lg shadow-lg  mx-auto">
-                        <div class="flex justify-center items-center m-4 px-4 top-4 right-0 absolute z-50">
-                            <svg class="w-12 h-12" viewBox="0 0 48 48">
-                                <circle cx="24" cy="24" r="20"
-                                    :fill="timer === 10 ? 'rgba(65, 105, 225, 0.9)' : 'white'" stroke="black"
-                                    stroke-width="2" />
-
-                                <path :d="'M24,24 L24,4 A20,20 0 ' + (timer <= 5 ? 0 : 1) + ',1 ' +
-                                    (24 + 20 * Math.sin(2 * Math.PI * timer / 10)) + ',' +
-                                    (24 - 20 * Math.cos(2 * Math.PI * timer / 10)) + ' Z'"
-                                    fill="rgba(65, 105, 225, 0.9)" />
-                                <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="24"
-                                    font-weight="bold" class="z-50">{{ timer }}</text>
+                <div v-else-if="gamePhase === 'question'" class="space-y-4 w-full max-w-4xl mt-16 md:mt-20"
+                    key="question">
+                    <div
+                        class="bg-white/10 backdrop-blur-lg p-4 md:p-6 rounded-2xl shadow-xl mx-auto w-full border border-white/20 relative overflow-hidden">
+                        <div class="absolute top-1 right-2 z-50">
+                            <svg class="w-10 h-10 md:w-12 md:h-12" viewBox="0 0 48 48">
+                                <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="20"
+                                    font-weight="bold" fill="white" class="drop-shadow-md">{{ timer }}</text>
                             </svg>
                         </div>
 
-                        <div class="p-6 mb-4 flex items-center justify-center flex-col gap-4 w-full">
-                            <img v-if="currentQuestion?.picture" :src="currentQuestion.picture"
-                                :alt="currentQuestion.question" class="w-full max-h-96 object-contain mb-6 rounded" />
-                            <h2 class="text-xl font-semibold text-white">{{ currentQuestion?.question }}</h2>
-                        </div>
+                        <div class="flex flex-col items-center justify-center gap-4 md:gap-6 w-full pb-2 md:pb-4">
 
-                        <transition-group name="fade-scale" tag="div" :class="[
-                            'grid gap-4',
-                            currentQuestion?.type === 'twochoice' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-2'
-                        ]">
-                            <button v-for="(answerObj, index) in shuffledAnswers[currentQuestionIndex]" :key="index"
-                                :class="[
-                                    'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
-                                    getBaseButtonColor(answerObj.originalIndex),
-                                ]" :disabled="answerSelected" @click="selectAnswer(answerObj.originalIndex)">
-                                {{ answerObj.answer }}
-                            </button>
-                        </transition-group>
+                            <h2
+                                class="text-lg md:text-2xl font-bold text-white text-center mt-2 px-2 md:px-4 leading-relaxed tracking-wide">
+                                {{ currentQuestion?.question }}
+                            </h2>
+
+                            <!-- Improved image container with better responsive behavior -->
+                            <div v-if="currentQuestion?.picture"
+                                class="w-full flex justify-center items-center px-2 py-1 md:px-4 md:py-2">
+                                <div
+                                    class="relative max-h-[120px] sm:max-h-[160px] md:max-h-[220px] w-full flex justify-center">
+                                    <img :src="currentQuestion.picture" :alt="currentQuestion.question" class="rounded-xl shadow-lg h-auto w-auto object-contain max-h-[120px] sm:max-h-[160px] md:max-h-[220px]
+                                            transition-all duration-300 hover:scale-105 border border-white/10" />
+                                </div>
+                            </div>
+
+                            <transition-group name="fade-scale" tag="div" class="w-full px-2 md:px-4" :class="[
+                                'grid gap-2 md:gap-4',
+                                currentQuestion?.type === 'twochoice' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
+                            ]">
+                                <button v-for="(answerObj, index) in shuffledAnswers[currentQuestionIndex]" :key="index"
+                                    :class="[
+                                        'p-3 md:p-4 rounded-xl text-white font-bold text-sm md:text-lg transition-all',
+                                        'transform hover:scale-102 hover:shadow-lg backdrop-blur-sm cursor-pointer',
+                                        'flex items-center justify-center min-h-[50px] md:min-h-[70px]',
+                                        'border border-white/20 shadow-inner',
+                                        getBaseButtonColor(answerObj.originalIndex),
+                                    ]" :disabled="answerSelected" @click="selectAnswer(answerObj.originalIndex)">
+                                    {{ answerObj.answer }}
+                                </button>
+                            </transition-group>
+                        </div>
                     </div>
                 </div>
                 <div v-else-if="gamePhase === 'completed'" class="text-center space-y-6 text-white w-full mx-auto p-4 min-h-[calc(100vh-10vh)] min-w-[calc(100vw-10vw)]
@@ -295,11 +309,11 @@ onMounted(async () => {
                         </transition-group>
                         <div class="w-full mt-4 flex flex-col md:flex-row gap-3">
                             <button @click="restartGame"
-                                class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-700 transition-all flex-1">
+                                class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-700 transition-all flex-1 cursor-pointer">
                                 Újrakezdés
                             </button>
                             <button @click="router.back()"
-                                class="bg-transparent border border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white/10 transition-all flex-1">
+                                class="bg-transparent border border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white/10 transition-all flex-1 cursor-pointer">
                                 Vissza
                             </button>
                         </div>
@@ -311,7 +325,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-
 .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);

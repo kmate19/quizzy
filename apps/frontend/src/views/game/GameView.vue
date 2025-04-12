@@ -561,13 +561,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4 rounded-md mt-8">
+  <div class="max-w-4xl mx-auto px-4 rounded-md mt-2">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       <p class="ml-4 text-white text-xl">Csatlakozás...</p>
     </div>
     <div v-else-if="error"
-      class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white flex text-center flex-col items-center">
+      class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-xl p-4 text-white flex text-center flex-col items-center">
       <p class="mb-4 text-center">{{ error }}</p>
       <div class="flex gap-4 justify-center">
         <button @click="manualReconnect" class="glass-button px-4 py-2 rounded-md bg-green-600/30"
@@ -607,43 +607,42 @@ onUnmounted(() => {
         }">
           <div class="md:col-span-2">
             <div v-if="answerSelected && !preparingNextRound"
-              class="mt-8 p-3 bg-green-500/30 rounded-lg text-center animate-pulse">
+              class="mt-8 p-3 bg-green-500/30 rounded-xl text-center animate-pulse w-full">
               <p class="text-lg font-bold">Válaszod beküldve! Várakozás a többi játékosra...</p>
             </div>
             <div v-if="preparingNextRound"
-              class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg min-h-[200px] flex items-center justify-center"
+              class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-xl min-h-[200px] flex items-center justify-center border border-white/20"
               :key="'loading'">
               <div class="text-center">
                 <Loader2Icon class="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
                 <h2 class="text-2xl font-bold text-white">Következő kérdés...</h2>
-                <div class="mt-4 h-3 bg-white/20 rounded-full w-64 mx-auto overflow-hidden">
+                <div class="mt-4 h-3 bg-white/20 rounded-full w-64 mx-auto overflow-hidden border border-white/20">
                   <div class="h-full bg-blue-500 animate-loading-bar"></div>
                 </div>
                 <p class="text-white/70 mt-3">Készülj fel!</p>
               </div>
             </div>
             <transition name="fade-slide" mode="out-in" v-if="currentCard">
-              <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-sm rounded-lg" :key="currentQuestionIndex"
+              <div class="p-6 mb-4 relative bg-white/10 backdrop-blur-lg rounded-xl shadow-xl border border-white/20" :key="currentQuestionIndex"
                 v-if="!preparingNextRound && !answerSelected">
-                <div
-                  class="text-2xl font-bold bg-white/30 w-10 h-10 rounded-full flex items-center justify-center absolute top-2 right-2"
-                  :class="time < 5000 ? 'text-red-500' : 'text-white'">
-                  <transition name="bounce" mode="out-in">
-                    <span :key="Math.ceil(time / 1000)">{{ Math.ceil(time / 1000) }}</span>
-                  </transition>
+                <div class="absolute top-1 right-2 z-50">
+                  <svg class="w-10 h-10 md:w-12 md:h-12" viewBox="0 0 48 48">
+                    <text x="24" y="26" text-anchor="middle" dominant-baseline="middle" font-size="20"
+                      font-weight="bold" fill="white" class="drop-shadow-md">{{ Math.ceil(time / 1000) }}</text>
+                  </svg>
                 </div>
                 <transition name="fade" mode="out-in">
-                  <img :src="currentCard.picture" :alt="currentCard.question"
-                    class="w-full max-h-64 object-contain mb-6 rounded-lg" :key="'img-' + currentQuestionIndex" />
-                </transition>
-                <transition name="fade-up" mode="out-in">
-                  <h2 class="text-xl font-semibold text-white text-center" :key="'q-' + currentQuestionIndex">
-                    {{ currentCard?.question }}
-                  </h2>
+                  <div class="flex flex-col items-center justify-center" v-if="currentCard">
+                    <img v-if="currentCard.picture" :src="currentCard.picture" :alt="currentCard.question"
+                      class="w-full max-h-64 object-contain mb-6 rounded-xl" :key="'img-' + currentQuestionIndex" />
+                    <h2 class="text-xl md:text-2xl font-semibold text-white text-center mb-4" :key="'q-' + currentQuestionIndex">
+                      {{ currentCard?.question }}
+                    </h2>
+                  </div>
                 </transition>
               </div>
             </transition>
-
+            
             <transition-group name="answer-pop" mode="in-out" tag="div"
               v-if="!preparingNextRound && !answerSelected && currentCard" :class="[
                 'grid gap-4',
@@ -652,7 +651,7 @@ onUnmounted(() => {
                   : 'grid-cols-2 md:grid-cols-2',
               ]">
               <button v-for="(answer, index) in currentCard.answers" :key="`${currentQuestionIndex}-${index}`" :class="[
-                'p-6 rounded-lg text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+                'p-6 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
                 getBaseButtonColor(index),
                 answerSelected ? 'opacity-70 cursor-not-allowed' : '',
               ]" @click="selectAnswer(index)" :disabled="answerSelected">
@@ -662,12 +661,12 @@ onUnmounted(() => {
           </div>
 
 
-          <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 h-96 overflow-y-auto small-screen-hidden"
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 h-96 overflow-y-auto small-screen-hidden border border-white/20"
             :class="{ 'd-none': windowWidth <= 958 }">
             <h3 class="text-xl font-bold mb-3 text-center">Eredmények</h3>
             <transition-group name="list" tag="div" class="space-y-2">
               <div v-for="(player, index) in stats?.scores" :key="player.userId"
-                class="flex items-center p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all">
+                class="flex items-center p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-white/20">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-2">
                   #{{ index + 1 }}
                 </div>
@@ -693,7 +692,7 @@ onUnmounted(() => {
           class="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-4"
           @click.self="toggleLeaderboardModal">
           <div
-            class="bg-gray-800/80 rounded-lg w-full max-w-md p-4 max-h-[80vh] overflow-y-auto border border-white/10 shadow-lg">
+            class="bg-gray-800/80 rounded-xl w-full max-w-md p-4 max-h-[80vh] overflow-y-auto border border-white/10 shadow-lg">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-xl font-bold text-white flex items-center">
                 <Trophy class="h-6 w-6 text-yellow-400 mr-2" />
@@ -709,7 +708,7 @@ onUnmounted(() => {
 
             <transition-group name="list" tag="div" class="space-y-2">
               <div v-for="(player, index) in stats?.scores" :key="player.userId"
-                class="flex items-center p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all cursor-pointer">
+                class="flex items-center p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all cursor-pointer border border-white/20">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-2">
                   #{{ index + 1 }}
                 </div>
@@ -727,10 +726,10 @@ onUnmounted(() => {
     </div>
 
     <div v-else-if="gameEnded" class="text-white">
-      <div class="p-8 mb-6 relative bg-white/10 backdrop-blur-sm rounded-lg text-center">
+      <div class="p-8 mb-6 relative bg-white/10 backdrop-blur-sm rounded-xl text-center border border-white/20">
         <h2 class="text-3xl font-bold text-white">Játék vége</h2>
         <p class="text-gray-300 m-2">Hívj meg új játékosokat!</p>
-        <div class="mb-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg">
+        <div class="mb-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
           <div class="flex justify-between items-center">
             <h2 class="text-2xl font-semibold">Lobby kód:</h2>
             <div class="flex items-center">
@@ -753,7 +752,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="p-6 mb-6 relative bg-white/10 backdrop-blur-sm rounded-lg">
+      <div class="p-6 mb-6 relative bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
         <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
           <Users class="h-6 w-6 mr-2" />
           Eredmények
@@ -761,7 +760,7 @@ onUnmounted(() => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div v-for="(playerStat, index) in stats?.scores" :key="playerStat.userId"
-            class="glass-button rounded-lg p-5 transition-all hover:scale-105">
+            class="glass-button rounded-xl p-5 transition-all hover:scale-105">
             <div class="flex flex-col items-center text-center">
               <div class="relative mb-3">
                 <div
@@ -773,14 +772,14 @@ onUnmounted(() => {
               </div>
               <span class="text-xl font-bold mb-3 ml-2">{{ playerStat.username }}</span>
 
-              <div class="grid grid-cols-2 gap-2 w-full mt-2">
+              <div class="grid grid-cols-2 gap-2 w-full mt-2 border border-white/20">
                 <div class="bg-white/10 rounded p-2 text-center">
                   <span class="block text-sm text-gray-300">Helyes</span>
                   <span class="block text-2xl font-bold text-green-400">{{
                     playerStat.stats.correctAnswerCount
                   }}</span>
                 </div>
-                <div class="bg-white/10 rounded p-2 text-center">
+                <div class="bg-white/10 rounded p-2 text-center border border-white/20">
                   <span class="block text-sm text-gray-300">Helytelen</span>
                   <span class="block text-2xl font-bold text-red-400">{{
                     playerStat.stats.wrongAnswerCount
@@ -788,7 +787,7 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div class="mt-4 w-full bg-white/10 rounded p-3 text-center">
+              <div class="mt-4 w-full bg-white/10 rounded p-3 text-center border border-white/20">
                 <span class="block text-sm text-gray-300">Összpontszám</span>
                 <span class="block text-3xl font-bold text-yellow-300">{{
                   playerStat.stats.score
@@ -810,7 +809,7 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-lg mb-8" id="quiz">
+      <div class="text-center relative z-20 p-4 bg-white/10 backdrop-blur-sm rounded-xl mb-8 border border-white/20" id="quiz">
         <div v-if="!quizzyStore.currentQuiz" class="py-4 text-red-500">No Quiz Data</div>
         <div v-else>
           <img :src="quizzyStore.currentQuiz.quiz.banner" class="mx-auto mb-4 max-w-full rounded-md max-h-[300px] w-fit" />
@@ -819,7 +818,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="mb-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg">
+      <div class="mb-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
         <div class="flex justify-between items-center">
           <h2 class="text-2xl font-semibold">Lobby kód:</h2>
           <div class="flex items-center">
@@ -835,7 +834,7 @@ onUnmounted(() => {
       <div class="mb-4 flex justify-center">
         <div class="flex gap-4 flex-wrap">
           <div v-for="participant in participants?.members" :key="participant.username"
-            class="p-4 glass-button rounded-lg flex !w-fit">
+            class="p-4 glass-button rounded-xl flex !w-fit">
             <div class="flex items-center space-x-4">
               <img :src="participant.pfp || '/placeholder.svg?height=40&width=40'"
                 class="w-10 h-10 rounded-full object-cover" />
@@ -861,7 +860,7 @@ onUnmounted(() => {
     </div>
     <transition name="slide-in">
       <div v-if="isChatOpen" 
-           class="fixed bottom-24 right-8 z-40 w-80 bg-gray-800/90 backdrop-blur-md rounded-lg border border-gray-700 shadow-lg flex flex-col"
+           class="fixed bottom-24 right-8 z-40 w-80 bg-gray-800/90 backdrop-blur-md rounded-xl border border-gray-700 shadow-lg flex flex-col"
            style="height: 400px; max-height: 60vh;">
         <div class="p-3 border-b border-gray-700 flex justify-between items-center">
           <h3 class="text-white font-semibold flex items-center">
@@ -870,7 +869,7 @@ onUnmounted(() => {
           </h3>
           <button @click="toggleChat" class="text-gray-400 hover:text-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
             </svg>
           </button>
         </div>
@@ -889,7 +888,7 @@ onUnmounted(() => {
                 <img :src="msg.pfp" class="w-8 h-8 rounded-full flex-shrink-0" 
                      :class="msg.isSelf ? 'ml-2' : 'mr-2'" />
                 <div :class="[
-                  'rounded-lg py-2 px-3', 
+                  'rounded-xl py-2 px-3', 
                   msg.isSelf ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-white rounded-bl-none'
                 ]">
                   <div class="text-xs opacity-80 mb-1" :class="msg.isSelf ? 'text-right' : 'text-left'">
