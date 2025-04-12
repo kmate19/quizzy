@@ -554,10 +554,10 @@ const restartGame = () => {
       <p class="mb-4 text-center">{{ error }}</p>
       <div class="flex gap-4 justify-center">
         <button v-if="!hasSomeReason" @click="manualReconnect"
-          class="glass-button px-4 py-2 rounded-md bg-green-600/30">
+          class="glass-button px-4 py-2 rounded-md bg-green-600/30 cursor-pointer">
           Újracsatlakozás
         </button>
-        <button @click="router.push('/')" class="glass-button px-4 py-2 rounded-md">
+        <button @click="router.push('/')" class="glass-button px-4 py-2 rounded-md cursor-pointer">
           Vissza a kezdőlapra
         </button>
       </div>
@@ -636,7 +636,7 @@ const restartGame = () => {
                   : 'grid-cols-2 md:grid-cols-2',
               ]">
               <button v-for="(answer, index) in currentCard.answers" :key="`${currentQuestionIndex}-${index}`" :class="[
-                'p-6 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm',
+                'p-6 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 backdrop-blur-sm cursor-pointer',
                 getBaseButtonColor(index),
                 answerSelected ? 'opacity-70 cursor-not-allowed' : '',
               ]" @click="selectAnswer(index)" :disabled="answerSelected">
@@ -721,7 +721,7 @@ const restartGame = () => {
             <h2 class="text-2xl font-semibold">Lobby kód:</h2>
             <div class="flex items-center">
               <span class="text-xl font-mono bg-gray-700 px-3 py-1 rounded-md">{{ lobbyId }}</span>
-              <button @click="copyLobbyCode" class="ml-2 glass-button p-2 rounded-md">
+              <button @click="copyLobbyCode" class="ml-2 glass-button p-2 rounded-md cursor-pointer">
                 <Copy v-if="!copiedToClipboard" class="h-5 w-5" />
                 <span v-else class="text-green-400">Másolva!</span>
               </button>
@@ -817,7 +817,7 @@ const restartGame = () => {
           <h2 class="text-2xl font-semibold">Lobby kód:</h2>
           <div class="flex items-center">
             <span class="text-xl font-mono bg-gray-700 px-3 py-1 rounded-md">{{ lobbyId }}</span>
-            <button @click="copyLobbyCode" class="ml-2 glass-button p-2 rounded-md">
+            <button @click="copyLobbyCode" class="ml-2 glass-button p-2 rounded-md cursor-pointer">
               <Copy v-if="!copiedToClipboard" class="h-5 w-5" />
               <span v-else class="text-green-400">Másolva!</span>
             </button>
@@ -844,7 +844,7 @@ const restartGame = () => {
 
     <div class="fixed bottom-8 right-8 z-50">
       <button @click="toggleChat"
-        class="glass-button p-3 rounded-full relative flex items-center justify-center hover:scale-110 transition-transform">
+        class="glass-button p-3 rounded-full relative flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
         <MessageCircle class="h-6 w-6" :class="isChatOpen ? 'text-blue-300' : 'text-white'" />
         <div v-if="chatMessages.length > 0 && !isChatOpen"
           class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -895,7 +895,8 @@ const restartGame = () => {
             class="bg-gray-700 text-white text-sm rounded-l-md px-3 py-2 flex-grow focus:outline-none"
             :maxlength="100" />
           <button @click="sendChatMessage" :disabled="!chatMessage.trim()"
-            class="bg-blue-600 text-white cursor-pointer px-3 rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+            class="bg-blue-600 text-white cursor-pointer px-3 rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center 
+            justify-center">
             <Send class="h-4 w-4" />
           </button>
         </div>
