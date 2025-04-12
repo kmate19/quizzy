@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
-import * as zod from 'zod'
 import router from '@/router'
 import { clientv1 } from '@/lib/apiClient'
-import { baseRegisterSchema } from '@/schemas/RegistrationSchema'
-import { CircleHelp, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
+import { CircleHelp, EyeIcon, EyeOffIcon, XCircle } from 'lucide-vue-next'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 import { userData } from '@/utils/functions/profileFunctions'
@@ -17,14 +15,44 @@ const isLoading = ref(false)
 
 const isLoginForm = ref(true)
 
-
 const passwordRequirements = [
   '• Minimum 8 karakter',
   '• Legalább egy nagybetű',
   '• Legalább egy kisbetű',
   '• Legalább egy szám',
+  '• Legalább egy speciális karakter',
   '• Jelszavak egyezése',
 ]
+
+const passwordValidation = ref({
+  minLength: false,
+  hasUppercase: false,
+  hasLowercase: false,
+  hasNumber: false,
+  hasSpecial: false,
+  passwordsMatch: false
+})
+
+const regForm = ref({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
+
+
+watch(() => regForm.value.password, (newPassword) => {
+  passwordValidation.value.minLength = newPassword.length >= 8
+  passwordValidation.value.hasUppercase = /[A-Z]/.test(newPassword)
+  passwordValidation.value.hasLowercase = /[a-z]/.test(newPassword)
+  passwordValidation.value.hasNumber = /\d/.test(newPassword)
+  passwordValidation.value.hasSpecial = /[^a-zA-Z0-9]/.test(newPassword)
+  passwordValidation.value.passwordsMatch = newPassword === regForm.value.confirmPassword
+})
+
+watch(() => regForm.value.confirmPassword, (newConfirmPassword) => {
+  passwordValidation.value.passwordsMatch = regForm.value.password === newConfirmPassword
+})
 
 const showPasswordRequirements = () => {
   toast(passwordRequirements.join('\n'), {
@@ -40,12 +68,6 @@ const flipLogin = () => {
   isLoginForm.value = !isLoginForm.value
 }
 
-const regForm = ref({
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-})
 
 const clearRegistration = () => {
   regForm.value = {
@@ -66,25 +88,18 @@ const loginForm = ref<loginFormType>({
   password: '',
 })
 
-type RegisterSchemaType = zod.infer<typeof baseRegisterSchema>
-
-const createRegisterSchema = (password: string) =>
-  baseRegisterSchema.refine((data) => data.confirmPassword === password, {
-    message: 'A jelszavak nem egyeznek',
-    path: ['confirmPassword'],
-  })
-
-const regErrors = ref<zod.ZodFormattedError<RegisterSchemaType> | null>(null)
-
 const onRegistration = async () => {
+  if (Object.values(regForm.value).some((value) => value.trim() === '')) {
+    toast('Kérjük, töltse ki az összes mezőt!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+    return
+  }
   isLoading.value = true
-  const schema = createRegisterSchema(regForm.value.password)
-  const valid = schema.safeParse(regForm.value)
-
-  if (!valid.success) {
-    regErrors.value = valid.error.format()
-  } else {
-    regErrors.value = null
     const regRes = await clientv1.auth.register.$post({ json: regForm.value })
     if (regRes.status === 200) {
       toast('Sikeres regisztráció, ellenőrizze email fiókját!', {
@@ -108,7 +123,20 @@ const onRegistration = async () => {
     }
     else {
       const res = (await regRes.json()) satisfies ApiResponse
-      toast(res.message, {
+      const errorMessage = res.error.message
+      let info = ''
+      switch (errorMessage) {
+        case 'email already exists':
+          info = 'Ez az email cím már létezik!'
+          break
+        case 'username already exists':
+          info = 'Ez a felhasználónév már létezik!'
+          break 
+        default:
+          info = ''
+      }
+
+      toast(res.message + '\n' + info, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -116,18 +144,28 @@ const onRegistration = async () => {
         pauseOnHover: false,
       } as ToastOptions)
     }
-  }
+  
   isLoading.value = false
 }
 
 const onLogin = async () => {
-  isLoading.value = true; 
+  if (Object.values(loginForm.value).some((value) => value.trim() === '')) {
+    toast('Kérjük, töltse ki az összes mezőt!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+    return
+  }
+  isLoading.value = true;
   (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
-      loginForm.value[key] = loginForm.value[key].trim()
+    loginForm.value[key] = loginForm.value[key].trim()
   })
-  
+
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
-  
+
   if (loginRes.status === 200) {
     queryClient.setQueryData(['auth'], { isAuthenticated: true })
     const res = await userData("")
@@ -194,49 +232,43 @@ onMounted(() => {
     <div class="vcard !p-10 !rounded-2xl !bg-white/10 bg-opacity-50
        backdrop-blur-md transition-all duration-1000 
        !hover:bg-red-950 flex flex-col
-       justify-evenly relative text-white " :style="{ height: `${cardHeight}px` }">
+       justify-between  text-white " :style="{ height: `${cardHeight}px` }">
       <transition name="fade" enter-active-class="transition ease-out duration-300"
         leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
         @leave="updateCardHeight">
         <div v-if="isLoginForm" class="form-content custom-scrollbar" key="login">
-          <div class="flex justify-evenly flex-row mb-2">
+          <div class="flex justify-evenly flex-row mb-4">
             <span class="font-weight-black text-3xl"> Bejelentkezés </span>
           </div>
           <form @submit.prevent="onLogin">
-            <label for="username" class="text-white self-center">Felhasználónév vagy e-mail:</label>
-            <v-text-field name="username" v-model="loginForm.username_or_email" variant="outlined"
-              density="comfortable"></v-text-field>
-            <label for="username" class="text-white self-center">Jelszó:</label>
-            <v-text-field name="username" v-model="loginForm.password" variant="outlined" density="comfortable"
-              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword">
-              <button @click="togglePassword" tabindex="-1"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none"
-                type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
+            <label for="username_or_email" class="text-white self-center block mb-1">Felhasználónév vagy e-mail:</label>
+            <div class="relative mb-4">
+              <input id="username_or_email" name="username_or_email" v-model="loginForm.username_or_email"
+                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                type="text" />
+            </div>
+            <label for="password" class="text-white self-center block mb-1">Jelszó:</label>
+            <div class="relative mb-4">
+              <input id="password" name="password" v-model="loginForm.password"
+                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                :type="showPassword ? 'text' : 'password'" />
+              <button @click="togglePassword" tabindex="-1" type="button"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
-            </v-text-field>
+            </div>
             <div class="w-full text-right mb-5">
               <router-link to="/forgotPw"
                 class="text-sm text-blue-300 hover:text-blue-500 transition-colors duration-200">
                 Elfelejtett jelszó?
               </router-link>
             </div>
-            <div class="w-full max-w-md space-y-6">
+            <div class="w-full max-w-md space-y-4">
               <button type="submit" :disabled="isLoading"
-                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
+                class="glass-button !w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
                 <div class="flex items-center justify-center w-full">
-                  <span v-if="isLoading" class="inline-block animate-spin mr-2">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                        fill="none" />
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0
-                      5.373 0 12h4zm2 5.291A7.962 7.962 0
-                      014 12H0c0 3.042 1.135 5.824 3
-                      7.938l3-2.647z" />
-                    </svg>
-                  </span>
-                  {{ isLoading ? '' : 'Bejelentkezés' }}
+                  Bejelentkezés
                 </div>
               </button>
               <button type="button" :disabled="isLoading"
@@ -248,50 +280,89 @@ onMounted(() => {
           </form>
         </div>
         <div v-else class="form-content custom-scrollbar" key="register">
-          <div class="flex justify-evenly flex-row mb-2">
+          <div class="flex justify-evenly flex-row">
             <div class="flex items-center">
               <span class="font-weight-black text-3xl">Regisztráció</span>
               <CircleHelp class="h-7 w-7 text-blue-400 ml-2 cursor-pointer" @click="showPasswordRequirements" />
             </div>
           </div>
           <form @submit.prevent="onRegistration">
-            <label for="email" class="text-white self-center">E-mail:</label>
-            <v-text-field name="email" v-model="regForm.email" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.email?._errors[0]" placeholder="pelda@pelda.com"></v-text-field>
-            <label for="username" class="text-white self-center">Felhasználónév:</label>
-            <v-text-field name="username" v-model="regForm.username" variant="outlined" density="comfortable"
-              :error-messages="regErrors?.username?._errors[0]" placeholder="QuizzyUser43"></v-text-field>
-            <label for="pw" class="text-white self-center">Jelszó:</label>
-            <v-text-field v-model="regForm.password" name="pw" variant="outlined" density="comfortable"
-              :type="showPassword ? 'text' : 'password'" @click:append-inner="togglePassword" class="relative"
-              :error-messages="regErrors?.password?._errors[0]">
-              <button @click="togglePassword" tabindex="-1"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none"
-                type="button" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'">
+            <label for="email" class="text-white self-center block mb-1">E-mail:</label>
+            <div class="relative mb-2">
+              <input id="email" name="email" v-model="regForm.email" placeholder="pelda@pelda.com"
+                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                type="email" />
+            </div>
+            <label for="username" class="text-white self-center block">Felhasználónév:</label>
+            <div class="relative mb-2">
+              <input id="username" name="username" v-model="regForm.username" placeholder="QuizzyUser43"
+                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2
+                 focus:ring-purple-500/50 focus:border-purple-500/50"
+                 type="text" />
+            </div>
+            <label for="pw" class="text-white self-center block">Jelszó:</label>
+            <div class="relative mb-2">
+              <input id="pw" name="pw" v-model="regForm.password"
+                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                :type="showPassword ? 'text' : 'password'" />
+              <button @click="togglePassword" tabindex="-1" type="button"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
-            </v-text-field>
-            <label for="pw_again" class="text-white self-center">Jelszó megerősítése:</label>
-            <v-text-field v-model="regForm.confirmPassword" :type="showPassword ? 'text' : 'password'"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" name="pw_again" variant="outlined"
-              density="comfortable" :error-messages="regErrors?.confirmPassword?._errors[0]" class="!mb-2">
-            </v-text-field>
-            <div class="w-full max-w-md space-y-6">
+             
+            </div>
+            <transition name="fade" enter-active-class="transition ease-out duration-300"
+              leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
+              @leave="updateCardHeight">
+              <div class="password-requirements text-sm"
+                v-if="regForm.password.length > 0
+                  && Object.entries(passwordValidation).filter(([key]) => key !== 'passwordsMatch').some(([, value]) => !value)">
+                <div v-if="!passwordValidation.minLength" class="requirement-item invalid">
+                  <XCircle class="h-4 w-4 text-red-400" />
+                  <span>Minimum 8 karakter</span>
+                </div>
+                <div v-else-if="!passwordValidation.hasUppercase" class="requirement-item invalid">
+                  <XCircle class="h-4 w-4 text-red-400" />
+                  <span>Legalább egy nagybetű</span>
+                </div>
+                <div v-else-if="!passwordValidation.hasLowercase" class="requirement-item invalid">
+                  <XCircle class="h-4 w-4 text-red-400" />
+                  <span>Legalább egy kisbetű</span>
+                </div>
+                <div v-else-if="!passwordValidation.hasNumber" class="requirement-item invalid">
+                  <XCircle class="h-4 w-4 text-red-400" />
+                  <span>Legalább egy szám</span>
+                </div>
+                <div v-else-if="!passwordValidation.hasSpecial" class="requirement-item invalid">
+                  <XCircle class="h-4 w-4 text-red-400" />
+                  <span>Legalább egy speciális karakter</span>
+                </div>
+              </div>
+            </transition>
+            <label for="pw_again" class="text-white self-center block">Jelszó megerősítése:</label>
+            <div class="relative mb-2">
+              <input id="pw_again" name="pw_again" v-model="regForm.confirmPassword"
+                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                :type="showPassword ? 'text' : 'password'" />
+              
+            </div>
+            <transition name="fade" enter-active-class="transition ease-out duration-300"
+              leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
+              @leave="updateCardHeight">
+              <div class="password-match text-sm"
+                v-if="regForm.confirmPassword.length > 0 && !passwordValidation.passwordsMatch">
+                <div class="requirement-item invalid" v-if="!passwordValidation.passwordsMatch">
+                  <XCircle class="h-4 w-4 text-red-400" />
+                  <span>Jelszavak nem egyeznek</span>
+                </div>
+              </div>
+            </transition>
+            <div class="w-full max-w-md space-y-4 mt-4">
               <button type="submit" :disabled="isLoading"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
                 <div class="flex items-center justify-center">
-                  <span v-if="isLoading" class="inline-block animate-spin mr-2">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                        fill="none" />
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0
-                      5.373 0 12h4zm2 5.291A7.962 7.962 0
-                      014 12H0c0 3.042 1.135 5.824 3
-                      7.938l3-2.647z" />
-                    </svg>
-                  </span>
-                  {{ isLoading ? '' : 'Regisztráció' }}
+                  Regisztráció
                 </div>
               </button>
               <button type="button"
@@ -479,5 +550,24 @@ v-text-field {
   pointer-events: none;
 }
 
-/*192.168.1.1*/
+.password-requirements,
+.password-match {
+  border-radius: 8px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.requirement-item.valid {
+  color: #a7f3d0;
+}
+
+.requirement-item.invalid {
+  color: #fca5a5;
+}
 </style>

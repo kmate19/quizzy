@@ -326,7 +326,7 @@ const handleQuestionModify = (index: number) => {
     type: res.type as 'twochoice' | 'normal',
     answers: res.answers,
     picture: res.picture,
-    correct_answer_index: res.correct_answer_index,
+    correct_answer_index: res.correct_answer_index + 1,
   }
   handleQuestionRemove(index)
 }
@@ -782,11 +782,9 @@ const marqueeDuration = computed(() => {
                     : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
                     " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
-
             <v-btn block color="primary" @click="addQuestion" :disabled="isLoading"> Kérdés hozzáadása </v-btn>
           </div>
         </v-col>
-        <!-- Preview -->
         <v-col cols="12" md="4" class="glass-panel text-white !max-w-[94vw] lg:!max-w-[35vw]">
           <transition name="height-fade">
             <div v-if="quiz.cards.length"
@@ -796,11 +794,10 @@ const marqueeDuration = computed(() => {
                 <h3 class="text-xl font-semibold mb-2 text-white">{{ quiz.cards.length }}</h3>
               </div>
               <div class="space-y-4 overflow-y-auto  flex-1 p-2">
-                <draggable v-model="quiz.cards" item-key="id" class="gap-2 flex flex-col">
+                <draggable v-model="quiz.cards" group="cards" item-key="cards" class="gap-2 flex flex-col">
                   <template #item="{ element: card, index }">
-                    <PreviewQuestion :question="card.question" :img="card.picture" :answers="card.answers"
-                      :index="index" :type="card.type" :correct_answer_index="card.correct_answer_index"
-                      :handleQuestionRemove="handleQuestionRemove" :handleQuestionEdit="handleQuestionModify" />
+                    <PreviewQuestion :question="card" :index="index" :handleQuestionRemove="handleQuestionRemove"
+                      :handleQuestionEdit="handleQuestionModify" />
                   </template>
                 </draggable>
               </div>
@@ -837,6 +834,44 @@ const marqueeDuration = computed(() => {
   .transition-all,
   .transition-transform {
     transition: none;
+  }
+}
+
+/* Sortable drag and drop styles */
+.sortable-ghost {
+  opacity: 0.5;
+  background: rgba(75, 85, 99, 0.4);
+  border: 2px dashed rgba(255, 255, 255, 0.5) !important;
+}
+
+.sortable-chosen {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  border: 2px solid rgba(59, 130, 246, 0.5) !important;
+  z-index: 10;
+  transform: scale(1.02);
+}
+
+.sortable-drag {
+  opacity: 0.9;
+  transform: rotate(2deg) scale(1.05);
+  z-index: 999;
+}
+
+.sortable-fallback {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 0.5rem;
+}
+
+/* Animation when a question is being moved to indicate where it will be placed */
+@keyframes pulse-border {
+
+  0%,
+  100% {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  50% {
+    border-color: rgba(59, 130, 246, 0.7);
   }
 }
 
