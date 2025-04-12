@@ -326,7 +326,7 @@ const handleQuestionModify = (index: number) => {
     type: res.type as 'twochoice' | 'normal',
     answers: res.answers,
     picture: res.picture,
-    correct_answer_index: res.correct_answer_index,
+    correct_answer_index: res.correct_answer_index + 1,
   }
   handleQuestionRemove(index)
 }
@@ -798,9 +798,7 @@ const marqueeDuration = computed(() => {
               <div class="space-y-4 overflow-y-auto  flex-1 p-2">
                 <draggable v-model="quiz.cards" item-key="id" class="gap-2 flex flex-col">
                   <template #item="{ element: card, index }">
-                    <PreviewQuestion :question="card.question" :img="card.picture" :answers="card.answers"
-                      :index="index" :type="card.type" :correct_answer_index="card.correct_answer_index"
-                      :handleQuestionRemove="handleQuestionRemove" :handleQuestionEdit="handleQuestionModify" />
+                    <PreviewQuestion :question="card" :index="index" :handleQuestionRemove="handleQuestionRemove" :handleQuestionEdit="handleQuestionModify" />
                   </template>
                 </draggable>
               </div>
