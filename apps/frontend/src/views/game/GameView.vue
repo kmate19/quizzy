@@ -99,7 +99,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         id: quizzyStore.id,
       }
 
-      if (isReconnect.value === true) {
+      if (isReconnect.value) {
         ws.send(
           JSON.stringify({
             type: 'members',
@@ -522,7 +522,7 @@ const sendChatMessage = () => {
 
 onMounted(() => {
   console.log(quizzyStore.lobbyId)
-  if (quizzyStore.canReconnect === true) {
+  if (quizzyStore.canReconnect) {
     isReconnect.value = true
   }
   if (!lobbyId.value) {

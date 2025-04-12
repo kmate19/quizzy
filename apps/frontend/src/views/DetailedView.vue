@@ -158,9 +158,9 @@ const createLobby = async () => {
         <div class="lg:w-2/3">
           <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[calc(100vh-18vh)] overflow-y-auto m-2 mb-10
           md:space-y-4 space-y-2">
-            <div v-for="(card, index) in data?.cards" :key="card.picture"
-              class="rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border border-white/20 shadow-lg">
-              <button class="w-full flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
+            <div v-for="(card, index) in data?.cards" :key="card.picture">
+              <button class="w-full flex flex-col sm:flex-row sm:items-center gap-4 justify-between  cursor-pointer
+              rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border border-white/20 shadow-lg"
                 @click="toggleQuestion(index)">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
                   <div class="w-full sm:w-1/4 bg-white/10 rounded-md overflow-hidden">

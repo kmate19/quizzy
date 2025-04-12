@@ -181,6 +181,18 @@ const handleFileChange = (event: Event) => {
 
   if (file) {
     const size = file.size / (1024 * 1024)
+    
+    const isValidFileType = file.type === 'image/jpeg' || file.type === 'image/png'
+    if (!isValidFileType) {
+      toast('Csak JPG és PNG fájlok engedélyezettek!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      return
+    }
 
     if (size > 1) {
       toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
@@ -284,7 +296,7 @@ watch(
               :class="isOtherUser ? 'md:flex-row' : 'md:flex-row md:flex-wrap'">
               <div class="relative mx-auto md:mx-0">
                 <img :src="localPfp"
-                  class="md:w-40 md:h-40 h-fit w-fit rounded-full border-4
+                  class="w-40 h-40 rounded-full border-4
                    border-white/30 flex items-center justify-center" />
                 <div v-if="!isOtherUser">
                   <div

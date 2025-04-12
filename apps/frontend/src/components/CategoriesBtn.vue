@@ -83,8 +83,7 @@ onMounted(async () => {
   <div class="relative">
     <button
       @click="isModalOpen = true"
-      class="w-16 h-10 rounded-full border-2 glass-button flex items-center justify-center p-3 transition-all duration-300 ease-in-out"
-      aria-label="Open category selector"
+      class="w-16 h-10 rounded-full border-2 glass-button flex items-center justify-center p-3 transition-all duration-300 ease-in-out cursor-pointer"
     >
       <Settings2 class="w-5 h-5 text-gray-300" />
     </button>
