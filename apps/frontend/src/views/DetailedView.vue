@@ -156,7 +156,7 @@ const createLobby = async () => {
 
         <!-- Right -->
         <div class="lg:w-2/3">
-          <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[calc(100vh-15vh)] overflow-y-auto m-2
+          <div class="pl-2 pr-2 md:max-h-[calc(100vh-18vh)] max-h-[calc(100vh-18vh)] overflow-y-auto m-2 mb-10
           md:space-y-4 space-y-2">
             <div v-for="(card, index) in data?.cards" :key="card.picture"
               class="rounded-xl backdrop-blur-md bg-white/10 p-2 sm:p-4 border border-white/20 shadow-lg">

@@ -68,6 +68,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
         languageISOCodes: quiz.languageISOCodes,
       },
     })
+    console.log(edit.status)
     if (edit.status === 200) {
       queryClient.invalidateQueries({ queryKey: ['userQuizzies',''], refetchType: 'none' })
       queryClient.invalidateQueries({ queryKey: ['homeQuizzes'], refetchType: 'none' })
@@ -106,6 +107,7 @@ export const handleQuizyUpload = async (quiz: quizUpload, isEdit: boolean, uuid:
         languageISOCodes: quiz.languageISOCodes,
       },
     })
+    console.log(query.status)
     if (query.status === 201) {
       toast('Sikeres quiz feltöltés!', {
         autoClose: 5000,
