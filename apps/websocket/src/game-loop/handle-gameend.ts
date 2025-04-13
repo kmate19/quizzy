@@ -1,7 +1,7 @@
 import { Lobby } from "@/types";
-import { sendLobby } from "./send";
-import ENV from "./env";
-import { abortLobby } from "./close";
+import { sendLobby } from "@/output/send";
+import ENV from "@/utils/env";
+import { abortLobby } from "@/output/close";
 
 export function handleGameEnd(lobby: Lobby) {
     if (!lobby.gameState.started) {
@@ -36,7 +36,8 @@ export function handleGameEnd(lobby: Lobby) {
 
     if (strippedMembers.length > 1) {
         // send to api for intra service messaging
-        fetch("http://localhost:3000/api/v1/events/quiz-finished", {
+        const dns = ENV.NODE_ENV() === "production" ? "api" : "localhost";
+        fetch(`http://${dns}:3000/api/v1/events/quiz-finished`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

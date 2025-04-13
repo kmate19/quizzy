@@ -3,6 +3,7 @@
 import { ApiResponseSchema } from "@/utils/schemas/zod-schemas";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
+import { z } from "zod";
 
 const userIdParam = {
     type: "object",
@@ -16,34 +17,22 @@ const userIdParam = {
     required: ["userId"],
 };
 
-export const getUserprofileDesc = describeRoute({
-    tags: ["User Profile"],
+export const getUserProfileDesc = describeRoute({
+    tags: ["Felhasználói Profil"],
     description:
-        "Get the comprehensive profile data for the currently authenticated user, including email, username, status, profile picture, stats, friendships (sent/received), and roles. Requires user authentication.",
+        "Lekéri a hitelesített felhasználó profiljának részletes információit. Felhasználói hitelesítést igényel.",
     responses: {
         200: {
             description:
-                "Success - Returns the authenticated user's profile data.",
+                "Sikeres - A felhasználó profiljának részletes információi.",
             content: {
                 "application/json": {
-                    // Schema likely ApiResponse with data: User (with relations loaded)
                     schema: resolver(ApiResponseSchema),
                 },
             },
         },
         401: {
-            description: "Unauthorized - User is not logged in.",
-            content: {
-                "application/json": {
-                    schema: resolver(
-                        ApiResponseSchema.required({ error: true })
-                    ),
-                },
-            },
-        },
-        404: {
-            description:
-                "Not Found - The authenticated user could not be found (should theoretically not happen if token is valid).",
+            description: "Jogosulatlan - A felhasználó nincs bejelentkezve.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -55,29 +44,31 @@ export const getUserprofileDesc = describeRoute({
     },
 });
 
-export const postProfilePictureDesc = describeRoute({
-    tags: ["User Profile"],
+export const updateUserProfileDesc = describeRoute({
+    tags: ["Felhasználói Profil"],
     description:
-        "Upload or update the profile picture for the currently authenticated user. The image will be processed (resized/converted to JPEG). Max file size 1MB. Requires user authentication.",
+        "Frissíti a hitelesített felhasználó profiljának adatait. Felhasználói hitelesítést igényel.",
     request: {
         body: {
             content: {
-                "image/*": {
-                    // Accepts various image types
-                    schema: {
-                        type: "string",
-                        format: "binary",
-                        description: "The image file to upload.",
-                    },
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            username: z.string().min(1),
+                            email: z.string().email(),
+                            firstName: z.string().min(1),
+                            lastName: z.string().min(1),
+                        })
+                    ),
                 },
             },
-            description: "Image file (max 1MB).",
+            description: "A frissítendő profil adatok.",
             required: true,
         },
     },
     responses: {
         200: {
-            description: "Success - Profile picture updated successfully.",
+            description: "Sikeres - A felhasználó profilja frissítve.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -85,8 +76,7 @@ export const postProfilePictureDesc = describeRoute({
             },
         },
         400: {
-            description:
-                "Bad Request - Invalid file type (not an image), file too large (> 1MB), or error processing the image.",
+            description: "Hibás kérés - Érvénytelen profil adatok.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -96,7 +86,58 @@ export const postProfilePictureDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - User is not logged in.",
+            description: "Jogosulatlan - A felhasználó nincs bejelentkezve.",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        ApiResponseSchema.required({ error: true })
+                    ),
+                },
+            },
+        },
+    },
+});
+
+export const updateUserPictureDesc = describeRoute({
+    tags: ["Felhasználói Profil"],
+    description:
+        "Frissíti a hitelesített felhasználó profilképét. A képnek base64 kódolással kell lennie. Felhasználói hitelesítést igényel.",
+    request: {
+        body: {
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        z.object({
+                            picture: z.string().min(1),
+                        })
+                    ),
+                },
+            },
+            description: "Az új profilkép base64 kódolással.",
+            required: true,
+        },
+    },
+    responses: {
+        200: {
+            description: "Sikeres - A felhasználó profilképe frissítve.",
+            content: {
+                "application/json": {
+                    schema: resolver(ApiResponseSchema),
+                },
+            },
+        },
+        400: {
+            description: "Hibás kérés - Érvénytelen kép formátum vagy méret.",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        ApiResponseSchema.required({ error: true })
+                    ),
+                },
+            },
+        },
+        401: {
+            description: "Jogosulatlan - A felhasználó nincs bejelentkezve.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -109,16 +150,16 @@ export const postProfilePictureDesc = describeRoute({
 });
 
 export const getUserProfileByIdDesc = describeRoute({
-    tags: ["User Profile"],
+    tags: ["Felhasználói Profil"],
     description:
-        "Get publicly available profile data for a specific user by their UUID, including username, creation date, activity status, profile picture, stats, and roles. Supports authentication via JWT cookie or API Key.",
+        "Lekéri a publikusan elérhető profil adatait egy adott felhasználónak a UUID alapján, beleértve a felhasználónevet, létrehozási dátumot, aktivitás állapotot, profilképet, statisztikákat és szerepköröket. Támogatja a JWT süti vagy API kulcs használatával történő hitelesítést.",
     request: {
         params: userIdParam,
     },
     responses: {
         200: {
             description:
-                "Success - Returns the public profile data for the specified user.",
+                "Sikeres - Visszaadja a megadott felhasználó publikus profil adatait.",
             content: {
                 "application/json": {
                     // Schema likely ApiResponse with data: User (subset of fields + relations)
@@ -127,7 +168,8 @@ export const getUserProfileByIdDesc = describeRoute({
             },
         },
         404: {
-            description: "Not Found - No user found with the specified UUID.",
+            description:
+                "Nem található - Nem található felhasználó a megadott UUID-vel.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -136,6 +178,26 @@ export const getUserProfileByIdDesc = describeRoute({
                 },
             },
         },
-        // 401/403 might occur depending on apikey_or_jwt
+        401: {
+            description: "Jogosulatlan - A felhasználó nincs bejelentkezve.",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        ApiResponseSchema.required({ error: true })
+                    ),
+                },
+            },
+        },
+        403: {
+            description:
+                "Nem jogosult - A felhasználó nem rendelkezik admin jogosultsággal.",
+            content: {
+                "application/json": {
+                    schema: resolver(
+                        ApiResponseSchema.required({ error: true })
+                    ),
+                },
+            },
+        },
     },
 });

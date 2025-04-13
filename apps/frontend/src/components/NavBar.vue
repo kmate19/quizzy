@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { Loader2Icon } from 'lucide-vue-next'
 import { ref, watch, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import XButton from './XButton.vue'
@@ -7,7 +8,6 @@ import { wsclient } from '@/lib/apiClient'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const quizzyStore = useQuizzyStore()
-
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
 const route = useRoute()
@@ -40,7 +40,7 @@ const handlePath = (routeName: string) => {
     case 'home':
       return 'Kezdőlap'
     case 'game_creation':
-      return 'Játék készítés'
+      return 'Szerkesztő'
     case 'quiz_practice':
       return 'Gyakorlás'
     case 'detailed_view':
@@ -79,6 +79,7 @@ onMounted(() => {
   nextTick(() => {
     updateComponentName()
   })
+
 })
 
 const joinLobby = async (code: string) => {
@@ -91,7 +92,8 @@ const joinLobby = async (code: string) => {
 
   try {
     isLoading.value = true
-
+    //simulate a delay for the loading state
+    await new Promise((resolve) => setTimeout(resolve, 5000))
     const first = await wsclient.reserve.session[':code?'].$post({
       param: { code: code.trim() },
       query: { ts: Date.now().toString() },
@@ -107,37 +109,55 @@ const joinLobby = async (code: string) => {
       }
 
       quizzyStore.setLobbyData({
-        lobbyId: first_data.code,
-        hash: '',
+        lobbyId: first_data.code!,
         quizId: '',
-        timestamp: Date.now(),
         isHost: false,
+        canReconnect: false,
       })
 
       isCodeModal.value = false
       isLoading.value = false
       router.push(`/quiz/multiplayer/${first_data.code}`)
+      lobbyCode.value = ''
     } else {
       errorMessage.value = 'A megadott kóddal nem létezik lobby'
-      isLoading.value = false
     }
   } catch (error) {
     console.error('Error joining lobby:', error)
     isLoading.value = false
     errorMessage.value = 'Nem sikerült csatlakozni a lobbyhoz. Hálózati hiba vagy szerver probléma.'
   }
+  isLoading.value = false
 }
+
+const isLg = ref(true)
+
+const updateIsLg = () => {
+  isLg.value = window.innerWidth >= 958
+}
+
+onMounted(() => {
+  updateIsLg()
+  window.addEventListener('resize', updateIsLg)
+})
+
+
 </script>
 
 <template>
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <div @click="router.push('/')"
-          class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0">
-          Quizzy <span class="text-white">| {{ componentName }}</span>
+      <div class="flex items-center justify-between h-16"
+        :class="[quizzyStore.isGame ? 'justify-center' : 'justify-between']">
+        <div @click="!quizzyStore.isGame && router.push('/')" v-if="!quizzyStore.isDuringGame" :class="[
+          'flex gap-1 items-center border-2 px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0',
+          quizzyStore.isGame
+            ? 'cursor-not-allowed border-transparent'
+            : 'cursor-pointer hover:scale-105 hover:border-white border-transparent'
+        ]">
+          Quizzy <span class="text-white">{{ componentName }}</span>
         </div>
-        <div class="hidden md:block desktop-navbar">
+        <div class="hidden md:block desktop-navbar" v-if="!quizzyStore.isGame">
           <div class="ml-10 flex items-baseline space-x-4">
             <a @click="router.push('/')" :class="[
               'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
@@ -169,9 +189,9 @@ const joinLobby = async (code: string) => {
             </div>
           </div>
         </div>
-        <div class="block md:hidden mobile-navbar">
+        <div class="block md:hidden mobile-navbar" v-if="!quizzyStore.isGame">
           <button @click="toggleMobileMenu"
-            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300">
+            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300 cursor-pointer absolute top-2 right-2 z-50">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16" />
@@ -185,8 +205,9 @@ const joinLobby = async (code: string) => {
       enter-from-class="transform -translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
       leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-full opacity-0">
-      <div v-if="isMobileMenuOpen"
-        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar">
+      <div v-if="isMobileMenuOpen && !quizzyStore.isGame"
+        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar"
+        v-click-outside="() => (isMobileMenuOpen = false)">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a @click="router.push('/')" :class="[
             'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',
@@ -221,12 +242,18 @@ const joinLobby = async (code: string) => {
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
-          <v-text-field label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
-            class="w-full text-white"></v-text-field>
-          <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
+          <input type="text" id="lobbyCode" placeholder="Lobby kód" v-model="lobbyCode"
+            @keyup.enter="joinLobby(lobbyCode)" class="w-full px-4 py-2 text-white bg-white/10 border
+             border-white/30 rounded-lg focus:outline-none focus:ring-2
+              focus:ring-purple-500 focus:border-transparent 
+              placeholder-gray-400" />
+          <div v-if="errorMessage" class="text-red-500 text-sm mb-1">{{ errorMessage }}</div>
           <button @click="joinLobby(lobbyCode)"
             class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-            {{ isLoading ? 'Csatlakozás...' : 'Csatlakozás' }}
+            {{ isLoading ? '' : 'Csatlakozás' }}
+            <div v-if="isLoading" class="flex justify-center items-center h-fit pointer-events-auto">
+              <Loader2Icon class="w-6 h-6 text-white animate-spin" />
+            </div>
           </button>
         </div>
       </div>

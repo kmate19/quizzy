@@ -36,6 +36,9 @@ export declare type LobbyUser = {
 };
 
 declare type WebsocketMessageType =
+    | "gamestate"
+    | "sendchatmessage"
+    | "recvchatmessage"
     | "hostchange"
     | "kick"
     | "answered"
@@ -46,6 +49,7 @@ declare type WebsocketMessageType =
     | "startgame"
     | "quizmeta"
     | "quizdata"
+    | "leave"
     | "members"
     | "whoami"
     | "ping"

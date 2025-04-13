@@ -1,14 +1,12 @@
-// ./src/openapi/apikey-openapi.ts
-
 import { ApiResponseSchema } from "@/utils/schemas/zod-schemas";
 import { postApiKeySchema } from "@/db/schemas";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 
 export const createApiKeyDesc = describeRoute({
-    tags: ["API Keys"],
+    tags: ["API Kulcsok"],
     description:
-        "Create a new API key for the authenticated admin user. The full API key is returned only once upon creation. Requires admin role.",
+        "Új API kulcs létrehozása a hitelesített felhasználó számára. A kulcsot csak egyszer jeleníti meg, ezért biztonságosan kell tárolni. Felhasználói hitelesítést igényel.",
     request: {
         body: {
             content: {
@@ -17,14 +15,14 @@ export const createApiKeyDesc = describeRoute({
                 },
             },
             description:
-                "Details for the new API key, including description and expiry date.",
+                "Az új API kulcs részletei, beleértve a nevét és a lejárati dátumot.",
             required: true,
         },
     },
     responses: {
         200: {
             description:
-                "Success - API key created. The response data contains the full key (save it securely).",
+                "Sikeres - API kulcs létrehozva. A válasz tartalmazza a teljes kulcsot (biztonságosan tárolja).",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema), // Data contains the full string API key
@@ -33,7 +31,7 @@ export const createApiKeyDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - Invalid input format (e.g., invalid date).",
+                "Hibás kérés - Érvénytelen beviteli formátum (pl. érvénytelen dátum).",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -43,7 +41,7 @@ export const createApiKeyDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - User is not logged in.",
+            description: "Nem jogosult - A felhasználó nincs bejelentkezve.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -54,7 +52,7 @@ export const createApiKeyDesc = describeRoute({
         },
         403: {
             description:
-                "Forbidden - The user does not have the 'admin' role or has reached the maximum number of allowed active API keys.",
+                "Nem jogosult - A felhasználó nem rendelkezik admin jogosultsággal, vagy elérte a maximálisan engedélyezett aktív API kulcsok számát.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -67,13 +65,13 @@ export const createApiKeyDesc = describeRoute({
 });
 
 export const listApiKeysDesc = describeRoute({
-    tags: ["API Keys"],
+    tags: ["API Kulcsok"],
     description:
-        "List all API keys belonging to the authenticated admin user. Keys are returned masked (only first/last few characters shown). Requires admin role.",
+        "Listázza a hitelesített admin felhasználóhoz tartozó összes API kulcsot. A kulcsok visszaadva lesznek maskoltak (csak az első/utolsó néhány karakter látható). Admin jogosultság szükséges.",
     responses: {
         200: {
             description:
-                "Success - API keys retrieved. The response data contains an array of key objects (masked key, description, creation/expiry dates, user-specific ID).",
+                "Sikeres - API kulcsok lekérdezve. A válasz tartalmazza a kulcs objektumok tömbjét (maskolt kulcs, leírás, létrehozási/lejárati dátumok, felhasználó-specifikus ID).",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema), // Data contains array of masked key objects
@@ -81,7 +79,7 @@ export const listApiKeysDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - User is not logged in.",
+            description: "Nem jogosult - A felhasználó nincs bejelentkezve.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -91,7 +89,8 @@ export const listApiKeysDesc = describeRoute({
             },
         },
         403: {
-            description: "Forbidden - The user does not have the 'admin' role.",
+            description:
+                "Nem jogosult - A felhasználó nem rendelkezik admin jogosultsággal.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -101,7 +100,8 @@ export const listApiKeysDesc = describeRoute({
             },
         },
         404: {
-            description: "Not Found - The user currently has no API keys.",
+            description:
+                "Nem található - A felhasználónak nincs aktív API kulcsa.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -114,9 +114,9 @@ export const listApiKeysDesc = describeRoute({
 });
 
 export const deleteApiKeyDesc = describeRoute({
-    tags: ["API Keys"],
+    tags: ["API Kulcsok"],
     description:
-        "Delete a specific API key belonging to the authenticated admin user, identified by its user-specific index (id_by_user). Requires admin role.",
+        "Törli a megadott API kulcsot. A kulcs azonnal érvénytelen lesz. Felhasználói hitelesítést igényel.",
     request: {
         params: {
             type: "object",
@@ -134,7 +134,7 @@ export const deleteApiKeyDesc = describeRoute({
     },
     responses: {
         200: {
-            description: "Success - API key deleted successfully.",
+            description: "Sikeres - API kulcs törölve.",
             content: {
                 "application/json": {
                     schema: resolver(ApiResponseSchema),
@@ -143,7 +143,7 @@ export const deleteApiKeyDesc = describeRoute({
         },
         400: {
             description:
-                "Bad Request - Invalid ID format (must be numeric string).",
+                "Hibás kérés - Érvénytelen ID formátum (szám karakterlánc).",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -153,7 +153,7 @@ export const deleteApiKeyDesc = describeRoute({
             },
         },
         401: {
-            description: "Unauthorized - User is not logged in.",
+            description: "Nem jogosult - A felhasználó nincs bejelentkezve.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -163,7 +163,8 @@ export const deleteApiKeyDesc = describeRoute({
             },
         },
         403: {
-            description: "Forbidden - The user does not have the 'admin' role.",
+            description:
+                "Nem jogosult - A felhasználó nem rendelkezik admin jogosultsággal.",
             content: {
                 "application/json": {
                     schema: resolver(
@@ -174,7 +175,7 @@ export const deleteApiKeyDesc = describeRoute({
         },
         404: {
             description:
-                "Not Found - No API key found with the specified user-specific index for this user.",
+                "Nem található - Nem található API kulcs a megadott felhasználó-specifikus indexhez.",
             content: {
                 "application/json": {
                     schema: resolver(

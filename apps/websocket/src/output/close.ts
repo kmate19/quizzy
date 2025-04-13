@@ -1,7 +1,7 @@
 import { Lobby, LobbyMap } from "@/types";
 import { ServerWebSocket } from "bun";
 import { WebsocketMessage } from "repo";
-import { generateSessionHash } from "./utils";
+import { generateSessionHash } from "@/utils/generate";
 
 export function closeWithError<E extends Error>(
     ws: ServerWebSocket<unknown>,
@@ -69,7 +69,9 @@ export function closeIfInvalid(
             .toArray()
             .some(
                 (u) =>
-                    u.data.lobbyUserData.userId === (jwtdata.userId as string)
+                    u.data.lobbyUserData.userId ===
+                        (jwtdata.userId as string) &&
+                    !u.data.lobbyUserData.reconnecting
             )
     ) {
         res.error.message = "User already in lobby";

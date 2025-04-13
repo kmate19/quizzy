@@ -3,30 +3,20 @@ import GLOBALS from "@/config/globals";
 import db from "@/db/index";
 import { LoginUserSchema, usersTable } from "@/db/schemas/usersSchema";
 import { userTokensTable } from "@/db/schemas/userTokensSchema";
+import { makeRateLimiter } from "@/middlewares/ratelimiters";
 import { zv } from "@/middlewares/zv";
 import type { QuizzyJWTPAYLOAD } from "@/types.ts";
 import { makeDefaultPfp } from "@/utils/helpers";
 import { eq, or } from "drizzle-orm";
-import { getCookie, setCookie } from "hono/cookie";
+import { setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import type { ApiResponse } from "repo";
 
 const loginHandler = GLOBALS.CONTROLLER_FACTORY(
     zv("json", LoginUserSchema),
+    makeRateLimiter(1, 15, false, undefined, false, true),
     async (c) => {
         const loginUserData = c.req.valid("json");
-
-        if (getCookie(c, GLOBALS.ACCESS_COOKIE_NAME)) {
-            // user already logged in
-            const res = {
-                message: "user already has a login cookie",
-                error: {
-                    message: "user cant have a login cookie and try to log in",
-                    case: "conflict",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
-        }
 
         const [user] = await db
             .select()
@@ -40,7 +30,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
 
         if (!user) {
             const res = {
-                message: "Invalid credentials try again!",
+                message: "Érvénytelen bejelentkezési adatok, próbálja újra!",
                 error: {
                     message: "invalid_creds",
                     case: "bad_request",
@@ -53,7 +43,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
             !(await Bun.password.verify(loginUserData.password, user.password))
         ) {
             const res = {
-                message: "Invalid credentials try again!",
+                message: "Érvénytelen bejelentkezési adatok, próbálja újra!",
                 error: {
                     message: "invalid_creds",
                     case: "bad_request",
@@ -142,7 +132,7 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
         );
 
         const res = {
-            message: "login successful",
+            message: "Sikeres bejelentkezés",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

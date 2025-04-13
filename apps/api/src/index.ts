@@ -13,13 +13,21 @@ import { openAPISpecs } from "hono-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import events from "./routes/events";
 import GLOBALS from "./config/globals";
+import { makeRateLimiter } from "./middlewares/ratelimiters";
 
 console.log(ENV.NODE_ENV());
+
+const corsOpts =
+    ENV.NODE_ENV() === "production"
+        ? { origin: ENV.DOMAIN(), maxAge: 600 }
+        : {};
 
 export const app = new Hono()
     .basePath("/api/v1")
     .use(logger())
-    .use(cors())
+    // @ts-expect-error idk miert
+    .use(cors(corsOpts))
+    .use(makeRateLimiter(1, 60, "maybe"))
     .route("/", auth)
     .route("/", apikey)
     .route("/", userprofile)
@@ -27,10 +35,10 @@ export const app = new Hono()
     .route("/", meta)
     .route("/", events)
     .onError((err, c) => {
-        // TEST: test this somehow (idk what could cause the fauilure here)
+        // TEST: test this somehow (idk what could cause the fauilure here).
         console.error(err);
         const res = {
-            message: "Something went wrong",
+            message: "Hiba történt",
             error: {
                 message: "Something went wrong",
                 case: "server",
@@ -40,60 +48,70 @@ export const app = new Hono()
         return c.json(res, 422);
     });
 
-if (ENV.NODE_ENV() === "development") {
-    app.get(
-        "/openapi",
-        openAPISpecs(app, {
-            documentation: {
-                info: {
-                    title: "Quizzy API",
-                    description: `## Documentation for the Quizzy API
+// this shouldnt normally exist in prod but its for school
 
-### Note on authentication
-Swagger UI 'Try it out' does not support sending cookies automatically.
-Obtain the cookie via the /login endpoint and use browser developer tools or,
-an external client (like Postman, curl) to include the cookie in requests.`,
-                    version: "1.0.0",
-                },
-                components: {
-                    securitySchemes: {
-                        ApiKeyAuth: {
-                            // Matches the name used in 'security' array
-                            type: "apiKey",
-                            in: "header",
-                            name: "X-Api-Key", // The actual header name
-                            description: "API Key for administrative access.",
-                        },
-                        CookieAuth: {
-                            // For JWT cookie
-                            type: "apiKey", // Using apiKey type for cookie auth representation
-                            in: "cookie",
-                            name: GLOBALS.ACCESS_COOKIE_NAME, // Your cookie name
-                            description: "Session authentication cookie (JWT).",
-                        },
-                        BearerAuth: {
-                            // For WS secret
-                            type: "http",
-                            scheme: "bearer",
-                            description:
-                                "Bearer token for WebSocket/Event authentication (WS_SECRET).",
-                        },
+app.get(
+    "/openapi",
+    openAPISpecs(app, {
+        documentation: {
+            info: {
+                title: "Quizzy API",
+                description: `## A Quizzy API dokumentációja
+### Megjegyzés a hitelesítésről
+A Swagger UI 'Try it out' funkciója nem támogatja a sütik automatikus küldését.
+Szerezd meg a sütit a /login végponton keresztül, majd használd a böngésző fejlesztői eszközeit vagy
+egy külső kliensprogramot (például Postman, curl), hogy a sütit beilleszd a kérésekbe.`,
+                version: "1.0.0",
+            },
+            components: {
+                securitySchemes: {
+                    ApiKeyAuth: {
+                        // Matches the name used in 'security' array
+                        type: "apiKey",
+                        in: "header",
+                        name: "X-Api-Key", // The actual header name
+                        description:
+                            "Adminisztrátori hozzáféréshez szükséges API kulcs.",
+                    },
+                    CookieAuth: {
+                        // For JWT cookie
+                        type: "apiKey", // Using apiKey type for cookie auth representation
+                        in: "cookie",
+                        name: GLOBALS.ACCESS_COOKIE_NAME, // Your cookie name
+                        description: "Session hitelesítési süti (JWT).",
+                    },
+                    BearerAuth: {
+                        // For WS secret
+                        type: "http",
+                        scheme: "bearer",
+                        description:
+                            "WebSocket-Event hitelesítéshez használt Bearer token (WS_SECRET).",
                     },
                 },
             },
-        })
-    );
-    app.get(
-        "/reference",
-        apiReference({
-            theme: "deepSpace",
-            layout: "modern",
-            spec: {
-                url: "/api/v1/openapi",
+        },
+    })
+);
+app.get(
+    "/reference",
+    apiReference({
+        servers: [
+            {
+                url: "http://localhost:3000/api/v1",
+                description: "Local Development",
             },
-        })
-    );
-}
+            {
+                url: "https://quizzy.kmate.xyz/api/v1",
+                description: "Production",
+            },
+        ],
+        theme: "deepSpace",
+        layout: "modern",
+        spec: {
+            url: "/api/v1/openapi",
+        },
+    })
+);
 
 app.route("/", admin);
 

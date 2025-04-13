@@ -11,6 +11,8 @@ COPY apps/api/src ./apps/api/src/
 COPY apps/api/tsconfig.json ./apps/api/
 COPY apps/api/tsconfig.build.json ./apps/api/
 COPY apps/api/drizzle.config.ts ./apps/api/
+COPY apps/api/assets ./apps/api/assets/
+COPY apps/api/migrations ./apps/api/migrations/
 COPY packages/ ./packages/
 
 # begin add bun
@@ -24,13 +26,15 @@ ENV PATH=$PATH:/root/.bun/bin
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm run --filter api build
+RUN pnpm run --filter api build:bun
 
 FROM alpine:latest AS prod
 WORKDIR /app
-RUN apk add --no-cache libstdc++ libgcc
+
+RUN apk add --no-cache libstdc++ libgcc font-liberation ttf-dejavu python3 build-base cairo-dev pkgconfig pixman-dev jpeg-dev giflib-dev pango-dev
 # ^ needed for bun binary to work
 COPY --from=builder /app/apps/api/dist/api api
 COPY --from=builder /app/apps/api/migrations/ migrations/
+COPY --from=builder /app/apps/api/assets/ assets/
 CMD ["./api"]
 EXPOSE 3000

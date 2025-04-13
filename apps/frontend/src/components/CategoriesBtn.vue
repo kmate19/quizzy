@@ -83,8 +83,7 @@ onMounted(async () => {
   <div class="relative">
     <button
       @click="isModalOpen = true"
-      class="w-16 h-10 rounded-full border-2 glass-button flex items-center justify-center p-3 transition-all duration-300 ease-in-out"
-      aria-label="Open category selector"
+      class="w-16 h-10 rounded-full border-2 glass-button flex items-center justify-center p-3 transition-all duration-300 ease-in-out cursor-pointer"
     >
       <Settings2 class="w-5 h-5 text-gray-300" />
     </button>
@@ -164,6 +163,7 @@ onMounted(async () => {
             >
               <input type="checkbox" :value="t.name" v-model="selectedTagsData" class="hidden" />
               <div
+                id="tag"
                 class="flex-1 px-3 py-1 rounded-full border-2 border-transparent hover:border-white transition-all duration-300 cursor-pointer"
                 :class="isSelected(t.name)
                   ? 'bg-green-600 text-white'
@@ -183,6 +183,7 @@ onMounted(async () => {
               >
                 <input type="checkbox" :value="lang.iso_code" v-model="selectedLanguagesData" class="hidden" />
                 <div
+                id="lang"
                   class="flex-1 px-3 py-1 rounded-full border-2 border-transparent hover:border-white transition-all duration-300 cursor-pointer"
                   :class="selectedLanguagesData.includes(lang.iso_code ?? '')
                     ? 'bg-blue-600 text-white'

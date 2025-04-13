@@ -2,6 +2,10 @@ FROM node:23-alpine AS base
 RUN corepack enable pnpm
 
 FROM base AS builder
+ARG VITE_API_URL
+ARG VITE_HASH
+ENV API_URL=$VITE_API_URL
+ENV VITE_HASH=$VITE_HASH
 WORKDIR /app
 COPY package.json ./
 COPY pnpm-lock.yaml ./

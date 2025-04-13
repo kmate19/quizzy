@@ -24,17 +24,19 @@ const setRoleHandlers = GLOBALS.CONTROLLER_FACTORY(
                     .values({ user_id: userId, role_id: roleid.id });
             });
         } catch (e) {
-            const res = {
-                message: "Error setting role",
-                error: {
-                    message: e instanceof Error ? e.message : "Unknown error",
-                    case: "conflict",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 400);
+            return c.json(
+                {
+                    message: "Hiba történt a szerepkör beállításakor",
+                    error: {
+                        message: "Error setting role",
+                        case: "server",
+                    },
+                } satisfies ApiResponse,
+                500
+            );
         }
 
-        return c.json({ message: "Role updated" });
+        return c.json({ message: "Szerepkör frissítve" });
     }
 );
 

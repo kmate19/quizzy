@@ -23,16 +23,18 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(
         });
 
         if (keys.length >= GLOBALS.MAX_ACTIVE_API_KEYS) {
-            const res = {
-                message: "You have reached the maximum number of API keys",
-                error: {
-                    message: "You have reached the maximum number of API keys",
-                    case: "forbidden",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 403);
+            return c.json(
+                {
+                    message: "Elérte a maximális API kulcsok számát",
+                    error: {
+                        message:
+                            "You have reached the maximum number of API keys",
+                        case: "forbidden",
+                    },
+                } satisfies ApiResponse,
+                403
+            );
         }
-
         const [id_by_user] = await db
             .select({ maxId: sql<number>`count(*)` })
             .from(userApiKeys)
@@ -47,7 +49,7 @@ const createHandler = GLOBALS.CONTROLLER_FACTORY(
 
         const res = {
             message:
-                "API key created, you will only see the full key once, so save it",
+                "API kulcs létrehozva, csak egy alkalommal látható, ezért mentse el",
             data: key,
         } satisfies ApiResponse;
         return c.json(res, 200);
@@ -65,3 +67,4 @@ function generateApiKey(prefix: string = "pk"): string {
 }
 
 export default createHandler;
+

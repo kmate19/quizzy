@@ -5,13 +5,13 @@ import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 
 export const getTagsDesc = describeRoute({
-    tags: ["Metadata"],
+    tags: ["Metaadatok"],
     description:
-        "Get a list of all available tags that can be associated with quizzes. Supports authentication via JWT cookie or API Key.",
+        "Lekéri az összes elérhető címkét, amelyek kvízekhez társíthatók. Támogatja a JWT süti vagy API kulcs használatával történő hitelesítést.",
     responses: {
         200: {
             description:
-                "Success - Returns an array of tag objects, each containing the tag name.",
+                "Sikeres - Visszaadja a címke objektumok tömbjét, mindegyik tartalmazza a címke nevét.",
             content: {
                 "application/json": {
                     // Schema likely Tag[] or ApiResponse with data: Tag[]
@@ -24,12 +24,12 @@ export const getTagsDesc = describeRoute({
 });
 
 export const getLanguagesDesc = describeRoute({
-    tags: ["Metadata"],
+    tags: ["Metaadatok"],
     description:
-        "Get a list of all available languages that quizzes can be associated with, including their name, ISO code, icon, and support level. Supports authentication via JWT cookie or API Key.",
+        "Lekéri az összes elérhető nyelvet, amelyekhez kvízek társíthatók, beleértve a nevüket, ISO kódjukat, ikonjukat és támogatási szintjüket. Támogatja a JWT süti vagy API kulcs használatával történő hitelesítést.",
     responses: {
         200: {
-            description: "Success - Returns an array of language objects.",
+            description: "Sikeres - Visszaadja a nyelvi objektumok tömbjét.",
             content: {
                 "application/json": {
                     // Schema likely Language[] or ApiResponse with data: Language[]

@@ -21,6 +21,9 @@ export type LobbyUser = {
             score: number;
         };
         pongTimeout: Timer;
+        deletionTimeout?: Timer;
+        canRecconnect: boolean;
+        reconnecting: boolean;
     };
 };
 
@@ -30,6 +33,7 @@ export type Lobby = {
     members: Set<ServerWebSocket<LobbyUser>>;
     quizData?: z.infer<typeof publishQuizSchema> & { quiz: { id: string } };
     gameState: GameState;
+    deletionTimeout?: Timer;
 };
 
 export type GameState =
@@ -44,8 +48,11 @@ export type GameState =
           // one by one
           questionIndices: Iterator<number>;
           currentQuestionIndex?: number;
+          roundNum: number;
           currentRoundAnswers: Map<string, z.infer<typeof quizAnswerSchema>>;
           // handle round ending with a timeout and a cb
+          roundTimeMs: number;
+          roundTimeStartedEpoch?: number;
           roundEndTimeout?: Timer;
           roundEndTrigger?: () => void;
       };

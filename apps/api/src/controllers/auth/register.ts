@@ -10,8 +10,12 @@ import { eq, or } from "drizzle-orm";
 import { zv } from "@/middlewares/zv";
 import { userStatsTable } from "@/db/schemas";
 import { randomBytes } from "node:crypto";
+import sendEmail from "@/utils/email/send-email";
+import { makeRateLimiter } from "@/middlewares/ratelimiters";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(
+    // makemsg hungarian
+    makeRateLimiter(15, 5, false, undefined, true),
     zv("json", RegisterUserSchema),
     async (c) => {
         const registerUserData = c.req.valid("json");
@@ -32,10 +36,23 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
                     ? "email already exists"
                     : "username already exists";
             const res = {
-                message: "user not created",
+                message: "Felhasználó létrehozása sikertelen",
                 error: {
                     message: message,
-                    case: "auth",
+                    case: "bad_request",
+                },
+            } satisfies ApiResponse;
+            return c.json(res, 400);
+        }
+
+        const domain = registerUserData.email.split("@")[1];
+        if (!GLOBALS.TRUSED_DOMAINS.has(domain)) {
+            const res = {
+                message:
+                    "Felhasználó létrehozása sikertelen, nem megbízható e-mail cím.",
+                error: {
+                    message: "Domain not trusted",
+                    case: "bad_request",
                 },
             } satisfies ApiResponse;
             return c.json(res, 400);
@@ -70,10 +87,10 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
         if (maybeError) {
             // TODO: test this somehow (idk what could cause the fauilure here)
             const res = {
-                message: "user not created",
+                message: "Felhasználó létrehozása sikertelen",
                 error: {
                     message: maybeError.message,
-                    case: "server",
+                    case: "bad_request",
                 },
             } satisfies ApiResponse;
             return c.json(res, 400);
@@ -94,31 +111,15 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        // NOTE: Worker paths need to be from the CWD of the running script, not relative to the f
-        // ile that imports it XD!
-        // also workers silently throw errors which dont get propogated to the main thread, so we need to event listener haha
-        // actually this still doesnt work since bun docs are wrong, after compiling the file extension becomes .js so thats why it cant find the file in prod
-        // ALSO THE RELATIVE PATHS NEED TO BE CHANGED SINCE FOLDER STRUCTURE CHANGES AFTER COMPILATION
-        // (why am i even compiling if theres one more issue because of this, im refactoring)
-        const worker = new Worker(
-            new URL(
-                GLOBALS.WORKERCONF.workerRelativePath +
-                    "workers/email-worker" +
-                    GLOBALS.WORKERCONF.workerExtension,
-                import.meta.url
-            ).href
-        );
-        worker.onerror = (e) => {
-            console.error(e);
-        };
-        worker.postMessage({
-            email: registerUserData.email,
+        await sendEmail(
+            registerUserData.email,
+            registerUserData.username,
             emailToken,
-            type: "verify",
-        });
+            "verify"
+        );
 
         const res = {
-            message: "user created",
+            message: "Felhasználó létrehozva",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

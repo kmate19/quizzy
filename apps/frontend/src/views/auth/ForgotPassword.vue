@@ -29,8 +29,27 @@ const handleSubmit = async () => {
       } as ToastOptions)
     await new Promise(resolve => setTimeout(resolve, 4000))
     router.push('/login')
-
   }
+  else if(newPw.status === 429) {
+        toast('Elérted a maximális új jelszó kérésének kísérletek számát!\nMax 5 próbálkozás 15 percenként', {
+          autoClose: 5000,
+          position: toast.POSITION.TOP_CENTER,
+          type: 'error',
+          transition: 'zoom',
+          pauseOnHover: true,
+        } as ToastOptions)
+  }
+  else{
+    const res = await newPw.json()
+    toast(res.message, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+  }
+  isLoading.value = false
 }
 </script>
 

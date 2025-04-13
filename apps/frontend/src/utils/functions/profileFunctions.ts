@@ -5,11 +5,12 @@ import type { quizCardView, userProfile } from '../type'
 import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
+import { useQuizzyStore } from '@/stores/quizzyStore'
+
+
 
 export const userData = async (id: string) => {
-  console.log("beleptem")
   if (id !== '') {
-    console.log("van id")
     const user = await clientv1.userprofile[':userId'].$get({ param: { userId: id } })
     if (user.status === 200) {
       const res = await user.json()
@@ -27,7 +28,7 @@ export const userData = async (id: string) => {
       return userObj
     } else {
       const res = await user.json()
-      toast(res.error.message, {
+      toast(res.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -36,7 +37,6 @@ export const userData = async (id: string) => {
       })
     }
   } else {
-    console.log("nincs id")
     const user = await clientv1.userprofile.$get()
     if (user.status === 200) {
       const res = await user.json()
@@ -70,7 +70,7 @@ export const userData = async (id: string) => {
       return userObj
     } else {
       const res = await user.json()
-      toast(res.error.message, {
+      toast(res.message, {
         autoClose: 5000,
         position: toast.POSITION.TOP_CENTER,
         type: 'error',
@@ -156,7 +156,6 @@ export const handleDelete = async (uuid: string) => {
     queryClient.refetchQueries({ queryKey: ['userQuizzies'] })
   } else {
     const res = await del.json()
-    console.log('Delete error:', res.message)
     toast(res.message, {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
@@ -170,7 +169,7 @@ export const handleDelete = async (uuid: string) => {
 const newPasswordSchema = zod.object({
   password: zod
     .string()
-    .min(1, { message: 'A mező kitöltése kötelező' })
+    .min(1, { message: 'A mezők kitöltése kötelező' })
     .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
     .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
     .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
@@ -181,9 +180,9 @@ const newPasswordSchema = zod.object({
 type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
 
 export const handlePasswordChange = async (
+  userCurrentPw: string,
   userPw: string,
   userPwConfirmation: string,
-  userCurrentPw: string,
 ) => {
   let regErrors = <zod.ZodFormattedError<NewPasswordSchemaType> | null>null
   const result = newPasswordSchema.safeParse({ password: userPw })
@@ -219,9 +218,9 @@ export const handlePasswordChange = async (
         transition: 'zoom',
         pauseOnHover: false,
       })
-      await clientv1.auth.logout.$get()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push('/login')
+      setTimeout(() => {
+        OnLogOut()
+      }, 1000)
     } else {
       const res = await reset.json()
       toast(res.message, {
@@ -252,7 +251,7 @@ export const getApiKey = async (expiration: string, description: string) => {
     return res.data
   } else {
     const res = await post.json()
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 3500,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -275,8 +274,7 @@ export const deleteApiKey = async (uuid: number) => {
     queryClient.refetchQueries({ queryKey: ['apiKeys'] })
   } else {
     const res = await del.json()
-    console.log(res)
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -290,11 +288,20 @@ export const listApiKeys = async () => {
   const get = await clientv1.apikey.list.$get()
   if (get.status === 200) {
     const res = await get.json()
-    console.log(res.data)
     return res.data.sort(
       (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
     )
   }else {
     return []
   }
+}
+
+export const OnLogOut = async () => {
+  const quizzyStore = useQuizzyStore()
+  await clientv1.auth.logout.$get()
+  queryClient.removeQueries({ queryKey: ['auth'] })
+  queryClient.removeQueries({ queryKey: ['userProfile'] })
+  localStorage.clear()
+  quizzyStore.$reset()
+  router.push('/login')
 }

@@ -19,18 +19,17 @@ const changePasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             .from(usersTable)
             .where(eq(usersTable.id, userId));
 
-        try {
-            await Bun.password.verify(oldPassword, user.password);
-        } catch (e) {
-            console.error("CHANGE PASSWORD ERROR", e);
-            const res = {
-                message: "Invalid old password",
-                error: {
-                    message: "invalid_old_password",
-                    case: "unauthorized",
-                },
-            } satisfies ApiResponse;
-            return c.json(res, 401);
+        if (!(await Bun.password.verify(oldPassword, user.password))) {
+            return c.json(
+                {
+                    message: "Érvénytelen régi jelszó",
+                    error: {
+                        message: "invalid_old_password",
+                        case: "bad_request",
+                    },
+                } satisfies ApiResponse,
+                400
+            );
         }
 
         const newPassword = await Bun.password.hash(password);
@@ -40,7 +39,7 @@ const changePasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             .where(eq(usersTable.id, userId));
 
         const res = {
-            message: "password changed",
+            message: "Jelszó megváltoztatva",
         } satisfies ApiResponse;
         return c.json(res, 200);
     }

@@ -6,10 +6,10 @@ import {
 import { LobbyMap, LobbyUser } from "@/types";
 import { ServerWebSocket } from "bun";
 import { WebsocketMessage } from "repo";
-import { jumbleIndicesIntoIter } from "./utils";
-import { startGameLoop } from "./start-game";
-import { abortLobby, closeWithError } from "./close";
-import { publishWs, sendLobby, sendSingle } from "./send";
+import { startGameLoop } from "@/game-loop/start-game";
+import { abortLobby, closeWithError } from "@/output/close";
+import { publishWs, sendLobby, sendSingle } from "@/output/send";
+import { z } from "zod";
 
 export async function handleWsMessage(
     ws: ServerWebSocket<LobbyUser>,
@@ -17,12 +17,32 @@ export async function handleWsMessage(
     lobbyid: string,
     lobbies: LobbyMap
 ) {
-    console.log(`client sent message {} to ${lobbyid}`, msg);
-
     const lobby = lobbies.get(lobbyid)!;
     const members = lobby.members;
 
     switch (msg.type) {
+        case "sendchatmessage":
+            const maybeChatMessage = z.string().max(100).safeParse(msg.data);
+
+            if (maybeChatMessage.error) {
+                closeWithError(
+                    ws,
+                    "Bad data: chat message",
+                    1007,
+                    maybeChatMessage.error
+                );
+                return;
+            }
+
+            const chatMessage = {
+                name: ws.data.lobbyUserData.username,
+                pfp: ws.data.lobbyUserData.pfp,
+                message: maybeChatMessage.data,
+            };
+
+            publishWs(ws, lobbyid, "recvchatmessage", chatMessage);
+
+            return;
         case "members":
             const rest = members
                 .values()
@@ -40,6 +60,9 @@ export async function handleWsMessage(
 
             sendSingle(ws, "members", memb);
 
+            return;
+        case "leave":
+            ws.data.lobbyUserData.canRecconnect = false;
             return;
         case "quizdata":
             if (lobby.gameState.hostId !== ws.data.lobbyUserData.userId) {
@@ -107,6 +130,8 @@ export async function handleWsMessage(
             lobby.gameState = {
                 hostId: lobby.gameState.hostId,
                 started: true,
+                roundNum: 0,
+                roundTimeMs: 15000,
                 questionIndices: jumbleIndicesIntoIter(
                     lobby.quizData.cards.length
                 ),
@@ -203,6 +228,8 @@ export async function handleWsMessage(
                 return;
             }
 
+            kickedUser.data.lobbyUserData.canRecconnect = false;
+
             closeWithError(kickedUser, "You have been kicked");
 
             return;
@@ -222,4 +249,14 @@ export async function handleWsMessage(
 
             return;
     }
+}
+
+function jumbleIndicesIntoIter(length: number) {
+    const indices = new Set<number>();
+
+    while (indices.size < length) {
+        indices.add(Math.floor(Math.random() * length));
+    }
+
+    return Iterator.from(indices.values());
 }

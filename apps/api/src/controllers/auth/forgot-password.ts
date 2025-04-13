@@ -6,8 +6,11 @@ import { zv } from "@/middlewares/zv";
 import { and, eq, or } from "drizzle-orm";
 import type { ApiResponse } from "repo";
 import { randomBytes } from "node:crypto";
+import sendEmail from "@/utils/email/send-email";
+import { makeRateLimiter } from "@/middlewares/ratelimiters";
 
 const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
+    makeRateLimiter(15, 5, false),
     zv("json", LoginUserSchema.omit({ password: true })),
     async (c) => {
         const loginUserData = c.req.valid("json");
@@ -26,7 +29,7 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             // do this to prevent user enumeration
             const res = {
                 message:
-                    "If the email exists, a reset password link has been sent to the email",
+                    "Ha az email cím létezik, egy jelszó visszaállító linket küldtünk az email címre",
             } satisfies ApiResponse;
             return c.json(res, 200);
         }
@@ -72,27 +75,17 @@ const forgotPasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        const worker = new Worker(
-            new URL(
-                GLOBALS.WORKERCONF.workerRelativePath +
-                    "workers/email-worker" +
-                    GLOBALS.WORKERCONF.workerExtension,
-                import.meta.url
-            ).href
-        );
-        worker.onerror = (e) => {
-            console.error(e);
-        };
-        worker.postMessage({
-            email: user.email,
+        sendEmail(
+            user.email,
+            user.username,
             emailToken,
-            type: "forgot_password",
-            data: randomPassword,
-        });
+            "forgot_password",
+            randomPassword
+        );
 
         const res = {
             message:
-                "If the email exists, a reset password link has been sent to the email",
+                "Ha az email cím létezik, egy jelszó visszaállító linket küldtünk az email címre",
         } satisfies ApiResponse;
 
         return c.json(res, 200);

@@ -10,6 +10,7 @@ import {
     tagsTable,
 } from "@/db/schemas";
 import checkJwt from "@/middlewares/check-jwt";
+import { makeRateLimiter } from "@/middlewares/ratelimiters";
 import { zv } from "@/middlewares/zv";
 import { processImage } from "@/utils/helpers";
 import { publishQuizSchema } from "@/utils/schemas/zod-schemas";
@@ -19,6 +20,7 @@ import type { ApiResponse } from "repo";
 
 const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
     checkJwt(),
+    makeRateLimiter(1, 1, true, undefined, true),
     zv("json", publishQuizSchema),
     async (c) => {
         const { userId } = c.get("accessTokenPayload");
@@ -33,9 +35,9 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             .select({ id: quizzesTable.id })
             .from(quizzesTable)
             .where(eq(quizzesTable.user_id, userId));
-        if (existingQuizzes.length > 10) {
+        if (existingQuizzes.length >= 10) {
             const res = {
-                message: "User has too many quizzes Max 10",
+                message: "A felhasználónak túl sok kvíze van, maximum 10",
                 error: {
                     message: "user_has_too_many_quizzes",
                     case: "bad_request",
@@ -47,7 +49,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
         if (cards.length > 10) {
             const res = {
-                message: "Quiz has too many cards Max 10",
+                message: "A kvíznek túl sok kártyája van, maximum 10",
                 error: {
                     message: "quiz_has_too_many_cards",
                     case: "bad_request",
@@ -67,7 +69,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
             if (!fileInfoRaw || !fileInfoRaw.mime.startsWith("image/")) {
                 const res = {
-                    message: "Invalid file type",
+                    message: "Érvénytelen fájltípus",
                     error: {
                         message: "invalid_file_type",
                         case: "bad_request",
@@ -79,12 +81,12 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
             if (rawFileBuf.length > 1024 * 1024) {
                 const res = {
-                    message: "File too large maximum 1MB",
+                    message: "A fájl túl nagy, maximum 1MB",
                     error: {
                         message: "file_too_large",
                         case: "bad_request",
                     },
-                };
+                } satisfies ApiResponse;
 
                 return c.json(res, 400);
             }
@@ -98,7 +100,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
         } catch (e) {
             console.error(e);
             const res = {
-                message: "Failed to publish quiz (banner)",
+                message: "A fejléc hibás formátumú",
                 error: {
                     message: "Failed to publish quiz (banner)",
                     case: "bad_request",
@@ -118,7 +120,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                 if (!fileInfoRaw || !fileInfoRaw.mime.startsWith("image/")) {
                     const res = {
-                        message: "Invalid file type",
+                        message: "Érvénytelen fájltípus",
                         error: {
                             message: "invalid_file_type",
                             case: "bad_request",
@@ -130,12 +132,12 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
 
                 if (rawFileBuf.length > 1024 * 1024) {
                     const res = {
-                        message: "File too large maximum 1MB",
+                        message: "A fájl túl nagy, maximum 1MB",
                         error: {
                             message: "file_too_large",
                             case: "bad_request",
                         },
-                    };
+                    } satisfies ApiResponse;
 
                     return c.json(res, 400);
                 }
@@ -149,7 +151,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
         } catch (e) {
             console.error("QUIZ PUBLISH ERROR (CARDS)", e);
             const res = {
-                message: "Failed to publish quiz (cards)",
+                message: "A kártyák hibás formátumúak",
                 error: {
                     message: "Failed to publish quiz (cards)",
                     case: "bad_request",
@@ -233,7 +235,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             }
 
             const res = {
-                message: "Failed to publish quiz",
+                message: "Nem sikerült publikálni a kvízt",
                 error: {
                     message: errMessage,
                     case: "server",
@@ -246,7 +248,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             throw new Error("Quiz id is undefined");
         }
         const res = {
-            message: "Quiz published",
+            message: "Kvíz publikálva",
             data: quizId,
         } satisfies ApiResponse;
 

@@ -51,7 +51,7 @@ const getAllUsersHandlers = GLOBALS.CONTROLLER_FACTORY(
         const users = usersWCount.map(({ totalCount, ...rest }) => rest);
 
         const res = {
-            message: "Users fetched",
+            message: "Felhasználók betöltve",
             data: { users, totalCount },
         } satisfies ApiResponse;
 

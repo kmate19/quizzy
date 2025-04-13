@@ -3,7 +3,6 @@ import LoginRegisterView from '@/views/auth/LoginRegister.vue'
 import HomeView from '@/views/HomeView.vue'
 import ProfileView from '@/views/user/ProfileView.vue'
 import GameCreation from '@/views/user/GameCreation.vue'
-import { ref, watch } from 'vue'
 import DetailedView from '@/views/DetailedView.vue'
 import { clientv1 } from '@/lib/apiClient'
 import ForgotPassword from '@/views/auth/ForgotPassword.vue'
@@ -12,6 +11,9 @@ import QuizPractice from '@/views/game/QuizPractice.vue'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 import { userData } from '@/utils/functions/profileFunctions'
 import GameWrapper from '@/components/GameWrapper.vue'
+
+const AUTH_QUERY_KEY = ['auth']
+const USER_PROFILE_QUERY_KEY = ['userProfile']
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,94 +71,73 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
       },
-    }
+    },
   ],
 })
 
-const title = ref('Quizzy')
+async function checkAuthStatus() {
+  try {
+    const cachedAuth = queryClient.getQueryData(AUTH_QUERY_KEY)
 
-router.beforeEach(async (toRoute, fromRoute, next) => {
-  let newTitle = 'Quizzy'
+    if (cachedAuth) {
+      return { isAuthenticated: true }
+    }
+    const auth = await clientv1.auth.authed.$get({ query: {} })
+    const isAuthenticated = auth.status === 200
 
-  const requiresAuth = toRoute.meta.requiresAuth
-  const isLoginPath = toRoute.path === '/login'
-  const cachedUser = queryClient.getQueryData(['authUser', 'authed'])
+    if (isAuthenticated) {
+      queryClient.setQueryData(AUTH_QUERY_KEY, { isAuthenticated: true })
+
+      const cachedUserProfile = queryClient.getQueryData(USER_PROFILE_QUERY_KEY)
+
+      if (!cachedUserProfile) {
+        const data = await userData('')
+        if (data) {
+          queryClient.setQueryData(USER_PROFILE_QUERY_KEY, data)
+          const quizzyStore = useQuizzyStore()
+          quizzyStore.userName = data.username
+          quizzyStore.pfp = data.profile_picture
+          quizzyStore.id = data.id || ''
+          quizzyStore.isAdmin = data.roles?.some((role) => role.role.name === 'admin') || false
+        }
+      }
+    } else {
+      queryClient.removeQueries({ queryKey: ['auth'] })
+    }
+
+    return { isAuthenticated }
+  } catch (error) {
+    console.error('Error checking authentication status:', error)
+    return { isAuthenticated: false, error }
+  }
+}
+
+router.beforeEach(async (to, from, next) => {
   const quizzyStore = useQuizzyStore()
 
-  quizzyStore.fromLogin = fromRoute.path === '/login'
+  quizzyStore.fromLogin = from.path === '/login'
+  const requiresAuth = to.meta.requiresAuth
+  const isLoginPath = to.path === '/login'
 
-  if (cachedUser) {
-    if (isLoginPath) {
-      return next('/')
-    }
-  } else {
-    try {
-      const auth = await clientv1.auth.authed.$get({ query: {} })
-      const isAuthenticated = auth.status === 200
+  if (requiresAuth || isLoginPath) {
+    const { isAuthenticated } = await checkAuthStatus()
 
-      if (isAuthenticated) {
-        queryClient.setQueryData(['authUser'], 'authed')
-        
-        const user = queryClient.getQueryData(['userProfile', ''])
-
-        if (!user) {
-          const data = await userData('')
-          if (data) {
-            queryClient.setQueryData(['userProfile', ''], data)
-            quizzyStore.userName = data.username
-            quizzyStore.pfp = data.profile_picture
-            quizzyStore.id = data.id || ''
-          }
-        }
-
-        if (isLoginPath) {
-          return next('/')
-        }
-      } else {
-        if (isLoginPath) {
-        } else if (requiresAuth) {
-          return next('/login')
-        }
+    if (isAuthenticated) {
+      if (isLoginPath) {
+        return next('/')
       }
-    } catch (error) {
-      console.error('Error during auth check:', error)
-      if (requiresAuth && !isLoginPath) {
+      return next()
+    } else {
+      if (requiresAuth) {
         return next('/login')
       }
+      return next()
     }
   }
-
-  switch (toRoute.name?.toString()) {
-    case 'loginRegister':
-      newTitle = 'Autentikáció'
-      break
-    case 'home':
-      newTitle = 'Kezdőlap'
-      break
-    case 'profile':
-      newTitle = 'Profil'
-      break
-    case 'game_creation':
-      newTitle = 'Játék készítés'
-      break
-    case 'detailed_view':
-      newTitle = 'Megtekintés'
-      break
-    case 'quiz_practice':
-      newTitle = 'Gyakorlás'
-      break
-  }
-
-  document.title = newTitle
+  
+  console.log("Navigating to:", to.path)
+  
   next()
 })
-
-watch(
-  title,
-  (newTitleValue) => {
-    document.title = `Quizzy - ${newTitleValue}`
-  },
-  { immediate: true },
-)
 
 export default router

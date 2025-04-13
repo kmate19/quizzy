@@ -1,36 +1,46 @@
-import { createTransport } from "nodemailer";
+import FormData from "form-data";
+import MailGun from "mailgun.js";
 import createEmailTemplate from "./create-email";
 import ENV from "@/config/env";
 
-const transporter = createTransport({
-    service: "gmail",
-    auth: {
-        user: ENV.EMAIL_USER(),
-        pass: ENV.EMAIL_PASS(),
-    },
+const mailgun = new MailGun(FormData);
+
+const mg = mailgun.client({
+    username: "api",
+    key: ENV.MAILGUN_API_KEY(),
+    url: "https://api.eu.mailgun.net",
 });
 
 export default async function sendEmail(
     userEmail: string,
+    userName: string,
     token: string,
     type: "forgot_password" | "verify",
     data?: string
 ) {
     console.log("Sending email to: ", userEmail);
-    const mailOpts = {
-        from: `"Quizzy" <${ENV.EMAIL_USER()}>`,
-        to: userEmail,
-        subject: "Quizzy",
-        html: createEmailTemplate(ENV.DOMAIN(), token, type, data),
-    };
 
-    const sendMailWithTimeout = new Promise((resolve, reject) => {
+    const sendMailWithTimeout = new Promise(async (resolve, reject) => {
         const timeout = setTimeout(() => {
             reject(new Error("Email sending timed out"));
         }, 10000);
 
-        transporter
-            .sendMail(mailOpts)
+        await mg.messages
+            .create(ENV.DOMAIN(), {
+                from: `Quizzy | ${type === "verify" ? "Hitelesítés" : "Jelszó"} <noreply@${ENV.DOMAIN()}>`,
+                to: userEmail,
+                subject:
+                    type === "verify"
+                        ? "E-mail cím megerősítése"
+                        : "Jelszó visszaállítása",
+                html: createEmailTemplate(
+                    ENV.DOMAIN(),
+                    userName,
+                    token,
+                    type,
+                    data
+                )!,
+            })
             .then((info) => {
                 clearTimeout(timeout);
                 resolve(info);

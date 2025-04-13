@@ -6,7 +6,10 @@
   src: url('@/assets/fonts/NotoColorEmoji.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-font-display: swap;
+  font-display: normal;
+  unicode-range:
+  U+1F1E6-1F1FF, /*magyar, nemet*/
+  U+E0067-E007F/*angol*/
 }
 
 

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, PlayIcon, StarIcon } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, PlayIcon, StarIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
-import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
@@ -18,9 +17,11 @@ import {
   getApiKey,
   deleteApiKey,
   listApiKeys,
+  OnLogOut
 } from '@/utils/functions/profileFunctions'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
+const quizzyStore = useQuizzyStore()
 const localPfp = ref('')
 const keyId = ref(0)
 const isLoadingDelete = ref(false)
@@ -35,13 +36,20 @@ const isDeleteModal = ref(false)
 const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const showPasswordModal = ref(false)
+const showPassword = ref(false)
 const apiKey = ref('')
 const route = useRoute()
 const userId = route.params.uuid.toString()
 
-const isOtherUser = computed(() => {
-  return userId !== ''
-})
+const mItems = {
+  private: 'privát',
+  published: 'publikus',
+  draft: 'vázlat'
+}
+
+
+const isOtherUser = userId !== ''
+
 
 const minDateTime = computed(() => {
   const now = new Date()
@@ -55,6 +63,32 @@ const userPw = ref({
   confirm_password: '',
 })
 
+const passwordValidation = ref({
+  minLength: false,
+  hasUppercase: false,
+  hasLowercase: false,
+  hasNumber: false,
+  hasSpecial: false,
+  passwordsMatch: false
+})
+
+watch(() => userPw.value.new_password, (newPassword) => {
+  passwordValidation.value.minLength = newPassword.length >= 8
+  passwordValidation.value.hasUppercase = /[A-Z]/.test(newPassword)
+  passwordValidation.value.hasLowercase = /[a-z]/.test(newPassword)
+  passwordValidation.value.hasNumber = /\d/.test(newPassword)
+  passwordValidation.value.hasSpecial = /[^a-zA-Z0-9]/.test(newPassword)
+  passwordValidation.value.passwordsMatch = newPassword === userPw.value.confirm_password
+})
+
+watch(() => userPw.value.confirm_password, (newConfirmPassword) => {
+  passwordValidation.value.passwordsMatch = userPw.value.new_password === newConfirmPassword
+})
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
+
 const { data: realUser, isLoading: isLoadingPage } = useQuery({
   queryKey: ['userProfile', userId],
   queryFn: () => userData(userId),
@@ -66,9 +100,6 @@ const { data: realUser, isLoading: isLoadingPage } = useQuery({
 const { data: userQuizzies, isLoading: isLoadingQuizzies } = useQuery({
   queryKey: ['userQuizzies', userId],
   queryFn: () => getUserQuizzies(userId),
-  staleTime: 60 * 15 * 1000,
-  refetchInterval: 60 * 15 * 1000,
-  refetchOnMount: true,
 })
 
 watch(
@@ -82,7 +113,7 @@ watch(
 )
 
 const isAdmin = computed(() => {
-  return localStorage.getItem('isAdmin') === "admin"
+  return quizzyStore.isAdmin
 })
 
 const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
@@ -90,7 +121,7 @@ const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
   queryFn: listApiKeys,
   staleTime: 60 * 15 * 1000,
   refetchInterval: 60 * 15 * 1000,
-  refetchOnMount: true,
+  refetchOnMount: false,
   enabled: isAdmin.value,
 })
 
@@ -178,6 +209,18 @@ const handleFileChange = (event: Event) => {
   if (file) {
     const size = file.size / (1024 * 1024)
 
+    const isValidFileType = file.type === 'image/jpeg' || file.type === 'image/png'
+    if (!isValidFileType) {
+      toast('Csak JPG és PNG fájlok engedélyezettek!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      return
+    }
+
     if (size > 1) {
       toast('A fájl mérete túl nagy!\n(Max: 1 MB)', {
         autoClose: 5000,
@@ -215,9 +258,10 @@ const saveProfileImage = async () => {
     })
     showSaveButton.value = false
     queryClient.refetchQueries({ queryKey: ['userProfile'] })
+    quizzyStore.pfp = localPfp.value
   } else {
     const res = await pfpUpload.json()
-    toast(res.error.message, {
+    toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,
       type: 'error',
@@ -243,14 +287,15 @@ const onDelete = (uuid: string) => {
   isDeleteModal.value = false
 }
 
-const OnLogOut = async () => {
-  await clientv1.auth.logout.$get()
-  queryClient.clear()
-  localStorage.clear()
-  const quizzyStore = useQuizzyStore()
-  quizzyStore.$reset()
-  router.push('/login')
+const isLoading = ref(false)
+
+const changePw = async () => {
+  isLoading.value = true
+  await handlePasswordChange(userPw.value.current_password, userPw.value.new_password, userPw.value.confirm_password)
+  isLoading.value = false
 }
+
+
 
 watch(
   () => route.params.uuid,
@@ -267,18 +312,19 @@ watch(
     enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100 translate-y-0">
     <div>
       <div class="relative max-w-7xl mx-auto p-2">
-        <div :class="isOtherUser ? 'flex flex-col lg:flex-row items-center justify-center gap-4 lg:mt-42' : ''">
-          <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8 w-fit">
+        <div :class="isOtherUser ? 'flex flex-col items-center' : ''">
+          <div class="backdrop-blur-md bg-white/10 rounded-2xl p-8 mb-8 flex m-auto gap-8"
+            :class="isOtherUser ? 'w-full md:w-[75%]' : 'w-full md:w-[80%]'">
             <div v-if="isLoadingPage" class="w-full flex justify-center items-center">
               <div class="flex justify-center items-center h-38">
                 <Loader2Icon class="w-12 h-12 text-white animate-spin" />
               </div>
             </div>
             <div v-else class="flex flex-col md:justify-center w-full items-center gap-6 md:gap-8 p-4"
-              :class="isOtherUser ? 'md:flex-col' : 'md:flex-row md:flex-wrap'">
+              :class="isOtherUser ? 'md:flex-row' : 'md:flex-row md:flex-wrap'">
               <div class="relative mx-auto md:mx-0">
-                <img :src="localPfp"
-                  class="md:w-40 md:h-40 h-48 w-48 rounded-full object-cover border-4 border-white/30" />
+                <img :src="localPfp" class="w-40 h-40 rounded-full border-4
+                   border-white/30 flex items-center justify-center" />
                 <div v-if="!isOtherUser">
                   <div
                     class="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
@@ -303,14 +349,15 @@ watch(
                       Admin
                     </span>
                   </p>
-                  <button @click="isApiModal = true"
-                    class="glass-button px-4 py-1 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit !bg-blue-900 hover:border-white border-2 border-transparent">
+                  <button @click="isApiModal = true" class="glass-button px-4 py-1 text-white font-semibold 
+                    rounded-lg transition-all duration-300 ease-in-out w-fit
+                     !bg-blue-900 hover:border-white border-2 border-transparent">
                     API Kulcs igénylés
                   </button>
                 </div>
               </div>
-              <div class="flex-1 flex flex-col md:flex-row justify-center md:justify-end items-center gap-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+              <div class="flex-1 flex flex-col md:flex-row justify-center  items-center gap-6">
+                <div class="flex flex-row gap-6">
                   <div>
                     <div class="text-3xl md:text-4xl font-bold text-white">
                       {{ realUser?.stats.plays }}
@@ -354,9 +401,9 @@ watch(
               </div>
             </div>
           </div>
-          <div class="gap-8 justify-center flex flex-col md:flex-row">
-            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full md:w-[40%]"
-              v-if="!isOtherUser && realUser?.friends?.length">
+          <div class="w-full" :class="isOtherUser ? 'md:w-[75%]' : ''">
+            <div v-if="!isOtherUser && realUser?.friends?.length"
+              class="backdrop-blur-md bg-white/10 rounded-2xl p-6 mb-8 w-full">
               <div v-if="isLoadingPage" class="h-[456px] flex justify-center items-center self-center">
                 <div class="flex justify-center items-center h-64">
                   <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -393,8 +440,7 @@ watch(
                 </div>
               </div>
             </div>
-            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full"
-              :class="realUser?.friends?.length ? 'md:w-[50%]' : 'md:w-[75%]'">
+            <div class="backdrop-blur-md bg-white/10 rounded-2xl p-6 w-full md:w-[80%] mx-auto">
               <div v-if="isLoadingQuizzies" class="h-[456px] flex justify-center items-center self-center">
                 <div class="flex justify-center items-center h-64">
                   <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -409,80 +455,85 @@ watch(
               </div>
               <div v-else>
                 <h2 class="text-2xl font-bold text-white mb-6 flex items-center justify-between">
-                  Quizzes
+                  Kvízek
                   <span class="text-sm font-normal text-white/70">
                     {{ userQuizzies?.length }} összesen
                   </span>
                 </h2>
                 <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
-                  <div v-for="quiz in userQuizzies" :key="quiz.id" class="relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white 
-                    hover:border-white border-2 border-transparent shadow-lg transition-all 
-                    duration-500 cursor-pointer bg-white/10"
-                    @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
+                  <div v-for="quiz in userQuizzies" :key="quiz.id" :class="{
+                    'relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white shadow-lg transition-all duration-500 cursor-pointer bg-white/10': true,
+                    'border-2 border-yellow-400 caution-border hover:border-white': quiz.status !== 'published',
+                    'border-2 border-transparent hover:border-white': quiz.status === 'published'
+                  }" @click="quiz.status !== 'published' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
 
-                    <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
-                      <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner" class="w-full h-full object-cover" />
-                      <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
-                    </div>
 
-                    <div class="flex-1 relative">
-                      <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-white font-medium text-xl">{{ quiz.title }}</h3>
-
-                        <div class="flex gap-2 absolute top-0 right-0">
-                          <span v-if="quiz.status !== 'draft' && !isOtherUser" @click.stop="handleQuizView(quiz.id)"
-                            class="flex rounded-full text-xs bg-blue-700 w-10 h-10 
-                            justify-center items-center border-2 border-transparent 
-                            hover:border-white transition-all duration-300">
-                            <Settings class="w-5 h-5" />
-                          </span>
-                          <span v-if="!isOtherUser" @click.stop="
-                            (isDeleteModal = !isDeleteModal),
-                            (selectedUuid = quiz.id)
-                            " class="flex rounded-full text-xs bg-red-700 w-10 h-10 
-                            justify-center items-center border-2 border-transparent 
-                            hover:border-white transition-all duration-300">
-                            <Trash2 class="w-5 h-5" />
-                          </span>
-                        </div>
+                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between w-full p-4 rounded-lg"
+                      :class="quiz.status !== 'published' ? 'bg-yellow-500/70' : ''">
+                      <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
+                        <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner"
+                          class="w-full h-full object-cover" />
+                        <div v-else class="w-full h-full bg-gray-600 flex items-center justify-center"></div>
                       </div>
 
-                      <span class="px-2 py-1 rounded-full text-xs" :class="{
-                        'bg-green-500': quiz.status === 'published',
-                        'bg-yellow-500': quiz.status === 'requires_review',
-                        'bg-gray-500': quiz.status === 'draft',
-                        'bg-blue-500': quiz.status === 'private',
-                      }">
-                        {{ quiz.status }}
-                      </span>
-
-                      <p class="text-sm text-white/70 my-2 line-clamp-2">
-                        {{ quiz.description }}
-                      </p>
-
-                      <div class="flex items-center flex-wrap gap-4 text-sm mt-2">
-                        <div class="flex items-center">
-                          <StarIcon class="w-5 h-5 text-yellow-400 mr-1" />
-                          <span class="text-white">{{ quiz.rating.toFixed(1) }}</span>
+                      <div class="flex-1 relative">
+                        <div class="flex items-center justify-between mb-2">
+                          <h3 class="text-white font-medium text-xl flex flex-wrap">{{ quiz.title }}</h3>
+                          <div class="flex gap-2 top-0 right-0">
+                            <span v-if="quiz.status !== 'draft' && !isOtherUser" @click.stop="handleQuizView(quiz.id)"
+                              class="flex rounded-full text-xs bg-blue-700 w-10 h-10 
+                            justify-center items-center border-2 border-transparent 
+                            hover:border-white transition-all duration-300">
+                              <Settings class="w-5 h-5" />
+                            </span>
+                            <span v-if="!isOtherUser" @click.stop="
+                              (isDeleteModal = !isDeleteModal),
+                              (selectedUuid = quiz.id)
+                              " class="flex rounded-full text-xs bg-red-700 w-10 h-10 
+                            justify-center items-center border-2 border-transparent 
+                            hover:border-white transition-all duration-300">
+                              <Trash2 class="w-5 h-5" />
+                            </span>
+                          </div>
                         </div>
 
-                        <div class="flex items-center">
-                          <PlayIcon class="w-5 h-5 text-green-400 mr-1" />
-                          <span class="text-white">{{ quiz.plays }}</span>
-                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs" :class="{
+                          'bg-green-500': quiz.status === 'published',
+                          'bg-yellow-500': quiz.status === 'requires_review',
+                          'bg-gray-500': quiz.status === 'draft',
+                          'bg-blue-500': quiz.status === 'private',
+                        }">
+                          {{ mItems[quiz?.status as keyof typeof mItems] }}
+                        </span>
 
-                        <div class="flex gap-1">
-                          <span v-for="lang in quiz.languages" :key="lang.name"
-                            class="w-fit h-fit rounded-lg p-1 bg-white/10 flex flex-row" :title="lang.name">
-                            {{ lang.icon }} {{ lang.name }}
-                          </span>
-                        </div>
+                        <p class=" text-white my-2 line-clamp-2">
+                          {{ quiz.description }}
+                        </p>
 
-                        <div class="flex flex-wrap gap-1">
-                          <span v-for="tag in quiz.tags" :key="tag.name"
-                            class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
-                            {{ tag.name }}
-                          </span>
+                        <div class="flex items-center flex-wrap gap-4 text-sm mt-2">
+                          <div class="flex items-center">
+                            <StarIcon class="w-5 h-5 text-red-400 mr-1" />
+                            <span class="text-white">{{ quiz.rating.toFixed(1) }}</span>
+                          </div>
+
+                          <div class="flex items-center ">
+                            <PlayIcon class="w-5 h-5 text-green-400 mr-1" />
+                            <span class="text-white">{{ quiz.plays }}</span>
+                          </div>
+
+                          <div class="flex gap-1">
+                            <span v-for="lang in quiz.languages" :key="lang.name"
+                              class="w-fit h-fit rounded-lg p-1 bg-white/10 flex flex-row" :title="lang.name">
+                              {{ lang.icon }} {{ lang.name }}
+                            </span>
+                          </div>
+
+                          <div class="flex flex-wrap gap-1">
+                            <span v-for="tag in quiz.tags" :key="tag.name"
+                              class="px-2 py-0.5 rounded-full bg-white/10 text-xs">
+                              {{ tag.name }}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -504,30 +555,44 @@ watch(
               </div>
               <XButton @click="closePasswordModal" />
             </div>
-            <form @submit.prevent="
-              handlePasswordChange(
-                userPw.new_password,
-                userPw.confirm_password,
-                userPw.current_password,
-              )
-              " class="space-y-4 text-white">
+            <div
+              class="space-y-4 text-white">
               <div>
-                <input type="password" placeholder="Jelenlegi jelszó" v-model="userPw.current_password"
+                <input :type="showPassword ? 'text' : 'password'" placeholder="Jelenlegi jelszó"
+                  v-model="userPw.current_password"
                   class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
               </div>
-              <div>
-                <input type="password" placeholder="Új jelszó" v-model="userPw.new_password"
+              <div class="relative">
+                <input :type="showPassword ? 'text' : 'password'" placeholder="Új jelszó" v-model="userPw.new_password"
                   class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" @click="togglePassword">
+                  <component :is="showPassword ? EyeOffIcon : EyeIcon" class="w-5 h-5 text-white" />
+                </div>
               </div>
               <div>
-                <input type="password" placeholder="Új jelszó megerősítése" v-model="userPw.confirm_password"
+                <input :type="showPassword ? 'text' : 'password'" placeholder="Új jelszó megerősítése"
+                  v-model="userPw.confirm_password"
                   class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
               </div>
-              <button type="submit"
-                class="glass-button px-4 py-3 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-                Jelszó módosítása
+              <ul class="text-sm text-white/70 space-y-1">
+                <li :class="passwordValidation.minLength ? 'text-green-400' : ''">• Minimum 8 karakter</li>
+                <li :class="passwordValidation.hasUppercase ? 'text-green-400' : ''">• Legalább egy nagybetű</li>
+                <li :class="passwordValidation.hasLowercase ? 'text-green-400' : ''">• Legalább egy kisbetű</li>
+                <li :class="passwordValidation.hasNumber ? 'text-green-400' : ''">• Legalább egy szám</li>
+                <li :class="passwordValidation.hasSpecial ? 'text-green-400' : ''">• Legalább egy speciális karakter
+                </li>
+                <li :class="passwordValidation.passwordsMatch ? 'text-green-400' : ''">• Jelszavak egyezése</li>
+              </ul>
+              <button @click="changePw"
+                class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all 
+                duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+
+                {{ isLoading ? '' : 'Jelszó módosítás' }}
+                <div v-if="isLoading" class="flex justify-center items-center h-fit pointer-events-auto">
+                  <Loader2Icon class="w-6 h-6 text-white animate-spin" />
+                </div>
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </transition>
@@ -761,5 +826,17 @@ body {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.caution-border {
+  background-image: linear-gradient(45deg,
+      #000 25%,
+      #FFCC00 25%,
+      #FFCC00 50%,
+      #000 50%,
+      #000 75%,
+      #FFCC00 75%,
+      #FFCC00);
+  background-size: 56px 56px;
 }
 </style>

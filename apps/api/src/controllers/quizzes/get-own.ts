@@ -40,7 +40,7 @@ const getOwnHandlers = GLOBALS.CONTROLLER_FACTORY(checkJwt(), async (c) => {
     });
 
     const res = {
-        message: "Quiz fetched",
+        message: "Kvíz betöltve",
         data: quizzes,
     } satisfies ApiResponse;
 

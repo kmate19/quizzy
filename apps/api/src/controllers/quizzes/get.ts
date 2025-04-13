@@ -64,7 +64,7 @@ const getHandlers = GLOBALS.CONTROLLER_FACTORY(
         const quizzes = quizzesWCount.map(({ totalCount, ...rest }) => rest);
 
         const res = {
-            message: "Quizzes fetched",
+            message: "Kvízek betöltve",
             data: { quizzes, totalCount },
         } satisfies ApiResponse;
 

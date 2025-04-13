@@ -17,7 +17,7 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
 
     if (keys.length === 0) {
         const res = {
-            message: "No API keys found",
+            message: "Nem található API kulcs",
             error: {
                 message: "No API keys found",
                 case: "not_found",
@@ -35,7 +35,7 @@ const listHandler = GLOBALS.CONTROLLER_FACTORY(checkJwt("admin"), async (c) => {
                 key.key.substring(key.key.length - 3, key.key.length))
     );
     const res = {
-        message: "API keys found",
+        message: "API kulcsok betöltve",
         data: keys,
     } satisfies ApiResponse;
     return c.json(res, 200);
