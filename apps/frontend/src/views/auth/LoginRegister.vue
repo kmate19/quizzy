@@ -249,7 +249,7 @@ onMounted(() => {
                 class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                 :type="showPassword ? 'text' : 'password'" />
               <button @click="togglePassword" tabindex="-1" type="button"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none">
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-gray-400 focus:outline-none">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
@@ -302,7 +302,7 @@ onMounted(() => {
                 class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                 :type="showPassword ? 'text' : 'password'" />
               <button @click="togglePassword" tabindex="-1" type="button"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-400 focus:outline-none">
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-gray-400 focus:outline-none">
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
