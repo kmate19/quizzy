@@ -134,6 +134,14 @@ export const hono = new Hono()
                     const lobby = lobbies.get(lobbyid);
 
                     if (lobby && lobby.members.has(ws.raw)) {
+                        const user = lobby.members
+                            .values()
+                            .find((m) => m === ws.raw);
+
+                        if (!user!.data.lobbyUserData.canRecconnect) {
+                            return;
+                        }
+
                         scheduleDisconnect(ws.raw, lobby, lobbyid);
 
                         if (

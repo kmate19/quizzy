@@ -49,6 +49,7 @@ declare type WebsocketMessageType =
     | "startgame"
     | "quizmeta"
     | "quizdata"
+    | "leave"
     | "members"
     | "whoami"
     | "ping"
