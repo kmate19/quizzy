@@ -294,7 +294,7 @@ const resetTilt = (element: HTMLElement) => {
       </div>
 
       <div v-if="isLoading" class="flex justify-center items-center h-64 pointer-events-auto">
-        <Loader2Icon class="w-12 h-12 text-gray-700 animate-spin" />
+        <Loader2Icon class="w-12 h-12 text-white animate-spin" />
       </div>
       <div v-else-if="error"
         class="bg-red-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white pointer-events-auto">

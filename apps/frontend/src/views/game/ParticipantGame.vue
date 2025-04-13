@@ -367,6 +367,13 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 const leaveLobby = () => {
   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
     try {
+      websocket.value.send(
+      JSON.stringify({
+        type: 'leave',
+        successful: true,
+        server: false,
+      }),
+    )
       setTimeout(() => {
         if (websocket.value) {
           websocket.value.close(1000, 'User left lobby')
