@@ -551,6 +551,19 @@ const restartGame = () => {
     )
   }
 }
+
+const openChat = () => {
+  isChatOpen.value = !isChatOpen.value
+  if (isChatOpen.value) {
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.chat-messages')
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight
+      }
+    }, 100)
+  }
+}
+
 </script>
 
 <template>
@@ -853,7 +866,7 @@ const restartGame = () => {
     </div>
 
     <div class="fixed bottom-8 right-8 z-50">
-      <button @click="toggleChat"
+      <button @click="openChat"
         class="glass-button p-3 rounded-full relative flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
         <MessageCircle class="h-6 w-6" :class="isChatOpen ? 'text-blue-300' : 'text-white'" />
         <div v-if="chatMessages.length > 0 && !isChatOpen"
