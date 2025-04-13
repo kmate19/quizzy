@@ -157,7 +157,7 @@ onMounted(async () => {
   localStorage.removeItem('quizEditSuccess')
   isLoading.value = true
   const uuid = route.params.uuid.toString()
-  if (isEdit.value === true) {
+  if (isEdit.value) {
     const result = await getQuiz(uuid)
     if (result && !Array.isArray(result) && typeof result === 'object') {
       const data = result.data
@@ -203,6 +203,18 @@ const handleGameImageUpload = (event: Event) => {
 
     const size = file.size / (1024 * 1024)
 
+    const isValidFileType = file.type === 'image/jpeg' || file.type === 'image/png'
+    if (!isValidFileType) {
+      toast('Csak JPG és PNG fájlok engedélyezettek!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      return
+    }
+
     if (size > 1) {
       if (gameImageInput.value) {
         gameImageInput.value.value = ''
@@ -243,6 +255,18 @@ const handleQuestionImageUpload = (event: Event) => {
     const file = input.files[0]
 
     const size = file.size / (1024 * 1024)
+
+    const isValidFileType = file.type === 'image/jpeg' || file.type === 'image/png'
+    if (!isValidFileType) {
+      toast('Csak JPG és PNG fájlok engedélyezettek!', {
+        autoClose: 5000,
+        position: toast.POSITION.TOP_CENTER,
+        type: 'error',
+        transition: 'zoom',
+        pauseOnHover: false,
+      })
+      return
+    }
 
     if (size > 1) {
       if (questionImageInput.value) {
@@ -294,7 +318,7 @@ const resetQuestion = () => {
 
 const addQuestion = async () => {
   const { msg, valid } = validateCard()
-  if (valid === true) {
+  if (valid) {
     quiz.value.cards.push({
       question: oneQuestion.value.question,
       type: oneQuestion.value.type,
@@ -551,7 +575,8 @@ const marqueeDuration = computed(() => {
               </label>
               <div class="relative inline-block text-left">
                 <button @click="toggleDropdown"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
+                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30
+                  cursor-pointer">
                   <span>{{ mItems[eitems.indexOf(quiz.status)] }}</span>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-300"
                     :class="{ 'rotate-180': isOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -578,7 +603,7 @@ const marqueeDuration = computed(() => {
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleTagDropdown" class="relative w-full bg-white/10 backdrop-blur-md text-white rounded px-3
                   py-2 inline-flex items-center justify-between border
-                   border-white/30 overflow-hidden whitespace-nowrap">
+                   border-white/30 overflow-hidden whitespace-nowrap cursor-pointer">
                   <div v-if="selectedTags.length > 0" class="flex-1 overflow-hidden max-w-full">
                     <div class="overflow-x-hidden">
                       <div class="flex w-fit" :class="{ 'animate-marquee': selectedTags.length > 2 }"
@@ -632,7 +657,8 @@ const marqueeDuration = computed(() => {
             <div class="flex flex-col mb-2">
               <div class="relative inline-block text-left w-full">
                 <button @click="toggleLanguageDropdown"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
+                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30
+                  cursor-pointer">
                   <span>
                     {{
                       selectedLanguages.length > 0
@@ -684,7 +710,7 @@ const marqueeDuration = computed(() => {
             <v-textarea v-model="quiz.description" label="Leírás" variant="outlined" bg-color="rgba(255, 255, 255, 0.1)"
               color="white" counter="255" :rules="[(v) => v.length <= 255]"
               @input="quiz.description = quiz.description.substring(0, 255)" />
-            <v-btn block color="success" class="mt-2" @click="uploadOrUpdate" :disabled="isLoading">
+            <v-btn block color="success" class="mt-2 cursor-pointer" @click="uploadOrUpdate" :disabled="isLoading">
               <span v-if="isLoading" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
@@ -731,7 +757,8 @@ const marqueeDuration = computed(() => {
               </label>
               <div class="relative inline-block text-left">
                 <button @click="isQType = !isQType"
-                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30">
+                  class="bg-white/10 backdrop-blur-md text-white rounded px-3 py-2 inline-flex items-center justify-between w-full border-1 border-white/30
+                  cursor-pointer">
                   <span>{{ oneQuestion.type }}</span>
                   <svg class="ml-2 h-5 w-5 transform transition-transform duration-200"
                     :class="{ 'rotate-180': isQType }" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -782,7 +809,7 @@ const marqueeDuration = computed(() => {
                     : [(v) => (v >= 1 && v <= 2) || '1 és 2 között kell lennie!']
                     " min="1" :max="oneQuestion.type == 'normal' ? 4 : 2" />
             </div>
-            <v-btn block color="primary" @click="addQuestion" :disabled="isLoading"> Kérdés hozzáadása </v-btn>
+            <v-btn block color="primary" @click="addQuestion" :disabled="isLoading" class="cursor-pointer"> Kérdés hozzáadása </v-btn>
           </div>
         </v-col>
         <v-col cols="12" md="4" class="glass-panel text-white !max-w-[94vw] lg:!max-w-[35vw]">
@@ -793,8 +820,15 @@ const marqueeDuration = computed(() => {
                 <h3 class="text-xl font-semibold mb-2 text-white">Kész kérdések: </h3>
                 <h3 class="text-xl font-semibold mb-2 text-white">{{ quiz.cards.length }}</h3>
               </div>
-              <div class="space-y-4 overflow-y-auto  flex-1 p-2">
-                <draggable v-model="quiz.cards" group="cards" item-key="cards" class="gap-2 flex flex-col">
+              <div class="space-y-4 overflow-y-auto flex-1 p-2">
+                <draggable v-model="quiz.cards" 
+                  group="cards" 
+                  item-key="cards" 
+                  class="gap-2 flex flex-col"
+                  :delay="150"
+                  :delayOnTouchOnly="true"
+                  :touchStartThreshold="10"
+                  :animation="200">
                   <template #item="{ element: card, index }">
                     <PreviewQuestion :question="card" :index="index" :handleQuestionRemove="handleQuestionRemove"
                       :handleQuestionEdit="handleQuestionModify" />

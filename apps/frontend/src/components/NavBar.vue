@@ -7,7 +7,6 @@ import { wsclient } from '@/lib/apiClient'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
 const quizzyStore = useQuizzyStore()
-
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
 const route = useRoute()
@@ -79,6 +78,7 @@ onMounted(() => {
   nextTick(() => {
     updateComponentName()
   })
+
 })
 
 const joinLobby = async (code: string) => {
@@ -127,6 +127,19 @@ const joinLobby = async (code: string) => {
     errorMessage.value = 'Nem sikerült csatlakozni a lobbyhoz. Hálózati hiba vagy szerver probléma.'
   }
 }
+
+const isLg = ref(true)
+
+const updateIsLg = () => {
+  isLg.value = window.innerWidth >= 958 
+}
+
+onMounted(() => {
+  updateIsLg()
+  window.addEventListener('resize', updateIsLg)
+})
+
+
 </script>
 
 <template>
@@ -134,6 +147,7 @@ const joinLobby = async (code: string) => {
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div
+          v-if="!quizzyStore.isGame || (quizzyStore.isGame && isLg)"
           @click="router.push('/')"
           class="items-center border-transparent border-2 hover:scale-105 cursor-pointer hover:border-white px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[''] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0"
         >
@@ -174,7 +188,7 @@ const joinLobby = async (code: string) => {
         <div class="block md:hidden mobile-navbar">
           <button
             @click="toggleMobileMenu"
-            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300 cursor-pointer"
+            class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300 cursor-pointer absolute top-2 right-2 z-50"
           >
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -190,7 +204,9 @@ const joinLobby = async (code: string) => {
       leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-full opacity-0">
       <div v-if="isMobileMenuOpen"
-        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar">
+        class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar"
+         v-click-outside="() => (isMobileMenuOpen = false)"
+        >
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <a @click="router.push('/')" :class="[
             'text-white px-3 py-2 rounded-md text-base font-medium flex justify-center items-center cursor-pointer transition-all duration-300 outlined-text',

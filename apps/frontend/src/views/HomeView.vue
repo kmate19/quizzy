@@ -249,7 +249,7 @@ const resetTilt = (element: HTMLElement) => {
 <template>
   <div class="home-page">
     <div
-      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-auto  rounded-md z-10 pointer-events-none">
+      class="max-w-[1200px] mx-auto px-4 py-8 h-[calc(100vh-20vh)] overflow-y-auto  rounded-md z-10 pointer-events-auto">
       <div class="flex flex-col md:flex-row justify-between mb-2 pointer-events-auto">
         <div class="flex items-center space-x-4" id="asd">
           <div ref="searchContainer" :class="[
@@ -301,7 +301,7 @@ const resetTilt = (element: HTMLElement) => {
         {{ error }}
       </div>
       <div v-else-if="quizzes.length === 0"
-        class="bg-gray-500 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white pointer-events-auto">
+        class="bg-white/30 bg-opacity-50 backdrop-blur-md rounded-lg p-4 text-white pointer-events-auto">
         Nincs találat
       </div>
       <div v-else class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 space-y-6 p-2" style="direction: ltr">
