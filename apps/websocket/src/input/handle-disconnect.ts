@@ -11,19 +11,21 @@ export function scheduleDisconnect(
         `client ${ws.data.lobbyUserData.userId} left lobby ${lobbyid} scheduling for deletion, members left: ${lobby.members.size} (including reconnecting)`
     );
 
-    if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
-        scheduleHostChange(lobby.gameState, lobby.members);
-    }
-
     if (!ws.data.lobbyUserData.canRecconnect) {
         console.log("client cannot reconnect");
         disconnect(ws, lobby, lobbyid);
+        if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
+            changeHost(lobby.gameState, lobby.members);
+        }
         return;
     }
 
     ws.data.lobbyUserData.reconnecting = true;
     ws.data.lobbyUserData.deletionTimeout = setTimeout(() => {
         disconnect(ws, lobby, lobbyid);
+        if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
+            changeHost(lobby.gameState, lobby.members);
+        }
     }, 3000);
 }
 
@@ -41,7 +43,7 @@ export function scheduleLobbyDeletion(
     }, 3500);
 }
 
-export function disconnect(
+function disconnect(
     ws: ServerWebSocket<LobbyUser>,
     lobby: Lobby,
     lobbyid: string
@@ -56,29 +58,27 @@ export function disconnect(
     );
 }
 
-function scheduleHostChange(
+function changeHost(
     gameState: GameState,
     members: Set<ServerWebSocket<LobbyUser>>
 ) {
-    console.log("host left scheduling host change");
-    setTimeout(() => {
-        if (
-            !members
-                .values()
-                .some((m) => m.data.lobbyUserData.userId === gameState.hostId)
-        ) {
-            // if host leaves, currently we just make another random member the host if there are any
-            const nextHost = members.values().next().value;
+    console.log("host left host change");
+    if (
+        !members
+            .values()
+            .some((m) => m.data.lobbyUserData.userId === gameState.hostId)
+    ) {
+        // if host leaves, currently we just make another random member the host if there are any
+        const nextHost = members.values().next().value;
 
-            if (!nextHost) {
-                return;
-            }
-
-            console.log("changing host");
-            gameState.hostId = nextHost.data.lobbyUserData.userId;
-
-            // send message to all members that the host has changed
-            sendLobby(members, "hostchange", { userId: gameState.hostId });
+        if (!nextHost) {
+            return;
         }
-    }, 3500);
+
+        console.log("changing host");
+        gameState.hostId = nextHost.data.lobbyUserData.userId;
+
+        // send message to all members that the host has changed
+        sendLobby(members, "hostchange", { userId: gameState.hostId });
+    }
 }
