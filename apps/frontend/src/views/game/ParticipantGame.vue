@@ -204,6 +204,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         console.log('Game started')
         gameStarted.value = true
         preparingNextRound.value = true
+        quizzyStore.isDuringGame = true
         currentQuestionIndex.value = 0
         nextTick(() => {
           setTimeout(() => {
@@ -258,6 +259,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         currentCard.value = null
         answerSelected.value = false
         gameEnded.value = true
+        quizzyStore.isDuringGame = false
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
       }
 
@@ -474,7 +476,7 @@ const sendChatMessage = () => {
 }
 
 onMounted(() => {
-  console.log(quizzyStore.lobbyId)
+  quizzyStore.isGame = true
   if (quizzyStore.canReconnect) {
     isReconnect.value = true
   }
@@ -508,6 +510,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', () => {
     windowWidth.value = window.innerWidth
   })
+  quizzyStore.isGame = false
 })
 
 const startGame = () => {
