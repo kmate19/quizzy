@@ -34,7 +34,8 @@ export function handleRoundEnd(lobby: Lobby, correct_answer_index: number) {
             return;
         }
 
-        const answerTimeDiff = Date.now() - v.answerTime;
+        const answerTimeDiff =
+            v.answerTime - lobby.gameState.roundTimeStartedEpoch!;
 
         const foundUser = lobby.members
             .values()
