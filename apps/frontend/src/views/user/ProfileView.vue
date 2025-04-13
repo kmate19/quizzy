@@ -584,7 +584,7 @@ watch(
                 <li :class="passwordValidation.passwordsMatch ? 'text-green-400' : ''">• Jelszavak egyezése</li>
               </ul>
               <button @click="changePw"
-                class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all 
+                class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all 
                 duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
 
                 {{ isLoading ? '' : 'Jelszó módosítás' }}
