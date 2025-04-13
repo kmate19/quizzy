@@ -6,7 +6,10 @@ import router from '@/router'
 import XButton from './XButton.vue'
 import { wsclient } from '@/lib/apiClient'
 import { useQuizzyStore } from '@/stores/quizzyStore'
+import { useNavbarStore } from '@/stores/navbarStore'
 
+
+const navbarStore = useNavbarStore()
 const quizzyStore = useQuizzyStore()
 const isCodeModal = ref(false)
 const lobbyCode = ref('')
@@ -148,16 +151,16 @@ onMounted(() => {
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16"
-        :class="[quizzyStore.isGame ? 'justify-center' : 'justify-between']">
-        <div @click="!quizzyStore.isGame && router.push('/')" v-if="!quizzyStore.isDuringGame" :class="[
+        :class="[navbarStore.isGame ? 'justify-center' : 'justify-between']">
+        <div @click="!navbarStore.isGame && router.push('/')" v-if="!navbarStore.isDuringGame" :class="[
           'flex gap-1 items-center border-2 px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0',
-          quizzyStore.isGame
+          navbarStore.isGame
             ? 'cursor-not-allowed border-transparent'
             : 'cursor-pointer hover:scale-105 hover:border-white border-transparent'
         ]">
           Quizzy <span class="text-white">{{ componentName }}</span>
         </div>
-        <div class="hidden md:block desktop-navbar" v-if="!quizzyStore.isGame">
+        <div class="hidden md:block desktop-navbar" v-if="!navbarStore.isGame">
           <div class="ml-10 flex items-baseline space-x-4">
             <a @click="router.push('/')" :class="[
               'px-4 py-1 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out border-2 cursor-pointer w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0 flex justify-center items-center',
@@ -189,7 +192,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div class="block md:hidden mobile-navbar" v-if="!quizzyStore.isGame">
+        <div class="block md:hidden mobile-navbar" v-if="!navbarStore.isGame">
           <button @click="toggleMobileMenu"
             class="text-white hover:bg-white/50 p-2 rounded-md transition-all duration-300 cursor-pointer absolute top-2 right-2 z-50">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -205,7 +208,7 @@ onMounted(() => {
       enter-from-class="transform -translate-y-full opacity-0" enter-to-class="transform translate-y-0 opacity-100"
       leave-active-class="transition duration-300 ease-in" leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-full opacity-0">
-      <div v-if="isMobileMenuOpen && !quizzyStore.isGame"
+      <div v-if="isMobileMenuOpen && !navbarStore.isGame"
         class="md:hidden block bg-white/10 backdrop-blur-sm absolute top-16 left-0 right-0 z-50 m-5 rounded-md mobile-navbar"
         v-click-outside="() => (isMobileMenuOpen = false)">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">

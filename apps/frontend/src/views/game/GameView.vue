@@ -5,6 +5,7 @@ import { wsclient } from '@/lib/apiClient'
 import { generateSessionHash } from '@/utils/helpers'
 import { Loader2Icon, Users, Copy, Trophy, MessageCircle, Send } from 'lucide-vue-next'
 import { useQuizzyStore } from '@/stores/quizzyStore'
+import { useNavbarStore } from '@/stores/navbarStore'
 import type { gameStats } from '@/utils/type'
 import XButton from '@/components/XButton.vue'
 import type { Participants } from '@/utils/type'
@@ -12,6 +13,7 @@ import { toast } from 'vue3-toastify'
 
 const route = useRoute()
 const router = useRouter()
+const navbarStore = useNavbarStore()
 const quizzyStore = useQuizzyStore()
 const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
@@ -197,7 +199,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
       if (data.type === 'gamestarted') {
         console.log('Game started')
         gameStarted.value = true
-        quizzyStore.isDuringGame = true
+        navbarStore.isDuringGame = true
         preparingNextRound.value = true
         nextTick(() => {
           setTimeout(() => {
@@ -253,7 +255,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         currentCard.value = null
         answerSelected.value = false
         gameEnded.value = true
-        quizzyStore.isDuringGame = false
+        navbarStore.isDuringGame = false
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
       }
 
@@ -532,7 +534,7 @@ const openChat = () => {
 }
 
 onMounted(() => {
-  quizzyStore.isGame = true
+  navbarStore.isGame = true
   if (quizzyStore.canReconnect) {
     isReconnect.value = true
   }
@@ -567,8 +569,8 @@ onUnmounted(() => {
   window.removeEventListener('resize', () => {
     windowWidth.value = window.innerWidth
   })
-  quizzyStore.isGame = false
-  quizzyStore.isDuringGame = false
+  navbarStore.isGame = false
+  navbarStore.isDuringGame = false
 })
 
 </script>

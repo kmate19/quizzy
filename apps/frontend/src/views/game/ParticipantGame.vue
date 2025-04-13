@@ -8,9 +8,11 @@ import { useQuizzyStore } from '@/stores/quizzyStore'
 import type { QuizData, gameStats, Participants } from '@/utils/type'
 import XButton from '@/components/XButton.vue'
 import { toast } from 'vue3-toastify'
+import { useNavbarStore } from '@/stores/navbarStore'
 
 const route = useRoute()
 const router = useRouter()
+const navbarStore = useNavbarStore()
 const quizzyStore = useQuizzyStore()
 const lobbyId = ref(quizzyStore.lobbyId)
 const isHost = ref(quizzyStore.isHost)
@@ -204,7 +206,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         console.log('Game started')
         gameStarted.value = true
         preparingNextRound.value = true
-        quizzyStore.isDuringGame = true
+        navbarStore.isDuringGame = true
         currentQuestionIndex.value = 0
         nextTick(() => {
           setTimeout(() => {
@@ -259,7 +261,7 @@ const setupWebSocketListeners = (ws: WebSocket) => {
         currentCard.value = null
         answerSelected.value = false
         gameEnded.value = true
-        quizzyStore.isDuringGame = false
+        navbarStore.isDuringGame = false
         stats.value?.scores.sort((a, b) => b.stats.score - a.stats.score)
       }
 
@@ -476,7 +478,7 @@ const sendChatMessage = () => {
 }
 
 onMounted(() => {
-  quizzyStore.isGame = true
+  navbarStore.isGame = true
   if (quizzyStore.canReconnect) {
     isReconnect.value = true
   }
@@ -510,7 +512,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', () => {
     windowWidth.value = window.innerWidth
   })
-  quizzyStore.isGame = false
+  navbarStore.isGame = false
 })
 
 const startGame = () => {

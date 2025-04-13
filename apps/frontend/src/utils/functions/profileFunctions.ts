@@ -6,7 +6,7 @@ import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
 import { useQuizzyStore } from '@/stores/quizzyStore'
-
+import { useNavbarStore } from '@/stores/navbarStore'
 
 
 export const userData = async (id: string) => {
@@ -298,10 +298,12 @@ export const listApiKeys = async () => {
 
 export const OnLogOut = async () => {
   const quizzyStore = useQuizzyStore()
+  const navbarStore = useNavbarStore()
   await clientv1.auth.logout.$get()
   queryClient.removeQueries({ queryKey: ['auth'] })
   queryClient.removeQueries({ queryKey: ['userProfile'] })
   localStorage.clear()
   quizzyStore.$reset()
+  navbarStore.$reset()
   router.push('/login')
 }
