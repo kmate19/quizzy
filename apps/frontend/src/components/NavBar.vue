@@ -92,7 +92,8 @@ const joinLobby = async (code: string) => {
 
   try {
     isLoading.value = true
-
+    //simulate a delay for the loading state
+    await new Promise((resolve) => setTimeout(resolve, 5000))
     const first = await wsclient.reserve.session[':code?'].$post({
       param: { code: code.trim() },
       query: { ts: Date.now().toString() },
@@ -147,15 +148,13 @@ onMounted(() => {
   <nav class="transition-all duration-300 ease-in-out relative bg-transparent z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16"
-      :class="[quizzyStore.isGame ? 'justify-center' : 'justify-between']">
-        <div @click="!quizzyStore.isGame && router.push('/')"
-        v-if="!quizzyStore.isDuringGame"
-          :class="[
-            'flex gap-1 items-center border-2 px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0',
-            quizzyStore.isGame
-              ? 'cursor-not-allowed border-transparent'
-              : 'cursor-pointer hover:scale-105 hover:border-white border-transparent'
-          ]">
+        :class="[quizzyStore.isGame ? 'justify-center' : 'justify-between']">
+        <div @click="!quizzyStore.isGame && router.push('/')" v-if="!quizzyStore.isDuringGame" :class="[
+          'flex gap-1 items-center border-2 px-4 py-1 text-3xl text-purple-400 font-semibold rounded-lg transition-all duration-300 ease-in-out w-fit relative bg-white/10 backdrop-blur-sm shadow-md active:shadow-sm whitespace-nowrap before:content-[\'\'] before:rounded-inherit before:shadow-inner before:shadow-white/10 before:pointer-events-none before:absolute before:inset-0',
+          quizzyStore.isGame
+            ? 'cursor-not-allowed border-transparent'
+            : 'cursor-pointer hover:scale-105 hover:border-white border-transparent'
+        ]">
           Quizzy <span class="text-white">{{ componentName }}</span>
         </div>
         <div class="hidden md:block desktop-navbar" v-if="!quizzyStore.isGame">
@@ -243,14 +242,17 @@ onMounted(() => {
         <XButton @click="isCodeModal = !isCodeModal" class="absolute top-2 right-2" />
         <h3 class="text-xl font-semibold mb-4 text-white">Adja meg a kapott kódot</h3>
         <div class="flex flex-col gap-4">
-          <v-text-field id="lobbyCode" label="Lobby kód" v-model="lobbyCode" variant="outlined" density="comfortable"
-            class="w-full text-white"></v-text-field>
-          <div v-if="errorMessage" class="text-red-500 text-sm mb-2">{{ errorMessage }}</div>
+          <input type="text" id="lobbyCode" placeholder="Lobby kód" v-model="lobbyCode"
+            @keyup.enter="joinLobby(lobbyCode)" class="w-full px-4 py-2 text-white bg-white/10 border
+             border-white/30 rounded-lg focus:outline-none focus:ring-2
+              focus:ring-purple-500 focus:border-transparent 
+              placeholder-gray-400" />
+          <div v-if="errorMessage" class="text-red-500 text-sm mb-1">{{ errorMessage }}</div>
           <button @click="joinLobby(lobbyCode)"
             class="glass-button py-2 px-4 text-md text-white font-semibold rounded-full transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-            {{ isLoading ? 'Csatlakozás...' : 'Csatlakozás' }}
-            <div v-if="isLoading" class="flex justify-center items-center h-64 pointer-events-auto">
-              <Loader2Icon class="w-12 h-12 text-white animate-spin" />
+            {{ isLoading ? '' : 'Csatlakozás' }}
+            <div v-if="isLoading" class="flex justify-center items-center h-fit pointer-events-auto">
+              <Loader2Icon class="w-6 h-6 text-white animate-spin" />
             </div>
           </button>
         </div>
