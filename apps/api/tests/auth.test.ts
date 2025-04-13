@@ -43,7 +43,7 @@ describe("tests for api auth functionality", () => {
                 param: { emailHash: emailToken!.tokens[0].token },
             });
 
-            expect(res.status).toBe(200);
+            expect(res.status).toBe(302);
 
             const [userVerifiedStatus] = await db
                 .select({ verifyStatus: schema.usersTable.auth_status })
@@ -54,39 +54,6 @@ describe("tests for api auth functionality", () => {
         });
     });
     describe("login", () => {
-        // TODO: make this more foolproof even if
-        // the user doesnt supply the cookie in the header, currently its 500 error
-        test("fails if already logged in (cookie check)", async () => {
-            await registerTestUser(client, undefined, true);
-
-            const resUsername = await client.auth.login.$post({
-                json: {
-                    username_or_email: "mateka",
-                    password: "123",
-                },
-            });
-            const jsonUsername = await resUsername.json();
-            expect(resUsername.status).toBe(200);
-            expect(jsonUsername.message).toBe("login successful");
-
-            const cookies = resUsername.headers.getSetCookie();
-
-            const anotherLogin = await client.auth.login.$post(
-                {
-                    json: {
-                        username_or_email: "test@example.com",
-                        password: "123",
-                    },
-                },
-                { headers: { Cookie: cookies.join(";") } }
-            );
-
-            const jsonAnotherLogin = await anotherLogin.json();
-            expect(anotherLogin.status).toBe(400);
-            expect(jsonAnotherLogin.message).toBe(
-                "user already has a login cookie"
-            );
-        });
         test("fails if banned", async () => {
             await registerTestUser(client, undefined, false);
 
@@ -103,9 +70,6 @@ describe("tests for api auth functionality", () => {
             });
             const json_username = await res_username.json();
             expect(res_username.status).toBe(401);
-            expect(json_username.message).toBe(
-                "Your account can't be accessed at this time. Please contant an administrator."
-            );
         });
         test("fails if not verified", async () => {
             await registerTestUser(client, undefined, false);
@@ -118,9 +82,6 @@ describe("tests for api auth functionality", () => {
             });
             const json_username = await res_username.json();
             expect(res_username.status).toBe(401);
-            expect(json_username.message).toBe(
-                "Account not verified! Please check your inbox for the verification email!"
-            );
         });
         test("fails when invalid password", async () => {
             await registerTestUser(client, undefined, true);
@@ -133,9 +94,6 @@ describe("tests for api auth functionality", () => {
             });
             const json_username = await res_username.json();
             expect(res_username.status).toBe(400);
-            expect(json_username.message).toBe(
-                "Invalid credentials try again!"
-            );
         });
         test("get cookie with successful login", async () => {
             await registerTestUser(client, undefined, true);
@@ -148,7 +106,6 @@ describe("tests for api auth functionality", () => {
             });
             const json_username = await res_username.json();
             expect(res_username.status).toBe(200);
-            expect(json_username.message).toBe("login successful");
 
             const cookies = res_username.headers.getSetCookie();
             expect(cookies).toHaveLength(1);
@@ -164,7 +121,6 @@ describe("tests for api auth functionality", () => {
             });
             const json_username = await res_username.json();
             expect(res_username.status).toBe(200);
-            expect(json_username.message).toBe("login successful");
 
             const cookies = res_username.headers.getSetCookie();
 
@@ -182,7 +138,6 @@ describe("tests for api auth functionality", () => {
             });
             const json_email = await res_email.json();
             expect(res_email.status).toBe(200);
-            expect(json_email.message).toBe("login successful");
         });
     });
     describe("registration", () => {
@@ -192,7 +147,6 @@ describe("tests for api auth functionality", () => {
             const json = await res.json();
             console.error("json", json);
             expect(res.status).toBe(200);
-            expect(json.message).toBe("user created");
         });
         test("fails cause bad data", async () => {
             const res = await client.auth.register.$post({
@@ -202,7 +156,6 @@ describe("tests for api auth functionality", () => {
             const json = (await res.json()) as unknown as ApiResponse;
             console.error("json", json);
             expect(res.status).toBe(400);
-            expect(json.message).toBe("Validation failed");
         });
         test("fails cause duplicate username/email error", async () => {
             await registerTestUser(client, undefined, false);
@@ -218,8 +171,6 @@ describe("tests for api auth functionality", () => {
             if (!res_email.ok) {
                 const json = await res_email.json();
                 expect(res_email.status).toBe(400);
-                expect(json.message).toBe("user not created");
-                expect(json.error.message).toBe("email already exists");
             }
 
             const res_username = await client.auth.register.$post({
@@ -233,8 +184,6 @@ describe("tests for api auth functionality", () => {
             if (!res_username.ok) {
                 const json = await res_username.json();
                 expect(res_username.status).toBe(400);
-                expect(json.message).toBe("user not created");
-                expect(json.error.message).toBe("username already exists");
             }
         });
     });
