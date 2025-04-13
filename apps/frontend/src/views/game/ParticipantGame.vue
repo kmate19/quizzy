@@ -292,11 +292,11 @@ const setupWebSocketListeners = (ws: WebSocket) => {
 
       if (data.type === 'disconnect') {
         participants.value.members = participants.value.members.filter(
-          (member) => member.userId !== data.data.userId,
+          (member) => member.username !== data.data,
         )
         if (stats.value) {
           stats.value.scores = stats.value.scores?.filter(
-            (member) => member.userId !== data.data.userId,
+            (member) => member.username !== data.data,
           )
         }
       }
