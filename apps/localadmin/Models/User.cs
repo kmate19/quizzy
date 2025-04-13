@@ -1,114 +1,196 @@
 ﻿using localadmin.Services;
 using localadmin.ViewModels;
 using localadmin.Views;
-using System.Diagnostics;
-using System.Windows;
+using System.Data;
+using System.IO;
+using System.Text.Json.Serialization;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace localadmin.Models
 {
+    /*
+    általános információk
+
+    A JsonPropertyName attribútumok a JSON fájlban szereplő neveket tárolják, mivel néhány adat neve az alkalmazásban eltér az adatbázisban tároltaktól.
+    A JsonConverter pedig a Enumok konvertálásához kell.
+    A wrapper osztályok a JSON fájlban szereplő adatokat tárolják. 
+    Ezek az osztályok segítenek az adatok könnyebb kinyerésében és feldolgozásában.
+    Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
+    */
+
+
+    /// <summary>
+    /// Ez az osztály reprezentál 1 felhasználót az alkalmazásban.
+    /// </summary>
+    public class RoleWrapper
+    {
+        public Roles ?Role { get; set; }
+    }
+    public class ProfilePictureWrapper
+    {
+        [JsonPropertyName("data")]
+        public List<byte> ?Data { get; set; }
+
+        public byte[]? GetByteArray()
+        {
+            if (Data == null || Data.Count == 0)
+            {
+                return null;
+            }
+            return Data.ToArray();
+        }
+    }
+
+    public class StatWrapper
+    {
+        public int? Plays { get; set; }
+        [JsonPropertyName("first_places")]
+        public int? FirstPlaces { get; set; }
+    }
+
     public class User
     {
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum EActivityStatus
         {
-            Active,
-            Inactive,
-            Away
+            active,
+            inactive,
+            away
         }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum EAuthStatus
         {
-            Pending,
-            Active,
-            Blocked
+            pending,
+            active,
+            blocked
         }
 
-        private static readonly Dictionary<string, string> Translations = new Dictionary<string, string>
+        private static readonly Dictionary<EActivityStatus, string> ActivityStatusTranslations = new Dictionary<EActivityStatus, string>
         {
-            { "Away", "Távol" },
-            { "Active", "Aktív" },
-            { "Inactive", "Inaktív" },
-            { "Pending", "Folyamatban" },
-            { "Blocked", "Blokkolva" },
-
+            { EActivityStatus.active, "Aktív" },
+            { EActivityStatus.inactive, "Inaktív" },
+            { EActivityStatus.away, "Távol" }
         };
 
-        private string Translate(string key) => Translations.TryGetValue(key, out var translation) ? translation : key;
-        private static readonly Dictionary<EActivityStatus, string> ActivityStatusTranslations = new Dictionary<EActivityStatus, string>
-    {
-        { EActivityStatus.Active, "Aktív" },
-        { EActivityStatus.Inactive, "Inaktív" },
-        { EActivityStatus.Away, "Távol" }
-    };
-
         private static readonly Dictionary<EAuthStatus, string> AuthStatusTranslations = new Dictionary<EAuthStatus, string>
-    {
-        { EAuthStatus.Pending, "Folyamatban" },
-        { EAuthStatus.Active, "Aktív" },
-        { EAuthStatus.Blocked, "Blokkolva" }
-    };
+        {
+            { EAuthStatus.pending, "Folyamatban" },
+            { EAuthStatus.active, "Aktív" },
+            { EAuthStatus.blocked, "Blokkolva" }
+        };
 
+        //ez az event meghívódik amikor egy felhasználó adatai megváltoznak, és újra tölti az felhasználókat.
+        public event Action UserUpdated = delegate { };
+
+        //ezek szimplán vissza adják a felhasználó Aktivitás és Authentikációs státuszát magyarul, így volt a legkönnyebb lefordítani.
         public string TranslatedActivityStatus => ActivityStatusTranslations.TryGetValue(ActivityStatus, out var translation) ? translation : ActivityStatus.ToString();
         public string TranslatedAuthStatus => AuthStatusTranslations.TryGetValue(AuthStatus, out var translation) ? translation : AuthStatus.ToString();
-        public string UserRoles=> string.Join(", ", Roles.Select(r => r.Name));
+        public string UserRoles => Roles != null
+            ? string.Join(", ", Roles.Select(r => r.Role?.Name ?? "Unknown"))
+            : "No Roles";
 
-        private readonly NavigationService navigationService;
-        private readonly SharedStateService sharedState;
+        private NavigationService navigationService = new NavigationService();
+        private SharedStateService sharedState;
+
+        /// <summary>
+        /// Az ICommandok a gombokhoz tartozó parancsokat tárolják, mivel a gombokhoz nem lehet közvetlenül metódust rendelni ezért ezt a konstruktorban
+        /// </summary>
         public ICommand ViewQuizCommand { get; }
         public ICommand ViewReviewCommand { get; }
-        public ICommand DeleteUserCommand { get; }
         public ICommand EditUserCommand { get; }
-        public string UUID { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
+
+        [JsonPropertyName("id")]
+        public string UUID { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        [JsonPropertyName("activity_status")]
         public EActivityStatus ActivityStatus { get; set; }
+        [JsonPropertyName("auth_status")]
         public EAuthStatus AuthStatus { get; set; }
+        [JsonPropertyName("created_at")]
         public DateTime CreatedAt { get; set; }
+        [JsonPropertyName("updated_at")]
         public DateTime UpdatedAt { get; set; }
-        public List<Roles> Roles { get; set; }
 
+        [JsonPropertyName("profile_picture")]
+        public ProfilePictureWrapper ProfilePicture { get; set; } = new ProfilePictureWrapper();
+        public byte[]? ProfilePictureArray => ProfilePicture?.GetByteArray();
+        public ImageSource? ProfileImage => ByteArrayToImage(ProfilePictureArray);
 
-        public User(NavigationService navigationService, SharedStateService sharedState)
+        public StatWrapper Stats { get; set; } = new StatWrapper();
+        public double Winrate { get; set; }
+
+        public List<RoleWrapper> Roles { get; set; } = new List<RoleWrapper>();
+
+        public User()
         {
-            this.navigationService = navigationService;
-            this.sharedState = sharedState;
-            ViewQuizCommand=new RelayCommand(ViewQuiz);
+            ViewQuizCommand = new RelayCommand(ViewQuiz);
             ViewReviewCommand = new RelayCommand(ViewReview);
-            DeleteUserCommand = new RelayCommand(DeleteUser);
             EditUserCommand = new RelayCommand(EditUser);
         }
 
-        private void EditUser(object parameter)
+        public void Initialize(NavigationService navigationService)
         {
-            Debug.WriteLine("edit user clicked");
+            this.navigationService = navigationService;
+            this.sharedState = SharedStateService.Instance;
+        }
+
+        /// <summary>
+        /// Ez a funkció konvertálja a byte tömböt (így van tárolva az adatbázisban) ImageSource-ra, hogy megjeleníthető legyen a WPF-ben.
+        /// </summary>
+        /// <param name="imageData"></param>
+        /// <returns></returns>
+        public static ImageSource? ByteArrayToImage(byte[]? imageData)
+        {
+            if (imageData == null)
+                return null;
+
+            BitmapImage image = new BitmapImage();
+            using (var ms = new MemoryStream(imageData))
+            {
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = ms;
+                image.EndInit();
+            }
+            return image;
+        }
+
+
+        /// <summary>
+        /// Ezek a függvények a gombokhoz tartozó parancsokat hajtják végre.
+        /// </summary>
+        /// <param name="parameter"></param>
+        public void EditUser(object parameter)
+        {
             EditUserWindow editUserWindow = new(this);
             editUserWindow.Show();
         }
 
-        private void ViewQuiz(object parameter)
+        public async void ViewQuiz(object parameter)
         {
-            QuizViewModel quizView = new (navigationService, sharedState);
-            sharedState.SearchText = Username;
+            QuizViewModel quizView = new(navigationService);
+            SharedStateService.Instance.SearchText = Username;
             navigationService.NavigateTo(quizView);
+            await quizView.InitializeAsync();
             quizView.SearchQuizes(Username);
         }
 
-        private void ViewReview(object parameter)
+        public void ViewReview(object parameter)
         {
-            ReviewViewModel reviewView=new (navigationService, sharedState);
+            ReviewViewModel reviewView = new(navigationService);
             sharedState.SearchText = Username;
             navigationService.NavigateTo(reviewView);
             reviewView.SearchReviews(Username);
         }
 
-        private void DeleteUser(object parameter)
+        public void OnUserUpdated()
         {
-            PopUpModal modal = new ("Biztosan törölni szeretnéd ezt a felhasználót: "+Username);
-            bool? result = modal.ShowDialog();
-
-            if (result == true) {
-                MessageBox.Show("Felhasznalo sikeresen törölve");
-            }
+            UserUpdated?.Invoke();
         }
     }
 }

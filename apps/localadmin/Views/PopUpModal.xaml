@@ -8,7 +8,15 @@
         Title="" Height="250" Width="400"
         WindowStartupLocation="CenterScreen">
     <Grid>
-        <TextBlock x:Name="MessageText" Text="" FontSize="25" TextAlignment="Center" VerticalAlignment="Center" Margin="10" TextWrapping="Wrap"/>
+
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#c304f1" Offset="0"/>
+                <GradientStop Color="#00d2dc" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <TextBlock x:Name="MessageText" Text="" FontSize="25" TextAlignment="Center" VerticalAlignment="Center" Margin="10" TextWrapping="Wrap" Foreground="White"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10">
             <Button Content="Igen" Width="80" Margin="10" Click="Yes_Click" Style="{StaticResource GridButtons}" />
             <Button Content="Nem" Width="80" Margin="10" Click="No_Click" Style="{StaticResource GridButtons}" Background="Red"/>

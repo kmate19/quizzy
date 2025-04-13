@@ -18,12 +18,12 @@ import {
 
 const admin = new Hono()
     .basePath("/admin")
-    .post("/set/role", setRoleDesc, ...setRoleHandlers)
-    .post("/set/authstatus", setAuthStatusDesc, ...setAuthStatusHandlers)
-    .post("/set/quiz", setQuizStatusDesc, ...setQuizStatusHandlers)
-    .get("/all-quizzes", getAllQuizzesAdminDesc, ...getAllQuizHandlers)
-    .get("/all-users", getAllUsersAdminDesc, ...getAllUsersHandlers)
-    .get("/authenticate", authenticateAdminDesc, async (c) => {
+    .post("/set/role", ...setRoleHandlers)
+    .post("/set/authstatus", ...setAuthStatusHandlers)
+    .post("/set/quiz", ...setQuizStatusHandlers)
+    .get("/all-quizzes", ...getAllQuizHandlers)
+    .get("/all-users", ...getAllUsersHandlers)
+    .get("/authenticate", async (c) => {
         // @ts-expect-error not passing next
         const res = await check_apikey(c);
 

@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "localadmin", "localadmin.csproj", "{C1C65A3D-1A11-4BA3-8B43-905DBDE43B78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "localadmin", "localadmin.csproj", "{C1C65A3D-1A11-4BA3-8B43-905DBDE43B78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +18,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {30211E39-763E-4718-B9B0-CC47B63902B5}
 	EndGlobalSection
 EndGlobal

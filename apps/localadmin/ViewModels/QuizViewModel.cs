@@ -1,168 +1,229 @@
-﻿using System.Collections.ObjectModel;
+﻿using localadmin.Models;
+using localadmin.Services;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using localadmin.Models;
-using localadmin.Services;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Threading;
 using static localadmin.Models.Quiz;
 
 namespace localadmin.ViewModels
 {
-    public class QuizViewModel
+    /// <summary>
+    /// A UserViewModel a felhasználói adatok kezeléséért felelős.
+    /// Kapcsolatot biztosít a felhasználói felület és az adatok között az MVVM mintában.
+    /// </summary>
+    /// <remarks>
+    /// A ViewModel figyeli az adatok változását, és értesíti a felhasználói felületet az "INotifyPropertyChanged" interfészen keresztül.
+    /// Emellett parancsokat biztosít az UI műveleteihez.
+    /// </remarks>
+    public class QuizViewModel : INotifyPropertyChanged
     {
         private readonly NavigationService NavigationService;
         private readonly SharedStateService SharedState;
+        private DispatcherTimer _refreshTimer;
+        private int _currentPage = 1;
+        private int _PageSize = 10;
+        public ObservableCollection<int> PageSizeOptions { get; }
 
-        private Dictionary<Quiz.EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
+
+        /// <summary>
+        /// Ez azért szükséges, hogy a quiz-eket a státuszuk szerint rendezzük. Előre kerülnek azok, amelyek felülvizsgálásra várnak.
+        /// </summary>
+        private Dictionary<EQuizStatus, int> QuizOrder = new Dictionary<EQuizStatus, int>
         {
-            {EQuizStatus.RequiresReview, 1 },
-            {EQuizStatus.Published, 2 },
-            {EQuizStatus.Draft, 3 },
-            {EQuizStatus.Private, 4 }
+            {EQuizStatus.requires_review, 1 },
+            {EQuizStatus.published, 2 },
+            {EQuizStatus.draft, 3 },
+            {EQuizStatus.@private, 4 }
         };
 
-        public ObservableCollection<Quiz> Quizzes { get; set; }
-        public ObservableCollection<Quiz> FiltredQuizzes { get; set; }
-
-
-        public QuizViewModel(NavigationService Navigation, SharedStateService State)
+        public int CurrentPage
         {
-            NavigationService=Navigation;
-            SharedState = State;
-
-            //kurva ocsmany szar de megteszi <3
-            Quizzes = new ObservableCollection<Quiz>
-            {
-                new Quiz(NavigationService, SharedState)
-                {
-                    UUID = "a3c92ff2-6587-4c34-bd7b-7f6d8642f21a",
-                    UserID = "f5e6a25f-8b92-441d-b58d-c3d5dbde2c0e",
-                    Title = "Basic C# Quiz",
-                    Description = "A beginner's quiz about C# fundamentals.",
-                    Status = EQuizStatus.Published,
-                    Rating = 4,
-                    Plays = 350,
-                    CreatedAt = DateTime.UtcNow.AddMonths(-2),
-                    UpdatedAt = DateTime.UtcNow,
-                    QuizCards=new List<QuizCard>
-                    {
-                        new QuizCard
-                        {
-                            Type = QuizCard.EQuitType.normal,
-                            ID = 1, QuizID = 1,
-                            Question = "What is the size of an int in C#?",
-                            Answers = new List<string> { "4 bytes", "2 bytes", "8 bytes", "Depends on the platform" },
-                            CorrectAnswerIndex = 0
-                        },
-                        new QuizCard
-                        {
-                            Type = QuizCard.EQuitType.twochoise,
-                            ID = 2, QuizID = 1,
-                            Question = "Which keyword is used to define a class?",
-                            Answers = new List<string> { "class", "struct" },
-                            CorrectAnswerIndex = 0
-                        },
-                        new QuizCard
-                        {
-                            Type = QuizCard.EQuitType.normal,
-                            ID = 3, QuizID = 1,
-                            Question = "What does 'static' mean in C#?",
-                            Answers = new List<string> { "It belongs to the class rather than an instance", "It can be instantiated multiple times", "It is a dynamically allocated variable", "None of the above" },
-                            CorrectAnswerIndex = 0
-                            },
-                    }
-
-                },
-                new Quiz(NavigationService, SharedState)
-                {
-                    UUID = "d7e4b1d5-d0c2-4c69-9a2d-fab07344b364",
-                    UserID = "d3d77b3a-d671-45b0-88c7-b9a6d7b98c68",
-                    Title = "Advanced JavaScript Quiz",
-                    Description = "Test your advanced JavaScript knowledge!",
-                    Status = EQuizStatus.Published,
-                    Rating = 4,
-                    Plays = 500,
-                    CreatedAt = DateTime.UtcNow.AddMonths(-1),
-                    UpdatedAt = DateTime.UtcNow,
-                    QuizCards=new List<QuizCard>{
-                        new QuizCard
-                        {
-                            ID = 4, QuizID = 2,
-                            Question = "What does 'use strict' do in JavaScript?",
-                            Answers = new List<string> { "Enforces stricter parsing and error handling", "Prevents execution", "Makes code run faster", "Has no effect" },
-                            CorrectAnswerIndex = 0
-                        },
-                        new QuizCard
-                        {
-                            ID = 5, QuizID = 2,
-                            Question = "What is the output of `typeof null`?",
-                            Answers = new List<string> { "object", "null", "undefined", "string" },
-                            CorrectAnswerIndex = 0
-                        },
-                        new QuizCard
-                        {
-                            ID = 6, QuizID = 2,
-                            Question = "How do you create an arrow function?",
-                            Answers = new List<string> { "() => {}", "function() {}", "new Function()", "=> function() {}" },
-                            CorrectAnswerIndex = 0
-                        }
-                    },
-                },
-                new Quiz(NavigationService, SharedState)
-                {
-                    UUID = "f0bf33c7-3d28-426d-b7b0-cb57f75ef0f5",
-                    UserID = "ccf473a2-92ba-42b7-9444-98013b495ef4",
-                    Title = "HTML and CSS Quiz",
-                    Description = "How well do you know web design?",
-                    Status = EQuizStatus.RequiresReview,
-                    Rating = 3,
-                    Plays = 220,
-                    CreatedAt = DateTime.UtcNow.AddMonths(-3),
-                    UpdatedAt = DateTime.UtcNow,
-                    QuizCards = new List<QuizCard>
-                    {
-                        new QuizCard
-                        {
-                            ID = 7, QuizID = 3,
-                            Question = "What does CSS stand for?",
-                            Answers = new List<string> { "Cascading Style Sheets", "Computer Style System", "Creative Styling Syntax", "Coded Style Structure" },
-                            CorrectAnswerIndex = 0
-                        },
-                        new QuizCard
-                        {
-                            ID = 8, QuizID = 3,
-                            Question = "Which HTML tag is used for a hyperlink?",
-                            Answers = new List<string> { "<a>", "<link>", "<href>", "<h>" },
-                            CorrectAnswerIndex = 0
-                        },
-                        new QuizCard
-                        {
-                            ID = 9, QuizID = 3,
-                            Question = "What is the default display property of a `<div>`?",
-                            Answers = new List<string> { "block", "inline", "flex", "grid" },
-                            CorrectAnswerIndex = 0
-                        }
-                    }
-                }
-            };
-
-            FiltredQuizzes = new ObservableCollection<Quiz>(
-                Quizzes.OrderBy(x => QuizOrder[x.Status])
-            );
-
-            for (int i = 0; i<FiltredQuizzes.Count; i++)
-            {
-                Debug.WriteLine(FiltredQuizzes[i].Status);
+            get => _currentPage;
+            set { 
+                _currentPage = value; 
+                OnPropertyChanged();
             }
         }
 
-        public void SearchQuizes(string query)
+        public int PageSize
         {
-            var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.MadeBy, quiz.Title]);
+            get => _PageSize;
+            set
+            {
+                if (_PageSize != value)
+                {
+                    _PageSize = value;
+                    OnPropertyChanged(nameof(PageSize));
+
+                    _ = PageSizeChanged();
+                }
+            }
+        }
+
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand PreviousPageCommand { get; }
+        public ICommand NextPageCommand { get; }
+
+        public bool CanGoPrevious => CurrentPage > 1;
+        public bool CanGoNext => maxPage > CurrentPage;
+
+        public int maxPage;
+
+        public ObservableCollection<Quiz> Quizzes { get; set; } = new();
+        public ObservableCollection<Quiz> FiltredQuizzes { get; set; } = new();
+
+
+        public QuizViewModel(NavigationService Navigation)
+        {
+            NavigationService=Navigation;
+            SharedState = SharedStateService.Instance;
+            PreviousPageCommand = new RelayCommand(PreviousPage);
+            NextPageCommand = new RelayCommand(NextPage);
+
+            PageSizeOptions = new ObservableCollection<int> { 10, 20, 30, 40, 50 };
+            PageSize = PageSizeOptions[0];
+
+            _refreshTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(30)
+            };
+            _refreshTimer.Tick += async (sender, e) => await GetQuizes();
+            _refreshTimer.Start();
+        }
+        private async Task PageSizeChanged()
+        {
+            await GetQuizes();
+        }
+
+        public async Task InitializeAsync()
+        {
+            await GetQuizes();
+        }
+
+        /// <summary>
+        /// Ez a függvény lekéri az összes quiz-et az adatbázisból.
+        /// </summary>
+        /// <returns></returns>
+        public async Task GetQuizes()
+        {
+            IsLoading = true;
+            var fetchedQuizes = await ApiQuizzesService.GetQuizzesAsync(CurrentPage, PageSize);
+
+            var quizzesList = new List<Quiz>();
+            var filteredList = new List<Quiz>();
+
+            foreach (var quiz in fetchedQuizes.Quizzes)
+            {
+                quiz.Initialize(NavigationService);
+                quiz.QuizUpdated += async () => await GetQuizes();
+
+                quizzesList.Add(quiz);
+                filteredList.Add(quiz);
+            }
+
+
+            //itt hozzáadunk minden más adatot a quizhez, amit a QuizCardokban tárolunk, illetve a státuszt, és a tag-eket
+            foreach (var quiz in quizzesList)
+            {
+                var detailedData = await ApiQuizzesService.GetQuizCardsByIdAsync(quiz.UUID);
+                if (detailedData != null)
+                {
+                    quiz.QuizCards = detailedData.Cards;
+                    quiz.Tags = detailedData.Tags;
+                    quiz.User = new UserWrapper { Username = detailedData.Username };
+
+                    if (Enum.TryParse<EQuizStatus>(detailedData.Status, true, out var parsedStatus))
+                        quiz.Status = parsedStatus;
+                }
+            }
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                Quizzes.Clear();
+                foreach (var quiz in quizzesList)
+                {
+                    Quizzes.Add(quiz);
+                }
+
+                var orderedFilteredList = filteredList
+                    .OrderBy(q => QuizOrder.ContainsKey(q.Status) ? QuizOrder[q.Status] : int.MaxValue)
+                    .ToList();
+
+                FiltredQuizzes.Clear();
+                foreach (var quiz in orderedFilteredList)
+                {
+                    FiltredQuizzes.Add(quiz);
+                }
+            });
+
+            maxPage = (int)Math.Ceiling((double)fetchedQuizes.TotalCount / PageSize);
+
+            IsLoading = false;
+        }
+
+        /// <summary>
+        /// Ez a függvény felelős a keresésért a quiz-ek között, akár felhasználó név, akár quiz cím alapján.
+        /// </summary>
+        /// <param name="query"></param>
+        public void SearchQuizes(string query)
+        {   
+            var results = SearchService.FuzzySearch(Quizzes, query, quiz => [quiz.User.Username, quiz.Title]);
             FiltredQuizzes.Clear();
             foreach (var quiz in results)
             {
                 FiltredQuizzes.Add(quiz);
             }
+        }
+        /// <summary>
+        /// Visszalép az elpőző oldalra és frissíti az adatokat.
+        /// </summary>
+        /// <param name="parameter"></param>
+        private async void PreviousPage(object parameter)
+        {
+            if (CanGoPrevious)
+            {
+                CurrentPage--;
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CanGoNext));
+                await GetQuizes();
+            }
+        }
+
+        /// <summary>
+        /// Átlép a következő oldalra és frissíti az adatokat.
+        /// </summary>
+        /// <param name="parameter"></param>
+        private async void NextPage(object parameter)
+        {
+            if (CanGoNext)
+            {
+                CurrentPage++;
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CanGoPrevious));
+                await GetQuizes();
+            }
+            else
+                MessageBox.Show("Nincs további oldal.");
+        }
+
+        public event PropertyChangedEventHandler ?PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
