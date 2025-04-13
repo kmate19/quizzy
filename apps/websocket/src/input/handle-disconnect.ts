@@ -41,7 +41,7 @@ export function scheduleLobbyDeletion(
     }, 3500);
 }
 
-function disconnect(
+export function disconnect(
     ws: ServerWebSocket<LobbyUser>,
     lobby: Lobby,
     lobbyid: string
