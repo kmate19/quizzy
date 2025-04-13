@@ -158,7 +158,9 @@ export const hono = new Hono()
             const timestamp = c.req.valid("query").ts;
             const timediff = Math.abs(Date.now() - timestamp);
 
-            if (timediff > 3500) {
+            console.log(`timestamp difference: ${timediff}ms`);
+            if (timediff > 7000) {
+                console.log(`timestamp difference is too high: ${timediff}ms`);
                 return c.json({}, 400);
             }
 
