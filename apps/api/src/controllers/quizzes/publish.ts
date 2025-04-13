@@ -35,7 +35,7 @@ const publishHandlers = GLOBALS.CONTROLLER_FACTORY(
             .select({ id: quizzesTable.id })
             .from(quizzesTable)
             .where(eq(quizzesTable.user_id, userId));
-        if (existingQuizzes.length > 10) {
+        if (existingQuizzes.length >= 10) {
             const res = {
                 message: "A felhasználónak túl sok kvíze van, maximum 10",
                 error: {

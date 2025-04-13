@@ -14,6 +14,7 @@ import { handleWsMessage } from "./input/handle-ws-message";
 import { closeIfInvalid, closeWithError } from "./output/close";
 import { sendSingle } from "./output/send";
 import {
+    disconnect,
     scheduleDisconnect,
     scheduleLobbyDeletion,
 } from "./input/handle-disconnect";
@@ -134,6 +135,15 @@ export const hono = new Hono()
                     const lobby = lobbies.get(lobbyid);
 
                     if (lobby && lobby.members.has(ws.raw)) {
+                        const user = lobby.members
+                            .values()
+                            .find((m) => m === ws.raw);
+
+                        if (!user!.data.lobbyUserData.canRecconnect) {
+                            disconnect(ws.raw, lobby, lobbyid);
+                            return;
+                        }
+
                         scheduleDisconnect(ws.raw, lobby, lobbyid);
 
                         if (

@@ -13,6 +13,7 @@ const wsMessageTypeZEnum = z.enum([
     "recvchatmessage",
     "hostchange",
     "kick",
+    "leave",
     "answered",
     "roundstarted",
     "roundended",

@@ -61,6 +61,9 @@ export async function handleWsMessage(
             sendSingle(ws, "members", memb);
 
             return;
+        case "leave":
+            ws.data.lobbyUserData.canRecconnect = false;
+            return;
         case "quizdata":
             if (lobby.gameState.hostId !== ws.data.lobbyUserData.userId) {
                 closeWithError(ws, "You are not the host");
@@ -224,6 +227,8 @@ export async function handleWsMessage(
                 closeWithError(ws, "User not found");
                 return;
             }
+
+            kickedUser.data.lobbyUserData.canRecconnect = false;
 
             closeWithError(kickedUser, "You have been kicked");
 
