@@ -5,6 +5,9 @@ import type { quizCardView, userProfile } from '../type'
 import { queryClient } from '@/lib/queryClient'
 import * as zod from 'zod'
 import router from '@/router'
+import { useQuizzyStore } from '@/stores/quizzyStore'
+
+
 
 export const userData = async (id: string) => {
   if (id !== '') {
@@ -166,7 +169,7 @@ export const handleDelete = async (uuid: string) => {
 const newPasswordSchema = zod.object({
   password: zod
     .string()
-    .min(1, { message: 'A mező kitöltése kötelező' })
+    .min(1, { message: 'A mezők kitöltése kötelező' })
     .min(8, { message: 'Minimum 8 karaktert kell tartalmaznia az új jelszónak' })
     .regex(/[a-z]/, { message: 'Tartalmaznia kell kisbetűt az új jelszónak' })
     .regex(/[A-Z]/, { message: 'Tartalmaznia kell nagybetűt az új jelszónak' })
@@ -177,9 +180,9 @@ const newPasswordSchema = zod.object({
 type NewPasswordSchemaType = zod.infer<typeof newPasswordSchema>
 
 export const handlePasswordChange = async (
+  userCurrentPw: string,
   userPw: string,
   userPwConfirmation: string,
-  userCurrentPw: string,
 ) => {
   let regErrors = <zod.ZodFormattedError<NewPasswordSchemaType> | null>null
   const result = newPasswordSchema.safeParse({ password: userPw })
@@ -215,9 +218,9 @@ export const handlePasswordChange = async (
         transition: 'zoom',
         pauseOnHover: false,
       })
-      await clientv1.auth.logout.$get()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push('/login')
+      setTimeout(() => {
+        OnLogOut()
+      }, 1000)
     } else {
       const res = await reset.json()
       toast(res.message, {
@@ -291,4 +294,14 @@ export const listApiKeys = async () => {
   }else {
     return []
   }
+}
+
+export const OnLogOut = async () => {
+  const quizzyStore = useQuizzyStore()
+  await clientv1.auth.logout.$get()
+  queryClient.removeQueries({ queryKey: ['auth'] })
+  queryClient.removeQueries({ queryKey: ['userProfile'] })
+  localStorage.clear()
+  quizzyStore.$reset()
+  router.push('/login')
 }

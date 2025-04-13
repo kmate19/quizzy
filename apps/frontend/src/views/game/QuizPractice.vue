@@ -81,6 +81,7 @@ const showResultAndProceed = () => {
         if (isLastQuestion.value) {
             gamePhase.value = 'completed'
             quizzyStore.isGame = false
+            quizzyStore.isDuringGame = false
         } else {
             currentQuestionIndex.value++
             startQuestion()
@@ -104,6 +105,7 @@ const getBaseButtonColor = (index: number) => {
 onUnmounted(() => {
     stopTimer()
     quizzyStore.isGame = false
+    quizzyStore.isDuringGame = false
 })
 
 const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
@@ -160,6 +162,7 @@ const restartGame = () => {
     shuffleAnswers()
     startPreGameTimer()
     quizzyStore.isGame = true
+    quizzyStore.isDuringGame = true
 }
 
 onMounted(async () => {
@@ -173,6 +176,7 @@ onMounted(async () => {
     shuffleAnswers()
     startPreGameTimer()
     quizzyStore.isGame = true
+    quizzyStore.isDuringGame = true
 })
 
 

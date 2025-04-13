@@ -17,6 +17,7 @@ export const useQuizzyStore = defineStore(
     const id = ref<string>('')
     const canReconnect = ref<boolean>(false)
     const isGame = ref<boolean>(false)
+    const isDuringGame = ref<boolean>(false)
 
     function setCurrentQuiz(quiz: detailedQuiz) {
       currentQuiz.value = {
@@ -82,6 +83,7 @@ export const useQuizzyStore = defineStore(
       lobbyDataReset,
       canReconnect,
       isGame,
+      isDuringGame
     }
   },
   {

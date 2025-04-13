@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, PlayIcon, StarIcon } from 'lucide-vue-next'
+import { PencilIcon, CircleHelp, Loader2Icon, Settings, Trash2, PlayIcon, StarIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next'
 import XButton from '@/components/XButton.vue'
-import { clientv1 } from '@/lib/apiClient'
 import router from '@/router'
 import { toast, type ToastOptions } from 'vue3-toastify'
 import { arrayBufferToBase64 } from '@/utils/helpers'
@@ -18,6 +17,7 @@ import {
   getApiKey,
   deleteApiKey,
   listApiKeys,
+  OnLogOut
 } from '@/utils/functions/profileFunctions'
 import { useQuizzyStore } from '@/stores/quizzyStore'
 
@@ -36,6 +36,7 @@ const isDeleteModal = ref(false)
 const showSaveButton = ref<boolean>(false)
 const tempImage = ref<File | null>(null)
 const showPasswordModal = ref(false)
+const showPassword = ref(false)
 const apiKey = ref('')
 const route = useRoute()
 const userId = route.params.uuid.toString()
@@ -61,6 +62,32 @@ const userPw = ref({
   new_password: '',
   confirm_password: '',
 })
+
+const passwordValidation = ref({
+  minLength: false,
+  hasUppercase: false,
+  hasLowercase: false,
+  hasNumber: false,
+  hasSpecial: false,
+  passwordsMatch: false
+})
+
+watch(() => userPw.value.new_password, (newPassword) => {
+  passwordValidation.value.minLength = newPassword.length >= 8
+  passwordValidation.value.hasUppercase = /[A-Z]/.test(newPassword)
+  passwordValidation.value.hasLowercase = /[a-z]/.test(newPassword)
+  passwordValidation.value.hasNumber = /\d/.test(newPassword)
+  passwordValidation.value.hasSpecial = /[^a-zA-Z0-9]/.test(newPassword)
+  passwordValidation.value.passwordsMatch = newPassword === userPw.value.confirm_password
+})
+
+watch(() => userPw.value.confirm_password, (newConfirmPassword) => {
+  passwordValidation.value.passwordsMatch = userPw.value.new_password === newConfirmPassword
+})
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
 
 const { data: realUser, isLoading: isLoadingPage } = useQuery({
   queryKey: ['userProfile', userId],
@@ -181,7 +208,7 @@ const handleFileChange = (event: Event) => {
 
   if (file) {
     const size = file.size / (1024 * 1024)
-    
+
     const isValidFileType = file.type === 'image/jpeg' || file.type === 'image/png'
     if (!isValidFileType) {
       toast('Csak JPG és PNG fájlok engedélyezettek!', {
@@ -260,14 +287,15 @@ const onDelete = (uuid: string) => {
   isDeleteModal.value = false
 }
 
-const OnLogOut = async () => {
-  await clientv1.auth.logout.$get()
-  queryClient.removeQueries({ queryKey: ['auth'] })
-  queryClient.removeQueries({ queryKey: ['userProfile'] })
-  localStorage.clear()
-  quizzyStore.$reset()
-  router.push('/login')
+const isLoading = ref(false)
+
+const changePw = async () => {
+  isLoading.value = true
+  await handlePasswordChange(userPw.value.current_password, userPw.value.new_password, userPw.value.confirm_password)
+  isLoading.value = false
 }
+
+
 
 watch(
   () => route.params.uuid,
@@ -295,8 +323,7 @@ watch(
             <div v-else class="flex flex-col md:justify-center w-full items-center gap-6 md:gap-8 p-4"
               :class="isOtherUser ? 'md:flex-row' : 'md:flex-row md:flex-wrap'">
               <div class="relative mx-auto md:mx-0">
-                <img :src="localPfp"
-                  class="w-40 h-40 rounded-full border-4
+                <img :src="localPfp" class="w-40 h-40 rounded-full border-4
                    border-white/30 flex items-center justify-center" />
                 <div v-if="!isOtherUser">
                   <div
@@ -375,8 +402,8 @@ watch(
             </div>
           </div>
           <div class="w-full" :class="isOtherUser ? 'md:w-[75%]' : ''">
-            <div v-if="!isOtherUser && realUser?.friends?.length" 
-                 class="backdrop-blur-md bg-white/10 rounded-2xl p-6 mb-8 w-full">
+            <div v-if="!isOtherUser && realUser?.friends?.length"
+              class="backdrop-blur-md bg-white/10 rounded-2xl p-6 mb-8 w-full">
               <div v-if="isLoadingPage" class="h-[456px] flex justify-center items-center self-center">
                 <div class="flex justify-center items-center h-64">
                   <Loader2Icon class="w-12 h-12 text-white animate-spin" />
@@ -440,9 +467,9 @@ watch(
                     'border-2 border-transparent hover:border-white': quiz.status === 'published'
                   }" @click="quiz.status !== 'published' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
 
-                    
+
                     <div class="flex flex-col md:flex-row gap-4 items-center justify-between w-full p-4 rounded-lg"
-                    :class="quiz.status !== 'published' ? 'bg-yellow-500/70' : ''">
+                      :class="quiz.status !== 'published' ? 'bg-yellow-500/70' : ''">
                       <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
                         <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner"
                           class="w-full h-full object-cover" />
@@ -528,30 +555,44 @@ watch(
               </div>
               <XButton @click="closePasswordModal" />
             </div>
-            <form @submit.prevent="
-              handlePasswordChange(
-                userPw.new_password,
-                userPw.confirm_password,
-                userPw.current_password,
-              )
-              " class="space-y-4 text-white">
+            <div
+              class="space-y-4 text-white">
               <div>
-                <input type="password" placeholder="Jelenlegi jelszó" v-model="userPw.current_password"
+                <input :type="showPassword ? 'text' : 'password'" placeholder="Jelenlegi jelszó"
+                  v-model="userPw.current_password"
                   class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
               </div>
-              <div>
-                <input type="password" placeholder="Új jelszó" v-model="userPw.new_password"
+              <div class="relative">
+                <input :type="showPassword ? 'text' : 'password'" placeholder="Új jelszó" v-model="userPw.new_password"
                   class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" @click="togglePassword">
+                  <component :is="showPassword ? EyeOffIcon : EyeIcon" class="w-5 h-5 text-white" />
+                </div>
               </div>
               <div>
-                <input type="password" placeholder="Új jelszó megerősítése" v-model="userPw.confirm_password"
+                <input :type="showPassword ? 'text' : 'password'" placeholder="Új jelszó megerősítése"
+                  v-model="userPw.confirm_password"
                   class="w-full p-3 rounded-md bg-white/10 border border-white/20 focus:border-white/50 outline-none" />
               </div>
-              <button type="submit"
-                class="glass-button px-4 py-3 text-lg text-white font-semibold rounded-lg transition-all duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
-                Jelszó módosítása
+              <ul class="text-sm text-white/70 space-y-1">
+                <li :class="passwordValidation.minLength ? 'text-green-400' : ''">• Minimum 8 karakter</li>
+                <li :class="passwordValidation.hasUppercase ? 'text-green-400' : ''">• Legalább egy nagybetű</li>
+                <li :class="passwordValidation.hasLowercase ? 'text-green-400' : ''">• Legalább egy kisbetű</li>
+                <li :class="passwordValidation.hasNumber ? 'text-green-400' : ''">• Legalább egy szám</li>
+                <li :class="passwordValidation.hasSpecial ? 'text-green-400' : ''">• Legalább egy speciális karakter
+                </li>
+                <li :class="passwordValidation.passwordsMatch ? 'text-green-400' : ''">• Jelszavak egyezése</li>
+              </ul>
+              <button @click="changePw"
+                class="glass-button py-2 px-4 text-md text-white font-semibold rounded-lg transition-all 
+                duration-300 ease-in-out cursor-pointer w-full !bg-green-900">
+
+                {{ isLoading ? '' : 'Jelszó módosítás' }}
+                <div v-if="isLoading" class="flex justify-center items-center h-fit pointer-events-auto">
+                  <Loader2Icon class="w-6 h-6 text-white animate-spin" />
+                </div>
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </transition>

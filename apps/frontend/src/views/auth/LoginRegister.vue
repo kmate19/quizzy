@@ -8,6 +8,7 @@ import { toast, type ToastOptions } from 'vue3-toastify'
 import type { ApiResponse } from 'repo'
 import { userData } from '@/utils/functions/profileFunctions'
 import { useQuizzyStore } from '@/stores/quizzyStore'
+import { Loader2Icon } from 'lucide-vue-next'
 
 const queryClient = useQueryClient()
 const quizzyStore = useQuizzyStore()
@@ -100,51 +101,51 @@ const onRegistration = async () => {
     return
   }
   isLoading.value = true
-    const regRes = await clientv1.auth.register.$post({ json: regForm.value })
-    if (regRes.status === 200) {
-      toast('Sikeres regisztráció, ellenőrizze email fiókját!', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'success',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-      flipLogin()
-      clearRegistration()
+  const regRes = await clientv1.auth.register.$post({ json: regForm.value })
+  if (regRes.status === 200) {
+    toast('Sikeres regisztráció, ellenőrizze email fiókját!', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'success',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+    flipLogin()
+    clearRegistration()
+  }
+  else if ((regRes.status as number) === 429) {
+    toast('Elérted a maximális regisztrációs kísérletek számát!\nMax 5 próbálkozás 15 percenként', {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: true,
+    } as ToastOptions)
+  }
+  else {
+    const res = (await regRes.json()) satisfies ApiResponse
+    const errorMessage = res.error.message
+    let info = ''
+    switch (errorMessage) {
+      case 'email already exists':
+        info = 'Ez az email cím már létezik!'
+        break
+      case 'username already exists':
+        info = 'Ez a felhasználónév már létezik!'
+        break
+      default:
+        info = ''
     }
-    else if ((regRes.status as number) === 429) {
-      toast('Elérted a maximális regisztrációs kísérletek számát!\nMax 5 próbálkozás 15 percenként', {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: true,
-      } as ToastOptions)
-    }
-    else {
-      const res = (await regRes.json()) satisfies ApiResponse
-      const errorMessage = res.error.message
-      let info = ''
-      switch (errorMessage) {
-        case 'email already exists':
-          info = 'Ez az email cím már létezik!'
-          break
-        case 'username already exists':
-          info = 'Ez a felhasználónév már létezik!'
-          break 
-        default:
-          info = ''
-      }
 
-      toast(res.message + '\n' + info, {
-        autoClose: 5000,
-        position: toast.POSITION.TOP_CENTER,
-        type: 'error',
-        transition: 'zoom',
-        pauseOnHover: false,
-      } as ToastOptions)
-    }
-  
+    toast(res.message + '\n' + info, {
+      autoClose: 5000,
+      position: toast.POSITION.TOP_CENTER,
+      type: 'error',
+      transition: 'zoom',
+      pauseOnHover: false,
+    } as ToastOptions)
+  }
+
   isLoading.value = false
 }
 
@@ -160,12 +161,7 @@ const onLogin = async () => {
     return
   }
   isLoading.value = true;
-  (Object.keys(loginForm.value) as Array<keyof loginFormType>).forEach((key) => {
-    loginForm.value[key] = loginForm.value[key].trim()
-  })
-
   const loginRes = await clientv1.auth.login.$post({ json: loginForm.value })
-
   if (loginRes.status === 200) {
     queryClient.setQueryData(['auth'], { isAuthenticated: true })
     const res = await userData("")
@@ -265,10 +261,12 @@ onMounted(() => {
               </router-link>
             </div>
             <div class="w-full max-w-md space-y-4">
-              <button type="submit" :disabled="isLoading"
-                class="glass-button !w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
-                <div class="flex items-center justify-center w-full">
-                  Bejelentkezés
+              <button type="submit" :disabled="isLoading" class="glass-button !w-full px-6 py-3 text-white font-semibold rounded-lg
+                 transition-all duration-300 ease-in-out relative flex items-center justify-center"
+                style="min-height: 48px;">
+                <span :class="{ 'opacity-0': isLoading }">Bejelentkezés</span>
+                <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center">
+                  <Loader2Icon class="w-6 h-6 text-white animate-spin" />
                 </div>
               </button>
               <button type="button" :disabled="isLoading"
@@ -295,10 +293,8 @@ onMounted(() => {
             </div>
             <label for="username" class="text-white self-center block">Felhasználónév:</label>
             <div class="relative mb-2">
-              <input id="username" name="username" v-model="regForm.username" placeholder="QuizzyUser43"
-                class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2
-                 focus:ring-purple-500/50 focus:border-purple-500/50"
-                 type="text" />
+              <input id="username" name="username" v-model="regForm.username" placeholder="QuizzyUser43" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2
+                 focus:ring-purple-500/50 focus:border-purple-500/50" type="text" />
             </div>
             <label for="pw" class="text-white self-center block">Jelszó:</label>
             <div class="relative mb-2">
@@ -310,7 +306,7 @@ onMounted(() => {
                 <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                 <EyeOffIcon v-else class="h-5 w-5" />
               </button>
-             
+
             </div>
             <transition name="fade" enter-active-class="transition ease-out duration-300"
               leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
@@ -345,7 +341,7 @@ onMounted(() => {
               <input id="pw_again" name="pw_again" v-model="regForm.confirmPassword"
                 class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                 :type="showPassword ? 'text' : 'password'" />
-              
+
             </div>
             <transition name="fade" enter-active-class="transition ease-out duration-300"
               leave-active-class="transition ease-in duration-300" mode="out-in" @enter="updateCardHeight"
@@ -358,14 +354,16 @@ onMounted(() => {
                 </div>
               </div>
             </transition>
-            <div class="w-full max-w-md space-y-4 mt-4">
-              <button type="submit" :disabled="isLoading"
-                class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out">
-                <div class="flex items-center justify-center">
-                  Regisztráció
+            <div class="w-full max-w-md space-y-4">
+              <button type="submit" :disabled="isLoading" class="glass-button !w-full px-6 py-3 text-white font-semibold rounded-lg
+                 transition-all duration-300 ease-in-out relative flex items-center justify-center"
+                style="min-height: 48px;">
+                <span :class="{ 'opacity-0': isLoading }">Regisztráció</span>
+                <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center">
+                  <Loader2Icon class="w-6 h-6 text-white animate-spin" />
                 </div>
               </button>
-              <button type="button"
+              <button type="button" :disabled="isLoading"
                 class="glass-button w-full px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 ease-in-out"
                 @click="flipLogin">
                 Bejelentkezés
