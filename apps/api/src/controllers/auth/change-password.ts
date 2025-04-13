@@ -19,10 +19,7 @@ const changePasswordHandler = GLOBALS.CONTROLLER_FACTORY(
             .from(usersTable)
             .where(eq(usersTable.id, userId));
 
-        try {
-            await Bun.password.verify(oldPassword, user.password);
-        } catch (e) {
-            console.error("CHANGE PASSWORD ERROR", e);
+        if (!(await Bun.password.verify(oldPassword, user.password))) {
             return c.json(
                 {
                     message: "Érvénytelen régi jelszó",
