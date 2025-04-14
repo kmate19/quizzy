@@ -5,7 +5,9 @@ import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
 import { useRouter } from 'vue-router';
 import { useNavbarStore } from '@/stores/navbarStore';
+import { useQuizzyStore } from '@/stores/quizzyStore';
 
+const quizzyStore = useQuizzyStore()
 const navbarStore = useNavbarStore()
 const router = useRouter()
 const quiz = ref<Game>();
@@ -106,6 +108,7 @@ onUnmounted(() => {
     stopTimer()
     navbarStore.isGame = false
     navbarStore.isDuringGame = false
+    quizzyStore.isSelfQuiz = false
 })
 
 const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
@@ -179,6 +182,12 @@ onMounted(async () => {
     navbarStore.isDuringGame = true
 })
 
+const goBack = () => {
+    if(quizzyStore.isSelfQuiz)
+        router.push('/profil')
+    else
+        router.back()
+}
 
 </script>
 
@@ -314,7 +323,7 @@ onMounted(async () => {
                                 class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-700 transition-all flex-1 cursor-pointer">
                                 Újrakezdés
                             </button>
-                            <button @click="router.back()"
+                            <button @click="goBack"
                                 class="bg-transparent border border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white/10 transition-all flex-1 cursor-pointer">
                                 Vissza
                             </button>

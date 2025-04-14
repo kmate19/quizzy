@@ -277,6 +277,7 @@ const handleQuizView = (uuid: string) => {
 }
 
 const handleQuizDetailedView = (uuid: string) => {
+  quizzyStore.isSelfQuiz = true
   router.push(`/quiz/${uuid}`)
 }
 
@@ -463,13 +464,13 @@ watch(
                 <div class="space-y-4 overflow-y-scroll custom-scrollbar p-6 max-h-[400px]">
                   <div v-for="quiz in userQuizzies" :key="quiz.id" :class="{
                     'relative flex flex-col md:flex-row gap-4 p-4 rounded-xl text-white shadow-lg transition-all duration-500 cursor-pointer bg-white/10': true,
-                    'border-2 border-yellow-400 caution-border hover:border-white': quiz.status !== 'published',
-                    'border-2 border-transparent hover:border-white': quiz.status === 'published'
-                  }" @click="quiz.status !== 'published' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
+                    'border-2 border-yellow-400 caution-border hover:border-white': quiz.status === 'draft',
+                    'border-2 border-transparent hover:border-white': quiz.status !== 'draft'
+                  }" @click="quiz.status === 'draft' ? handleQuizView(quiz.id) : handleQuizDetailedView(quiz.id)">
 
 
                     <div class="flex flex-col md:flex-row gap-4 items-center justify-between w-full p-4 rounded-lg"
-                      :class="quiz.status !== 'published' ? 'bg-yellow-500/70' : ''">
+                      :class="quiz.status === 'draft' ? 'bg-yellow-500/70' : ''">
                       <div class="relative w-full md:w-20 h-20 rounded-lg overflow-hidden shrink-0">
                         <img v-if="quiz.banner" :src="quiz.banner" alt="Quiz banner"
                           class="w-full h-full object-cover" />

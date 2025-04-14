@@ -32,6 +32,7 @@ const toggleQuestion = (index: number) => {
 const handleViewUser = (uuid: string) => {
   router.push(`/profil/${uuid}`)
 }
+
 const handleTestPlay = () => {
   router.push(`/quiz/practice/${uuid}`)
 }

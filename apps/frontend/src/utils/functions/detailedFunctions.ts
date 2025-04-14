@@ -3,11 +3,21 @@ import { arrayBufferToBase64 } from '@/utils/helpers'
 import type { Language } from '@/utils/type'
 import { toast, type ToastContainerOptions } from 'vue3-toastify'
 import { type detailedQuiz } from '@/utils/type'
+import { useQuizzyStore } from '@/stores/quizzyStore'
+
 
 export const getQuiz = async (uuid: string) => {
-  const getQuiz = await clientv1.quizzes[':quizId'].$get({ param: { quizId: uuid.toString() } })
-  if (getQuiz.ok) {
-    const res = await getQuiz.json()
+  const quizzyStore = useQuizzyStore()
+  let quizResponse;
+  
+  if (quizzyStore.isSelfQuiz) {
+    quizResponse = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: uuid.toString() } })
+  } else {
+    quizResponse = await clientv1.quizzes[':quizId'].$get({ param: { quizId: uuid.toString() } })
+  }
+  
+  if (quizResponse.ok) {
+    const res = await quizResponse.json()
     const getUser = await clientv1.userprofile[':userId'].$get({
       param: { userId: res.data.user_id },
     })
@@ -49,7 +59,7 @@ export const getQuiz = async (uuid: string) => {
       user: user,
     }
   } else {
-    const res = await getQuiz.json()
+    const res = await quizResponse.json()
     toast(res.message, {
       autoClose: 5000,
       position: toast.POSITION.TOP_CENTER,

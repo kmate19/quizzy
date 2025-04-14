@@ -336,15 +336,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
             chatContainer.scrollTop = chatContainer.scrollHeight
           }
         })
-        if (!isChatOpen.value) {
-          toast(`${data.data.name}: ${data.data.message}`, {
-            autoClose: 3000,
-            position: toast.POSITION.TOP_CENTER,
-            type: 'info',
-            transition: 'slide',
-            pauseOnHover: true,
-          })
-        }
       }
     } catch (err) {
       console.error('Error parsing WebSocket message:', err)
