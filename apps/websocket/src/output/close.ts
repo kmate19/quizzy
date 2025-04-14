@@ -1,15 +1,15 @@
-import { Lobby, LobbyMap } from "@/types";
+import { Lobby, LobbyMap, LobbyUser } from "@/types";
 import { ServerWebSocket } from "bun";
 import { WebsocketMessage } from "repo";
 import { generateSessionHash } from "@/utils/generate";
 
 export function closeWithError<E extends Error>(
-    ws: ServerWebSocket<unknown>,
+    ws: ServerWebSocket<LobbyUser>,
     message: string,
     code: number = 1008,
     error?: E
 ) {
-    console.error(error);
+    console.error("closing a conn with error: ", message, error);
 
     const res = {
         type: "error",
@@ -21,6 +21,8 @@ export function closeWithError<E extends Error>(
     } satisfies WebsocketMessage;
 
     ws.send(JSON.stringify(res));
+    console.log("SETTING CAN RECONNECT TO FALSE!!!!!!!!!!!!!!!");
+    ws.data.lobbyUserData.canRecconnect = false;
     ws.close(code, message);
 }
 
@@ -33,7 +35,7 @@ export function abortLobby(lobby: Lobby, errMessage: string) {
 }
 
 export function closeIfInvalid(
-    ws: ServerWebSocket<unknown>,
+    ws: ServerWebSocket<LobbyUser>,
     hash: string,
     lobbyid: string,
     lobbies: LobbyMap,
@@ -51,6 +53,7 @@ export function closeIfInvalid(
     if (!lobbies.has(lobbyid)) {
         res.error.message = "Lobby does not exist";
         ws.send(JSON.stringify(res));
+        console.error(res.error);
         ws.close(1008, "Lobby does not exist");
         return true;
     }
@@ -58,6 +61,7 @@ export function closeIfInvalid(
     if ("ok" in jwtdata) {
         res.error.message = "Bad jwt";
         ws.send(JSON.stringify(res));
+        console.error(res.error);
         ws.close(1008, "Bad jwt");
         return true;
     }
@@ -76,6 +80,7 @@ export function closeIfInvalid(
     ) {
         res.error.message = "User already in lobby";
         ws.send(JSON.stringify(res));
+        console.error(res.error);
         ws.close(1008, "User already in lobby");
         return true;
     }
@@ -83,6 +88,7 @@ export function closeIfInvalid(
     if (hash !== generateSessionHash(lobbyid, Bun.env.HASH_SECRET || "asd")) {
         res.error.message = "Hash mismatch";
         ws.send(JSON.stringify(res));
+        console.error(res.error);
         ws.close(1008, "Hash mismatch");
         return true;
     }
