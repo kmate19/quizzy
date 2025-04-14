@@ -88,7 +88,7 @@ const createLobby = async () => {
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
     </div>
   </div>
-  <div v-else class="w-screen h-screen overflow-y-auto fixed left-0 p-2">
+  <div v-else class="w-screen h-full overflow-y-auto fixed left-0 p-2">
     <div class="text-white md:p-2">
       <div class="flex flex-col lg:flex-row max-w-7xl mx-auto">
         <!-- Left -->
@@ -105,7 +105,7 @@ const createLobby = async () => {
             </button>
           </div>
 
-          <div class="overflow-y-auto flex-1 md:space-y-4 p-2">
+          <div class="overflow-y-auto flex-1 md:space-y-4 p-2 space-y-2">
             <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
               <div class="h-52 bg-white/10 rounded-lg flex items-center">
                 <v-img :src="data?.banner || '/placeholder.svg?height=200&width=300'" max-width="fit"
@@ -187,17 +187,17 @@ const createLobby = async () => {
                 </svg>
               </button>
 
-              <div class="transition-all duration-700 ease-in-out overflow-hidden" :class="expandedQuestions[index] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+              <div class="transition-all duration-700 ease-in-out overflow-hidden" :class="expandedQuestions[index] ? 'max-h-[70px] opacity-100' : 'max-h-0 opacity-0'
                 ">
-                <div class="pt-4 pb-2 px-2 sm:px-4">
-                  <span class="text-sm font-semibold">Helyes válasz:</span>
-                  <div class="py-2 text-green-600 border-t border-white/10 text-sm sm:text-base">
+                <div>
+                  <span class="text-base font-semibold">Helyes válasz:</span>
+                  <div class=" text-green-600 border-t border-white/10 text-base">
                     {{ card.answers[card.correct_answer_index] }}
                   </div>
                 </div>
               </div>
             </div>
-            <div class="h-10 lg:hidden"></div>
+            <div class="h-28 sm:h-10 md:hidden"></div>
           </div>
         </div>
       </div>
