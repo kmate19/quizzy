@@ -20,6 +20,8 @@ export async function handleWsMessage(
     const lobby = lobbies.get(lobbyid)!;
     const members = lobby.members;
 
+    console.log("recieved message of type: ", msg.type);
+
     switch (msg.type) {
         case "sendchatmessage":
             const maybeChatMessage = z.string().max(100).safeParse(msg.data);
