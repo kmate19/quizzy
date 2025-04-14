@@ -564,6 +564,17 @@ onUnmounted(() => {
   navbarStore.isDuringGame = false
 })
 
+
+window.addEventListener('beforeunload', function(event) {
+  const message = "Biztosan el akarod hagyni a játékot? Ez kapcsolati problémát okozhat!";
+
+  event.preventDefault();
+
+  event.returnValue = message;
+
+  return message;
+});
+
 </script>
 
 <template>
@@ -895,7 +906,7 @@ onUnmounted(() => {
                 'flex items-start max-w-[85%]',
                 msg.isSelf ? 'ml-auto flex-row-reverse' : ''
               ]">
-                <img :src="msg.pfp" class="w-8 h-8 rounded-full flex-shrink-0" :class="msg.isSelf ? 'ml-2' : 'mr-2'" />
+                <img :src="msg.pfp" class="w-8 h-8 rounded-full object-cover" :class="msg.isSelf ? 'ml-2' : 'mr-2'" />
                 <div :class="[
                   'rounded-xl py-2 px-3',
                   msg.isSelf ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-white rounded-bl-none'

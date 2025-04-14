@@ -81,6 +81,16 @@ const createLobby = async () => {
 
   }
 };
+
+window.addEventListener('beforeunload', function(event) {
+  const message = "Biztosan el akarod hagyni a játékot? Ez kapcsolati problémát okozhat!";
+
+  event.preventDefault();
+
+  event.returnValue = message;
+
+  return message;
+});
 </script>
 
 <template>
