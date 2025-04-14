@@ -127,18 +127,21 @@ const quiz = ref<quizUpload>({
   cards: [] as unknown as nonemptyCardArray,
 })
 
+const hasAnswers = ref(false)
+
 watch(
   () => oneQuestion.value.type,
   (newType) => {
-    if (newType === 'twochoice') {
-      oneQuestion.value.answers = ['Igaz', 'Hamis']
-    } else {
-      oneQuestion.value.answers = ['', '', '', '']
+    if(!hasAnswers.value){
+      if (newType === 'twochoice') {
+        oneQuestion.value.answers = ['Igaz', 'Hamis']
+      } else if(newType === 'normal') {
+        oneQuestion.value.answers = ['', '', '', '']
+      }
+      oneQuestion.value.correct_answer_index = 1
     }
-    oneQuestion.value.correct_answer_index = 1
   },
   {
-    immediate: true,
     flush: 'sync',
   },
 )
@@ -327,6 +330,7 @@ const addQuestion = async () => {
       correct_answer_index: oneQuestion.value.correct_answer_index - 1,
     })
 
+    hasAnswers.value = false
     resetQuestion()
   } else {
     toast(msg, {
@@ -344,7 +348,9 @@ const handleQuestionRemove = (index: number) => {
 }
 
 const handleQuestionModify = (index: number) => {
+  hasAnswers.value = true
   const res = quiz.value.cards[index]
+  console.log(res)
   oneQuestion.value = {
     question: res.question,
     type: res.type as 'twochoice' | 'normal',
@@ -782,20 +788,23 @@ const marqueeDuration = computed(() => {
               </div>
             </div>
             <v-textarea v-model="oneQuestion.question" label="Kérdés" variant="outlined" class="glass-input"
-              bg-color="rgba(255, 255, 255, 0.1)" />
+              bg-color="rgba(255, 255, 255, 0.1)" counter="255" :rules="[(v) => v.length <= 255]" 
+              @input="oneQuestion.question = oneQuestion.question.substring(0,255)"/>
             <div>
               <div v-if="oneQuestion.type === 'normal'" :key="oneQuestion.type + 'normal'">
                 <div class="grid grid-cols-2 gap-2 mb-2">
                   <v-text-field v-for="(answer, index) in oneQuestion.answers" :key="`normal-${index}`"
                     v-model="oneQuestion.answers[index]" :label="`Válasz ${index + 1}`" variant="outlined"
-                    bg-color="rgba(255, 255, 255, 0.1)" />
+                    bg-color="rgba(255, 255, 255, 0.1)" counter="255" :rules="[(v) => v.length <= 255]"
+                    @input="oneQuestion.answers[index] = oneQuestion.answers[index].substring(0, 255)"/>
                 </div>
               </div>
               <div v-else-if="oneQuestion.type === 'twochoice'" :key="oneQuestion.type + 'twochoice'">
                 <div class="grid grid-cols-2 gap-2 mb-2">
                   <v-text-field v-for="(answer, index) in oneQuestion.answers" :key="`twochoice-${index}`"
                     v-model="oneQuestion.answers[index]" :placeholder="index === 0 ? 'Igaz' : 'Hamis'"
-                    variant="outlined" bg-color="rgba(255, 255, 255, 0.1)" />
+                    variant="outlined" bg-color="rgba(255, 255, 255, 0.1)" counter="255" :rules="[(v) => v.length <= 255]"
+                    @input="oneQuestion.answers[index] = oneQuestion.answers[index].substring(0, 255)"/>
                 </div>
               </div>
               <v-text-field v-model="oneQuestion.correct_answer_index" label="Helyes válasz száma" variant="outlined"

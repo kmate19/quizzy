@@ -21,13 +21,13 @@ const handleSubmit = async () => {
     isLoading.value = false
     toast('A további tennivalókat és a jelszavadat elküldtük a megadott e-mail címre! Ha nem találod, ellenőrizd a "Spam"-et!',
       {
-        autoClose: 3500,
+        autoClose: 2000,
         position: toast.POSITION.TOP_CENTER,
         type: 'success',
         transition: 'zoom',
         pauseOnHover: false,
       } as ToastOptions)
-    await new Promise(resolve => setTimeout(resolve, 4000))
+    await new Promise(resolve => setTimeout(resolve, 2500))
     router.push('/login')
   }
   else if(newPw.status === 429) {
