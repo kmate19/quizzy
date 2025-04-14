@@ -95,8 +95,6 @@ const joinLobby = async (code: string) => {
 
   try {
     isLoading.value = true
-    //simulate a delay for the loading state
-    await new Promise((resolve) => setTimeout(resolve, 5000))
     const first = await wsclient.reserve.session[':code?'].$post({
       param: { code: code.trim() },
       query: { ts: Date.now().toString() },
