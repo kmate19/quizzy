@@ -117,7 +117,6 @@ const setupWebSocketListeners = (ws: WebSocket) => {
             server: false,
           }),
         )
-
       } else {
         ws.send(
           JSON.stringify({
