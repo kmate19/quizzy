@@ -199,6 +199,7 @@ namespace localadmin.ViewModels
                 CurrentPage--;
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CanGoNext));
+                SharedState.SearchText = "Keresés";
                 await GetQuizes();
             }
         }
@@ -214,6 +215,7 @@ namespace localadmin.ViewModels
                 CurrentPage++;
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CanGoPrevious));
+                SharedState.SearchText = "Keresés";
                 await GetQuizes();
             }
             else

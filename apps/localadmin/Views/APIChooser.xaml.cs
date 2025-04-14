@@ -13,7 +13,6 @@ namespace localadmin.Views
         public APIChooser()
         {
             InitializeComponent();
-            Debug.WriteLine("APIChooser loaded");
         }
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e)

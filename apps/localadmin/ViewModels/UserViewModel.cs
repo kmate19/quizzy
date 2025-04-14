@@ -109,7 +109,8 @@ namespace localadmin.ViewModels
             {
                 user.Initialize(NavigationService);
                 user.UserUpdated += async () => await GetUsers();
-                user.Winrate = user.Stats.Plays == 0 || !user.Stats.Plays.HasValue || !user.Stats.FirstPlaces.HasValue ? 0 : ((double)user.Stats.FirstPlaces.Value / user.Stats.Plays.Value) * 100;
+                user.Winrate = user.Stats.Plays == 0 || !user.Stats.Plays.HasValue || !user.Stats.FirstPlaces.HasValue ? 0 : Math.Round((double)user.Stats.FirstPlaces.Value / user.Stats.Plays.Value * 100, 2);
+
 
                 usersList.Add(user);
                 filteredList.Add(user);
@@ -162,6 +163,7 @@ namespace localadmin.ViewModels
                 CurrentPage--;
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CanGoNext));
+                SharedState.SearchText = "Keresés";
                 await GetUsers();
             }
         }
@@ -177,6 +179,7 @@ namespace localadmin.ViewModels
                 CurrentPage++;
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CanGoPrevious));
+                SharedState.SearchText = "Keresés";
                 await GetUsers();
             }
             else
