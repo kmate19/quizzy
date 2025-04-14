@@ -20,8 +20,7 @@ export function generateSessionHash(
     lobbyCode: string,
     secretKey: string
 ): string {
-    const timestamp = Math.floor(Date.now() / 10000);
-    const data = `${lobbyCode}:${timestamp}`;
+    const data = `${lobbyCode}`;
 
     // Create HMAC
     return crypto.createHmac("sha256", secretKey).update(data).digest("hex");

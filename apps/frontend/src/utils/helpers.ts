@@ -1,5 +1,4 @@
 export const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): string => {
-  
   const bytes = new Uint8Array(buffer)
   let binary = ''
   for (let i = 0; i < bytes.byteLength; i++) {
@@ -9,8 +8,7 @@ export const arrayBufferToBase64 = (buffer: number[], mimeType = 'image/png'): s
 }
 
 export async function generateSessionHash(lobbyCode: string, secretKey: string) {
-  const timestamp = Math.floor(Date.now() / 10000)
-  const data = `${lobbyCode}:${timestamp}`
+  const data = `${lobbyCode}`
   const encoder = new TextEncoder()
   const keyData = encoder.encode(secretKey)
   const messageData = encoder.encode(data)
