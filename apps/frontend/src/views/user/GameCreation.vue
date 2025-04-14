@@ -13,7 +13,7 @@ import router from '@/router'
 import draggable from 'vuedraggable'
 
 const qTypes = ['twochoice', 'normal']
-const eitems = ['draft', 'published', 'requires_review', 'private']
+const eitems = ['draft', 'published', 'private']
 const mItems = ['vázlat', 'publikus', 'privát']
 
 const isTagDropdownOpen = ref(false)
@@ -145,6 +145,8 @@ watch(
     flush: 'sync',
   },
 )
+
+
 
 onMounted(async () => {
   const editSuccess = localStorage.getItem('quizEditSuccess')

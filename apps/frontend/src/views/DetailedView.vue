@@ -29,9 +29,11 @@ onMounted(async () => {
 const toggleQuestion = (index: number) => {
   expandedQuestions.value[index] = !expandedQuestions.value[index]
 }
+
 const handleViewUser = (uuid: string) => {
   router.push(`/profil/${uuid}`)
 }
+
 const handleTestPlay = () => {
   router.push(`/quiz/practice/${uuid}`)
 }

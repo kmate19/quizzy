@@ -1,10 +1,19 @@
 import { clientv1 } from '@/lib/apiClient'
 import type { Game } from '@/utils/type'
 import { arrayBufferToBase64 } from '../helpers';
+import{ useQuizzyStore } from '@/stores/quizzyStore'
 
 export const getGameQuiz = async (id: string) =>
 {
-    const get = await clientv1.quizzes[':quizId'].$get({param: { quizId: id}});
+ const quizzyStore = useQuizzyStore()
+  let get;
+  
+  if (quizzyStore.isSelfQuiz) {
+    get = await clientv1.quizzes.own[':quizId'].$get({ param: { quizId: id } })
+  } else {
+    get = await clientv1.quizzes[':quizId'].$get({ param: { quizId: id } })
+  }
+
     if(get.status === 200)
     {
         const res = await get.json()
