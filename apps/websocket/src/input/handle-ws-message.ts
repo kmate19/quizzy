@@ -64,6 +64,7 @@ export async function handleWsMessage(
 
             return;
         case "leave":
+            console.log("SETTING CAN RECONNECT TO FALSE!!!!!!!!!!!!!!!");
             ws.data.lobbyUserData.canRecconnect = false;
             return;
         case "quizdata":
@@ -230,6 +231,7 @@ export async function handleWsMessage(
                 return;
             }
 
+            console.log("SETTING CAN RECONNECT TO FALSE!!!!!!!!!!!!!!!");
             kickedUser.data.lobbyUserData.canRecconnect = false;
 
             closeWithError(kickedUser, "You have been kicked");
@@ -242,7 +244,7 @@ export async function handleWsMessage(
         case "pong":
             clearTimeout(ws.data.lobbyUserData.pongTimeout);
             ws.data.lobbyUserData.pongTimeout = setTimeout(() => {
-                closeWithError(ws, "Pong timeout", 1001);
+                closeWithError(ws, "Pong timeout handler", 1001);
             }, 20000);
 
             return;

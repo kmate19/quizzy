@@ -107,17 +107,27 @@ export const hono = new Hono()
                             score: 0,
                         },
                         pongTimeout: setTimeout(() => {
-                            closeWithError(ws.raw!, "Pong timeout", 1001);
+                            closeWithError(
+                                ws.raw!,
+                                "Pong timeout initial",
+                                1001
+                            );
                         }, 20000),
+                        pingInterval: setInterval(() => {
+                            if (ws.raw?.readyState === 3) {
+                                console.log("client closed clearing interval");
+                                clearInterval(
+                                    ws.raw.data.lobbyUserData.pingInterval
+                                );
+                            } else {
+                                console.log(
+                                    "sending ping to : ",
+                                    ws.raw?.data.lobbyUserData.username
+                                );
+                                sendSingle(ws.raw!, "ping");
+                            }
+                        }, 10000),
                     };
-
-                    const interval = setInterval(() => {
-                        if (ws.raw?.readyState === 3) {
-                            clearInterval(interval);
-                        } else {
-                            sendSingle(ws.raw!, "ping");
-                        }
-                    }, 10000);
 
                     ws.raw.subscribe(lobbyid);
                     lobby.members.add(ws.raw);

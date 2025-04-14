@@ -9,7 +9,7 @@ export function closeWithError<E extends Error>(
     code: number = 1008,
     error?: E
 ) {
-    console.error(error);
+    console.error("closing a conn with error: ", message, error);
 
     const res = {
         type: "error",
@@ -21,6 +21,7 @@ export function closeWithError<E extends Error>(
     } satisfies WebsocketMessage;
 
     ws.send(JSON.stringify(res));
+    console.log("SETTING CAN RECONNECT TO FALSE!!!!!!!!!!!!!!!");
     ws.data.lobbyUserData.canRecconnect = false;
     ws.close(code, message);
 }
@@ -52,7 +53,7 @@ export function closeIfInvalid(
     if (!lobbies.has(lobbyid)) {
         res.error.message = "Lobby does not exist";
         ws.send(JSON.stringify(res));
-        ws.data.lobbyUserData.canRecconnect = false;
+        console.error(res.error);
         ws.close(1008, "Lobby does not exist");
         return true;
     }
@@ -60,7 +61,7 @@ export function closeIfInvalid(
     if ("ok" in jwtdata) {
         res.error.message = "Bad jwt";
         ws.send(JSON.stringify(res));
-        ws.data.lobbyUserData.canRecconnect = false;
+        console.error(res.error);
         ws.close(1008, "Bad jwt");
         return true;
     }
@@ -79,7 +80,7 @@ export function closeIfInvalid(
     ) {
         res.error.message = "User already in lobby";
         ws.send(JSON.stringify(res));
-        ws.data.lobbyUserData.canRecconnect = false;
+        console.error(res.error);
         ws.close(1008, "User already in lobby");
         return true;
     }
@@ -87,7 +88,7 @@ export function closeIfInvalid(
     if (hash !== generateSessionHash(lobbyid, Bun.env.HASH_SECRET || "asd")) {
         res.error.message = "Hash mismatch";
         ws.send(JSON.stringify(res));
-        ws.data.lobbyUserData.canRecconnect = false;
+        console.error(res.error);
         ws.close(1008, "Hash mismatch");
         return true;
     }

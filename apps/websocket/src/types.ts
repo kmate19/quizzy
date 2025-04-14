@@ -21,6 +21,7 @@ export type LobbyUser = {
             score: number;
         };
         pongTimeout: Timer;
+        pingInterval: Timer;
         deletionTimeout?: Timer;
         canRecconnect: boolean;
         reconnecting: boolean;

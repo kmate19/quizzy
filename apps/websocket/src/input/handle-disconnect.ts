@@ -11,7 +11,7 @@ export function scheduleDisconnect(
         `client ${ws.data.lobbyUserData.userId} left lobby ${lobbyid} scheduling for deletion, members left: ${lobby.members.size} (including reconnecting)`
     );
 
-    if (!ws.data.lobbyUserData.canRecconnect) {
+    if (ws.data.lobbyUserData.canRecconnect === false) {
         console.log("client cannot reconnect");
         disconnect(ws, lobby, lobbyid);
         if (lobby.gameState.hostId === ws.data.lobbyUserData.userId) {
