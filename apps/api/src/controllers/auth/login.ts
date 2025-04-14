@@ -55,8 +55,10 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
         switch (user.auth_status) {
             case "pending": {
                 const pending_res = {
+                    // message:
+                    //     "Account not verified! Please check your inbox for the verification email!",
                     message:
-                        "Account not verified! Please check your inbox for the verification email!",
+                        "Fiók nem ellenőrzött! Kérjük, ellenőrizze beérkező leveleit a megerősítő e-mailhez!",
                     error: {
                         message:
                             "Account not verified! Please check your inbox for the verification email!",
@@ -68,8 +70,10 @@ const loginHandler = GLOBALS.CONTROLLER_FACTORY(
             }
             case "blocked": {
                 const blocked_res = {
+                    // message:
+                    //     "Your account can't be accessed at this time. Please contant an administrator.",
                     message:
-                        "Your account can't be accessed at this time. Please contant an administrator.",
+                        "A fiókjához jelenleg nem lehet hozzáférni. Kérjük, lépjen kapcsolatba egy rendszergazdával.",
                     error: {
                         message:
                             "Your account can't be accessed at this time. Please contant an administrator.",

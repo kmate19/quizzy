@@ -1,8 +1,10 @@
+import ENV from "@/config/env";
 import GLOBALS from "@/config/globals";
 import { QuizzyJWTPAYLOAD } from "@/types";
 import { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
 import { getCookie } from "hono/cookie";
+import { createMiddleware } from "hono/factory";
 import { decode } from "hono/jwt";
 
 export function makeRateLimiter(
@@ -13,6 +15,10 @@ export function makeRateLimiter(
     skipFailed: boolean = false,
     skipSuccess: boolean = false
 ) {
+    if (ENV.NODE_ENV() !== "production") {
+        return createMiddleware((_, next) => next());
+    }
+
     return rateLimiter({
         windowMs: timeMinutes * 60 * 1000,
         limit: limit,

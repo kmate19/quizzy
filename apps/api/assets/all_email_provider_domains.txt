@@ -9,6 +9,7 @@ ckik.hu
 0clickemail.com
 0sg.net
 0wnd.net
+example.com
 0wnd.org
 1033edge.com
 10mail.org

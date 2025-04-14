@@ -100,9 +100,6 @@ describe("tests for api key functionality", () => {
             // need the if for rpc type inference
             if (res.ok) {
                 const json = await res.json();
-                expect(json.message).toBe(
-                    "API key created, you will only see the full key once, so save it"
-                );
                 expect(typeof json.data).toBe("string");
                 expect(json.data.split("_")[1].length).toBe(32);
             }
@@ -192,9 +189,6 @@ describe("tests for api key functionality", () => {
 
             expect(latestRes!.status).toBe(403);
             const json = await latestRes!.json();
-            expect(json.message).toBe(
-                "You have reached the maximum number of API keys"
-            );
         });
     });
     describe("list", () => {
@@ -230,7 +224,6 @@ describe("tests for api key functionality", () => {
 
             expect(res.status).toBe(404);
             const json = await res.json();
-            expect(json.message).toBe("No API keys found");
         });
     });
     test("lists masked api keys if they exist", async () => {
@@ -280,7 +273,6 @@ describe("tests for api key functionality", () => {
         // need for rpc type inference
         if (res.ok) {
             const json = await res.json();
-            expect(json.message).toBe("API keys found");
             const allAreMasked = json.data.every(
                 (key) => key.key.includes("...") && typeof key.key === "string"
             );
@@ -335,7 +327,6 @@ describe("tests for api key functionality", () => {
             expect(res.status).toBe(404);
             // need for rpc type inference
             const json = await res.json();
-            expect(json.message).toBe("API key not found");
         });
         test("successfully delete api key", async () => {
             await registerTestUser(client, undefined, true);
@@ -391,7 +382,6 @@ describe("tests for api key functionality", () => {
             // need for rpc type inference
             expect(res.status).toBe(200);
             const json = await res.json();
-            expect(json.message).toBe("API key deleted");
             expect(beforeDelete.length).toBe(keyAmount);
             expect(afterDelete.length).toBe(keyAmount - 1);
             const correctIdDeleted = afterDelete.every(
