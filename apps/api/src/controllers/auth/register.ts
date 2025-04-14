@@ -12,6 +12,7 @@ import { userStatsTable } from "@/db/schemas";
 import { randomBytes } from "node:crypto";
 import sendEmail from "@/utils/email/send-email";
 import { makeRateLimiter } from "@/middlewares/ratelimiters";
+import ENV from "@/config/env";
 
 const registerHandler = GLOBALS.CONTROLLER_FACTORY(
     // makemsg hungarian
@@ -111,12 +112,14 @@ const registerHandler = GLOBALS.CONTROLLER_FACTORY(
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24),
         });
 
-        await sendEmail(
-            registerUserData.email,
-            registerUserData.username,
-            emailToken,
-            "verify"
-        );
+        if (ENV.NODE_ENV() === "production") {
+            await sendEmail(
+                registerUserData.email,
+                registerUserData.username,
+                emailToken,
+                "verify"
+            );
+        }
 
         const res = {
             message: "Felhasználó létrehozva",
