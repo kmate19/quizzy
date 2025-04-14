@@ -88,11 +88,11 @@ const createLobby = async () => {
       <Loader2Icon class="w-12 h-12 text-white animate-spin" />
     </div>
   </div>
-  <div v-else class="lg:overflow-hidden w-screen h-screen overflow-y-auto fixed left-0 p-2">
+  <div v-else class="w-screen h-screen overflow-y-auto fixed left-0 p-2">
     <div class="text-white md:p-2">
       <div class="flex flex-col lg:flex-row max-w-7xl mx-auto">
         <!-- Left -->
-        <div class="lg:w-1/3 flex-1 flex flex-col  p-1">
+        <div class="lg:w-1/3 flex-1 flex flex-col p-1 xs:h-[calc(100vh-10vh)] h-[calc(100vh-17vh)]">
           <div class="flex gap-2 justify-center lg:order-last sticky top-0 z-10 p-1 rounded-xl">
             <button
               class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl"
@@ -105,7 +105,7 @@ const createLobby = async () => {
             </button>
           </div>
 
-          <div class="overflow-y-auto flex-1 md:space-y-4 space-y-2 p-2">
+          <div class="overflow-y-auto flex-1 md:space-y-4 p-2">
             <div class="rounded-xl backdrop-blur-md bg-white/10 p-4 border border-white/20 shadow-lg">
               <div class="h-52 bg-white/10 rounded-lg flex items-center">
                 <v-img :src="data?.banner || '/placeholder.svg?height=200&width=300'" max-width="fit"
