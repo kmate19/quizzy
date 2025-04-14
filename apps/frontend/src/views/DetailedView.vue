@@ -92,7 +92,7 @@ const createLobby = async () => {
     <div class="text-white md:p-2">
       <div class="flex flex-col lg:flex-row max-w-7xl mx-auto">
         <!-- Left -->
-        <div class="lg:w-1/3 flex-1 flex flex-col p-1 xs:h-[calc(100vh-10vh)] h-[calc(100vh-17vh)]">
+        <div class="lg:w-1/3 flex-1 flex flex-col p-1">
           <div class="flex gap-2 justify-center lg:order-last sticky top-0 z-10 p-1 rounded-xl">
             <button
               class="flex-1 flex justify-center items-center rounded-xl backdrop-blur-md bg-blue-500/30 hover:bg-blue-500/40 hover:border-white p-3 border border-white/20 transition-all cursor-pointer duration-300 shadow-lg text-lg md:text-2xl"
