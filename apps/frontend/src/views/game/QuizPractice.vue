@@ -4,9 +4,9 @@ import { getGameQuiz } from '@/utils/functions/practiceFunctions';
 import type { Game } from '@/utils/type'
 import { useRoute } from 'vue-router';
 import { useRouter } from 'vue-router';
-import { useQuizzyStore } from '@/stores/quizzyStore'
+import { useNavbarStore } from '@/stores/navbarStore';
 
-const quizzyStore = useQuizzyStore()
+const navbarStore = useNavbarStore()
 const router = useRouter()
 const quiz = ref<Game>();
 const gamePhase = ref<'pre-game' | 'question' | 'results' | 'completed'>('pre-game')
@@ -80,8 +80,8 @@ const showResultAndProceed = () => {
     setTimeout(() => {
         if (isLastQuestion.value) {
             gamePhase.value = 'completed'
-            quizzyStore.isGame = false
-            quizzyStore.isDuringGame = false
+            navbarStore.isGame = false
+            navbarStore.isDuringGame = false
         } else {
             currentQuestionIndex.value++
             startQuestion()
@@ -104,8 +104,8 @@ const getBaseButtonColor = (index: number) => {
 
 onUnmounted(() => {
     stopTimer()
-    quizzyStore.isGame = false
-    quizzyStore.isDuringGame = false
+    navbarStore.isGame = false
+    navbarStore.isDuringGame = false
 })
 
 const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
@@ -161,8 +161,8 @@ const restartGame = () => {
     gamePhase.value = 'pre-game'
     shuffleAnswers()
     startPreGameTimer()
-    quizzyStore.isGame = true
-    quizzyStore.isDuringGame = true
+    navbarStore.isGame = true
+    navbarStore.isDuringGame = true
 }
 
 onMounted(async () => {
@@ -175,8 +175,8 @@ onMounted(async () => {
     gamePhase.value = 'pre-game'
     shuffleAnswers()
     startPreGameTimer()
-    quizzyStore.isGame = true
-    quizzyStore.isDuringGame = true
+    navbarStore.isGame = true
+    navbarStore.isDuringGame = true
 })
 
 
