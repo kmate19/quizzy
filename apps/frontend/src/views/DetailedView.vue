@@ -13,10 +13,12 @@ const uuid = route.params.uuid
 const data = ref<detailedQuiz>()
 const user = ref()
 const isLoading = ref(true)
-
+const isCreatingLobby = ref(false)
+const quizzyStore = useQuizzyStore()
 const expandedQuestions = ref<boolean[]>([])
 
 onMounted(async () => {
+  console.log(quizzyStore.isSelfQuiz)
   const temp = await getQuiz(uuid?.toString())
   if (temp) {
     data.value = temp.data
@@ -37,8 +39,7 @@ const handleTestPlay = () => {
   router.push(`/quiz/practice/${uuid}`)
 }
 
-const isCreatingLobby = ref(false)
-const quizzyStore = useQuizzyStore()
+
 
 const createLobby = async () => {
   try {
