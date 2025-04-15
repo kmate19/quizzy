@@ -50,6 +50,7 @@ export const useQuizzyStore = defineStore(
       currentQuiz.value = null
       id.value = ''
       canReconnect.value = false
+      isSelfQuiz.value = false
     }
 
     function setLobbyData(data: {
