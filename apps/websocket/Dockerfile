@@ -28,6 +28,8 @@ RUN pnpm run --filter websocket build
 FROM alpine:latest AS prod
 WORKDIR /app
 RUN apk add --no-cache libstdc++ libgcc
+RUN adduser -D websocket
+USER websocket
 # ^ needed for bun binary to work
 COPY --from=builder /app/apps/websocket/dist/websocket websocket
 ENV NODE_ENV=production
